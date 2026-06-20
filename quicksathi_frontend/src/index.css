@@ -1,1 +1,52 @@
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Lora:ital,wght@0,400;0,600;1,400&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap");
+html,
+body,
+#root {
+  background: transparent !important;
+  min-height: 100%;
+}
+
+/* ─────────────────────────────────────────
+   CSS VARIABLES — shared across all pages
+───────────────────────────────────────── */
+:root {
+  /* Colors */
+  --color-bg: #f5f0e8;
+  --color-bg-soft: #faf7f3;
+  --color-bg-white: #ffffff;
+  --color-border: #e8ddd4;
+  --color-accent: #c4a882;
+
+  --color-primary: #8b1a1a;
+  --color-primary-dark: #6e1414;
+
+  --color-text-dark: #2c1810;
+  --color-text-mid: #6b5b50;
+  --color-text-muted: #9a8478;
+
+  /* Typography */
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body: "Lora", Georgia, serif;
+}
+
+/* ─────────────────────────────────────────
+   ANIMATIONS — used across Hero, Category
+───────────────────────────────────────── */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
