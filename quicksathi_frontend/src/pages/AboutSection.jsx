@@ -19,12 +19,12 @@ const AboutSection = ({ categories }) => {
 
   return (
     <section
-      className="px-16 py-12"
+      className="px-4 sm:px-8 lg:px-16 py-10 sm:py-12"
       style={{ backgroundColor: "var(--color-bg)" }}
     >
       {/* Section label */}
       <p
-        className="text-xl font-semibold uppercase tracking-widest mb-0"
+        className="text-lg sm:text-xl font-semibold uppercase tracking-widest mb-0"
         style={{
           fontFamily: "var(--font-body)",
           color: "var(--color-accent)",
@@ -34,12 +34,13 @@ const AboutSection = ({ categories }) => {
         What We Do
       </p>
 
+      {/* Content — stacks on mobile, side-by-side on md+ */}
       <div
-        className="flex gap-20 items-center mt-6"
-        style={{ minHeight: "320px" }}
+        className="flex flex-col md:flex-row gap-8 md:gap-20 items-center mt-6"
+        style={{ minHeight: "auto" }}
       >
         {/* ── Left: image ── */}
-        <div className="relative flex-shrink-0" style={{ width: "45%" }}>
+        <div className="relative w-full md:w-[45%] flex-shrink-0">
           {/* Main image */}
           <div
             className="w-full overflow-hidden"
@@ -62,7 +63,7 @@ const AboutSection = ({ categories }) => {
                   objectFit: "cover",
                   opacity: i === activeIndex ? 1 : 0,
                   transition: "opacity 1s ease-in-out",
-                  borderRadius: "16px", // on the img itself too, belt-and-suspenders
+                  borderRadius: "16px",
                 }}
               />
             ))}
@@ -91,7 +92,7 @@ const AboutSection = ({ categories }) => {
         </div>
 
         {/* ── Right: details ── */}
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 w-full">
           {/* Category label */}
           <div className="flex items-center gap-1 mb-5">
             <div
@@ -115,7 +116,7 @@ const AboutSection = ({ categories }) => {
             className="font-normal leading-[1.1] mb-2"
             style={{
               fontFamily: "var(--font-display)",
-              fontSize: "clamp(28px, 3vw, 46px)",
+              fontSize: "clamp(24px, 3vw, 46px)",
               color: "var(--color-text-dark)",
               letterSpacing: "-0.02em",
               transition: "all 0.5s ease",
@@ -125,7 +126,7 @@ const AboutSection = ({ categories }) => {
             <span style={{ opacity: 0.5 }}>done right.</span>
           </h2>
 
-          {/* Quote / description */}
+          {/* Description */}
           <p
             className="text-base leading-relaxed mb-6"
             style={{

@@ -25,7 +25,7 @@ export const useFetch = (mockData, delay = 800) => {
     };
 
     fetchData();
-  }, [mockData]); // Add endpoint as dependency later
+  }, [mockData, delay]); // Add endpoint as dependency later
 
   return { data, loading, error };
 };

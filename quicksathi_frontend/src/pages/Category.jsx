@@ -7,10 +7,6 @@ import Card from "../components/common/Card";
 
 const INTERVAL_MS = 4000;
 
-/* ─────────────────────────────────────────
-   Light banner — matches reference design
-   (cream bg, serif heading left, image right)
-───────────────────────────────────────── */
 const CategoryBanner = ({
   category,
   activeSub,
@@ -19,16 +15,16 @@ const CategoryBanner = ({
   setActiveIndex,
 }) => (
   <div
-    className="relative w-full overflow-hidden rounded-3xl mx-auto"
+    className="relative w-full overflow-hidden rounded-2xl sm:rounded-3xl"
     style={{
       backgroundColor: "#EDE9F4",
-      minHeight: "280px",
-      maxWidth: "calc(100% - 80px)",
-      margin: "100px 40px 0",
+      minHeight: "240px",
+      margin: "72px 16px 0",
+      width: "calc(100% - 32px)",
     }}
   >
     {/* Left: text */}
-    <div className="relative z-10 p-10 max-w-lg">
+    <div className="relative z-10 p-6 sm:p-10 max-w-lg">
       {/* Breadcrumb */}
       <nav
         className="flex items-center gap-2 text-xs mb-4"
@@ -70,7 +66,7 @@ const CategoryBanner = ({
         className="font-normal leading-[1.08] mb-4"
         style={{
           fontFamily: "var(--font-display)",
-          fontSize: "clamp(28px, 3.5vw, 52px)",
+          fontSize: "clamp(24px, 3.5vw, 52px)",
           color: "var(--color-text-dark)",
           letterSpacing: "-0.02em",
           transition: "all 0.5s ease",
@@ -95,7 +91,7 @@ const CategoryBanner = ({
       {/* CTA */}
       <a
         href="#services"
-        className="inline-block px-6 py-3 rounded-full text-sm font-semibold no-underline transition-all duration-200 hover:opacity-90 hover:scale-105"
+        className="inline-block px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-sm font-semibold no-underline transition-all duration-200 hover:opacity-90 hover:scale-105"
         style={{
           fontFamily: "var(--font-body)",
           backgroundColor: "var(--color-text-dark)",
@@ -107,8 +103,8 @@ const CategoryBanner = ({
       </a>
     </div>
 
-    {/* Right: rotating subcategory image */}
-    <div className="absolute top-0 right-0 bottom-0 w-1/2 z-0 overflow-hidden rounded-r-3xl">
+    {/* Right: rotating subcategory image — hidden on mobile, visible sm+ */}
+    <div className="absolute top-0 right-0 bottom-0 w-1/2 z-0 overflow-hidden rounded-r-3xl hidden sm:block">
       {subs.length > 0 ? (
         subs.map((sub, i) => (
           <img
@@ -162,9 +158,6 @@ const CategoryBanner = ({
   </div>
 );
 
-/* ─────────────────────────────────────────
-   Category page
-───────────────────────────────────────── */
 const Category = () => {
   const { id } = useParams();
   const { data, loading } = useFetch(mockCategories);
@@ -183,7 +176,6 @@ const Category = () => {
 
   const activeSub = subs[activeIndex] ?? null;
 
-  // Find matching service id by name to build linkTo
   const getServiceLink = (name) => {
     const match = mockServices?.find(
       (s) => s.name.toLowerCase() === name.toLowerCase(),
@@ -228,7 +220,7 @@ const Category = () => {
 
   return (
     <div
-      className="min-h-screen pb-20"
+      className="min-h-screen pb-16 sm:pb-20"
       style={{ backgroundColor: "var(--color-bg)" }}
     >
       {/* ── Light banner ── */}
@@ -241,10 +233,10 @@ const Category = () => {
       />
 
       {/* ── Services grid ── */}
-      <div id="services" className="px-10 mt-14">
-        <div className="flex items-center gap-5 mb-10">
+      <div id="services" className="px-4 sm:px-8 lg:px-10 mt-10 sm:mt-14">
+        <div className="flex items-center gap-5 mb-8 sm:mb-10">
           <h2
-            className="text-2xl font-normal whitespace-nowrap m-0"
+            className="text-xl sm:text-2xl font-normal whitespace-nowrap m-0"
             style={{
               fontFamily: "var(--font-display)",
               color: "var(--color-text-dark)",
@@ -261,7 +253,7 @@ const Category = () => {
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {category.subCategories?.map((service) => (
             <Card
               key={service.id}

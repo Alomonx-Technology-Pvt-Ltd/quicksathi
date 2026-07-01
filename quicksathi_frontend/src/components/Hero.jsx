@@ -16,11 +16,9 @@ const Hero = ({ categories }) => {
 
   const active = categories?.[activeIndex];
 
-  // Next two categories (wrap around)
   const getPreview = (offset) =>
     categories?.[(activeIndex + offset) % categories.length];
 
-  // Add this helper at the top of the file, outside the component
   const truncate = (text, limit = 100) => {
     if (!text || text.length <= limit) return text;
     return text.slice(0, limit).replace(/\s+\S*$/, "") + "…";
@@ -48,19 +46,19 @@ const Hero = ({ categories }) => {
             }}
           />
         ))}
-        {/* Dark overlay — heavier on left, lighter on right */}
+        {/* Dark overlay */}
         <div
           className="absolute inset-0 z-10"
           style={{
             background:
-              "linear-gradient(to right, rgba(0,0,0,0.75) 35%, rgba(0,0,0,0.45) 70%, rgba(0,0,0,0.60) 100%)",
+              "linear-gradient(to right, rgba(0,0,0,0.78) 35%, rgba(0,0,0,0.45) 70%, rgba(0,0,0,0.62) 100%)",
           }}
         />
       </div>
 
-      {/* ── Active slide number (top-right) ── */}
+      {/* ── Active slide number (top-right) — hidden on mobile ── */}
       <div
-        className="absolute top-24 right-12 z-20 text-white font-bold"
+        className="absolute top-24 right-12 z-20 text-white font-bold hidden sm:block"
         style={{
           fontFamily: "var(--font-display)",
           fontSize: "clamp(48px, 6vw, 90px)",
@@ -74,12 +72,17 @@ const Hero = ({ categories }) => {
 
       {/* ── Bottom-left: badge + heading + description + CTA ── */}
       <div
-        className="absolute bottom-20 left-16 z-20 max-w-xl"
-        style={{ animation: "fadeUp 0.9s ease both" }}
+        className="absolute z-20 max-w-xl"
+        style={{
+          animation: "fadeUp 0.9s ease both",
+          bottom: "clamp(60px, 10vh, 100px)",
+          left: "clamp(16px, 5vw, 64px)",
+          right: "clamp(16px, 5vw, 64px)",
+        }}
       >
         {/* Badge */}
         <span
-          className="inline-block px-3 py-1 rounded-full text-xs font-semibold text-white/80 mb-5 border border-white/25 backdrop-blur-sm"
+          className="inline-block px-3 py-1 rounded-full text-xs font-semibold text-white/80 mb-4 sm:mb-5 border border-white/25 backdrop-blur-sm"
           style={{
             fontFamily: "var(--font-body)",
             backgroundColor: "rgba(255,255,255,0.12)",
@@ -92,10 +95,10 @@ const Hero = ({ categories }) => {
         </span>
 
         <h1
-          className="text-white font-normal leading-[1.05] mb-4"
+          className="text-white font-normal leading-[1.05] mb-3 sm:mb-4"
           style={{
             fontFamily: "var(--font-display)",
-            fontSize: "clamp(42px, 5.5vw, 80px)",
+            fontSize: "clamp(32px, 5.5vw, 80px)",
             letterSpacing: "-0.02em",
             textShadow: "0 2px 24px rgba(0,0,0,0.3)",
             transition: "all 0.5s ease",
@@ -105,7 +108,7 @@ const Hero = ({ categories }) => {
         </h1>
 
         <p
-          className="text-white/80 text-lg mb-8 leading-relaxed"
+          className="text-white/80 text-base sm:text-lg mb-6 sm:mb-8 leading-relaxed"
           style={{
             fontFamily: "var(--font-body)",
             maxWidth: "420px",
@@ -118,7 +121,7 @@ const Hero = ({ categories }) => {
 
         <Link
           to={`/category/${active?.id}`}
-          className="inline-block px-8 py-4 rounded-full text-base font-semibold no-underline transition-all duration-200 hover:scale-105 hover:shadow-xl"
+          className="inline-block px-6 sm:px-8 py-3 sm:py-4 rounded-full text-sm sm:text-base font-semibold no-underline transition-all duration-200 hover:scale-105 hover:shadow-xl"
           style={{
             fontFamily: "var(--font-body)",
             backgroundColor: "rgba(255,255,255,0.95)",
@@ -130,8 +133,8 @@ const Hero = ({ categories }) => {
         </Link>
       </div>
 
-      {/* ── Right: stacked preview cards ── */}
-      <div className="absolute right-12 bottom-20 z-20 flex flex-col gap-4 w-70">
+      {/* ── Right: stacked preview cards — hidden on mobile ── */}
+      <div className="absolute right-12 bottom-20 z-20 flex-col gap-4 w-72 hidden lg:flex">
         {[preview1, preview2].map((cat, idx) => {
           const slideNum = (activeIndex + idx + 1) % categories.length;
           return (
@@ -190,7 +193,7 @@ const Hero = ({ categories }) => {
       </div>
 
       {/* ── Slide indicators (bottom-center) ── */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3">
+      <div className="absolute bottom-6 sm:bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-3">
         <span
           className="text-xs font-semibold tracking-widest uppercase text-white/60"
           style={{ fontFamily: "var(--font-body)", letterSpacing: "0.12em" }}

@@ -1,30 +1,30 @@
 export const mockCategories = [
   {
     id: 1,
-    name: "Home Services",
+    name: "CCTV Security",
     description:
-      "Trusted home professionals for every repair, maintenance, and installation need — on time, every time.",
-    vertical: "HOME_SERVICE",
+      "Enterprise-grade CCTV and monitoring systems with expert installation and 24/7 support.",
+    vertical: "CCTV_SECURITY",
     type: "BOTH",
     imageUrl:
-      "https://res.cloudinary.com/dtrhtdngp/image/upload/v1778413059/HomeCleaning_eg8ggr.png",
+      "/images/cctv-main.png",
     secondaryImageUrl:
-      "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778413427/HomeCleaning_2_bgmrwr.png",
+      "/images/cctv-main.png",
     displayOrder: 1,
     active: true,
     parent: null,
     subCategories: [
       {
         id: 2,
-        name: "Electrician",
+        name: "Home Security",
         description:
-          "Experienced and certified electricians providing safe electrical repairs, switchboard installation, fan fitting, wiring maintenance, appliance connections, and complete home electrical solutions with reliable service.",
-        vertical: "HOME_SERVICE",
+          "Comprehensive residential security setups with high-res cameras, motion alerts, and mobile monitoring.",
+        vertical: "CCTV_SECURITY",
         type: "SERVICE_ONLY",
         imageUrl:
-          "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475582/Electrician_1_d1ijys.png",
+          "/images/cctv-main.png",
         secondaryImageUrl:
-          "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475582/Electrician_2_wh2zlc.png",
+          "/images/cctv-main.png",
         displayOrder: 1,
         active: true,
         parent: 1,
@@ -32,32 +32,16 @@ export const mockCategories = [
       },
       {
         id: 3,
-        name: "Plumbing",
+        name: "Commercial Pro",
         description:
-          "Professional plumbing services for leakage repair, pipe installation, bathroom fittings, drainage cleaning, water tank maintenance, and complete residential or commercial plumbing support.",
-        vertical: "HOME_SERVICE",
+          "Scalable security infrastructure for businesses, featuring AI monitoring and central control station access.",
+        vertical: "CCTV_SECURITY",
         type: "SERVICE_ONLY",
         imageUrl:
-          "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475586/Plumber_1_aexbpv.png",
+          "/images/cctv-main.png",
         secondaryImageUrl:
-          "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475577/Plumber_2_edl0eo.png",
+          "/images/cctv-main.png",
         displayOrder: 2,
-        active: true,
-        parent: 1,
-        subCategories: [],
-      },
-      {
-        id: 4,
-        name: "Cleaning",
-        description:
-          "Deep cleaning services for homes, offices, kitchens, bathrooms, and commercial spaces using professional equipment, eco-friendly products, and trained cleaning experts for spotless results.",
-        vertical: "HOME_SERVICE",
-        type: "SERVICE_ONLY",
-        imageUrl:
-          "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778413427/HomeCleaning_2_bgmrwr.png",
-        secondaryImageUrl:
-          "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778413059/HomeCleaning_eg8ggr.png",
-        displayOrder: 3,
         active: true,
         parent: 1,
         subCategories: [],

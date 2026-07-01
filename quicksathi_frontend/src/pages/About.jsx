@@ -52,14 +52,14 @@ const About = () => {
 
   return (
     <div
-      className="min-h-screen pb-20"
+      className="min-h-screen pb-16 sm:pb-20"
       style={{ backgroundColor: "var(--color-bg)" }}
     >
       {/* ── Hero banner ── */}
       <div
         className="relative w-full overflow-hidden"
         style={{
-          minHeight: "320px",
+          minHeight: "280px",
           backgroundColor: "var(--color-text-dark)",
         }}
       >
@@ -72,7 +72,7 @@ const About = () => {
             filter: "grayscale(40%)",
           }}
         />
-        <div className="relative z-10 px-16 py-20">
+        <div className="relative z-10 px-4 sm:px-10 lg:px-16 py-20 sm:py-24">
           <nav
             className="flex items-center gap-2 text-xs mb-6"
             style={{ fontFamily: "var(--font-body)" }}
@@ -90,7 +90,7 @@ const About = () => {
             className="font-normal text-white leading-[1.05]"
             style={{
               fontFamily: "var(--font-display)",
-              fontSize: "clamp(36px, 5vw, 72px)",
+              fontSize: "clamp(28px, 5vw, 72px)",
               letterSpacing: "-0.02em",
             }}
           >
@@ -113,21 +113,28 @@ const About = () => {
         </div>
       </div>
 
-      {/* ── Stats row ── */}
+      {/* ── Stats row — 2 cols on mobile, 4 on desktop ── */}
       <div
-        className="grid grid-cols-4 gap-0"
+        className="grid grid-cols-2 lg:grid-cols-4 gap-0"
         style={{ borderBottom: "1px solid var(--color-border)" }}
       >
         {stats.map((s, i) => (
           <div
             key={i}
-            className="py-10 px-8 text-center"
+            className="py-8 sm:py-10 px-4 sm:px-8 text-center"
             style={{
-              borderRight: i < 3 ? "1px solid var(--color-border)" : "none",
+              borderRight:
+                i % 2 === 0
+                  ? "1px solid var(--color-border)"
+                  : i < 3
+                    ? "1px solid var(--color-border)"
+                    : "none",
+              borderBottom:
+                i < 2 ? "1px solid var(--color-border)" : "none",
             }}
           >
             <p
-              className="text-4xl font-normal m-0 mb-1"
+              className="text-3xl sm:text-4xl font-normal m-0 mb-1"
               style={{
                 fontFamily: "var(--font-display)",
                 color: "var(--color-text-dark)",
@@ -148,8 +155,8 @@ const About = () => {
         ))}
       </div>
 
-      {/* ── What We Do (same as home section) ── */}
-      <section className="px-16 py-20">
+      {/* ── What We Do ── */}
+      <section className="px-4 sm:px-8 lg:px-16 py-12 sm:py-20">
         <p
           className="text-xs font-semibold uppercase tracking-widest mb-2"
           style={{
@@ -162,11 +169,11 @@ const About = () => {
         </p>
 
         <div
-          className="flex gap-16 items-center mt-10"
-          style={{ minHeight: "420px" }}
+          className="flex flex-col md:flex-row gap-8 md:gap-16 items-center mt-8 sm:mt-10"
+          style={{ minHeight: "auto" }}
         >
           {/* Left image */}
-          <div className="relative flex-shrink-0" style={{ width: "42%" }}>
+          <div className="relative w-full md:w-[42%] flex-shrink-0">
             <div
               className="absolute top-5 left-5 z-10 px-4 py-3 rounded-2xl"
               style={{
@@ -239,7 +246,7 @@ const About = () => {
           </div>
 
           {/* Right detail */}
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 w-full">
             <div className="flex items-center gap-3 mb-5">
               <div
                 className="w-8 h-px"
@@ -260,7 +267,7 @@ const About = () => {
               className="font-normal leading-[1.1] mb-4"
               style={{
                 fontFamily: "var(--font-display)",
-                fontSize: "clamp(28px, 3vw, 46px)",
+                fontSize: "clamp(24px, 3vw, 46px)",
                 color: "var(--color-text-dark)",
                 letterSpacing: "-0.02em",
                 transition: "all 0.5s ease",
@@ -328,9 +335,9 @@ const About = () => {
         </div>
       </section>
 
-      {/* ── Our Values ── */}
+      {/* ── Our Values — 1 col on mobile, 2 on md+ ── */}
       <section
-        className="px-16 py-16"
+        className="px-4 sm:px-8 lg:px-16 py-12 sm:py-16"
         style={{ backgroundColor: "var(--color-bg-soft)" }}
       >
         <p
@@ -344,10 +351,10 @@ const About = () => {
           Why Choose Us
         </p>
         <h2
-          className="font-normal mb-12"
+          className="font-normal mb-8 sm:mb-12"
           style={{
             fontFamily: "var(--font-display)",
-            fontSize: "clamp(26px, 3vw, 42px)",
+            fontSize: "clamp(22px, 3vw, 42px)",
             color: "var(--color-text-dark)",
             letterSpacing: "-0.02em",
           }}
@@ -356,11 +363,11 @@ const About = () => {
           <br />
           <span style={{ opacity: 0.45 }}>driven by results.</span>
         </h2>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
           {values.map((v, i) => (
             <div
               key={i}
-              className="p-6 rounded-2xl"
+              className="p-5 sm:p-6 rounded-2xl"
               style={{
                 backgroundColor: "var(--color-bg)",
                 border: "1px solid var(--color-border)",
@@ -391,12 +398,12 @@ const About = () => {
       </section>
 
       {/* ── Browse Categories CTA ── */}
-      <section className="px-16 py-16 text-center">
+      <section className="px-4 sm:px-8 lg:px-16 py-12 sm:py-16 text-center">
         <h2
           className="font-normal mb-4"
           style={{
             fontFamily: "var(--font-display)",
-            fontSize: "clamp(26px, 3vw, 42px)",
+            fontSize: "clamp(22px, 3vw, 42px)",
             color: "var(--color-text-dark)",
             letterSpacing: "-0.02em",
           }}

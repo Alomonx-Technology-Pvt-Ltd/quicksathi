@@ -6,7 +6,6 @@ import Hero from "../components/Hero";
 import { Link } from "react-router-dom";
 import AboutSection from "./AboutSection";
 
-// Same helper as Category.jsx — match by name, not ID
 const getServiceLink = (name) => {
   const match = mockServices?.find(
     (s) => s.name.toLowerCase() === name.toLowerCase(),
@@ -57,10 +56,11 @@ const Home = () => {
         style={{ backgroundColor: "var(--color-bg-soft)" }}
       />
 
-      <section className="px-16 py-12">
-        <div className="flex items-baseline gap-4 mb-7">
+      <section className="px-4 sm:px-8 lg:px-16 py-12">
+        {/* Section header — stacks on mobile */}
+        <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4 mb-7">
           <h2
-            className="text-xl font-semibold uppercase tracking-[0.2em] flex-shrink-0"
+            className="text-lg sm:text-xl font-semibold uppercase tracking-[0.2em] flex-shrink-0"
             style={{
               fontFamily: "var(--font-body)",
               color: "#C4A882",
@@ -70,14 +70,14 @@ const Home = () => {
           </h2>
 
           <div
-            className="h-px flex-1"
+            className="hidden sm:block h-px flex-1"
             style={{
               background: "linear-gradient(to right, #C4A88240, transparent)",
             }}
           />
 
           <p
-            className="text-3xl font-normal italic flex-shrink-0"
+            className="text-xl sm:text-2xl lg:text-3xl font-normal italic flex-shrink-0"
             style={{
               fontFamily: "var(--font-display)",
               color: "#C4A882",
@@ -95,7 +95,7 @@ const Home = () => {
 
             return (
               <div key={parent.id}>
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
                   <div className="flex items-center gap-4">
                     <h3
                       className="text-xl font-normal m-0"
@@ -107,7 +107,7 @@ const Home = () => {
                       {parent.name}
                     </h3>
                     <div
-                      className="h-px w-40"
+                      className="h-px w-20 sm:w-40 hidden sm:block"
                       style={{
                         background:
                           "linear-gradient(to right, var(--color-accent), transparent)",
@@ -117,7 +117,7 @@ const Home = () => {
 
                   <Link
                     to={`/category/${parent.id}`}
-                    className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold no-underline transition-all duration-200 hover:scale-105"
+                    className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold no-underline transition-all duration-200 hover:scale-105 self-start sm:self-auto"
                     style={{
                       fontFamily: "var(--font-body)",
                       backgroundColor: "var(--color-text-dark)",
