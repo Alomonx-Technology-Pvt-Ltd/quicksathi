@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { useFetch } from "../hooks/useFetch";
 import { mockServices } from "../data/mockServices";
+import { useNavigate } from "react-router-dom";
 
 /* ── Star rating display ── */
 const Stars = ({ rating }) => (
+  
   <div className="flex items-center gap-0.5">
     {[1, 2, 3, 4, 5].map((s) => (
       <svg key={s} width="14" height="14" viewBox="0 0 24 24" fill={s <= Math.round(rating) ? "#8b1a1a" : "none"} stroke="#8b1a1a" strokeWidth="1.5">
@@ -15,6 +17,8 @@ const Stars = ({ rating }) => (
 );
 
 const ServiceDetail = () => {
+  const navigate = useNavigate();
+
   const { id } = useParams();
   const { data: services, loading } = useFetch(mockServices);
   const [activeImg, setActiveImg] = useState(0);
@@ -330,7 +334,8 @@ const ServiceDetail = () => {
               </div>
 
               {/* Book button */}
-              <button
+              <button 
+              onClick={() => navigate( `/booking/${service.id}?name=${encodeURIComponent(service.name)}&package=${encodeURIComponent(pkg?.title ?? "")}&price=${pkg?.price ?? service.startingPrice}`)}
                 className="w-full py-4 rounded-2xl text-base font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-90 hover:scale-[1.02]"
                 style={{
                   fontFamily: "var(--font-body)",

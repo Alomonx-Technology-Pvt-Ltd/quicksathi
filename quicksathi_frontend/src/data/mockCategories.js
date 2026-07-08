@@ -1,3 +1,18 @@
+import homeCCTV1 from "../assets/cctv/cctvHeroImg.avif";
+import homeCCTV2 from "../assets/cctv/cctvImg1.avif";
+import commercialCCTV1 from "../assets/cctv/commercialCCTV1.avif";
+import smartLock from "../assets/cctv/smartLock.avif";
+import maintenance from "../assets/cctv/maintenance.avif";
+import bikeRental from "../assets/Bike/bikeRental.avif";
+import hondaImg from "../assets/hondaImg.avif";
+import carRental from "../assets/Bike/carRental.avif";
+import photographyImg from "../assets/photographyImg.avif"
+import photographyImg1 from "../assets/photographyImg1.avif"
+import decorationImg from "../assets/decorationImg.avif"
+import cateringImg from "../assets/cateringImg.avif"
+import makeupArtist from "../assets/makeupArtist.avif"
+
+
 export const mockCategories = [
   {
     id: 1,
@@ -6,25 +21,21 @@ export const mockCategories = [
       "Enterprise-grade CCTV and monitoring systems with expert installation and 24/7 support.",
     vertical: "CCTV_SECURITY",
     type: "BOTH",
-    imageUrl:
-      "/images/cctv-main.png",
-    secondaryImageUrl:
-      "/images/cctv-main.png",
+    imageUrl: homeCCTV1,
+    secondaryImageUrl: homeCCTV1,
     displayOrder: 1,
     active: true,
     parent: null,
     subCategories: [
       {
         id: 2,
-        name: "Home Security",
+        name: "Home CCTV Installation",
         description:
           "Comprehensive residential security setups with high-res cameras, motion alerts, and mobile monitoring.",
         vertical: "CCTV_SECURITY",
         type: "SERVICE_ONLY",
-        imageUrl:
-          "/images/cctv-main.png",
-        secondaryImageUrl:
-          "/images/cctv-main.png",
+        imageUrl: homeCCTV1,
+        secondaryImageUrl: homeCCTV2,
         displayOrder: 1,
         active: true,
         parent: 1,
@@ -32,16 +43,42 @@ export const mockCategories = [
       },
       {
         id: 3,
-        name: "Commercial Pro",
+        name: "Commercial CCTV Setup",
         description:
           "Scalable security infrastructure for businesses, featuring AI monitoring and central control station access.",
         vertical: "CCTV_SECURITY",
         type: "SERVICE_ONLY",
-        imageUrl:
-          "/images/cctv-main.png",
-        secondaryImageUrl:
-          "/images/cctv-main.png",
+        imageUrl: commercialCCTV1,
+        secondaryImageUrl: commercialCCTV1,
         displayOrder: 2,
+        active: true,
+        parent: 1,
+        subCategories: [],
+      },
+      {
+        id: 4,
+        name: "Security Maintenance",
+        description:
+          "Professional deep cleaning for homes, offices, and kitchens. We use eco-friendly products for a spotless, hygienic environment.",
+        vertical: "CCTV_SECURITY",
+        type: "SERVICE_ONLY",
+        imageUrl: maintenance,
+        secondaryImageUrl: "/images/cctv-main.png",
+        displayOrder: 3,
+        active: true,
+        parent: 1,
+        subCategories: [],
+      },
+      {
+        id: 5,
+        name: "Smart Lock Installation",
+        description:
+          "Certified technicians for AC installation, gas refilling, filter cleaning, PCB repair, and annual maintenance contracts.",
+        vertical: "CCTV_SECURITY",
+        type: "SERVICE_ONLY",
+        imageUrl: smartLock,
+        secondaryImageUrl: smartLock,
+        displayOrder: 4,
         active: true,
         parent: 1,
         subCategories: [],
@@ -58,8 +95,7 @@ export const mockCategories = [
     type: "BOTH",
     imageUrl:
       "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778413946/VehicleRental_eeacbd.png",
-    secondaryImageUrl:
-      "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475579/Bike_Rental_1_bmaj4c.png",
+    secondaryImageUrl: carRental,
     displayOrder: 2,
     active: true,
     parent: null,
@@ -71,10 +107,8 @@ export const mockCategories = [
           "Scooters and motorcycles available by the hour or week — perfect for city commutes and open-road adventures.",
         vertical: "VEHICLE_RENTAL",
         type: "PRODUCT_ONLY",
-        imageUrl:
-          "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475579/Bike_Rental_1_bmaj4c.png",
-        secondaryImageUrl:
-          "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475577/Bike_Rental_2_vh5oua.png",
+        imageUrl: bikeRental,
+        secondaryImageUrl: carRental,
         displayOrder: 2,
         active: true,
         parent: 6,
@@ -87,8 +121,7 @@ export const mockCategories = [
           "Self-drive or chauffeur-driven cars — GPS-enabled, fully insured, and always road-ready.",
         vertical: "VEHICLE_RENTAL",
         type: "PRODUCT_ONLY",
-        imageUrl:
-          "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2183&auto=format&fit=crop",
+        imageUrl: hondaImg,
         secondaryImageUrl:
           "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=2070&auto=format&fit=crop",
         displayOrder: 1,
@@ -103,8 +136,7 @@ export const mockCategories = [
           "Premium sedans and SUVs for weddings, corporate events, and airport transfers — always impressive.",
         vertical: "VEHICLE_RENTAL",
         type: "PRODUCT_ONLY",
-        imageUrl:
-          "https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=2072&auto=format&fit=crop",
+        imageUrl: carRental,
         secondaryImageUrl:
           "https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=2070&auto=format&fit=crop",
         displayOrder: 3,
@@ -138,9 +170,9 @@ export const mockCategories = [
         vertical: "WEDDING",
         type: "SERVICE_ONLY",
         imageUrl:
-          "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475579/Photography_2_rymouy.png",
+          photographyImg,
         secondaryImageUrl:
-          "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475580/Photograph_1_z2oxvb.png",
+          photographyImg1,
         displayOrder: 1,
         active: true,
         parent: 10,
@@ -154,7 +186,7 @@ export const mockCategories = [
         vertical: "WEDDING",
         type: "SERVICE_ONLY",
         imageUrl:
-          "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475580/Wedding_1_aensgu.png",
+          decorationImg,
         secondaryImageUrl:
           "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475578/Party_1_lb5rhi.png",
         displayOrder: 2,
@@ -170,10 +202,26 @@ export const mockCategories = [
         vertical: "WEDDING",
         type: "SERVICE_ONLY",
         imageUrl:
-          "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475582/Catering_1_v2p0sf.png",
+          cateringImg,
         secondaryImageUrl:
           "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475582/Catering_2_kpv9z9.png",
         displayOrder: 3,
+        active: true,
+        parent: 10,
+        subCategories: [],
+      },
+      {
+        id: 14,
+        name: "Makeup Artist",
+        description:
+          "Look your absolute best on your special day with our certified bridal makeup artists specializing in HD, airbrush, and traditional looks.",
+        vertical: "WEDDING",
+        type: "SERVICE_ONLY",
+        imageUrl:
+          makeupArtist,
+        secondaryImageUrl:
+          "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=2070&auto=format&fit=crop",
+        displayOrder: 4,
         active: true,
         parent: 10,
         subCategories: [],
