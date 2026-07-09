@@ -218,7 +218,8 @@ export const mockCategories = [
         vertical: "WEDDING",
         type: "SERVICE_ONLY",
         imageUrl:
-          makeupArtist,
+          makeupArtist
+          ,
         secondaryImageUrl:
           "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=2070&auto=format&fit=crop",
         displayOrder: 4,

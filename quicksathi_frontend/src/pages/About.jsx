@@ -59,7 +59,7 @@ const About = () => {
       <div
         className="relative w-full overflow-hidden"
         style={{
-          minHeight: "280px",
+          minHeight: "240px",
           backgroundColor: "var(--color-text-dark)",
         }}
       >
@@ -72,9 +72,9 @@ const About = () => {
             filter: "grayscale(40%)",
           }}
         />
-        <div className="relative z-10 px-4 sm:px-10 lg:px-16 py-20 sm:py-24">
+        <div className="relative z-10 px-4 sm:px-10 lg:px-16 py-14 sm:py-24">
           <nav
-            className="flex items-center gap-2 text-xs mb-6"
+            className="flex items-center gap-2 text-xs mb-4 sm:mb-6"
             style={{ fontFamily: "var(--font-body)" }}
           >
             <Link
@@ -90,7 +90,7 @@ const About = () => {
             className="font-normal text-white leading-[1.05]"
             style={{
               fontFamily: "var(--font-display)",
-              fontSize: "clamp(28px, 5vw, 72px)",
+              fontSize: "clamp(26px, 6vw, 72px)",
               letterSpacing: "-0.02em",
             }}
           >
@@ -98,11 +98,10 @@ const About = () => {
             <span style={{ opacity: 0.5 }}>Behind the Service.</span>
           </h1>
           <p
-            className="text-white mt-4 max-w-md"
+            className="text-white mt-3 sm:mt-4 max-w-md text-sm sm:text-base"
             style={{
               fontFamily: "var(--font-body)",
               opacity: 0.65,
-              fontSize: "1rem",
               lineHeight: 1.7,
             }}
           >
@@ -121,20 +120,11 @@ const About = () => {
         {stats.map((s, i) => (
           <div
             key={i}
-            className="py-8 sm:py-10 px-4 sm:px-8 text-center"
-            style={{
-              borderRight:
-                i % 2 === 0
-                  ? "1px solid var(--color-border)"
-                  : i < 3
-                    ? "1px solid var(--color-border)"
-                    : "none",
-              borderBottom:
-                i < 2 ? "1px solid var(--color-border)" : "none",
-            }}
+            className="py-6 sm:py-10 px-3 sm:px-8 text-center border-r border-b lg:border-b-0 last:border-r-0 [&:nth-child(2)]:border-r-0 lg:[&:nth-child(2)]:border-r lg:last:border-r-0"
+            style={{ borderColor: "var(--color-border)" }}
           >
             <p
-              className="text-3xl sm:text-4xl font-normal m-0 mb-1"
+              className="text-2xl sm:text-4xl font-normal m-0 mb-1"
               style={{
                 fontFamily: "var(--font-display)",
                 color: "var(--color-text-dark)",
@@ -143,7 +133,7 @@ const About = () => {
               {s.value}
             </p>
             <p
-              className="text-sm m-0"
+              className="text-xs sm:text-sm m-0"
               style={{
                 fontFamily: "var(--font-body)",
                 color: "var(--color-text-mid)",
@@ -156,7 +146,7 @@ const About = () => {
       </div>
 
       {/* ── What We Do ── */}
-      <section className="px-4 sm:px-8 lg:px-16 py-12 sm:py-20">
+      <section className="px-4 sm:px-8 lg:px-16 py-10 sm:py-20">
         <p
           className="text-xs font-semibold uppercase tracking-widest mb-2"
           style={{
@@ -169,20 +159,20 @@ const About = () => {
         </p>
 
         <div
-          className="flex flex-col md:flex-row gap-8 md:gap-16 items-center mt-8 sm:mt-10"
+          className="flex flex-col md:flex-row gap-8 md:gap-16 items-center mt-6 sm:mt-10"
           style={{ minHeight: "auto" }}
         >
           {/* Left image */}
           <div className="relative w-full md:w-[42%] flex-shrink-0">
             <div
-              className="absolute top-5 left-5 z-10 px-4 py-3 rounded-2xl"
+              className="absolute top-3 left-3 sm:top-5 sm:left-5 z-10 px-3 sm:px-4 py-2 sm:py-3 rounded-xl sm:rounded-2xl"
               style={{
                 backgroundColor: "var(--color-accent)",
                 boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
               }}
             >
               <p
-                className="text-2xl font-bold m-0 leading-none"
+                className="text-lg sm:text-2xl font-bold m-0 leading-none"
                 style={{
                   fontFamily: "var(--font-display)",
                   color: "var(--color-text-dark)",
@@ -191,7 +181,7 @@ const About = () => {
                 10+
               </p>
               <p
-                className="text-xs m-0 mt-0.5 leading-tight"
+                className="text-[10px] sm:text-xs m-0 mt-0.5 leading-tight"
                 style={{
                   fontFamily: "var(--font-body)",
                   color: "var(--color-text-dark)",
@@ -205,7 +195,7 @@ const About = () => {
             </div>
             <div
               className="w-full overflow-hidden relative"
-              style={{ borderRadius: "24px", aspectRatio: "4/4.2" }}
+              style={{ borderRadius: "20px", aspectRatio: "4/4.2" }}
             >
               {categories?.map((cat, i) => (
                 <img
@@ -224,7 +214,7 @@ const About = () => {
                 />
               ))}
             </div>
-            <div className="flex gap-2 justify-center mt-4">
+            <div className="flex gap-2 justify-center mt-3 sm:mt-4">
               {categories?.map((_, i) => (
                 <button
                   key={i}
@@ -247,7 +237,7 @@ const About = () => {
 
           {/* Right detail */}
           <div className="flex-1 min-w-0 w-full">
-            <div className="flex items-center gap-3 mb-5">
+            <div className="flex items-center gap-3 mb-4 sm:mb-5">
               <div
                 className="w-8 h-px"
                 style={{ backgroundColor: "var(--color-accent)" }}
@@ -264,10 +254,10 @@ const About = () => {
               </span>
             </div>
             <h2
-              className="font-normal leading-[1.1] mb-4"
+              className="font-normal leading-[1.1] mb-3 sm:mb-4"
               style={{
                 fontFamily: "var(--font-display)",
-                fontSize: "clamp(24px, 3vw, 46px)",
+                fontSize: "clamp(22px, 4vw, 46px)",
                 color: "var(--color-text-dark)",
                 letterSpacing: "-0.02em",
                 transition: "all 0.5s ease",
@@ -277,7 +267,7 @@ const About = () => {
               <span style={{ opacity: 0.5 }}>done right.</span>
             </h2>
             <p
-              className="text-base leading-relaxed mb-8"
+              className="text-sm sm:text-base leading-relaxed mb-6 sm:mb-8"
               style={{
                 fontFamily: "var(--font-body)",
                 color: "var(--color-text-mid)",
@@ -288,19 +278,19 @@ const About = () => {
               {active?.description} We bring trusted professionals to your
               doorstep — fast, reliable, and always on time.
             </p>
-            <div className="flex flex-col gap-4 mb-0">
+            <div className="flex flex-col gap-3 sm:gap-4 mb-0">
               {subs.map((sub) => (
                 <div
                   key={sub.id}
-                  className="flex items-start gap-4 p-4 rounded-2xl"
+                  className="flex items-start gap-3 sm:gap-4 p-3 sm:p-4 rounded-xl sm:rounded-2xl"
                   style={{
                     backgroundColor: "var(--color-bg-soft)",
                     border: "1px solid var(--color-border)",
                   }}
                 >
                   <div
-                    className="flex-shrink-0 overflow-hidden rounded-xl"
-                    style={{ width: "52px", height: "52px" }}
+                    className="flex-shrink-0 overflow-hidden rounded-lg sm:rounded-xl"
+                    style={{ width: "44px", height: "44px" }}
                   >
                     <img
                       src={sub.imageUrl}
@@ -308,9 +298,9 @@ const About = () => {
                       className="w-full h-full object-cover"
                     />
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <p
-                      className="font-semibold m-0 mb-0.5 text-sm"
+                      className="font-semibold m-0 mb-0.5 text-xs sm:text-sm truncate"
                       style={{
                         fontFamily: "var(--font-body)",
                         color: "var(--color-text-dark)",
@@ -319,7 +309,7 @@ const About = () => {
                       ✓ {sub.name}
                     </p>
                     <p
-                      className="text-xs m-0 leading-snug"
+                      className="text-[11px] sm:text-xs m-0 leading-snug"
                       style={{
                         fontFamily: "var(--font-body)",
                         color: "var(--color-text-mid)",
@@ -337,7 +327,7 @@ const About = () => {
 
       {/* ── Our Values — 1 col on mobile, 2 on md+ ── */}
       <section
-        className="px-4 sm:px-8 lg:px-16 py-12 sm:py-16"
+        className="px-4 sm:px-8 lg:px-16 py-10 sm:py-16"
         style={{ backgroundColor: "var(--color-bg-soft)" }}
       >
         <p
@@ -351,10 +341,10 @@ const About = () => {
           Why Choose Us
         </p>
         <h2
-          className="font-normal mb-8 sm:mb-12"
+          className="font-normal mb-6 sm:mb-12"
           style={{
             fontFamily: "var(--font-display)",
-            fontSize: "clamp(22px, 3vw, 42px)",
+            fontSize: "clamp(20px, 4vw, 42px)",
             color: "var(--color-text-dark)",
             letterSpacing: "-0.02em",
           }}
@@ -363,19 +353,19 @@ const About = () => {
           <br />
           <span style={{ opacity: 0.45 }}>driven by results.</span>
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-6">
           {values.map((v, i) => (
             <div
               key={i}
-              className="p-5 sm:p-6 rounded-2xl"
+              className="p-4 sm:p-6 rounded-xl sm:rounded-2xl"
               style={{
                 backgroundColor: "var(--color-bg)",
                 border: "1px solid var(--color-border)",
               }}
             >
-              <p className="text-2xl m-0 mb-3">{v.icon}</p>
+              <p className="text-xl sm:text-2xl m-0 mb-2 sm:mb-3">{v.icon}</p>
               <p
-                className="font-semibold m-0 mb-2 text-sm"
+                className="font-semibold m-0 mb-1.5 sm:mb-2 text-sm"
                 style={{
                   fontFamily: "var(--font-body)",
                   color: "var(--color-text-dark)",
@@ -384,7 +374,7 @@ const About = () => {
                 {v.title}
               </p>
               <p
-                className="text-sm m-0 leading-relaxed"
+                className="text-xs sm:text-sm m-0 leading-relaxed"
                 style={{
                   fontFamily: "var(--font-body)",
                   color: "var(--color-text-mid)",
@@ -398,12 +388,12 @@ const About = () => {
       </section>
 
       {/* ── Browse Categories CTA ── */}
-      <section className="px-4 sm:px-8 lg:px-16 py-12 sm:py-16 text-center">
+      <section className="px-4 sm:px-8 lg:px-16 py-10 sm:py-16 text-center">
         <h2
-          className="font-normal mb-4"
+          className="font-normal mb-3 sm:mb-4"
           style={{
             fontFamily: "var(--font-display)",
-            fontSize: "clamp(22px, 3vw, 42px)",
+            fontSize: "clamp(20px, 4vw, 42px)",
             color: "var(--color-text-dark)",
             letterSpacing: "-0.02em",
           }}
@@ -411,7 +401,7 @@ const About = () => {
           Ready to get started?
         </h2>
         <p
-          className="mb-8 text-base"
+          className="mb-6 sm:mb-8 text-sm sm:text-base"
           style={{
             fontFamily: "var(--font-body)",
             color: "var(--color-text-mid)",
@@ -421,7 +411,7 @@ const About = () => {
         </p>
         <Link
           to="/"
-          className="inline-flex items-center gap-3 px-8 py-4 rounded-full text-sm font-semibold no-underline transition-all duration-200 hover:scale-105"
+          className="inline-flex items-center gap-3 px-6 sm:px-8 py-3 sm:py-4 rounded-full text-xs sm:text-sm font-semibold no-underline transition-all duration-200 hover:scale-105"
           style={{
             fontFamily: "var(--font-body)",
             backgroundColor: "var(--color-text-dark)",

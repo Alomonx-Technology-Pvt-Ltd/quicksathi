@@ -26,11 +26,14 @@ import AdminLayout from "./admin/components/AdminLayout";
 import AdminDashboard from "./admin/pages/AdminDashboard";
 import AdminProviders from "./admin/pages/AdminProviders";
 import AdminBookings from "./admin/pages/AdminBookings";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+      <ScrollToTop/>
+
         <Routes>
           {/* Main App Routes */}
           <Route path="/" element={<Layout />}>
