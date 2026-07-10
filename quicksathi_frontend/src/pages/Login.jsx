@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
@@ -7,8 +7,13 @@ const Login = () => {
   const [formData, setFormData] = useState({ name: "", email: "", password: "", phone: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login, register, loginWithGoogle } = useAuth();
+  const { login, register, loginWithGoogle, providerLogin, providerLoginWithGoogle } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/";
+  const loginMode = searchParams.get("mode"); // "provider" or null
+
+  const isProviderMode = loginMode === "provider";
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -21,6 +26,13 @@ const Login = () => {
     setError("");
 
     try {
+      if (isProviderMode) {
+        // Provider login
+        await providerLogin(formData.email, formData.password);
+        navigate("/provider/dashboard");
+        return;
+      }
+
       if (isSignup) {
         if (!formData.name.trim()) throw new Error("Name is required");
         if (formData.password.length < 6) throw new Error("Password must be at least 6 characters");
@@ -28,7 +40,7 @@ const Login = () => {
       } else {
         await login(formData.email, formData.password);
       }
-      navigate("/");
+      navigate(redirectTo);
     } catch (err) {
       setError(err.response?.data?.message || err.message || "Something went wrong");
     } finally {
@@ -40,13 +52,25 @@ const Login = () => {
     setLoading(true);
     setError("");
     try {
-      await loginWithGoogle();
-      navigate("/");
+      if (isProviderMode) {
+        await providerLoginWithGoogle();
+        navigate("/provider/dashboard");
+      } else {
+        await loginWithGoogle();
+        navigate(redirectTo);
+      }
     } catch (err) {
-      setError(err.message || "Google sign-in failed");
+      setError(err.response?.data?.message || err.message || "Google sign-in failed");
     } finally {
       setLoading(false);
     }
+  };
+
+  const getTitle = () => {
+    if (isProviderMode) return "Provider Sign In";
+    if (isSignup) return "Create your account";
+    if (redirectTo === "/admin") return "Admin Sign In";
+    return "Welcome back";
   };
 
   return (
@@ -68,10 +92,14 @@ const Login = () => {
             className="text-white font-normal leading-tight mb-4"
             style={{ fontFamily: "var(--font-display)", fontSize: "clamp(32px, 3.5vw, 52px)" }}
           >
-            Your one-stop platform for every service need
+            {isProviderMode
+              ? "Grow your business with QuickSathi"
+              : "Your one-stop platform for every service need"}
           </h2>
           <p className="text-white/60 text-lg" style={{ fontFamily: "var(--font-body)", maxWidth: "400px" }}>
-            From weddings to car rentals to security — QuickSathi brings everything together.
+            {isProviderMode
+              ? "Login to manage your services, track bookings, and reach thousands of customers."
+              : "From weddings to car rentals to security — QuickSathi brings everything together."}
           </p>
         </div>
       </div>
@@ -88,8 +116,24 @@ const Login = () => {
               QuickSathi
             </h1>
           </Link>
+
+          {/* Provider mode badge */}
+          {isProviderMode && (
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-3"
+              style={{
+                fontFamily: "var(--font-body)",
+                backgroundColor: "rgba(139,26,26,0.08)",
+                color: "var(--color-primary)",
+                border: "1px solid rgba(139,26,26,0.15)",
+              }}
+            >
+              🏢 Provider Portal
+            </div>
+          )}
+
           <p className="text-lg mb-8" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
-            {isSignup ? "Create your account" : "Welcome back"}
+            {getTitle()}
           </p>
 
           {/* Error */}
@@ -105,6 +149,22 @@ const Login = () => {
             >
               {error}
             </div>
+          )}
+
+          {/* Provider mode — show register as provider link */}
+          {isProviderMode && (
+            <Link
+              to="/provider/onboarding"
+              className="block w-full text-center px-6 py-3 rounded-2xl text-sm font-semibold no-underline border transition-all duration-200 hover:shadow-lg mb-6"
+              style={{
+                fontFamily: "var(--font-body)",
+                backgroundColor: "transparent",
+                color: "var(--color-primary)",
+                borderColor: "var(--color-primary)",
+              }}
+            >
+              📝 Register as a New Provider
+            </Link>
           )}
 
           {/* Google Sign-In */}
@@ -139,7 +199,7 @@ const Login = () => {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            {isSignup && (
+            {isSignup && !isProviderMode && (
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
                   style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
@@ -208,7 +268,7 @@ const Login = () => {
               />
             </div>
 
-            {isSignup && (
+            {isSignup && !isProviderMode && (
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
                   style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
@@ -243,21 +303,38 @@ const Login = () => {
                 opacity: loading ? 0.7 : 1,
               }}
             >
-              {loading ? "Please wait..." : isSignup ? "Create Account" : "Sign In"}
+              {loading ? "Please wait..." : isProviderMode ? "Sign In as Provider" : isSignup ? "Create Account" : "Sign In"}
             </button>
           </form>
 
-          {/* Toggle */}
-          <p className="text-center text-sm mt-6" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
-            {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
-            <button
-              onClick={() => { setIsSignup(!isSignup); setError(""); }}
-              className="font-semibold border-0 bg-transparent cursor-pointer underline"
-              style={{ color: "var(--color-primary)", fontFamily: "var(--font-body)" }}
+          {/* Toggle sign up / sign in (only for user mode) */}
+          {!isProviderMode && (
+            <p className="text-center text-sm mt-6" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+              {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
+              <button
+                onClick={() => { setIsSignup(!isSignup); setError(""); }}
+                className="font-semibold border-0 bg-transparent cursor-pointer underline"
+                style={{ color: "var(--color-primary)", fontFamily: "var(--font-body)" }}
+              >
+                {isSignup ? "Sign In" : "Create Account"}
+              </button>
+            </p>
+          )}
+
+          {/* Mode switcher */}
+          <div className="text-center mt-6 pt-4 border-t flex flex-col gap-3" style={{ borderColor: "var(--color-border)" }}>
+            <Link
+              to={isProviderMode ? "/login" : "/login?mode=provider"}
+              className="text-xs font-semibold no-underline uppercase tracking-wider transition-all duration-200 hover:opacity-75"
+              style={{
+                fontFamily: "var(--font-body)",
+                color: "var(--color-text-muted)",
+              }}
+              onClick={() => setError("")}
             >
-              {isSignup ? "Sign In" : "Create Account"}
-            </button>
-          </p>
+              {isProviderMode ? "← Back to User Login" : "🏢 Login as Provider"}
+            </Link>
+          </div>
         </div>
       </div>
     </div>

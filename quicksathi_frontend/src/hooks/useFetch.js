@@ -1,31 +1,34 @@
 import { useState, useEffect } from "react";
-// import axios from 'axios'; // Uncomment when backend is ready
+import api from "../config/api";
 
-export const useFetch = (mockData, delay = 800) => {
+export const useFetch = (endpoint) => {
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!endpoint);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (!endpoint) {
+      Promise.resolve().then(() => {
+        setLoading(false);
+      });
+      return;
+    }
+
     const fetchData = async () => {
       try {
         setLoading(true);
-        // SIMULATED API CALL
-        await new Promise((resolve) => setTimeout(resolve, delay));
-        setData(mockData);
-
-        // REAL API CALL (Future)
-        // const response = await axios.get(endpoint);
-        // setData(response.data);
+        setError(null);
+        const response = await api.get(endpoint);
+        setData(response.data);
       } catch (err) {
-        setError(err.message || "Something went wrong");
+        setError(err.response?.data?.message || err.message || "Something went wrong");
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [mockData, delay]); // Add endpoint as dependency later
+  }, [endpoint]);
 
-  return { data, loading, error };
+  return { data, loading, error, setData };
 };

@@ -8,6 +8,7 @@ const PLANS = [
     features: ["2 High-Res Indoor Cameras", "Motion-activated Alerts", "Two-way Audio Communication"],
     cta: "Select Plan",
     color: "var(--color-bg-white)",
+    link: "/service/106",
   },
   {
     name: "Commercial Pro",
@@ -17,6 +18,7 @@ const PLANS = [
     cta: "Get Quote",
     featured: true,
     color: "#1a408b",
+    link: "/service/106",
   },
   {
     name: "Smart Kits",
@@ -25,6 +27,7 @@ const PLANS = [
     features: ["DIY Plug & Play Setup", "Customizable Sensor Modules", "Smart Home Integration", "Video Cloud Backup"],
     cta: "Shop Now",
     color: "var(--color-bg-white)",
+    link: "/service/105",
   },
 ];
 
@@ -205,15 +208,16 @@ const CCTVServices = () => {
                 {plan.features.map((f, j) => (
                   <li key={j} className="flex items-start gap-2 text-sm"
                     style={{ fontFamily: "var(--font-body)", color: plan.featured ? "rgba(255,255,255,0.8)" : "var(--color-text-mid)" }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={plan.featured ? "rgba(255,255,255,0.7)" : "#1a408b"} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={plan.featured ? "rgba(255,255,255,0.7)" : "#1a408b"} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                     {f}
                   </li>
                 ))}
               </ul>
-              <button
-                className="w-full py-3 rounded-xl text-sm font-semibold border cursor-pointer transition-all duration-200 hover:opacity-90"
+              <Link
+                to={plan.link}
+                className="w-full py-3 rounded-xl text-sm font-semibold border cursor-pointer no-underline text-center block transition-all duration-200 hover:opacity-90"
                 style={{
                   fontFamily: "var(--font-body)",
                   backgroundColor: plan.featured ? "rgba(255,255,255,0.15)" : "transparent",
@@ -222,7 +226,7 @@ const CCTVServices = () => {
                 }}
               >
                 {plan.cta}
-              </button>
+              </Link>
             </div>
           ))}
         </div>

@@ -1,201 +1,397 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
+import api from "../config/api";
 
 const STEPS = ["Business Info", "Services", "Documents", "Review"];
-const CATEGORIES = ["Wedding & Party Services", "Vehicle Rental", "CCTV Security"];
 
 const ProviderOnboarding = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { isAuthenticated, user, register } = useAuth();
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [categories, setCategories] = useState([]);
+  
   const [formData, setFormData] = useState({
     businessName: "", businessType: "", description: "",
     category: "", services: "", experience: "",
     address: "", city: "", state: "", pincode: "",
     phone: "", email: user?.email || "",
+    ownerName: "", password: "",
     idProof: null, businessReg: null,
   });
 
-  if (!isAuthenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center px-6 pt-20" style={{ backgroundColor: "var(--color-bg)" }}>
-        <div className="text-center">
-          <h2 className="text-2xl font-normal mb-4" style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}>Please login first</h2>
-          <Link to="/login" className="px-6 py-3 rounded-full text-sm font-semibold no-underline" style={{ fontFamily: "var(--font-body)", backgroundColor: "var(--color-primary)", color: "#fff" }}>Login</Link>
-        </div>
-      </div>
-    );
-  }
+  // Update email if user logs in later
+  useEffect(() => {
+    if (user?.email) {
+      Promise.resolve().then(() => {
+        setFormData((prev) => ({ ...prev, email: user.email }));
+      });
+    }
+  }, [user]);
+
+  // Fetch categories from API
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const { data } = await api.get("/categories");
+        setCategories(data);
+      } catch (err) {
+        console.error("Failed to fetch categories:", err);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   if (submitted) {
     return (
       <div className="min-h-screen flex items-center justify-center px-6 pt-20" style={{ backgroundColor: "var(--color-bg)" }}>
-        <div className="text-center max-w-md">
-          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style={{ backgroundColor: "rgba(34,197,94,0.1)" }}>
-            <span className="text-4xl">✅</span>
-          </div>
+        <motion.div 
+          initial={{ scale: 0.95, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="text-center max-w-md p-8 rounded-3xl border"
+          style={{ backgroundColor: "var(--color-bg-soft)", borderColor: "var(--color-border)" }}
+        >
+          <motion.div 
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.1 }}
+            className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 text-white text-3xl" 
+            style={{ backgroundColor: "rgba(34,197,94,0.9)", boxShadow: "0 6px 20px rgba(34,197,94,0.3)" }}
+          >
+            ✓
+          </motion.div>
           <h2 className="text-2xl font-normal mb-3" style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}>Application Submitted!</h2>
-          <p className="text-sm mb-8" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
-            Your provider application is under review. We'll notify you once approved.
+          <p className="text-sm mb-8 leading-relaxed" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+            Your provider application is currently under review. We will notify you via email once it is approved. After approval, you can access the provider dashboard and start booking clients!
           </p>
-          <Link to="/" className="px-6 py-3 rounded-full text-sm font-semibold no-underline" style={{ fontFamily: "var(--font-body)", backgroundColor: "var(--color-primary)", color: "#fff" }}>
+          <Link to="/" className="inline-block px-8 py-3.5 rounded-full text-sm font-semibold no-underline transition-all duration-200 hover:scale-105" style={{ fontFamily: "var(--font-body)", backgroundColor: "var(--color-primary)", color: "#fff" }}>
             Go Home
           </Link>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   const handleChange = (e) => setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
-  const inputStyle = {
-    fontFamily: "var(--font-body)", borderColor: "var(--color-border)", backgroundColor: "var(--color-bg-white)",
+  const handleSubmit = async () => {
+    setSubmitting(true);
+    setError("");
+    try {
+      // 1. If not authenticated, create the user account first
+      if (!isAuthenticated) {
+        if (!formData.ownerName.trim()) {
+          throw new Error("Owner name is required to create your account.");
+        }
+        if (!formData.password || formData.password.length < 6) {
+          throw new Error("Password must be at least 6 characters.");
+        }
+        await register(
+          formData.ownerName,
+          formData.email,
+          formData.password,
+          formData.phone
+        );
+      }
+
+      // 2. Submit the provider registration application
+      const activeCat = categories.find((c) => String(c._id || c.id) === String(formData.category));
+      
+      await api.post("/providers/register", {
+        businessName: formData.businessName,
+        businessType: formData.businessType,
+        description: formData.description,
+        category: activeCat ? (activeCat._id || activeCat.id) : formData.category, 
+        servicesOffered: formData.services.split(",").map((s) => s.trim()).filter(Boolean),
+        experience: formData.experience,
+        location: {
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          pincode: formData.pincode,
+        },
+        phone: formData.phone,
+        email: formData.email,
+      });
+
+      setSubmitted(true);
+    } catch (err) {
+      setError(err.response?.data?.message || err.message || "Failed to submit application");
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const inputStyle = {
+    fontFamily: "var(--font-body)", 
+    borderColor: "var(--color-border)", 
+    backgroundColor: "var(--color-bg-white)",
+    fontSize: "14px",
+  };
+
+  // Find selected category name for review
+  const selectedCategoryName = categories.find((c) => String(c._id || c.id) === String(formData.category))?.name || "—";
 
   const renderStep = () => {
     switch (step) {
       case 0: return (
-        <div className="flex flex-col gap-5">
+        <motion.div 
+          key="step0"
+          initial={{ x: 30, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: -30, opacity: 0 }}
+          className="flex flex-col gap-5"
+        >
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Business Name *</label>
-            <input name="businessName" value={formData.businessName} onChange={handleChange} placeholder="Your business name" required className="w-full px-4 py-3 rounded-xl text-sm border outline-none" style={inputStyle} />
+            <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Business / Professional Name *</label>
+            <input name="businessName" value={formData.businessName} onChange={handleChange} placeholder="e.g. Royal Wedding Decorators" required className="w-full px-4 py-3 rounded-2xl border outline-none transition-all duration-200" style={inputStyle} />
           </div>
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Business Type *</label>
-            <select name="businessType" value={formData.businessType} onChange={handleChange} className="w-full px-4 py-3 rounded-xl text-sm border outline-none" style={inputStyle}>
+            <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Organization Type *</label>
+            <select name="businessType" value={formData.businessType} onChange={handleChange} className="w-full px-4 py-3 rounded-2xl border outline-none" style={inputStyle}>
               <option value="">Select type</option>
-              <option>Individual</option>
-              <option>Company</option>
-              <option>Partnership</option>
-              <option>Freelancer</option>
+              <option>Individual / Freelancer</option>
+              <option>Registered Company</option>
+              <option>Partnership Firm</option>
+              <option>Agency</option>
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Description</label>
-            <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Tell us about your business..." rows={3} className="w-full px-4 py-3 rounded-xl text-sm border outline-none resize-y" style={inputStyle} />
+            <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Business Description</label>
+            <textarea name="description" value={formData.description} onChange={handleChange} placeholder="Tell potential clients about your expertise, equipment, and values..." rows={3} className="w-full px-4 py-3 rounded-2xl border outline-none resize-none" style={inputStyle} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Phone</label>
-              <input name="phone" value={formData.phone} onChange={handleChange} placeholder="+91 98765 43210" className="w-full px-4 py-3 rounded-xl text-sm border outline-none" style={inputStyle} />
+              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Mobile Phone *</label>
+              <input name="phone" value={formData.phone} onChange={handleChange} placeholder="+91 98765 43210" required className="w-full px-4 py-3 rounded-2xl border outline-none" style={inputStyle} />
             </div>
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Email</label>
-              <input name="email" value={formData.email} onChange={handleChange} className="w-full px-4 py-3 rounded-xl text-sm border outline-none" style={inputStyle} />
+              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Email Contact *</label>
+              <input name="email" type="email" value={formData.email} onChange={handleChange} required className="w-full px-4 py-3 rounded-2xl border outline-none" style={inputStyle} />
             </div>
           </div>
-        </div>
+
+          {!isAuthenticated && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t pt-5 mt-2" style={{ borderColor: "var(--color-border)" }}>
+              <div>
+                <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-primary)" }}>Full Name (Account Owner) *</label>
+                <input name="ownerName" value={formData.ownerName} onChange={handleChange} placeholder="John Doe" required className="w-full px-4 py-3 rounded-2xl border outline-none" style={inputStyle} />
+              </div>
+              <div>
+                <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-primary)" }}>Desired Login Password *</label>
+                <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Min 6 characters" required className="w-full px-4 py-3 rounded-2xl border outline-none" style={inputStyle} />
+              </div>
+            </div>
+          )}
+        </motion.div>
       );
       case 1: return (
-        <div className="flex flex-col gap-5">
+        <motion.div 
+          key="step1"
+          initial={{ x: 30, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: -30, opacity: 0 }}
+          className="flex flex-col gap-5"
+        >
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Service Category *</label>
-            <div className="flex flex-wrap gap-2">
-              {CATEGORIES.map((cat) => (
-                <button key={cat} onClick={() => setFormData(p => ({ ...p, category: cat }))} type="button"
-                  className="px-4 py-2.5 rounded-xl text-sm border cursor-pointer transition-all duration-200"
-                  style={{ fontFamily: "var(--font-body)", backgroundColor: formData.category === cat ? "var(--color-primary)" : "var(--color-bg)", color: formData.category === cat ? "#fff" : "var(--color-text-dark)", borderColor: formData.category === cat ? "var(--color-primary)" : "var(--color-border)" }}>
-                  {cat}
+            <label className="block text-[10px] font-semibold uppercase tracking-wider mb-3" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Select Primary Category *</label>
+            <div className="flex flex-wrap gap-2.5">
+              {categories.map((cat) => (
+                <button 
+                  key={cat._id || cat.id} 
+                  onClick={() => setFormData(p => ({ ...p, category: String(cat._id || cat.id) }))} 
+                  type="button"
+                  className="px-4.5 py-2.5 rounded-xl text-xs font-semibold border cursor-pointer transition-all duration-200"
+                  style={{ 
+                    fontFamily: "var(--font-body)", 
+                    backgroundColor: String(formData.category) === String(cat._id || cat.id) ? "var(--color-primary)" : "var(--color-bg)", 
+                    color: String(formData.category) === String(cat._id || cat.id) ? "#fff" : "var(--color-text-dark)", 
+                    borderColor: String(formData.category) === String(cat._id || cat.id) ? "var(--color-primary)" : "var(--color-border)" 
+                  }}
+                >
+                  {cat.name}
                 </button>
               ))}
             </div>
           </div>
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Services Offered</label>
-            <input name="services" value={formData.services} onChange={handleChange} placeholder="e.g. Photography, Decoration, Catering" className="w-full px-4 py-3 rounded-xl text-sm border outline-none" style={inputStyle} />
+            <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>List Services (comma separated) *</label>
+            <input name="services" value={formData.services} onChange={handleChange} placeholder="e.g. Wedding Photography, Drone Shoots, Pre-Wedding Editing" required className="w-full px-4 py-3 rounded-2xl border outline-none" style={inputStyle} />
           </div>
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Years of Experience</label>
-            <input name="experience" value={formData.experience} onChange={handleChange} placeholder="e.g. 5 Years" className="w-full px-4 py-3 rounded-xl text-sm border outline-none" style={inputStyle} />
+            <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Professional Experience *</label>
+            <input name="experience" value={formData.experience} onChange={handleChange} placeholder="e.g. 6 Years" required className="w-full px-4 py-3 rounded-2xl border outline-none" style={inputStyle} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>City</label>
-              <input name="city" value={formData.city} onChange={handleChange} placeholder="City" className="w-full px-4 py-3 rounded-xl text-sm border outline-none" style={inputStyle} />
+              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>City *</label>
+              <input name="city" value={formData.city} onChange={handleChange} placeholder="Patna" required className="w-full px-4 py-3 rounded-2xl border outline-none" style={inputStyle} />
             </div>
             <div>
-              <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>State</label>
-              <input name="state" value={formData.state} onChange={handleChange} placeholder="State" className="w-full px-4 py-3 rounded-xl text-sm border outline-none" style={inputStyle} />
+              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>State *</label>
+              <input name="state" value={formData.state} onChange={handleChange} placeholder="Bihar" required className="w-full px-4 py-3 rounded-2xl border outline-none" style={inputStyle} />
             </div>
           </div>
-        </div>
+        </motion.div>
       );
       case 2: return (
-        <div className="flex flex-col gap-6">
-          <p className="text-sm" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Upload documents for verification (optional for now).</p>
-          {["ID Proof (Aadhaar/PAN)", "Business Registration"].map((doc, i) => (
-            <div key={i} className="rounded-2xl border-2 border-dashed p-8 text-center cursor-pointer transition-all duration-200 hover:border-solid"
-              style={{ borderColor: "var(--color-border)" }}>
-              <span className="text-3xl block mb-3">📎</span>
-              <p className="text-sm font-semibold mb-1" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>{doc}</p>
-              <p className="text-xs" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-muted)" }}>Click or drag to upload (PDF, JPG, PNG)</p>
-            </div>
-          ))}
-        </div>
+        <motion.div 
+          key="step2"
+          initial={{ x: 30, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: -30, opacity: 0 }}
+          className="flex flex-col gap-5"
+        >
+          <div className="rounded-2xl p-5 border text-center" style={{ backgroundColor: "rgba(196,168,130,0.06)", borderColor: "var(--color-accent)" }}>
+            <p className="text-xs italic m-0" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)", lineHeight: 1.6 }}>
+              Upload your documents to complete verification. (Dummy uploading is enabled for this prototype. Select any file or image proof below).
+            </p>
+          </div>
+          <div>
+            <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Government ID Proof (Aadhaar/PAN/Passport) *</label>
+            <input type="file" required className="w-full text-xs" onChange={(e) => setFormData(p => ({ ...p, idProof: e.target.files[0] }))} />
+          </div>
+          <div>
+            <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Business Registration / Tax certificate</label>
+            <input type="file" className="w-full text-xs" onChange={(e) => setFormData(p => ({ ...p, businessReg: e.target.files[0] }))} />
+          </div>
+          <div>
+            <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Street Address *</label>
+            <input name="address" value={formData.address} onChange={handleChange} placeholder="Flat, House no, Building, Street" required className="w-full px-4 py-3 rounded-2xl border outline-none" style={inputStyle} />
+          </div>
+        </motion.div>
       );
       case 3: return (
-        <div className="flex flex-col gap-4">
-          <h3 className="text-lg font-normal" style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}>Review Your Application</h3>
-          {[
-            ["Business Name", formData.businessName || "—"],
-            ["Business Type", formData.businessType || "—"],
-            ["Category", formData.category || "—"],
-            ["Services", formData.services || "—"],
-            ["Experience", formData.experience || "—"],
-            ["City", formData.city || "—"],
-            ["Phone", formData.phone || "—"],
-            ["Email", formData.email || "—"],
-          ].map(([label, value]) => (
-            <div key={label} className="flex justify-between text-sm py-2" style={{ borderBottom: "1px solid var(--color-border)", fontFamily: "var(--font-body)" }}>
-              <span style={{ color: "var(--color-text-mid)" }}>{label}</span>
-              <span className="font-semibold" style={{ color: "var(--color-text-dark)" }}>{value}</span>
-            </div>
-          ))}
-        </div>
+        <motion.div 
+          key="step3"
+          initial={{ x: 30, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: -30, opacity: 0 }}
+          className="flex flex-col gap-4 text-sm"
+          style={{ fontFamily: "var(--font-body)" }}
+        >
+          <div className="border-b pb-3 mb-2 flex items-center justify-between">
+            <span className="font-semibold" style={{ color: "var(--color-text-dark)" }}>Business details</span>
+            <button onClick={() => setStep(0)} type="button" className="text-xs underline border-0 bg-transparent cursor-pointer" style={{ color: "var(--color-primary)" }}>Edit</button>
+          </div>
+          <div className="grid grid-cols-2 gap-y-2 text-xs">
+            <span style={{ color: "var(--color-text-mid)" }}>Business Name:</span>
+            <span className="font-semibold text-right" style={{ color: "var(--color-text-dark)" }}>{formData.businessName}</span>
+
+            <span style={{ color: "var(--color-text-mid)" }}>Type:</span>
+            <span className="font-semibold text-right" style={{ color: "var(--color-text-dark)" }}>{formData.businessType}</span>
+
+            <span style={{ color: "var(--color-text-mid)" }}>Phone Contact:</span>
+            <span className="font-semibold text-right" style={{ color: "var(--color-text-dark)" }}>{formData.phone}</span>
+
+            <span style={{ color: "var(--color-text-mid)" }}>Email:</span>
+            <span className="font-semibold text-right" style={{ color: "var(--color-text-dark)" }}>{formData.email}</span>
+          </div>
+
+          <div className="border-b pb-3 mb-2 mt-4 flex items-center justify-between">
+            <span className="font-semibold" style={{ color: "var(--color-text-dark)" }}>Service category</span>
+            <button onClick={() => setStep(1)} type="button" className="text-xs underline border-0 bg-transparent cursor-pointer" style={{ color: "var(--color-primary)" }}>Edit</button>
+          </div>
+          <div className="grid grid-cols-2 gap-y-2 text-xs">
+            <span style={{ color: "var(--color-text-mid)" }}>Category:</span>
+            <span className="font-semibold text-right" style={{ color: "var(--color-text-dark)" }}>{selectedCategoryName}</span>
+
+            <span style={{ color: "var(--color-text-mid)" }}>Experience:</span>
+            <span className="font-semibold text-right" style={{ color: "var(--color-text-dark)" }}>{formData.experience}</span>
+          </div>
+
+          <div className="border-b pb-3 mb-2 mt-4 flex items-center justify-between">
+            <span className="font-semibold" style={{ color: "var(--color-text-dark)" }}>Address</span>
+            <button onClick={() => setStep(2)} type="button" className="text-xs underline border-0 bg-transparent cursor-pointer" style={{ color: "var(--color-primary)" }}>Edit</button>
+          </div>
+          <p className="text-xs leading-normal m-0" style={{ color: "var(--color-text-mid)" }}>
+            {formData.address}, {formData.city}, {formData.state}
+          </p>
+        </motion.div>
       );
       default: return null;
     }
   };
 
   return (
-    <div className="min-h-screen pt-24 pb-20 px-4 sm:px-8" style={{ backgroundColor: "var(--color-bg)" }}>
-      <div className="max-w-2xl mx-auto">
-        <h1 className="text-2xl font-normal mb-2" style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}>Become a Provider</h1>
-        <p className="text-sm mb-8" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Join QuickSathi and reach thousands of customers.</p>
+    <div className="min-h-screen py-24 flex items-center justify-center px-6" style={{ backgroundColor: "var(--color-bg)" }}>
+      <div 
+        className="w-full max-w-xl rounded-3xl border p-8 sm:p-10"
+        style={{ backgroundColor: "var(--color-bg-white)", borderColor: "var(--color-border)", boxShadow: "0 20px 50px rgba(0,0,0,0.04)" }}
+      >
+        {/* Progress Header */}
+        <div className="flex items-center justify-between mb-8">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-primary" style={{ color: "var(--color-primary)", fontFamily: "var(--font-body)" }}>
+            Step {step + 1} of {STEPS.length}
+          </span>
+          <span className="text-sm font-semibold" style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}>
+            {STEPS[step]}
+          </span>
+        </div>
 
-        {/* Progress */}
-        <div className="flex items-center gap-2 mb-10">
-          {STEPS.map((s, i) => (
-            <div key={i} className="flex items-center gap-2 flex-1">
-              <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
-                style={{ fontFamily: "var(--font-body)", backgroundColor: i <= step ? "var(--color-primary)" : "var(--color-border)", color: i <= step ? "#fff" : "var(--color-text-muted)" }}>
-                {i < step ? "✓" : i + 1}
-              </div>
-              <span className="text-xs hidden sm:inline" style={{ fontFamily: "var(--font-body)", color: i <= step ? "var(--color-text-dark)" : "var(--color-text-muted)" }}>{s}</span>
-              {i < STEPS.length - 1 && <div className="flex-1 h-px" style={{ backgroundColor: i < step ? "var(--color-primary)" : "var(--color-border)" }} />}
-            </div>
+        {/* Step Indicator Bars */}
+        <div className="flex gap-1.5 mb-10">
+          {STEPS.map((_, idx) => (
+            <div key={idx} className="flex-1 h-1 rounded-full transition-all duration-300"
+              style={{ backgroundColor: idx <= step ? "var(--color-primary)" : "var(--color-border)" }} />
           ))}
         </div>
 
-        <div className="rounded-2xl p-6 sm:p-8 border mb-6" style={{ backgroundColor: "var(--color-bg-white)", borderColor: "var(--color-border)" }}>
-          {renderStep()}
-        </div>
+        {/* Error message */}
+        {error && (
+          <div className="px-4 py-3 rounded-xl text-sm mb-6" style={{ backgroundColor: "rgba(220,38,38,0.08)", color: "#dc2626", border: "1px solid rgba(220,38,38,0.15)", fontFamily: "var(--font-body)" }}>
+            {error}
+          </div>
+        )}
 
-        <div className="flex justify-between gap-4">
-          {step > 0 && (
-            <button onClick={() => setStep(step - 1)} className="px-6 py-3 rounded-2xl text-sm font-semibold border cursor-pointer transition-all duration-200"
-              style={{ fontFamily: "var(--font-body)", borderColor: "var(--color-border)", color: "var(--color-text-dark)", backgroundColor: "transparent" }}>
-              Back
-            </button>
-          )}
-          <button
-            onClick={() => step < STEPS.length - 1 ? setStep(step + 1) : setSubmitted(true)}
-            className="flex-1 py-3 rounded-2xl text-sm font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-90"
-            style={{ fontFamily: "var(--font-body)", backgroundColor: "var(--color-primary)", color: "#fff" }}>
-            {step === STEPS.length - 1 ? "Submit Application" : "Continue"}
-          </button>
-        </div>
+        <form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-6">
+          <AnimatePresence mode="wait">
+            {renderStep()}
+          </AnimatePresence>
+
+          {/* Navigation CTAs */}
+          <div className="flex items-center justify-between border-t pt-6 mt-4" style={{ borderColor: "var(--color-border)" }}>
+            {step > 0 ? (
+              <button 
+                type="button" 
+                onClick={() => setStep(p => p - 1)} 
+                className="px-6 py-3 rounded-full text-xs font-semibold border cursor-pointer bg-transparent transition-all"
+                style={{ fontFamily: "var(--font-body)", borderColor: "var(--color-border)", color: "var(--color-text-dark)" }}
+              >
+                Previous Step
+              </button>
+            ) : <div />}
+
+            {step < STEPS.length - 1 ? (
+              <button 
+                type="button" 
+                onClick={() => setStep(p => p + 1)} 
+                className="px-7 py-3 rounded-full text-xs font-semibold border-0 cursor-pointer text-white"
+                style={{ fontFamily: "var(--font-body)", backgroundColor: "var(--color-text-dark)" }}
+              >
+                Continue
+              </button>
+            ) : (
+              <button 
+                type="button" 
+                disabled={submitting} 
+                onClick={handleSubmit} 
+                className="px-8 py-3.5 rounded-full text-xs font-semibold border-0 cursor-pointer text-white transition-all"
+                style={{ 
+                  fontFamily: "var(--font-body)", 
+                  backgroundColor: "var(--color-primary)", 
+                  boxShadow: "0 6px 20px rgba(139,26,26,0.25)",
+                  opacity: submitting ? 0.75 : 1 
+                }}
+              >
+                {submitting ? "Submitting Application..." : "Submit Registration"}
+              </button>
+            )}
+          </div>
+        </form>
       </div>
     </div>
   );

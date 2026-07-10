@@ -7,22 +7,25 @@ const SERVICES = [
     desc: "Explore top exclusive gardens, boutique venues, and historic palaces that match your celebrations dream palette.",
     image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=2098&auto=format&fit=crop",
     tag: "Popular",
+    link: "/service/101",
   },
   {
     name: "Photography",
     desc: "Professional candid, cinematic shoots with premium editing.",
     image: "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475579/Photography_2_rymouy.png",
+    link: "/service/101",
   },
   {
     name: "Gourmet Catering",
     desc: "Multi-cuisine menus, live counters, and bespoke dining.",
     image: "https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=2070&auto=format&fit=crop",
+    link: "/service/103",
   },
   {
     name: "Floral & Décor",
     desc: "Transform your venue with stunning floral arrangements and thematic setups.",
     image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=2070&auto=format&fit=crop",
-    link: "See Portfolio",
+    link: "/service/102",
   },
 ];
 
@@ -118,9 +121,10 @@ const WeddingServices = () => {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 max-w-6xl mx-auto">
           {SERVICES.map((s, i) => (
-            <div
+            <Link
+              to={s.link}
               key={i}
-              className="group relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-[1.02]"
+              className="group relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-[1.02] no-underline block"
               style={{ backgroundColor: "var(--color-bg-white)", border: "1px solid var(--color-border)" }}
             >
               <div className="relative h-48 overflow-hidden">
@@ -133,9 +137,10 @@ const WeddingServices = () => {
               </div>
               <div className="p-5">
                 <h3 className="text-base font-semibold mb-2" style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}>{s.name}</h3>
-                <p className="text-xs leading-relaxed" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>{s.desc}</p>
+                <p className="text-xs leading-relaxed mb-4" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>{s.desc}</p>
+                <span className="text-xs font-bold" style={{ color: "#c4185a" }}>Explore Service →</span>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </section>

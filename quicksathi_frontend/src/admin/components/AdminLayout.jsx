@@ -1,10 +1,14 @@
 import { NavLink, Outlet, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { LayoutDashboard, Wrench, FolderOpen, Users, ClipboardList, Globe, Briefcase } from "lucide-react";
 
 const MENU = [
-  { to: "/admin", label: "Dashboard", icon: "📊", end: true },
-  { to: "/admin/providers", label: "Providers", icon: "👥" },
-  { to: "/admin/bookings", label: "Bookings", icon: "📋" },
+  { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/admin/services", label: "Services", icon: Wrench },
+  { to: "/admin/categories", label: "Categories", icon: FolderOpen },
+  { to: "/admin/providers", label: "Providers", icon: Briefcase },
+  { to: "/admin/users", label: "Users", icon: Users },
+  { to: "/admin/bookings", label: "Bookings", icon: ClipboardList },
 ];
 
 const AdminLayout = () => {
@@ -25,7 +29,7 @@ const AdminLayout = () => {
 
         {/* Menu */}
         <nav className="flex-1 p-4 flex flex-col gap-1">
-          {MENU.map(({ to, label, icon, end }) => (
+          {MENU.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
               to={to}
@@ -37,11 +41,23 @@ const AdminLayout = () => {
                 backgroundColor: isActive ? "rgba(139,26,26,0.2)" : "transparent",
               })}
             >
-              <span>{icon}</span>
+              <Icon size={18} strokeWidth={1.5} />
               {label}
             </NavLink>
           ))}
         </nav>
+
+        {/* Back to site */}
+        <div className="px-4 pb-2">
+          <Link
+            to="/"
+            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm no-underline transition-all duration-200"
+            style={{ fontFamily: "var(--font-body)", color: "rgba(255,255,255,0.3)", backgroundColor: "transparent" }}
+          >
+            <Globe size={18} strokeWidth={1.5} />
+            Back to Site
+          </Link>
+        </div>
 
         {/* User */}
         <div className="p-4" style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
@@ -64,18 +80,18 @@ const AdminLayout = () => {
       {/* Main */}
       <main className="flex-1 overflow-auto">
         {/* Top bar (mobile) */}
-        <div className="lg:hidden px-4 py-3 flex items-center justify-between" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-          <h2 className="text-base font-bold text-white m-0" style={{ fontFamily: "var(--font-display)" }}>Admin</h2>
+        <div className="lg:hidden px-4 py-3 flex items-center justify-between overflow-x-auto" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <h2 className="text-base font-bold text-white m-0 mr-4 flex-shrink-0" style={{ fontFamily: "var(--font-display)" }}>Admin</h2>
           <div className="flex gap-2">
-            {MENU.map(({ to, label, icon, end }) => (
+            {MENU.map(({ to, label, icon: Icon, end }) => (
               <NavLink key={to} to={to} end={end}
-                className="px-3 py-1.5 rounded-lg text-xs no-underline"
+                className="px-3 py-1.5 rounded-lg text-xs no-underline flex items-center gap-1.5 flex-shrink-0"
                 style={({ isActive }) => ({
                   fontFamily: "var(--font-body)",
                   color: isActive ? "#fff" : "rgba(255,255,255,0.4)",
                   backgroundColor: isActive ? "rgba(139,26,26,0.3)" : "transparent",
                 })}>
-                {icon} {label}
+                <Icon size={14} strokeWidth={1.5} /> {label}
               </NavLink>
             ))}
           </div>

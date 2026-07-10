@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useFetch } from "../hooks/useFetch";
-import { mockCategories } from "../data/mockCategories";
-import { mockServices } from "../data/mockServices";
+import { motion } from "framer-motion";
+import api from "../config/api";
 import Card from "../components/common/Card";
 
 const INTERVAL_MS = 4000;
@@ -108,7 +107,7 @@ const CategoryBanner = ({
       {subs.length > 0 ? (
         subs.map((sub, i) => (
           <img
-            key={sub.id}
+            key={sub._id || sub.id}
             src={sub.imageUrl}
             alt={sub.name}
             className="absolute inset-0 w-full h-full object-cover object-center"
@@ -160,10 +159,28 @@ const CategoryBanner = ({
 
 const Category = () => {
   const { id } = useParams();
-  const { data, loading } = useFetch(mockCategories);
+  const [category, setCategory] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [services, setServices] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const category = data?.find((c) => c.id === parseInt(id));
+  // Fetch the category by ID from the API
+  useEffect(() => {
+    const fetchCategory = async () => {
+      try {
+        setLoading(true);
+        const { data } = await api.get(`/categories/${id}`);
+        setCategory(data);
+      } catch (err) {
+        console.error("Failed to fetch category:", err);
+        setCategory(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCategory();
+  }, [id]);
+
   const subs = category?.subCategories ?? [];
 
   useEffect(() => {
@@ -174,16 +191,32 @@ const Category = () => {
     return () => clearInterval(timer);
   }, [subs.length]);
 
+  // Fetch services to link subcategories to real service pages
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const { data } = await api.get("/services");
+        setServices(data);
+      } catch (err) {
+        console.error("Failed to fetch services:", err);
+      }
+    };
+    fetchServices();
+  }, []);
+
   const activeSub = subs[activeIndex] ?? null;
 
-  const getServiceLink = (name) => {
-    const match = mockServices?.find(
+  const getServiceLink = (name, subId) => {
+    const match = services?.find(
       (s) => s.name.toLowerCase() === name.toLowerCase(),
     );
-    return match ? `/service/${match.id}` : undefined;
+    const isRental = name.toLowerCase().includes("rental") || name.toLowerCase().includes("car") || name.toLowerCase().includes("bike");
+    const prefix = isRental ? "/product" : "/service";
+    if (match) return `${prefix}/${match._id}`;
+    return `${prefix}/${subId}`;
   };
 
-  if (loading)
+  if (loading) {
     return (
       <div className="flex flex-col items-center justify-center gap-4 min-h-[40vh]">
         <div
@@ -204,8 +237,9 @@ const Category = () => {
         </span>
       </div>
     );
+  }
 
-  if (!category)
+  if (!category) {
     return (
       <div
         className="text-center py-20 text-2xl"
@@ -217,9 +251,14 @@ const Category = () => {
         Category not found
       </div>
     );
+  }
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.5 }}
       className="min-h-screen pb-16 sm:pb-20"
       style={{ backgroundColor: "var(--color-bg)" }}
     >
@@ -253,21 +292,37 @@ const Category = () => {
           />
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+        <motion.div
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.08 } }
+          }}
+        >
           {category.subCategories?.map((service) => (
-            <Card
-              key={service.id}
-              title={service.name}
-              description={service.description}
-              image={service.imageUrl}
-              primaryAction="Book Service"
-              variant="overlay"
-              linkTo={getServiceLink(service.name)}
-            />
+            <motion.div
+              key={service._id || service.id}
+              variants={{
+                hidden: { y: 20, opacity: 0 },
+                visible: { y: 0, opacity: 1, transition: { duration: 0.5 } }
+              }}
+            >
+              <Card
+                title={service.name}
+                description={service.description}
+                image={service.imageUrl}
+                primaryAction="Book Service"
+                variant="overlay"
+                linkTo={getServiceLink(service.name, service._id)}
+              />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

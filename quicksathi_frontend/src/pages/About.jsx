@@ -1,78 +1,83 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { useFetch } from "../hooks/useFetch";
-import { mockCategories } from "../data/mockCategories";
-
-const INTERVAL_MS = 4000;
+import { motion } from "framer-motion";
 
 const stats = [
   { value: "10K+", label: "Happy Customers" },
   { value: "98%", label: "Satisfaction Rating" },
-  { value: "20K+", label: "Services Completed" },
-  { value: "50+", label: "Expert Professionals" },
+  { value: "25K+", label: "Services Completed" },
+  { value: "120+", label: "Vetted Professionals" },
 ];
 
 const values = [
   {
-    icon: "✦",
-    title: "Locally Owned & Operated",
-    desc: "We're part of your community — every booking supports local professionals.",
+    icon: "🛡️",
+    title: "100% Vetted Professionals",
+    desc: "Every provider is thoroughly verified, background-checked, and monitored for quality assurance.",
   },
   {
-    icon: "◎",
-    title: "Always Here 24/7",
-    desc: "Round-the-clock support so you're never stuck when something goes wrong.",
+    icon: "⏱️",
+    title: "Instant Live Booking",
+    desc: "Schedule services instantly with transparent availability and real-time confirmations.",
   },
   {
-    icon: "◈",
-    title: "Certified Professionals",
-    desc: "Every professional on our platform is vetted, verified, and rated.",
+    icon: "💳",
+    title: "Upfront & Fair Quotes",
+    desc: "Clear itemized pricing packages. What you see is exactly what you pay, with no surprise surcharges.",
   },
   {
-    icon: "◇",
-    title: "Problem Solvers at Heart",
-    desc: "We don't just fix things — we make sure they stay fixed.",
+    icon: "🤝",
+    title: "Locally Vetted & Vested",
+    desc: "We are proudly Bihar-grown. Every booking supports local businesses and highly skilled professionals.",
+  },
+];
+
+const team = [
+  {
+    name: "Roushan Kumar",
+    role: "Co-Founder & CEO",
+    bio: "Driving tech innovation to digitize and elevate Patna's local service standards.",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    name: "Anjali Sharma",
+    role: "Co-Founder & COO",
+    bio: "Ensuring top-tier service delivery and managing our network of trusted providers.",
+    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=600&auto=format&fit=crop",
+  },
+  {
+    name: "Vikram Aditya",
+    role: "Lead Systems Architect",
+    bio: "Crafting the secure, user-friendly, and blazing fast platform you experience.",
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=600&auto=format&fit=crop",
   },
 ];
 
 const About = () => {
-  const { data: categories } = useFetch(mockCategories);
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  useEffect(() => {
-    if (!categories?.length) return;
-    const timer = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % categories.length);
-    }, INTERVAL_MS);
-    return () => clearInterval(timer);
-  }, [categories]);
-
-  const active = categories?.[activeIndex];
-  const subs = active?.subCategories?.slice(0, 2) ?? [];
-
   return (
-    <div
-      className="min-h-screen pb-16 sm:pb-20"
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="min-h-screen pb-20"
       style={{ backgroundColor: "var(--color-bg)" }}
     >
-      {/* ── Hero banner ── */}
+      {/* ── Hero section ── */}
       <div
         className="relative w-full overflow-hidden"
         style={{
-          minHeight: "280px",
+          minHeight: "360px",
           backgroundColor: "var(--color-text-dark)",
         }}
       >
         <div
-          className="absolute inset-0 opacity-20"
+          className="absolute inset-0 opacity-15"
           style={{
-            backgroundImage: `url(${categories?.[0]?.imageUrl})`,
+            backgroundImage: `url('https://images.unsplash.com/photo-1521791136368-1a8b27503462?q=80&w=2070&auto=format&fit=crop')`,
             backgroundSize: "cover",
             backgroundPosition: "center",
-            filter: "grayscale(40%)",
           }}
         />
-        <div className="relative z-10 px-4 sm:px-10 lg:px-16 py-20 sm:py-24">
+        <div className="relative z-10 px-4 sm:px-10 lg:px-16 py-24 sm:py-28 max-w-5xl">
           <nav
             className="flex items-center gap-2 text-xs mb-6"
             style={{ fontFamily: "var(--font-body)" }}
@@ -86,64 +91,70 @@ const About = () => {
             <span className="text-white opacity-40">/</span>
             <span className="text-white font-semibold">About Us</span>
           </nav>
+          
+          <span
+            className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4 border uppercase tracking-widest text-white/80"
+            style={{
+              fontFamily: "var(--font-body)",
+              backgroundColor: "rgba(255,255,255,0.08)",
+              borderColor: "rgba(255,255,255,0.15)",
+              letterSpacing: "0.08em",
+            }}
+          >
+            Our Mission
+          </span>
+
           <h1
-            className="font-normal text-white leading-[1.05]"
+            className="font-normal text-white leading-[1.05] m-0"
             style={{
               fontFamily: "var(--font-display)",
-              fontSize: "clamp(28px, 5vw, 72px)",
+              fontSize: "clamp(32px, 5vw, 64px)",
               letterSpacing: "-0.02em",
             }}
           >
-            Meet the Team <br />
-            <span style={{ opacity: 0.5 }}>Behind the Service.</span>
+            Redefining Local Services. <br />
+            <span style={{ opacity: 0.5 }}>Restoring Absolute Trust.</span>
           </h1>
           <p
-            className="text-white mt-4 max-w-md"
+            className="text-white mt-4 max-w-xl text-base"
             style={{
               fontFamily: "var(--font-body)",
-              opacity: 0.65,
-              fontSize: "1rem",
+              opacity: 0.7,
               lineHeight: 1.7,
             }}
           >
-            We're more than just a platform — we're a team of dedicated problem
-            solvers committed to connecting you with the best local
-            professionals.
+            QuickSathi is on a mission to simplify local services for Patna and beyond. By combining technology with a rigorous screening process, we deliver elite security, logistics, and celebration services directly to your doorstep.
           </p>
         </div>
       </div>
 
-      {/* ── Stats row — 2 cols on mobile, 4 on desktop ── */}
+      {/* ── Stats row ── */}
       <div
         className="grid grid-cols-2 lg:grid-cols-4 gap-0"
-        style={{ borderBottom: "1px solid var(--color-border)" }}
+        style={{
+          borderBottom: "1px solid var(--color-border)",
+          backgroundColor: "var(--color-bg-soft)",
+        }}
       >
         {stats.map((s, i) => (
           <div
             key={i}
-            className="py-8 sm:py-10 px-4 sm:px-8 text-center"
+            className="py-10 px-6 text-center"
             style={{
-              borderRight:
-                i % 2 === 0
-                  ? "1px solid var(--color-border)"
-                  : i < 3
-                    ? "1px solid var(--color-border)"
-                    : "none",
-              borderBottom:
-                i < 2 ? "1px solid var(--color-border)" : "none",
+              borderRight: i < 3 ? "1px solid var(--color-border)" : "none",
             }}
           >
             <p
-              className="text-3xl sm:text-4xl font-normal m-0 mb-1"
+              className="text-4xl font-normal m-0 mb-1"
               style={{
                 fontFamily: "var(--font-display)",
-                color: "var(--color-text-dark)",
+                color: "var(--color-primary)",
               }}
             >
               {s.value}
             </p>
             <p
-              className="text-sm m-0"
+              className="text-sm m-0 font-medium"
               style={{
                 fontFamily: "var(--font-body)",
                 color: "var(--color-text-mid)",
@@ -155,269 +166,273 @@ const About = () => {
         ))}
       </div>
 
-      {/* ── What We Do ── */}
-      <section className="px-4 sm:px-8 lg:px-16 py-12 sm:py-20">
-        <p
-          className="text-xs font-semibold uppercase tracking-widest mb-2"
-          style={{
-            fontFamily: "var(--font-body)",
-            color: "var(--color-accent)",
-            letterSpacing: "0.14em",
-          }}
+      {/* ── Our Story ── */}
+      <section className="px-4 sm:px-8 lg:px-16 py-20 sm:py-28 max-w-7xl mx-auto">
+        <motion.div 
+          className="flex flex-col lg:flex-row gap-16 items-center"
+          initial={{ y: 25, opacity: 0 }}
+          whileInView={{ y: 0, opacity: 1 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
         >
-          What We Do
-        </p>
-
-        <div
-          className="flex flex-col md:flex-row gap-8 md:gap-16 items-center mt-8 sm:mt-10"
-          style={{ minHeight: "auto" }}
-        >
-          {/* Left image */}
-          <div className="relative w-full md:w-[42%] flex-shrink-0">
-            <div
-              className="absolute top-5 left-5 z-10 px-4 py-3 rounded-2xl"
-              style={{
-                backgroundColor: "var(--color-accent)",
-                boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-              }}
-            >
-              <p
-                className="text-2xl font-bold m-0 leading-none"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  color: "var(--color-text-dark)",
-                }}
-              >
-                10+
-              </p>
-              <p
-                className="text-xs m-0 mt-0.5 leading-tight"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  color: "var(--color-text-dark)",
-                  opacity: 0.75,
-                }}
-              >
-                Years Of
-                <br />
-                Experience
-              </p>
-            </div>
-            <div
-              className="w-full overflow-hidden relative"
-              style={{ borderRadius: "24px", aspectRatio: "4/4.2" }}
-            >
-              {categories?.map((cat, i) => (
-                <img
-                  key={cat.id}
-                  src={cat.imageUrl}
-                  alt={cat.name}
-                  style={{
-                    position: "absolute",
-                    inset: 0,
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                    opacity: i === activeIndex ? 1 : 0,
-                    transition: "opacity 1s ease-in-out",
-                  }}
-                />
-              ))}
-            </div>
-            <div className="flex gap-2 justify-center mt-4">
-              {categories?.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveIndex(i)}
-                  className="rounded-full border-0 cursor-pointer transition-all duration-300"
-                  style={{
-                    width: i === activeIndex ? "20px" : "7px",
-                    height: "7px",
-                    backgroundColor:
-                      i === activeIndex
-                        ? "var(--color-text-dark)"
-                        : "rgba(44,24,16,0.2)",
-                    padding: 0,
-                  }}
-                  aria-label={`View ${categories?.[i]?.name}`}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Right detail */}
-          <div className="flex-1 min-w-0 w-full">
-            <div className="flex items-center gap-3 mb-5">
-              <div
-                className="w-8 h-px"
-                style={{ backgroundColor: "var(--color-accent)" }}
-              />
-              <span
-                className="text-xs font-semibold uppercase tracking-widest"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  color: "var(--color-accent)",
-                  letterSpacing: "0.12em",
-                }}
-              >
-                {active?.name}
-              </span>
-            </div>
-            <h2
-              className="font-normal leading-[1.1] mb-4"
-              style={{
-                fontFamily: "var(--font-display)",
-                fontSize: "clamp(24px, 3vw, 46px)",
-                color: "var(--color-text-dark)",
-                letterSpacing: "-0.02em",
-                transition: "all 0.5s ease",
-              }}
-            >
-              {active?.name} <br />
-              <span style={{ opacity: 0.5 }}>done right.</span>
-            </h2>
-            <p
-              className="text-base leading-relaxed mb-8"
+          {/* Left Text */}
+          <div className="flex-1">
+            <span
+              className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4 border uppercase tracking-widest"
               style={{
                 fontFamily: "var(--font-body)",
-                color: "var(--color-text-mid)",
-                maxWidth: "400px",
-                transition: "all 0.5s ease",
+                backgroundColor: "rgba(139,26,26,0.06)",
+                color: "var(--color-primary)",
+                borderColor: "rgba(139,26,26,0.15)",
+                letterSpacing: "0.1em",
               }}
             >
-              {active?.description} We bring trusted professionals to your
-              doorstep — fast, reliable, and always on time.
-            </p>
-            <div className="flex flex-col gap-4 mb-0">
-              {subs.map((sub) => (
-                <div
-                  key={sub.id}
-                  className="flex items-start gap-4 p-4 rounded-2xl"
-                  style={{
-                    backgroundColor: "var(--color-bg-soft)",
-                    border: "1px solid var(--color-border)",
-                  }}
-                >
-                  <div
-                    className="flex-shrink-0 overflow-hidden rounded-xl"
-                    style={{ width: "52px", height: "52px" }}
-                  >
-                    <img
-                      src={sub.imageUrl}
-                      alt={sub.name}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <div>
-                    <p
-                      className="font-semibold m-0 mb-0.5 text-sm"
-                      style={{
-                        fontFamily: "var(--font-body)",
-                        color: "var(--color-text-dark)",
-                      }}
-                    >
-                      ✓ {sub.name}
-                    </p>
-                    <p
-                      className="text-xs m-0 leading-snug"
-                      style={{
-                        fontFamily: "var(--font-body)",
-                        color: "var(--color-text-mid)",
-                      }}
-                    >
-                      {sub.description}
-                    </p>
-                  </div>
-                </div>
-              ))}
+              Our Story
+            </span>
+            <h2
+              className="font-normal leading-[1.1] mb-6"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(26px, 3.5vw, 42px)",
+                color: "var(--color-text-dark)",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              From a simple problem, <br />
+              <span style={{ opacity: 0.5 }}>to Bihar's premier portal.</span>
+            </h2>
+            <div
+              className="text-sm sm:text-base leading-relaxed flex flex-col gap-4"
+              style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
+            >
+              <p>
+                QuickSathi was founded with a clear realization: finding trustworthy local service providers in Patna is far too complicated. Sourcing a high-quality CCTV installer, hiring a reliable car rental, or finding event coordinators often leads to inconsistent service quality, opaque pricing, and delays.
+              </p>
+              <p>
+                We built a platform that puts the client first. We established direct partnerships with vetted professionals, automated the scheduling process, and mandated upfront, flat pricing quotes. The result is a premium marketplace where you can book top-tier professionals in minutes with complete confidence.
+              </p>
             </div>
           </div>
+
+          {/* Right Images Collage */}
+          <div className="w-full lg:w-[45%] flex gap-4 h-[380px] flex-shrink-0">
+            <div className="flex-1 rounded-3xl overflow-hidden shadow-lg h-full">
+              <img
+                src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=800&auto=format&fit=crop"
+                alt="QuickSathi Team Collaboration"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="flex-1 flex flex-col gap-4 h-full">
+              <div className="flex-1 rounded-3xl overflow-hidden shadow-lg">
+                <img
+                  src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800&auto=format&fit=crop"
+                  alt="QuickSathi Corporate Office"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              <div className="flex-1 rounded-3xl overflow-hidden shadow-lg">
+                <img
+                  src="https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop"
+                  alt="QuickSathi Event Vibe"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* ── Our Values ── */}
+      <section
+        className="px-4 sm:px-8 lg:px-16 py-20 sm:py-28"
+        style={{ backgroundColor: "var(--color-bg-soft)", borderTop: "1px solid var(--color-border)", borderBottom: "1px solid var(--color-border)" }}
+      >
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <span
+              className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4 border uppercase tracking-widest"
+              style={{
+                fontFamily: "var(--font-body)",
+                backgroundColor: "rgba(139,26,26,0.06)",
+                color: "var(--color-primary)",
+                borderColor: "rgba(139,26,26,0.15)",
+                letterSpacing: "0.1em",
+              }}
+            >
+              Why Choose Us
+            </span>
+            <h2
+              className="font-normal m-0"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(26px, 3.5vw, 42px)",
+                color: "var(--color-text-dark)",
+                letterSpacing: "-0.02em",
+              }}
+            >
+              Our Core Principles
+            </h2>
+          </div>
+
+          <motion.div 
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={{
+              hidden: {},
+              visible: { transition: { staggerChildren: 0.1 } }
+            }}
+          >
+            {values.map((v, i) => (
+              <motion.div
+                key={i}
+                variants={{
+                  hidden: { y: 20, opacity: 0 },
+                  visible: { y: 0, opacity: 1, transition: { duration: 0.5 } }
+                }}
+                className="p-8 rounded-3xl transition-all duration-300 hover:scale-[1.03] hover:shadow-xl"
+                style={{
+                  backgroundColor: "var(--color-bg)",
+                  border: "1px solid var(--color-border)",
+                }}
+              >
+                <div
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-sm"
+                  style={{ backgroundColor: "rgba(139,26,26,0.06)", border: "1px solid rgba(139,26,26,0.10)" }}
+                >
+                  {v.icon}
+                </div>
+                <h3
+                  className="font-semibold text-base m-0 mb-3"
+                  style={{
+                    fontFamily: "var(--font-body)",
+                    color: "var(--color-text-dark)",
+                  }}
+                >
+                  {v.title}
+                </h3>
+                <p
+                  className="text-xs leading-relaxed m-0"
+                  style={{
+                    fontFamily: "var(--font-body)",
+                    color: "var(--color-text-mid)",
+                  }}
+                >
+                  {v.desc}
+                </p>
+              </motion.div>
+            ))}
+          </motion.div>
         </div>
       </section>
 
-      {/* ── Our Values — 1 col on mobile, 2 on md+ ── */}
-      <section
-        className="px-4 sm:px-8 lg:px-16 py-12 sm:py-16"
-        style={{ backgroundColor: "var(--color-bg-soft)" }}
-      >
-        <p
-          className="text-xs font-semibold uppercase tracking-widest mb-2"
-          style={{
-            fontFamily: "var(--font-body)",
-            color: "var(--color-accent)",
-            letterSpacing: "0.14em",
-          }}
-        >
-          Why Choose Us
-        </p>
-        <h2
-          className="font-normal mb-8 sm:mb-12"
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "clamp(22px, 3vw, 42px)",
-            color: "var(--color-text-dark)",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          Built on trust,
-          <br />
-          <span style={{ opacity: 0.45 }}>driven by results.</span>
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
-          {values.map((v, i) => (
-            <div
-              key={i}
-              className="p-5 sm:p-6 rounded-2xl"
-              style={{
-                backgroundColor: "var(--color-bg)",
-                border: "1px solid var(--color-border)",
-              }}
-            >
-              <p className="text-2xl m-0 mb-3">{v.icon}</p>
-              <p
-                className="font-semibold m-0 mb-2 text-sm"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  color: "var(--color-text-dark)",
-                }}
-              >
-                {v.title}
-              </p>
-              <p
-                className="text-sm m-0 leading-relaxed"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  color: "var(--color-text-mid)",
-                }}
-              >
-                {v.desc}
-              </p>
-            </div>
-          ))}
+      {/* ── Our Team ── */}
+      <section className="px-4 sm:px-8 lg:px-16 py-20 sm:py-28 max-w-7xl mx-auto">
+        <div className="text-center mb-16">
+          <span
+            className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4 border uppercase tracking-widest"
+            style={{
+              fontFamily: "var(--font-body)",
+              backgroundColor: "rgba(139,26,26,0.06)",
+              color: "var(--color-primary)",
+              borderColor: "rgba(139,26,26,0.15)",
+              letterSpacing: "0.1em",
+            }}
+          >
+            Leadership
+          </span>
+          <h2
+            className="font-normal m-0"
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "clamp(26px, 3.5vw, 42px)",
+              color: "var(--color-text-dark)",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            The Minds Behind QuickSathi
+          </h2>
         </div>
+
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-3 gap-8"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+          variants={{
+            hidden: {},
+            visible: { transition: { staggerChildren: 0.15 } }
+          }}
+        >
+          {team.map((t, idx) => (
+            <motion.div
+              key={idx}
+              variants={{
+                hidden: { scale: 0.95, opacity: 0 },
+                visible: { scale: 1, opacity: 1, transition: { duration: 0.6 } }
+              }}
+              className="rounded-3xl border overflow-hidden transition-all duration-300 hover:shadow-xl flex flex-col h-full"
+              style={{ backgroundColor: "var(--color-bg)", borderColor: "var(--color-border)" }}
+            >
+              <div style={{ height: "260px", overflow: "hidden" }}>
+                <img
+                  src={t.image}
+                  alt={t.name}
+                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                />
+              </div>
+              <div className="p-6">
+                <h4
+                  className="m-0 mb-1 font-semibold text-lg"
+                  style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}
+                >
+                  {t.name}
+                </h4>
+                <p
+                  className="m-0 mb-4 text-xs font-medium uppercase tracking-wider"
+                  style={{ fontFamily: "var(--font-body)", color: "var(--color-primary)" }}
+                >
+                  {t.role}
+                </p>
+                <p
+                  className="m-0 text-sm leading-relaxed"
+                  style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
+                >
+                  {t.bio}
+                </p>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
       </section>
 
       {/* ── Browse Categories CTA ── */}
-      <section className="px-4 sm:px-8 lg:px-16 py-12 sm:py-16 text-center">
+      <section
+        className="px-4 sm:px-8 lg:px-16 py-20 sm:py-24 text-center border-t"
+        style={{ backgroundColor: "var(--color-bg-soft)", borderColor: "var(--color-border)" }}
+      >
         <h2
           className="font-normal mb-4"
           style={{
             fontFamily: "var(--font-display)",
-            fontSize: "clamp(22px, 3vw, 42px)",
+            fontSize: "clamp(26px, 3.5vw, 42px)",
             color: "var(--color-text-dark)",
             letterSpacing: "-0.02em",
           }}
         >
-          Ready to get started?
+          Need a Professional Service?
         </h2>
         <p
-          className="mb-8 text-base"
+          className="mb-8 text-base mx-auto"
           style={{
             fontFamily: "var(--font-body)",
             color: "var(--color-text-mid)",
+            maxWidth: "500px",
           }}
         >
-          Browse our services and book a professional in minutes.
+          Check out our available packages, book vetted specialists in seconds, and track your bookings in real-time.
         </p>
         <Link
           to="/"
@@ -432,7 +447,7 @@ const About = () => {
           Explore All Services →
         </Link>
       </section>
-    </div>
+    </motion.div>
   );
 };
 

@@ -1,11 +1,12 @@
-import { createContext, useContext, useState, useEffect } from "react";
- 
+import { createContext, useContext, useState } from "react";
+
 import { signInWithPopup, signOut as firebaseSignOut } from "firebase/auth";
 import { auth, googleProvider } from "../config/firebase";
 import api from "../config/api";
 
 const AuthContext = createContext(null);
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error("useAuth must be used within AuthProvider");
@@ -13,36 +14,55 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  // Restore session on mount
-  useEffect(() => {
-     
+  const [user, setUser] = useState(() => {
     const token = localStorage.getItem("qs_token");
     const savedUser = localStorage.getItem("qs_user");
     if (token && savedUser) {
       try {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setUser(JSON.parse(savedUser));
+        return JSON.parse(savedUser);
       } catch {
         localStorage.removeItem("qs_token");
         localStorage.removeItem("qs_user");
+        localStorage.removeItem("qs_provider");
       }
     }
-    setLoading(false);
-  }, []);
+    return null;
+  });
 
-  const saveSession = (token, userData) => {
+  const [providerProfile, setProviderProfile] = useState(() => {
+    const token = localStorage.getItem("qs_token");
+    const savedProvider = localStorage.getItem("qs_provider");
+    if (token && savedProvider) {
+      try {
+        return JSON.parse(savedProvider);
+      } catch {
+        localStorage.removeItem("qs_provider");
+      }
+    }
+    return null;
+  });
+
+  const loading = false;
+
+  const saveSession = (token, userData, providerData = null) => {
     localStorage.setItem("qs_token", token);
     localStorage.setItem("qs_user", JSON.stringify(userData));
     setUser(userData);
+    if (providerData) {
+      localStorage.setItem("qs_provider", JSON.stringify(providerData));
+      setProviderProfile(providerData);
+    } else {
+      localStorage.removeItem("qs_provider");
+      setProviderProfile(null);
+    }
   };
 
   const clearSession = () => {
     localStorage.removeItem("qs_token");
     localStorage.removeItem("qs_user");
+    localStorage.removeItem("qs_provider");
     setUser(null);
+    setProviderProfile(null);
   };
 
   // Email/Password Registration
@@ -61,10 +81,17 @@ export const AuthProvider = ({ children }) => {
 
   // Google Sign-In via Firebase
   const loginWithGoogle = async () => {
+    if (!auth || !googleProvider) {
+      throw new Error("Firebase is not configured. Please add your Firebase credentials.");
+    }
     const result = await signInWithPopup(auth, googleProvider);
     const firebaseUser = result.user;
 
+    // Get Firebase ID token for server-side verification
+    const idToken = await firebaseUser.getIdToken();
+
     const { data } = await api.post("/auth/google", {
+      idToken,
       email: firebaseUser.email,
       name: firebaseUser.displayName,
       avatar: firebaseUser.photoURL,
@@ -75,10 +102,38 @@ export const AuthProvider = ({ children }) => {
     return data.user;
   };
 
+  // Provider Login (email/password)
+  const providerLogin = async (email, password) => {
+    const { data } = await api.post("/auth/provider-login", { email, password });
+    saveSession(data.token, data.user, data.provider);
+    return data;
+  };
+
+  // Provider Login with Google
+  const providerLoginWithGoogle = async () => {
+    if (!auth || !googleProvider) {
+      throw new Error("Firebase is not configured. Please add your Firebase credentials.");
+    }
+    const result = await signInWithPopup(auth, googleProvider);
+    const firebaseUser = result.user;
+    const idToken = await firebaseUser.getIdToken();
+
+    const { data } = await api.post("/auth/provider-google", {
+      idToken,
+      email: firebaseUser.email,
+      name: firebaseUser.displayName,
+      avatar: firebaseUser.photoURL,
+      firebaseUid: firebaseUser.uid,
+    });
+
+    saveSession(data.token, data.user, data.provider);
+    return data;
+  };
+
   // Logout
   const logout = async () => {
     try {
-      await firebaseSignOut(auth);
+      if (auth) await firebaseSignOut(auth);
     } catch {
       // Firebase sign out may fail if not signed in via Firebase
     }
@@ -87,6 +142,7 @@ export const AuthProvider = ({ children }) => {
 
   const value = {
     user,
+    providerProfile,
     loading,
     isAuthenticated: !!user,
     isAdmin: user?.role === "admin",
@@ -94,6 +150,8 @@ export const AuthProvider = ({ children }) => {
     register,
     login,
     loginWithGoogle,
+    providerLogin,
+    providerLoginWithGoogle,
     logout,
   };
 

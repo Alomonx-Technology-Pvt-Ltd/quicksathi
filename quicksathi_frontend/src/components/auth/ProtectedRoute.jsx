@@ -19,8 +19,14 @@ const ProtectedRoute = ({ children, requiredRole }) => {
     return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && user.role !== requiredRole) {
-    return <Navigate to="/" replace />;
+  // Role check: admin can access everything, provider can access provider routes
+  if (requiredRole) {
+    if (requiredRole === "admin" && user.role !== "admin") {
+      return <Navigate to="/" replace />;
+    }
+    if (requiredRole === "provider" && user.role !== "provider" && user.role !== "admin") {
+      return <Navigate to="/" replace />;
+    }
   }
 
   return children;

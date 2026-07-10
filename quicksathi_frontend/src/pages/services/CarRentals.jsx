@@ -15,6 +15,7 @@ const CARS = [
     tags: ["WEDDING FAVOURITE", "AUTOMATIC"],
     featured: true,
     type: "Luxury",
+    link: "/product/111",
   },
   {
     name: "Range Rover Defender",
@@ -24,6 +25,7 @@ const CARS = [
     seats: 7,
     tags: ["OFF ROAD READY"],
     type: "SUVs",
+    link: "/product/111",
   },
   {
     name: "Audi A4 Executive",
@@ -32,6 +34,7 @@ const CARS = [
     price: 8000,
     tags: ["PETROL", "AUTO"],
     type: "Economy",
+    link: "/product/109",
   },
   {
     name: "Tesla Model 3",
@@ -40,6 +43,7 @@ const CARS = [
     price: 9500,
     tags: ["ELECTRIC", "FULL AUTOPILOT"],
     type: "Economy",
+    link: "/product/109",
   },
   {
     name: "Honda Civic Comfort",
@@ -48,6 +52,7 @@ const CARS = [
     price: 3500,
     tags: ["ECONOMY", "FUEL EFFICIENT"],
     type: "Economy",
+    link: "/product/109",
   },
 ];
 
@@ -216,12 +221,13 @@ const CarRentals = () => {
                       <span className="text-white/50 text-xs" style={{ fontFamily: "var(--font-body)" }}>/day</span>
                     </div>
                   </div>
-                  <button
-                    className="mt-4 px-6 py-2.5 rounded-xl text-sm font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-90"
+                  <Link
+                    to={featuredCar.link}
+                    className="inline-block mt-4 px-6 py-2.5 rounded-xl text-sm font-semibold border-0 cursor-pointer no-underline transition-all duration-200 hover:opacity-90"
                     style={{ fontFamily: "var(--font-body)", backgroundColor: "#1a3a6b", color: "#fff" }}
                   >
                     Book Now
-                  </button>
+                  </Link>
                 </div>
               </div>
 
@@ -239,9 +245,9 @@ const CarRentals = () => {
                   <h3 className="text-white text-xl font-normal mb-1" style={{ fontFamily: "var(--font-display)" }}>{CARS[1].name}</h3>
                   <div className="flex items-center justify-between">
                     <span className="text-white font-bold text-lg" style={{ fontFamily: "var(--font-display)" }}>₹{CARS[1].price.toLocaleString()}<span className="text-white/50 text-xs font-normal">/day</span></span>
-                    <div className="w-10 h-10 rounded-full flex items-center justify-center border border-white/20 cursor-pointer hover:bg-white/10 transition-all">
+                    <Link to={CARS[1].link} className="w-10 h-10 rounded-full flex items-center justify-center border border-white/20 cursor-pointer hover:bg-white/10 transition-all no-underline">
                       <span className="text-white text-lg">→</span>
-                    </div>
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -273,7 +279,7 @@ const CarRentals = () => {
                     <span className="text-lg font-bold" style={{ fontFamily: "var(--font-display)", color: "var(--color-primary)" }}>
                       ₹{car.price.toLocaleString()}<span className="text-xs font-normal" style={{ color: "var(--color-text-muted)" }}>/day</span>
                     </span>
-                    <Link to="/contact" className="text-sm font-semibold no-underline" style={{ fontFamily: "var(--font-body)", color: "#1a3a6b" }}>
+                    <Link to={car.link} className="text-sm font-semibold no-underline" style={{ fontFamily: "var(--font-body)", color: "#1a3a6b" }}>
                       View Specs
                     </Link>
                   </div>

@@ -1,211 +1,412 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-
-const CATEGORIES = [
-  {
-    id: "weddings",
-    name: "Wedding & Party",
-    tagline: "Exquisite Moments",
-    description: "Photography, décor, catering & styling.",
-    image: "https://images.unsplash.com/photo-1610173826608-bd1f53a52db1?q=80&w=2070&auto=format&fit=crop",
-    link: "/services/weddings",
-    color: "#8b1a1a",
-    icon: "💍",
-    stats: { providers: "50+", rating: "4.8" },
-  },
-  {
-    id: "car-rentals",
-    name: "Car Rentals",
-    tagline: "Premium Rides",
-    description: "Luxury sedans to rugged SUVs.",
-    image: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2183&auto=format&fit=crop",
-    link: "/services/car-rentals",
-    color: "#1a3a8b",
-    icon: "🚗",
-    stats: { providers: "30+", rating: "4.6" },
-  },
-  {
-    id: "cctv",
-    name: "CCTV Security",
-    tagline: "Smart Vigilance",
-    description: "Enterprise-grade CCTV & monitoring.",
-    image: "https://images.unsplash.com/photo-1558002038-1055907df827?q=80&w=2070&auto=format&fit=crop",
-    link: "/services/cctv",
-    color: "#1a408b",
-    icon: "📹",
-    stats: { providers: "20+", rating: "4.7" },
-  },
-];
+import { motion, AnimatePresence } from "framer-motion";
+import api from "../config/api";
 
 const Services = () => {
   const [hoveredId, setHoveredId] = useState(null);
-  const [animated, setAnimated] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedFilter, setSelectedFilter] = useState("ALL");
+  const [categories, setCategories] = useState([]);
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  // Fetch categories and services from backend
   useEffect(() => {
-    const t = setTimeout(() => setAnimated(true), 100);
-    return () => clearTimeout(t);
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const [catRes, svcRes] = await Promise.all([
+          api.get("/categories"),
+          api.get("/services"),
+        ]);
+        setCategories(catRes.data);
+        setServices(svcRes.data);
+      } catch (err) {
+        console.error("Failed to fetch data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
   }, []);
 
+  // Build a service link using the service's _id from the backend
+  const getServiceLink = (name, mongoId) => {
+    const isRental = name.toLowerCase().includes("rental") || name.toLowerCase().includes("car") || name.toLowerCase().includes("bike");
+    const prefix = isRental ? "/product" : "/service";
+    return mongoId ? `${prefix}/${mongoId}` : "#";
+  };
+
+  // Find a matched backend service for a sub-category (for price/rating enrichment)
+  const findMatchedService = (subName) =>
+    services.find((s) => s.name.toLowerCase() === subName.toLowerCase());
+
+  // Flatten all sub-categories from all categories into one list
+  const allSubCategories = categories.flatMap((cat) =>
+    (cat.subCategories || []).map((sub) => {
+      const matched = findMatchedService(sub.name);
+      return {
+        ...sub,
+        parentName: cat.name,
+        parentId: cat._id,
+        vertical: cat.vertical,
+        mongoServiceId: matched?._id ?? null,
+        startingPrice: matched?.startingPrice ?? null,
+        priceUnit: matched?.priceUnit ?? "per visit",
+        rating: matched?.rating ?? null,
+      };
+    })
+  );
+
+  // Filter logic
+  const filteredServices = allSubCategories.filter((item) => {
+    const matchesSearch =
+      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+    if (selectedFilter === "ALL") return matchesSearch;
+    if (selectedFilter === "WEDDING") return item.vertical === "WEDDING" && matchesSearch;
+    if (selectedFilter === "RENTAL") return item.vertical === "VEHICLE_RENTAL" && matchesSearch;
+    if (selectedFilter === "SECURITY") return item.vertical === "CCTV_SECURITY" && matchesSearch;
+    return matchesSearch;
+  });
+
   return (
-    <div className="min-h-screen" style={{ backgroundColor: "var(--color-bg)" }}>
-      {/* Hero with background image */}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="min-h-screen pb-20"
+      style={{ backgroundColor: "var(--color-bg)" }}
+    >
+      {/* ── Hero Banner ── */}
       <section
         className="relative w-full overflow-hidden flex items-center justify-center text-center"
-        style={{ minHeight: "50vh" }}
+        style={{ minHeight: "55vh" }}
       >
-        <img 
-          src="https://images.unsplash.com/photo-1528148343865-51218c4a13e6?q=80&w=2070&auto=format&fit=crop" 
-          alt="Services Hero" 
-          className="absolute inset-0 w-full h-full object-cover" 
+        <img
+          src="https://images.unsplash.com/photo-1528148343865-51218c4a13e6?q=80&w=2070&auto=format&fit=crop"
+          alt="Services Hero"
+          className="absolute inset-0 w-full h-full object-cover"
         />
-        <div 
-          className="absolute inset-0" 
-          style={{ background: "linear-gradient(135deg, rgba(26,10,46,0.9) 0%, rgba(10,15,26,0.85) 100%)" }} 
-        />
-        
         <div
-          className="relative z-10 px-6 py-32"
-          style={{
-            opacity: animated ? 1 : 0,
-            transform: animated ? "translateY(0)" : "translateY(30px)",
-            transition: "all 0.8s ease",
-          }}
-        >
-          <span
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(135deg, rgba(26,10,46,0.92) 0%, rgba(10,15,26,0.88) 100%)" }}
+        />
+
+        <div className="relative z-10 px-6 py-28 max-w-4xl mx-auto flex flex-col items-center">
+          <motion.span
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5 }}
             className="inline-block px-5 py-2 rounded-full text-xs font-semibold text-white/90 mb-6 border border-white/20 backdrop-blur-md uppercase tracking-widest"
-            style={{ fontFamily: "var(--font-body)", backgroundColor: "rgba(255,255,255,0.1)" }}
+            style={{ fontFamily: "var(--font-body)", backgroundColor: "rgba(255,255,255,0.08)" }}
           >
-            Our Services
-          </span>
-          <h1
+            Explore Services
+          </motion.span>
+          <motion.h1
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
             className="text-white font-normal leading-tight mb-6"
-            style={{ fontFamily: "var(--font-display)", fontSize: "clamp(40px, 6vw, 72px)", letterSpacing: "-0.02em" }}
+            style={{ fontFamily: "var(--font-display)", fontSize: "clamp(36px, 5.5vw, 64px)", letterSpacing: "-0.02em" }}
           >
-            Everything You Need,<br />All in One Place
-          </h1>
-          <p
-            className="text-white/70 text-lg sm:text-xl mx-auto"
-            style={{ fontFamily: "var(--font-body)", maxWidth: "600px", lineHeight: "1.6" }}
+            Everything You Need, <br />
+            <span style={{ opacity: 0.5 }}>All in One Place.</span>
+          </motion.h1>
+
+          {/* Search Bar */}
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="w-full max-w-lg mt-4 relative"
           >
-            Discover premium services across three categories — from celebrations to commutes to security.
-          </p>
+            <input
+              type="text"
+              placeholder="Search for photography, car rentals, smart locks..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-6 py-4 rounded-full text-sm outline-none transition-all duration-300 shadow-lg text-white"
+              style={{
+                fontFamily: "var(--font-body)",
+                backgroundColor: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.25)",
+                backdropFilter: "blur(12px)",
+              }}
+            />
+            <span className="absolute right-6 top-1/2 -translate-y-1/2 text-white/50">🔍</span>
+          </motion.div>
         </div>
       </section>
 
-      {/* Category Cards (Row Layout) */}
-      <section className="px-4 sm:px-8 lg:px-16 py-20 sm:py-28" style={{ backgroundColor: "var(--color-bg-soft)" }}>
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8 sm:gap-10">
-          {CATEGORIES.map((cat, index) => (
-            <Link
-              to={cat.link}
-              key={cat.id}
-              className="group no-underline block"
-              onMouseEnter={() => setHoveredId(cat.id)}
-              onMouseLeave={() => setHoveredId(null)}
-              style={{
-                opacity: animated ? 1 : 0,
-                transform: animated ? "translateY(0)" : "translateY(40px)",
-                transition: `all 0.7s ease ${index * 0.15}s`,
-              }}
-            >
-              <div
-                className="relative overflow-hidden rounded-[2rem] transition-all duration-500 flex flex-col h-full"
-                style={{
-                  minHeight: "450px",
-                  boxShadow: hoveredId === cat.id
-                    ? "0 30px 60px rgba(0,0,0,0.15)"
-                    : "0 10px 40px rgba(0,0,0,0.08)",
-                  transform: hoveredId === cat.id ? "translateY(-12px)" : "translateY(0)",
-                }}
-              >
-                {/* Background Image */}
-                <img
-                  src={cat.image}
-                  alt={cat.name}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700"
-                  style={{ transform: hoveredId === cat.id ? "scale(1.08)" : "scale(1)" }}
-                />
-                <div
-                  className="absolute inset-0 transition-opacity duration-500"
-                  style={{
-                    background: `linear-gradient(to bottom, ${cat.color}77 0%, ${cat.color}ee 75%, rgba(0,0,0,0.95) 100%)`,
-                  }}
-                />
+      {/* ── Specialty Category Cards ── */}
+      <section className="px-6 py-16 sm:py-24 max-w-7xl mx-auto">
+        <div className="text-center mb-12">
+          <span
+            className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4 border uppercase tracking-widest"
+            style={{ fontFamily: "var(--font-body)", backgroundColor: "rgba(139,26,26,0.06)", borderColor: "rgba(139,26,26,0.15)", color: "var(--color-primary)" }}
+          >
+            Specialty Facilities
+          </span>
+          <h2 className="font-normal m-0" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(26px, 3.5vw, 42px)", color: "var(--color-text-dark)" }}>
+            Explore Detailed Facility Sections
+          </h2>
+        </div>
 
-                {/* Content */}
-                <div className="relative z-10 p-10 flex flex-col justify-end h-full">
-                  <div className="mb-auto">
-                    <span className="text-5xl block mb-6" style={{ filter: "drop-shadow(0 4px 12px rgba(0,0,0,0.4))" }}>{cat.icon}</span>
-                  </div>
-                  <div>
-                    <span
-                      className="inline-block px-4 py-1.5 rounded-full text-xs font-bold text-white border border-white/30 uppercase tracking-widest mb-4"
-                      style={{ fontFamily: "var(--font-body)", backgroundColor: "rgba(0,0,0,0.4)", backdropFilter: "blur(8px)" }}
-                    >
-                      {cat.name}
-                    </span>
-                    <h2
-                      className="text-white font-normal leading-tight mb-3"
-                      style={{ fontFamily: "var(--font-display)", fontSize: "clamp(26px, 2.8vw, 36px)" }}
-                    >
-                      {cat.tagline}
-                    </h2>
-                    <p
-                      className="text-white/85 text-base mb-8 leading-relaxed"
-                      style={{ fontFamily: "var(--font-body)" }}
-                    >
-                      {cat.description}
-                    </p>
-                    
-                    <div className="flex items-center justify-between" style={{ borderTop: "1px solid rgba(255,255,255,0.2)", paddingTop: "1.5rem" }}>
-                      <div className="flex gap-6">
-                        {Object.entries(cat.stats).map(([key, val]) => (
-                          <div key={key}>
-                            <p className="text-white font-bold text-xl m-0 leading-none mb-1" style={{ fontFamily: "var(--font-display)" }}>{val}</p>
-                            <p className="text-white/60 text-[11px] font-semibold uppercase tracking-widest m-0" style={{ fontFamily: "var(--font-body)" }}>
-                              {key}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                      <div
-                        className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg"
-                        style={{
-                          backgroundColor: hoveredId === cat.id ? "rgba(255,255,255,0.3)" : "rgba(255,255,255,0.15)",
-                          backdropFilter: "blur(12px)",
-                          transform: hoveredId === cat.id ? "scale(1.1) translateX(4px)" : "scale(1) translateX(0)",
-                        }}
-                      >
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="5" y1="12" x2="19" y2="12" />
-                          <polyline points="12 5 19 12 12 19" />
-                        </svg>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {[
+            {
+              title: "Wedding & Events",
+              desc: "All-inclusive venues, luxury decorators, gourmet caterers, and cinematic photography facilities explained.",
+              image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=600&auto=format&fit=crop",
+              link: "/services/weddings",
+              btn: "Explore Wedding Facility"
+            },
+            {
+              title: "Premium Vehicle Rentals",
+              desc: "Exotic sedans, luxury wedding cars, SUVs, and commuter motorcycles for self-drive or chauffeur trips.",
+              image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=600&auto=format&fit=crop",
+              link: "/services/car-rentals",
+              btn: "Explore Rental Fleet"
+            },
+            {
+              title: "AI Security Systems",
+              desc: "Complete residential and commercial smart locks and CCTV monitoring package setups.",
+              image: "https://images.unsplash.com/photo-1557862921-37829c790f19?q=80&w=600&auto=format&fit=crop",
+              link: "/services/cctv",
+              btn: "Explore Security Plans"
+            }
+          ].map((card, idx) => (
+            <motion.div
+              key={idx}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: idx * 0.1 }}
+              className="rounded-3xl border overflow-hidden flex flex-col h-full hover:shadow-xl transition-all duration-300 group"
+              style={{ backgroundColor: "var(--color-bg-soft)", borderColor: "var(--color-border)" }}
+            >
+              <div style={{ height: "200px", overflow: "hidden", position: "relative" }}>
+                <img src={card.image} alt={card.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
               </div>
-            </Link>
+              <div className="p-6 flex flex-col flex-1">
+                <h3 className="m-0 mb-2 font-normal text-lg" style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}>
+                  {card.title}
+                </h3>
+                <p className="m-0 mb-6 text-xs leading-relaxed flex-1" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+                  {card.desc}
+                </p>
+                <Link
+                  to={card.link}
+                  className="w-full text-center py-3 rounded-full text-xs font-semibold no-underline transition-all duration-200 hover:opacity-90 block"
+                  style={{ fontFamily: "var(--font-body)", backgroundColor: "var(--color-text-dark)", color: "#fff" }}
+                >
+                  {card.btn}
+                </Link>
+              </div>
+            </motion.div>
           ))}
         </div>
       </section>
 
+      {/* ── Filter Tabs ── */}
+      <section className="px-6 py-8 border-b" style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg-soft)" }}>
+        <div className="max-w-6xl mx-auto flex flex-wrap justify-center gap-3">
+          {[
+            { id: "ALL", label: "All Services" },
+            { id: "WEDDING", label: "💍 Wedding & Event" },
+            { id: "RENTAL", label: "🚗 Car & Bike Rentals" },
+            { id: "SECURITY", label: "📹 Security Systems" },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setSelectedFilter(tab.id)}
+              className="px-5 py-2.5 rounded-full text-xs font-semibold cursor-pointer border transition-all duration-300"
+              style={{
+                fontFamily: "var(--font-body)",
+                backgroundColor: selectedFilter === tab.id ? "var(--color-primary)" : "var(--color-bg-white)",
+                color: selectedFilter === tab.id ? "#fff" : "var(--color-text-dark)",
+                borderColor: selectedFilter === tab.id ? "var(--color-primary)" : "var(--color-border)",
+                boxShadow: selectedFilter === tab.id ? "0 4px 12px rgba(139,26,26,0.2)" : "none",
+              }}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </section>
 
+      {/* ── Services Grid ── */}
+      <section className="px-6 py-16 sm:py-24 max-w-7xl mx-auto">
+        {loading ? (
+          <div className="flex flex-col items-center justify-center gap-4 py-20">
+            <div
+              className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin"
+              style={{ borderColor: "var(--color-border)", borderTopColor: "var(--color-primary)" }}
+            />
+            <span className="text-sm italic" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+              Loading services…
+            </span>
+          </div>
+        ) : (
+          <AnimatePresence mode="wait">
+            {filteredServices.length === 0 ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="text-center py-12"
+              >
+                <span className="text-4xl block mb-4">🔍</span>
+                <p className="text-lg m-0" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+                  No services found matching your query.
+                </p>
+              </motion.div>
+            ) : (
+              <motion.div
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+                variants={{
+                  hidden: {},
+                  visible: { transition: { staggerChildren: 0.05 } }
+                }}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8"
+              >
+                {filteredServices.map((item) => (
+                  <motion.div
+                    key={item._id || item.id}
+                    variants={{
+                      hidden: { y: 20, opacity: 0 },
+                      visible: { y: 0, opacity: 1, transition: { duration: 0.5 } }
+                    }}
+                    onMouseEnter={() => setHoveredId(item._id || item.id)}
+                    onMouseLeave={() => setHoveredId(null)}
+                    className="rounded-3xl border overflow-hidden transition-all duration-300 hover:shadow-xl flex flex-col h-full relative"
+                    style={{
+                      backgroundColor: "var(--color-bg-soft)",
+                      borderColor: "var(--color-border)",
+                      transform: hoveredId === (item._id || item.id) ? "translateY(-6px)" : "translateY(0)",
+                    }}
+                  >
+                    {/* Category Pill Tag */}
+                    <div className="absolute top-4 left-4 z-10">
+                      <span
+                        className="px-3 py-1 rounded-full text-[9px] font-bold text-white uppercase tracking-wider"
+                        style={{ backgroundColor: "rgba(0,0,0,0.65)", backdropFilter: "blur(4px)" }}
+                      >
+                        {item.parentName}
+                      </span>
+                    </div>
 
-      {/* Bottom CTA */}
-      <section
-        className="text-center px-6 py-16 sm:py-24"
-      >
-        <h2
-          className="font-normal mb-4"
-          style={{ fontFamily: "var(--font-display)", fontSize: "clamp(24px, 3vw, 40px)", color: "var(--color-text-dark)" }}
-        >
+                    {/* Thumbnail Image */}
+                    <div style={{ height: "200px", overflow: "hidden", position: "relative" }}>
+                      <img
+                        src={item.imageUrl}
+                        alt={item.name}
+                        className="w-full h-full object-cover transition-transform duration-700"
+                        style={{ transform: hoveredId === (item._id || item.id) ? "scale(1.05)" : "scale(1)" }}
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                    </div>
+
+                    {/* Body Content */}
+                    <div className="p-6 flex flex-col flex-1">
+                      <h3 className="m-0 mb-2 font-normal text-lg" style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}>
+                        {item.name}
+                      </h3>
+                      <p className="m-0 mb-6 text-xs leading-relaxed flex-1" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+                        {item.description}
+                      </p>
+
+                      {/* Footer Info Row */}
+                      <div className="flex items-center justify-between border-t pt-4" style={{ borderColor: "var(--color-border)" }}>
+                        <div>
+                          {item.startingPrice !== null ? (
+                            <>
+                              <span className="text-[10px] uppercase font-semibold tracking-wider block" style={{ color: "var(--color-text-mid)" }}>Starting at</span>
+                              <span className="font-bold text-base" style={{ fontFamily: "var(--font-body)", color: "var(--color-primary)" }}>
+                                ₹{item.startingPrice?.toLocaleString("en-IN")}
+                              </span>
+                              <span className="text-[10px] ml-1" style={{ color: "var(--color-text-mid)" }}>/{item.priceUnit?.split(" ").slice(1).join(" ") || item.priceUnit}</span>
+                            </>
+                          ) : (
+                            <span className="text-xs italic" style={{ color: "var(--color-text-mid)", fontFamily: "var(--font-body)" }}>Contact for pricing</span>
+                          )}
+                        </div>
+
+                        <Link
+                          to={getServiceLink(item.name, item.mongoServiceId)}
+                          className="px-5 py-2.5 rounded-full text-xs font-semibold no-underline transition-all duration-200 hover:opacity-90"
+                          style={{
+                            fontFamily: "var(--font-body)",
+                            backgroundColor: "var(--color-text-dark)",
+                            color: "#fff",
+                          }}
+                        >
+                          Explore →
+                        </Link>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        )}
+      </section>
+
+      {/* ── How It Works Section ── */}
+      <section className="px-6 py-20 sm:py-28 border-t border-b" style={{ backgroundColor: "var(--color-bg-soft)", borderColor: "var(--color-border)" }}>
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-16">
+            <span
+              className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4 border uppercase tracking-widest"
+              style={{ fontFamily: "var(--font-body)", backgroundColor: "rgba(139,26,26,0.06)", color: "var(--color-primary)", borderColor: "rgba(139,26,26,0.15)" }}
+            >
+              Simple Steps
+            </span>
+            <h2 className="font-normal m-0" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(26px, 3.5vw, 42px)", color: "var(--color-text-dark)" }}>
+              How QuickSathi Works
+            </h2>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-8 relative">
+            {[
+              { num: "01", title: "Browse & Select", desc: "Browse from weddings, security, or rental packages. Review prices upfront." },
+              { num: "02", title: "Set Your Schedule", desc: "Input your dates, addresses, and special requirements. Instant reservation." },
+              { num: "03", title: "Secure Checkout", desc: "Pay safely online via UPI/Cards through Razorpay, or select COD." },
+              { num: "04", title: "Professional Service", desc: "A background-checked expert arrives on time to complete your service." }
+            ].map((step, idx) => (
+              <div
+                key={idx}
+                className="flex-1 p-6 rounded-3xl border flex flex-col gap-3 transition-all duration-300 hover:shadow-md"
+                style={{ backgroundColor: "var(--color-bg)", borderColor: "var(--color-border)" }}
+              >
+                <span className="text-3xl font-bold" style={{ fontFamily: "var(--font-display)", color: "var(--color-primary)", opacity: 0.3 }}>
+                  {step.num}
+                </span>
+                <h4 className="m-0 font-semibold text-sm" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>
+                  {step.title}
+                </h4>
+                <p className="m-0 text-xs leading-relaxed" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+                  {step.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Bottom Support CTA */}
+      <section className="text-center px-6 py-16 sm:py-24">
+        <h2 className="font-normal mb-4" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(24px, 3vw, 40px)", color: "var(--color-text-dark)" }}>
           Can't find what you're looking for?
         </h2>
-        <p
-          className="text-base mb-8 mx-auto"
-          style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)", maxWidth: "440px" }}
-        >
+        <p className="text-base mb-8 mx-auto" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)", maxWidth: "440px" }}>
           We're constantly expanding our network. Reach out and we'll connect you with the right provider.
         </p>
         <Link
@@ -221,7 +422,7 @@ const Services = () => {
           Contact Support
         </Link>
       </section>
-    </div>
+    </motion.div>
   );
 };
 

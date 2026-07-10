@@ -1,211 +1,229 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 
-const INTERVAL_MS = 4000;
-
-const AboutSection = ({ categories }) => {
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  useEffect(() => {
-    if (!categories?.length) return;
-    const timer = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % categories.length);
-    }, INTERVAL_MS);
-    return () => clearInterval(timer);
-  }, [categories]);
-
-  const active = categories?.[activeIndex];
-  const subs = active?.subCategories?.slice(0, 2) ?? [];
+const AboutSection = () => {
+  const pillars = [
+    {
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
+      ),
+      title: "Verified Experts",
+      description: "Every professional undergoes comprehensive identity & background checks."
+    },
+    {
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+      ),
+      title: "Instant Scheduling",
+      description: "Book services instantly and get immediate real-time confirmations."
+    },
+    {
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="12" y1="1" x2="12" y2="23" />
+          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+        </svg>
+      ),
+      title: "Upfront Pricing",
+      description: "Clear, transparent quotes with zero hidden fees or surprises."
+    },
+    {
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg>
+      ),
+      title: "24/7 Human Help",
+      description: "Dedicated support team ready to assist you at any time of day."
+    }
+  ];
 
   return (
     <section
-      className="px-4 sm:px-8 lg:px-16 py-10 sm:py-12"
-      style={{ backgroundColor: "var(--color-bg)" }}
+      className="px-4 sm:px-8 lg:px-16 py-20 sm:py-28"
+      style={{ backgroundColor: "var(--color-bg-soft)", borderBottom: "1px solid var(--color-border)" }}
     >
-      {/* Section label */}
-      <p
-        className="text-lg sm:text-xl font-semibold uppercase tracking-widest mb-0"
-        style={{
-          fontFamily: "var(--font-body)",
-          color: "var(--color-accent)",
-          letterSpacing: "0.14em",
-        }}
-      >
-        What We Do
-      </p>
-
-      {/* Content — stacks on mobile, side-by-side on md+ */}
-      <div
-        className="flex flex-col md:flex-row gap-8 md:gap-20 items-center mt-6"
-        style={{ minHeight: "auto" }}
-      >
-        {/* ── Left: image ── */}
-        <div className="relative w-full md:w-[45%] flex-shrink-0">
-          {/* Main image */}
+      <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-16 lg:gap-24 items-center">
+        
+        {/* ── Left Column: Overlapping Collage (Visual Showcase) ── */}
+        <div className="w-full lg:w-1/2 relative flex items-center justify-center" style={{ height: "460px" }}>
+          {/* Main Back Image */}
           <div
-            className="w-full overflow-hidden"
+            className="absolute rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 hover:scale-[1.02]"
             style={{
-              borderRadius: "16px",
-              aspectRatio: "4/3",
-              position: "relative",
+              width: "70%",
+              height: "320px",
+              left: "0",
+              top: "0",
+              zIndex: 1,
             }}
           >
-            {categories?.map((cat, i) => (
-              <img
-                key={cat.id}
-                src={cat.secondaryImageUrl || cat.imageUrl}
-                alt={cat.name}
-                style={{
-                  position: "absolute",
-                  inset: 0,
-                  width: "100%",
-                  height: "100%",
-                  objectFit: "cover",
-                  opacity: i === activeIndex ? 1 : 0,
-                  transition: "opacity 1s ease-in-out",
-                  borderRadius: "16px",
-                }}
-              />
-            ))}
+            <img
+              src="https://images.unsplash.com/photo-1610173826608-bd1f53a52db1?q=80&w=800&auto=format&fit=crop"
+              alt="Wedding Event Planning"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/10" />
           </div>
 
-          {/* Dot indicators */}
-          <div className="flex gap-2 justify-center mt-4">
-            {categories?.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setActiveIndex(i)}
-                className="rounded-full border-0 cursor-pointer transition-all duration-300"
-                style={{
-                  width: i === activeIndex ? "20px" : "7px",
-                  height: "7px",
-                  backgroundColor:
-                    i === activeIndex
-                      ? "var(--color-text-dark)"
-                      : "rgba(44,24,16,0.2)",
-                  padding: 0,
-                }}
-                aria-label={`View ${categories[i].name}`}
-              />
-            ))}
+          {/* Middle Offset Image */}
+          <div
+            className="absolute rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 hover:scale-[1.02]"
+            style={{
+              width: "60%",
+              height: "260px",
+              right: "0",
+              bottom: "40px",
+              zIndex: 2,
+              border: "6px solid var(--color-bg-soft)",
+            }}
+          >
+            <img
+              src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=800&auto=format&fit=crop"
+              alt="Premium Car Rental"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/10" />
+          </div>
+
+          {/* Front Small Accent Image */}
+          <div
+            className="absolute rounded-2xl overflow-hidden shadow-xl hidden sm:block transition-all duration-500 hover:scale-[1.05]"
+            style={{
+              width: "35%",
+              height: "160px",
+              left: "40px",
+              bottom: "0",
+              zIndex: 3,
+              border: "6px solid var(--color-bg-soft)",
+            }}
+          >
+            <img
+              src="https://images.unsplash.com/photo-1558002038-1055907df827?q=80&w=600&auto=format&fit=crop"
+              alt="CCTV Security Monitoring"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/10" />
+          </div>
+
+          {/* Overlay Badge */}
+          <div
+            className="absolute bg-white px-5 py-4 rounded-2xl shadow-xl z-10 flex items-center gap-3"
+            style={{
+              right: "40px",
+              top: "40px",
+              border: "1px solid var(--color-border)",
+              animation: "float 6s ease-in-out infinite",
+            }}
+          >
+            <span style={{ fontSize: "28px" }}>✦</span>
+            <div>
+              <p className="m-0 font-bold text-sm" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>100% Vetted</p>
+              <p className="m-0 text-xs" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Verified Service Partners</p>
+            </div>
           </div>
         </div>
 
-        {/* ── Right: details ── */}
-        <div className="flex-1 min-w-0 w-full">
-          {/* Category label */}
-          <div className="flex items-center gap-1 mb-5">
-            <div
-              className="w-10 h-px"
-              style={{ backgroundColor: "var(--color-accent)" }}
-            />
-            <span
-              className="text-xs font-semibold uppercase tracking-widest"
-              style={{
-                fontFamily: "var(--font-body)",
-                color: "var(--color-accent)",
-                letterSpacing: "0.12em",
-              }}
-            >
-              {active?.name}
-            </span>
-          </div>
-
-          {/* Heading */}
-          <h2
-            className="font-normal leading-[1.1] mb-2"
+        {/* ── Right Column: Text Content & Trust Grid ── */}
+        <div className="flex-1 w-full">
+          <span
+            className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4 border uppercase tracking-widest"
             style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(24px, 3vw, 46px)",
-              color: "var(--color-text-dark)",
-              letterSpacing: "-0.02em",
-              transition: "all 0.5s ease",
+              fontFamily: "var(--font-body)",
+              backgroundColor: "rgba(139,26,26,0.06)",
+              color: "var(--color-primary)",
+              borderColor: "rgba(139,26,26,0.15)",
+              letterSpacing: "0.1em",
             }}
           >
-            {active?.name} <br />
-            <span style={{ opacity: 0.5 }}>done right.</span>
+            About QuickSathi
+          </span>
+
+          <h2
+            className="font-normal leading-[1.1] mb-6"
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "clamp(28px, 4vw, 44px)",
+              color: "var(--color-text-dark)",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Professional services, <br />
+            <span style={{ opacity: 0.5 }}>tailored to your standards.</span>
           </h2>
 
-          {/* Description */}
           <p
-            className="text-base leading-relaxed mb-6"
+            className="text-base leading-relaxed mb-10"
             style={{
               fontFamily: "var(--font-body)",
               color: "var(--color-text-mid)",
               maxWidth: "600px",
-              transition: "all 0.5s ease",
             }}
           >
-            {active?.description}{" "}
-            <strong>
-              We bring trusted professionals to your doorstep — fast, reliable,
-              and always on time.
-            </strong>
+            At QuickSathi, we believe in making local services seamless. Whether securing your property, renting a luxury car, or planning your dream wedding, we connect you with vetted specialists dedicated to quality and reliability.
           </p>
 
-          {/* 2 subcategory pills */}
-          <div className="flex flex-col gap-4 mb-6">
-            {subs.map((sub) => (
-              <div
-                key={sub.id}
-                className="flex items-start gap-4 p-4 rounded-2xl"
-                style={{
-                  backgroundColor: "var(--color-bg-soft)",
-                  border: "1px solid var(--color-border)",
-                  transition: "all 0.4s ease",
-                }}
-              >
-                {/* Thumbnail */}
+          {/* Pillars Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-10">
+            {pillars.map((item, idx) => (
+              <div key={idx} className="flex gap-4">
                 <div
-                  className="flex-shrink-0 overflow-hidden rounded-xl"
-                  style={{ width: "60px", height: "52px" }}
+                  className="flex-shrink-0 w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300"
+                  style={{
+                    backgroundColor: "rgba(139,26,26,0.07)",
+                    color: "var(--color-primary)",
+                    border: "1px solid rgba(139,26,26,0.12)",
+                  }}
                 >
-                  <img
-                    src={sub.imageUrl}
-                    alt={sub.name}
-                    className="w-full h-full object-cover"
-                  />
+                  {item.icon}
                 </div>
                 <div>
-                  <p
-                    className="font-semibold m-0 mb-0.5 text-sm"
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      color: "var(--color-text-dark)",
-                    }}
+                  <h4
+                    className="m-0 mb-1.5 font-semibold text-sm"
+                    style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}
                   >
-                    ✓ {sub.name}
-                  </p>
+                    {item.title}
+                  </h4>
                   <p
-                    className="text-xs m-0 leading-snug"
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      color: "var(--color-text-mid)",
-                    }}
+                    className="m-0 text-xs leading-relaxed"
+                    style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
                   >
-                    {sub.description}
+                    {item.description}
                   </p>
                 </div>
               </div>
             ))}
           </div>
 
-          {/* CTA */}
           <Link
             to="/about"
-            className="inline-flex items-center gap-3 px-7 py-3.5 rounded-full text-sm font-semibold no-underline transition-all duration-200 hover:scale-105 hover:shadow-lg"
+            className="inline-flex items-center gap-3 px-8 py-4 rounded-full text-sm font-semibold no-underline transition-all duration-200 hover:scale-105 hover:shadow-lg"
             style={{
               fontFamily: "var(--font-body)",
               backgroundColor: "var(--color-text-dark)",
               color: "#fff",
-              boxShadow: "0 4px 16px rgba(44,24,16,0.18)",
+              boxShadow: "0 4px 16px rgba(44,24,16,0.15)",
             }}
           >
-            Know More About Us
-            <span style={{ fontSize: "18px" }}>→</span>
+            Meet the Team Behind Us
+            <span style={{ fontSize: "16px" }}>→</span>
           </Link>
         </div>
+
       </div>
+
+      {/* Embedded CSS for Floating animation */}
+      <style>{`
+        @keyframes float {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-10px); }
+          100% { transform: translateY(0px); }
+        }
+      `}</style>
     </section>
   );
 };

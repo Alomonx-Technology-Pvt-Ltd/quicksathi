@@ -14,10 +14,10 @@ const Navbar = () => {
 
   // Close menu on route change
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMenuOpen(false);
-     
-    setProfileOpen(false);
+    Promise.resolve().then(() => {
+      setMenuOpen(false);
+      setProfileOpen(false);
+    });
   }, [pathname]);
 
   // Prevent body scroll when menu is open
