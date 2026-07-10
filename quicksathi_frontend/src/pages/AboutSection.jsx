@@ -113,22 +113,6 @@ const AboutSection = () => {
             <div className="absolute inset-0 bg-black/10" />
           </div>
 
-          {/* Overlay Badge */}
-          <div
-            className="absolute bg-white px-5 py-4 rounded-2xl shadow-xl z-10 flex items-center gap-3"
-            style={{
-              right: "40px",
-              top: "40px",
-              border: "1px solid var(--color-border)",
-              animation: "float 6s ease-in-out infinite",
-            }}
-          >
-            <span style={{ fontSize: "28px" }}>✦</span>
-            <div>
-              <p className="m-0 font-bold text-sm" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>100% Vetted</p>
-              <p className="m-0 text-xs" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Verified Service Partners</p>
-            </div>
-          </div>
         </div>
 
         {/* ── Right Column: Text Content & Trust Grid ── */}
