@@ -8,6 +8,7 @@ const Card = ({
   linkTo,
   primaryAction,
   secondaryAction,
+  onSecondaryAction,
   variant = "overlay",
 }) => {
   /* ─────────────────────────────────────
@@ -93,7 +94,7 @@ const Card = ({
             )}
             {secondaryAction && (
               <button
-                className="text-[10px] sm:text-[12px] uppercase tracking-[0.06em] sm:tracking-[0.08em] px-4 sm:px-5 py-2 sm:py-2.5 rounded-md border transition-all duration-200"
+                className="text-[10px] sm:text-[12px] uppercase tracking-[0.06em] sm:tracking-[0.08em] px-4 sm:px-5 py-2 sm:py-2.5 rounded-md border transition-all duration-200 cursor-pointer"
                 style={{
                   fontFamily: "var(--font-body)",
                   backgroundColor: "transparent",
@@ -108,6 +109,7 @@ const Card = ({
                   e.currentTarget.style.color = "#888780";
                   e.currentTarget.style.borderColor = "#C8C5BC";
                 }}
+                onClick={onSecondaryAction}
               >
                 {secondaryAction}
               </button>
@@ -195,7 +197,7 @@ const Card = ({
             )}
             {secondaryAction && (
               <button
-                className="text-[10px] sm:text-[12px] uppercase tracking-[0.06em] sm:tracking-[0.08em] px-4 sm:px-5 py-2 sm:py-2.5 rounded-md border transition-all duration-200"
+                className="text-[10px] sm:text-[12px] uppercase tracking-[0.06em] sm:tracking-[0.08em] px-4 sm:px-5 py-2 sm:py-2.5 rounded-md border transition-all duration-200 cursor-pointer"
                 style={{
                   fontFamily: "var(--font-body)",
                   backgroundColor: "transparent",
@@ -210,6 +212,7 @@ const Card = ({
                   e.currentTarget.style.color = "#888780";
                   e.currentTarget.style.borderColor = "#C8C5BC";
                 }}
+                onClick={onSecondaryAction}
               >
                 {secondaryAction}
               </button>

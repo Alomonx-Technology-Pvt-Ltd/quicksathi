@@ -6,11 +6,18 @@ import maintenance from "../assets/cctv/maintenance.avif";
 import bikeRental from "../assets/Bike/bikeRental.avif";
 import hondaImg from "../assets/hondaImg.avif";
 import carRental from "../assets/Bike/carRental.avif";
-import photographyImg from "../assets/photographyImg.avif"
-import photographyImg1 from "../assets/photographyImg1.avif"
-import decorationImg from "../assets/decorationImg.avif"
-import cateringImg from "../assets/cateringImg.avif"
-import makeupArtist from "../assets/makeupArtist.avif"
+import photographyImg from "../assets/photographyImg.avif";
+import photographyImg1 from "../assets/photographyImg1.avif";
+import decorationImg from "../assets/decorationImg.avif";
+import cateringImg from "../assets/cateringImg.avif";
+import makeupArtist from "../assets/makeupArtist.avif";
+import weddingImg from "../assets/weddingImg.avif";
+import weddingImgg from "../assets/weddingImgg.avif";
+import carImg from "../assets/carImg.avif";
+import audiImg from "../assets/audiImg.avif";
+import rangeRover from "../assets/rangeRover.avif";
+import venueImg from "../assets/venueImg.avif";
+import catering from "../assets/catering.avif";
 
 
 export const mockCategories = [
@@ -93,8 +100,7 @@ export const mockCategories = [
       "Flexible vehicle rentals for every occasion — transparent pricing, well-maintained fleet, zero hidden charges.",
     vertical: "VEHICLE_RENTAL",
     type: "BOTH",
-    imageUrl:
-      "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778413946/VehicleRental_eeacbd.png",
+    imageUrl: carRental,
     secondaryImageUrl: carRental,
     displayOrder: 2,
     active: true,
@@ -122,8 +128,7 @@ export const mockCategories = [
         vertical: "VEHICLE_RENTAL",
         type: "PRODUCT_ONLY",
         imageUrl: hondaImg,
-        secondaryImageUrl:
-          "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: carImg,
         displayOrder: 1,
         active: true,
         parent: 6,
@@ -137,8 +142,7 @@ export const mockCategories = [
         vertical: "VEHICLE_RENTAL",
         type: "PRODUCT_ONLY",
         imageUrl: carRental,
-        secondaryImageUrl:
-          "https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: rangeRover,
         displayOrder: 3,
         active: true,
         parent: 6,
@@ -154,10 +158,8 @@ export const mockCategories = [
       "Everything you need for the perfect wedding day — from photography and decor to catering and bridal styling.",
     vertical: "WEDDING",
     type: "BOTH",
-    imageUrl:
-      "https://images.unsplash.com/photo-1610173826608-bd1f53a52db1?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    secondaryImageUrl:
-      "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778413707/Wedding_Photo_flultf.png",
+    imageUrl: weddingImg,
+    secondaryImageUrl: weddingImgg,
     displayOrder: 3,
     active: true,
     parent: null,
@@ -187,8 +189,7 @@ export const mockCategories = [
         type: "SERVICE_ONLY",
         imageUrl:
           decorationImg,
-        secondaryImageUrl:
-          "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475578/Party_1_lb5rhi.png",
+        secondaryImageUrl: venueImg,
         displayOrder: 2,
         active: true,
         parent: 10,
@@ -203,8 +204,7 @@ export const mockCategories = [
         type: "SERVICE_ONLY",
         imageUrl:
           cateringImg,
-        secondaryImageUrl:
-          "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475582/Catering_2_kpv9z9.png",
+        secondaryImageUrl: catering,
         displayOrder: 3,
         active: true,
         parent: 10,
@@ -220,8 +220,7 @@ export const mockCategories = [
         imageUrl:
           makeupArtist
           ,
-        secondaryImageUrl:
-          "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: makeupArtist,
         displayOrder: 4,
         active: true,
         parent: 10,

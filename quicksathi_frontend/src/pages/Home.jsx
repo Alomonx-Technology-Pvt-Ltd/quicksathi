@@ -3,10 +3,13 @@ import { motion } from "framer-motion";
 import api from "../config/api";
 import Card from "../components/common/Card";
 import Hero from "../components/Hero";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AboutSection from "./AboutSection";
+import { mockCategories } from "../data/mockCategories";
+import { mockServices } from "../data/mockServices";
 
 const Home = () => {
+  const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [services, setServices] = useState([]);
@@ -16,9 +19,34 @@ const Home = () => {
     const fetchCategories = async () => {
       try {
         const { data } = await api.get("/categories");
-        setCategories(data);
+        if (data && data.length > 0) {
+          const mapped = data.map(cat => ({
+            ...cat,
+            id: cat.id || cat._id,
+            _id: cat._id || cat.id,
+            subCategories: cat.subCategories?.map(sub => ({
+              ...sub,
+              id: sub.id || sub._id,
+              _id: sub._id || sub.id
+            }))
+          }));
+          setCategories(mapped);
+        } else {
+          throw new Error("No categories returned from backend");
+        }
       } catch (err) {
-        console.error("Failed to fetch categories:", err);
+        console.warn("Failed to fetch categories, falling back to local mockCategories:", err);
+        const mapped = mockCategories.map(cat => ({
+          ...cat,
+          id: cat.id || cat._id,
+          _id: cat._id || cat.id,
+          subCategories: cat.subCategories?.map(sub => ({
+            ...sub,
+            id: sub.id || sub._id,
+            _id: sub._id || sub.id
+          }))
+        }));
+        setCategories(mapped);
       } finally {
         setCategoriesLoading(false);
       }
@@ -31,9 +59,24 @@ const Home = () => {
     const fetchServices = async () => {
       try {
         const { data } = await api.get("/services");
-        setServices(data);
+        if (data && data.length > 0) {
+          const mapped = data.map(srv => ({
+            ...srv,
+            id: srv.id || srv._id,
+            _id: srv._id || srv.id
+          }));
+          setServices(mapped);
+        } else {
+          throw new Error("No services returned from backend");
+        }
       } catch (err) {
-        console.error("Failed to fetch services:", err);
+        console.warn("Failed to fetch services, falling back to local mockServices:", err);
+        const mapped = mockServices.map(srv => ({
+          ...srv,
+          id: srv.id || srv._id,
+          _id: srv._id || srv.id
+        }));
+        setServices(mapped);
       }
     };
     fetchServices();
@@ -45,8 +88,35 @@ const Home = () => {
     );
     const isRental = name.toLowerCase().includes("rental") || name.toLowerCase().includes("car") || name.toLowerCase().includes("bike");
     const prefix = isRental ? "/product" : "/service";
-    if (match) return `${prefix}/${match._id}`;
+    if (match) return `${prefix}/${match._id || match.id}`;
     return `${prefix}/${subId}`;
+  };
+
+  const handleBookNow = (name, subId) => {
+    const match = services?.find(
+      (s) => s.name.toLowerCase() === name.toLowerCase()
+    );
+    const serviceId = match ? (match._id || match.id) : subId;
+    const serviceName = match ? match.name : name;
+
+    // Find first package details, or starting price, or default to 0
+    let packageTitle = "Standard";
+    let price = 0;
+    if (match) {
+      if (match.packages && match.packages.length > 0) {
+        packageTitle = match.packages[0].title;
+        price = match.packages[0].price;
+      } else if (match.startingPrice) {
+        price = match.startingPrice;
+      }
+    }
+
+    const params = new URLSearchParams({
+      name: serviceName,
+      package: packageTitle,
+      price: price.toString(),
+    });
+    navigate(`/booking/${serviceId}?${params.toString()}`);
   };
 
   if (categoriesLoading) {
@@ -182,7 +252,8 @@ const Home = () => {
                       primaryAction="View Details"
                       secondaryAction="Book Now"
                       variant="servicePreview"
-                      linkTo={getServiceLink(service.name, service._id)}
+                      linkTo={getServiceLink(service.name, service._id || service.id)}
+                      onSecondaryAction={() => handleBookNow(service.name, service._id || service.id)}
                     />
                   ))}
                 </div>
