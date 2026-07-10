@@ -1,0 +1,30 @@
+# ── Dependencies ──
+node_modules/
+
+# ── Environment variables (NEVER commit these) ──
+.env
+.env.*
+!.env.example
+
+# ── Firebase service account (private key — never commit) ──
+config/firebase-service-account.json
+
+# ── Logs ──
+*.log
+npm-debug.log*
+
+# ── Build / runtime artifacts ──
+dist/
+
+# ── OS artifacts ──
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ── Editor ──
+.vscode/*
+!.vscode/extensions.json
+.idea
+
+# ── Testing & coverage ──
+coverage/

@@ -1,0 +1,41 @@
+# ── QuickSathi Monorepo Root .gitignore ──
+
+# OS artifacts
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Editor/IDE directories
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Logs
+*.log
+logs/
+
+# Dependency directories (handled per-subproject, but belt-and-suspenders)
+node_modules/
+
+# Environment files (security — handled per-subproject too)
+.env
+.env.local
+.env.*.local
+
+# Build output
+dist/
+dist-ssr/
+build/
+
+# Deploy artifacts (generated, not source)
+quicksathi_deploy/
