@@ -31,11 +31,14 @@ import AdminBookings from "./admin/pages/AdminBookings";
 import AdminServices from "./admin/pages/AdminServices";
 import AdminCategories from "./admin/pages/AdminCategories";
 import AdminUsers from "./admin/pages/AdminUsers";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+      <ScrollToTop/>
+
         <Routes>
           {/* Main App Routes */}
           <Route path="/" element={<Layout />}>

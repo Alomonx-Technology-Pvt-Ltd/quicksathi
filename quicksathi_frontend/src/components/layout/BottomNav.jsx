@@ -27,7 +27,7 @@ const BottomNav = () => {
       style={{
         backgroundColor: "var(--color-bg-soft)",
         borderTop: "1px solid var(--color-border)",
-        height: "calc(64px + env(safe-area-inset-bottom))",
+        height: "calc(60px + env(safe-area-inset-bottom))",
         paddingBottom: "env(safe-area-inset-bottom)",
         boxShadow: "0 -4px 12px rgba(0,0,0,0.05)",
       }}
@@ -37,7 +37,7 @@ const BottomNav = () => {
           key={to}
           to={to}
           end={end}
-          className="flex flex-col items-center justify-center w-full h-full gap-1 no-underline transition-colors duration-200"
+          className="flex flex-col items-center justify-center w-full h-full gap-0.5 sm:gap-1 no-underline transition-colors duration-200"
           style={({ isActive }) => ({
             color: isActive ? "var(--color-primary)" : "var(--color-text-mid)",
           })}
@@ -46,7 +46,7 @@ const BottomNav = () => {
             {icon}
           </div>
           <span
-            className="text-[10px] font-medium tracking-wide"
+            className="text-[9px] sm:text-[10px] font-medium tracking-wide"
             style={{ fontFamily: "var(--font-body)" }}
           >
             {label}

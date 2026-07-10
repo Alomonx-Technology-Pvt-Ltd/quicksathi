@@ -2,6 +2,45 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../config/api";
+import weddingImgg from "../assets/weddingImgg.avif";
+import carImg from "../assets/carImg.avif";
+import CCTVImg from "../assets/CCTVImg.avif";
+import serviceHeroImg from "../assets/serviceHeroImg.avif";
+const CATEGORIES = [
+  {
+    id: "weddings",
+    name: "Wedding & Party",
+    tagline: "Exquisite Moments",
+    description: "Photography, décor, catering & styling.",
+    image: weddingImgg,
+    link: "/services/weddings",
+    color: "#440101",
+    icon: "💍",
+    stats: { providers: "50+", rating: "4.8" },
+  },
+  {
+    id: "car-rentals",
+    name: "Car Rentals",
+    tagline: "Premium Rides",
+    description: "Luxury sedans to rugged SUVs.",
+    image: carImg,
+    link: "/services/car-rentals",
+    color: "#0c193b",
+    icon: "🚗",
+    stats: { providers: "30+", rating: "4.6" },
+  },
+  {
+    id: "cctv",
+    name: "CCTV Security",
+    tagline: "Smart Vigilance",
+    description: "Enterprise-grade CCTV & monitoring.",
+    image: CCTVImg,
+    link: "/services/cctv",
+    color: "#1b2c4d",
+    icon: "📹",
+    stats: { providers: "20+", rating: "4.7" },
+  },
+];
 
 const Services = () => {
   const [hoveredId, setHoveredId] = useState(null);
@@ -80,13 +119,12 @@ const Services = () => {
       className="min-h-screen pb-20"
       style={{ backgroundColor: "var(--color-bg)" }}
     >
-      {/* ── Hero Banner ── */}
       <section
         className="relative w-full overflow-hidden flex items-center justify-center text-center"
         style={{ minHeight: "55vh" }}
       >
         <img
-          src="https://images.unsplash.com/photo-1528148343865-51218c4a13e6?q=80&w=2070&auto=format&fit=crop"
+          src={serviceHeroImg}
           alt="Services Hero"
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -116,7 +154,6 @@ const Services = () => {
             <span style={{ opacity: 0.5 }}>All in One Place.</span>
           </motion.h1>
 
-          {/* Search Bar */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -141,7 +178,6 @@ const Services = () => {
         </div>
       </section>
 
-      {/* ── Specialty Category Cards ── */}
       <section className="px-6 py-16 sm:py-24 max-w-7xl mx-auto">
         <div className="text-center mb-12">
           <span
@@ -160,21 +196,21 @@ const Services = () => {
             {
               title: "Wedding & Events",
               desc: "All-inclusive venues, luxury decorators, gourmet caterers, and cinematic photography facilities explained.",
-              image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=600&auto=format&fit=crop",
+              image: weddingImgg,
               link: "/services/weddings",
               btn: "Explore Wedding Facility"
             },
             {
               title: "Premium Vehicle Rentals",
               desc: "Exotic sedans, luxury wedding cars, SUVs, and commuter motorcycles for self-drive or chauffeur trips.",
-              image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=600&auto=format&fit=crop",
+              image: carImg,
               link: "/services/car-rentals",
               btn: "Explore Rental Fleet"
             },
             {
               title: "AI Security Systems",
               desc: "Complete residential and commercial smart locks and CCTV monitoring package setups.",
-              image: "https://images.unsplash.com/photo-1557862921-37829c790f19?q=80&w=600&auto=format&fit=crop",
+              image: CCTVImg,
               link: "/services/cctv",
               btn: "Explore Security Plans"
             }
@@ -212,7 +248,6 @@ const Services = () => {
         </div>
       </section>
 
-      {/* ── Filter Tabs ── */}
       <section className="px-6 py-8 border-b" style={{ borderColor: "var(--color-border)", backgroundColor: "var(--color-bg-soft)" }}>
         <div className="max-w-6xl mx-auto flex flex-wrap justify-center gap-3">
           {[
@@ -239,7 +274,6 @@ const Services = () => {
         </div>
       </section>
 
-      {/* ── Services Grid ── */}
       <section className="px-6 py-16 sm:py-24 max-w-7xl mx-auto">
         {loading ? (
           <div className="flex flex-col items-center justify-center gap-4 py-20">
@@ -292,7 +326,6 @@ const Services = () => {
                       transform: hoveredId === (item._id || item.id) ? "translateY(-6px)" : "translateY(0)",
                     }}
                   >
-                    {/* Category Pill Tag */}
                     <div className="absolute top-4 left-4 z-10">
                       <span
                         className="px-3 py-1 rounded-full text-[9px] font-bold text-white uppercase tracking-wider"
@@ -302,7 +335,6 @@ const Services = () => {
                       </span>
                     </div>
 
-                    {/* Thumbnail Image */}
                     <div style={{ height: "200px", overflow: "hidden", position: "relative" }}>
                       <img
                         src={item.imageUrl}
@@ -313,7 +345,6 @@ const Services = () => {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
                     </div>
 
-                    {/* Body Content */}
                     <div className="p-6 flex flex-col flex-1">
                       <h3 className="m-0 mb-2 font-normal text-lg" style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}>
                         {item.name}
@@ -322,7 +353,6 @@ const Services = () => {
                         {item.description}
                       </p>
 
-                      {/* Footer Info Row */}
                       <div className="flex items-center justify-between border-t pt-4" style={{ borderColor: "var(--color-border)" }}>
                         <div>
                           {item.startingPrice !== null ? (
@@ -359,7 +389,6 @@ const Services = () => {
         )}
       </section>
 
-      {/* ── How It Works Section ── */}
       <section className="px-6 py-20 sm:py-28 border-t border-b" style={{ backgroundColor: "var(--color-bg-soft)", borderColor: "var(--color-border)" }}>
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-16">
@@ -401,7 +430,6 @@ const Services = () => {
         </div>
       </section>
 
-      {/* Bottom Support CTA */}
       <section className="text-center px-6 py-16 sm:py-24">
         <h2 className="font-normal mb-4" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(24px, 3vw, 40px)", color: "var(--color-text-dark)" }}>
           Can't find what you're looking for?

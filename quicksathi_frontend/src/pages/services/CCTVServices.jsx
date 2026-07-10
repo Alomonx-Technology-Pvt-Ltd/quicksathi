@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import cctvHero from "../../assets/cctv/cctvHeroImg.avif"
 
 const PLANS = [
   {
@@ -44,7 +45,7 @@ const CCTVServices = () => {
       {/* Hero */}
       <section className="relative w-full overflow-hidden" style={{ minHeight: "80vh" }}>
         <img
-          src="https://images.unsplash.com/photo-1558002038-1055907df827?q=80&w=2070&auto=format&fit=crop"
+          src={cctvHero}
           alt="CCTV Security"
           className="absolute inset-0 w-full h-full object-cover"
           style={{ objectPosition: "center 30%" }}

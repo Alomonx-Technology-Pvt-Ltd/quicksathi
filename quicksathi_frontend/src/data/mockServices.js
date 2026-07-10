@@ -1,3 +1,8 @@
+
+import homeCCTV1 from "../assets/cctv/cctvHeroImg.avif";
+import homeCCTV2 from "../assets/cctv/cctvImg1.avif";
+import photogarphyHeroImg from "../assets/photographyService/photographyImg1.avif"
+
 export const mockServices = [
   {
     id: 101,
@@ -9,9 +14,9 @@ export const mockServices = [
     categoryId: 10,
     categoryName: "Wedding Services",
     thumbnail:
-      "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=2070&auto=format&fit=crop",
+      photogarphyHeroImg,
     bannerImage:
-      "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2070&auto=format&fit=crop",
+      photogarphyHeroImg,
     gallery: [
       "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?q=80&w=2070&auto=format&fit=crop",
       "https://images.unsplash.com/photo-1515934751635-c81c6bc9a2d8?q=80&w=2070&auto=format&fit=crop",
@@ -294,18 +299,14 @@ export const mockServices = [
     id: 105,
     slug: "home-cctv",
     name: "Home CCTV Installation",
-    shortDescription: "Professional electrical installation and repair",
+    shortDescription: "Professional CCTV camera installation with smart monitoring solutions",
     fullDescription:
-      "Certified electricians for wiring, switchboard repair, fan installation, inverter setup, and complete home electrical maintenance.",
+      "Secure your home with high-resolution CCTV cameras, remote monitoring, motion detection, and professional installation support.",
     categoryId: 1,
     categoryName: "CCTV Security",
-    thumbnail:
-      "/images/cctv-main.png",
-    bannerImage:
-      "/images/cctv-main.png",
-    gallery: [
-      "/images/cctv-main.png",
-    ],
+    thumbnail: homeCCTV1,
+    bannerImage: homeCCTV2,
+    gallery: [homeCCTV1],
     startingPrice: 499,
     priceUnit: "per visit",
     rating: 4.6,
@@ -366,10 +367,8 @@ export const mockServices = [
       "Expert plumbers for pipe fitting, leakage repair, bathroom fixtures, water tank cleaning, and complete plumbing maintenance.",
     categoryId: 1,
     categoryName: "CCTV Security",
-    thumbnail:
-      "/images/cctv-main.png",
-    bannerImage:
-      "/images/cctv-main.png",
+    thumbnail: "/images/cctv-main.png",
+    bannerImage: "/images/cctv-main.png",
     gallery: [],
     startingPrice: 399,
     priceUnit: "per visit",
@@ -436,10 +435,8 @@ export const mockServices = [
       "Professional deep cleaning for homes, offices, and kitchens. We use eco-friendly products for a spotless, hygienic environment.",
     categoryId: 1,
     categoryName: "CCTV Security",
-    thumbnail:
-      "/images/cctv-main.png",
-    bannerImage:
-      "/images/cctv-main.png",
+    thumbnail: "/images/cctv-main.png",
+    bannerImage: "/images/cctv-main.png",
     gallery: [],
     startingPrice: 699,
     priceUnit: "per session",
@@ -506,10 +503,8 @@ export const mockServices = [
       "Certified technicians for AC installation, gas refilling, filter cleaning, PCB repair, and annual maintenance contracts.",
     categoryId: 1,
     categoryName: "CCTV Security",
-    thumbnail:
-      "/images/cctv-main.png",
-    bannerImage:
-      "/images/cctv-main.png",
+    thumbnail: "/images/cctv-main.png",
+    bannerImage: "/images/cctv-main.png",
     gallery: [],
     startingPrice: 599,
     priceUnit: "per visit",
