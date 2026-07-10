@@ -1,4 +1,7 @@
 import { Link } from "react-router-dom";
+import weddingImg from "../assets/weddingImg.avif";
+import carImg from "../assets/carImg.avif";
+import smartLock from "../assets/cctv/smartLock.avif";
 
 const AboutSection = () => {
   const pillars = [
@@ -63,7 +66,7 @@ const AboutSection = () => {
             }}
           >
             <img
-              src="https://images.unsplash.com/photo-1610173826608-bd1f53a52db1?q=80&w=800&auto=format&fit=crop"
+              src={weddingImg}
               alt="Wedding Event Planning"
               className="w-full h-full object-cover"
             />
@@ -83,7 +86,7 @@ const AboutSection = () => {
             }}
           >
             <img
-              src="https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=800&auto=format&fit=crop"
+              src={carImg}
               alt="Premium Car Rental"
               className="w-full h-full object-cover"
             />
@@ -103,7 +106,7 @@ const AboutSection = () => {
             }}
           >
             <img
-              src="https://images.unsplash.com/photo-1558002038-1055907df827?q=80&w=600&auto=format&fit=crop"
+              src={smartLock}
               alt="CCTV Security Monitoring"
               className="w-full h-full object-cover"
             />
