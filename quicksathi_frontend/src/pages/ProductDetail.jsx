@@ -1,6 +1,17 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import {
+  Bike,
+  Droplet,
+  Cog,
+  Users,
+  Gauge,
+  Shield,
+  Car,
+  MapPin,
+  ShieldCheck
+} from "lucide-react";
 import api from "../config/api";
 import { mockServices } from "../data/mockServices";
 
@@ -87,21 +98,21 @@ const ProductDetail = () => {
     const name = product.name.toLowerCase();
     if (name.includes("bike") || name.includes("scooter")) {
       return [
-        { label: "Category", value: "Scooter / Motorcycle", icon: "🏍️" },
-        { label: "Fuel Type", value: "Petrol (Highly Efficient)", icon: "⛽" },
-        { label: "Transmission", value: "Gearless / Manual", icon: "⚙️" },
-        { label: "Capacity", value: "2 Seats", icon: "👥" },
-        { label: "Mileage", value: "45 km/l", icon: "⚡" },
-        { label: "Helmet", value: "Included", icon: "🪖" },
+        { label: "Category", value: "Scooter / Motorcycle", icon: Bike },
+        { label: "Fuel Type", value: "Petrol (Highly Efficient)", icon: Droplet },
+        { label: "Transmission", value: "Gearless / Manual", icon: Cog },
+        { label: "Capacity", value: "2 Seats", icon: Users },
+        { label: "Mileage", value: "45 km/l", icon: Gauge },
+        { label: "Helmet", value: "Included", icon: Shield },
       ];
     }
     return [
-      { label: "Category", value: name.includes("luxury") ? "Luxury Sedan/SUV" : "Premium Sedan", icon: "🚗" },
-      { label: "Fuel Type", value: "Petrol / Diesel", icon: "⛽" },
-      { label: "Transmission", value: "Automatic", icon: "⚙️" },
-      { label: "Capacity", value: "5 - 7 Seats", icon: "👥" },
-      { label: "GPS Security", value: "Real-time Tracking", icon: "📍" },
-      { label: "Insurance", value: "Zero-Depreciation", icon: "🛡️" },
+      { label: "Category", value: name.includes("luxury") ? "Luxury Sedan/SUV" : "Premium Sedan", icon: Car },
+      { label: "Fuel Type", value: "Petrol / Diesel", icon: Droplet },
+      { label: "Transmission", value: "Automatic", icon: Cog },
+      { label: "Capacity", value: "5 - 7 Seats", icon: Users },
+      { label: "GPS Security", value: "Real-time Tracking", icon: MapPin },
+      { label: "Insurance", value: "Zero-Depreciation", icon: ShieldCheck },
     ];
   };
 
@@ -204,13 +215,18 @@ const ProductDetail = () => {
             >
               <SectionHeader title="Vehicle Specifications" />
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                {specs.map((spec, idx) => (
-                  <div key={idx} className="p-4 rounded-2xl border flex flex-col gap-2" style={{ backgroundColor: "var(--color-bg-soft)", borderColor: "var(--color-border)" }}>
-                    <span className="text-2xl">{spec.icon}</span>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-mid" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>{spec.label}</span>
-                    <span className="text-sm font-semibold" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>{spec.value}</span>
-                  </div>
-                ))}
+                {specs.map((spec, idx) => {
+                  const Icon = spec.icon;
+                  return (
+                    <div key={idx} className="p-4 rounded-2xl border flex flex-col gap-2" style={{ backgroundColor: "var(--color-bg-soft)", borderColor: "var(--color-border)" }}>
+                      <span className="text-[#C4A882]" style={{ display: "inline-flex" }}>
+                        <Icon size={20} strokeWidth={1.5} />
+                      </span>
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-mid" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>{spec.label}</span>
+                      <span className="text-sm font-semibold" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>{spec.value}</span>
+                    </div>
+                  );
+                })}
               </div>
             </motion.div>
 

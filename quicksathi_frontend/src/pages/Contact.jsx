@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import api from "../config/api";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -37,7 +38,7 @@ const Contact = () => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.firstName || !formData.email || !formData.message) {
       setError("Please fill in all required fields (First Name, Email, and Message).");
@@ -46,8 +47,8 @@ const Contact = () => {
     setError("");
     setLoading(true);
 
-    // Simulate API request
-    setTimeout(() => {
+    try {
+      await api.post("/contact", formData);
       setLoading(false);
       setSuccess(true);
       setFormData({
@@ -56,7 +57,10 @@ const Contact = () => {
         email: "",
         message: "",
       });
-    }, 1500);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to send message. Please try again.");
+      setLoading(false);
+    }
   };
 
   return (

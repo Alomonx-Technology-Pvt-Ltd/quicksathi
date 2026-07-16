@@ -11,6 +11,8 @@ import bookingRoutes from "./routes/bookings.js";
 import providerRoutes from "./routes/providers.js";
 import adminRoutes from "./routes/admin.js";
 import paymentRoutes from "./routes/payments.js";
+import notificationRoutes from "./routes/notifications.js";
+import contactRoutes from "./routes/contact.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -30,6 +32,8 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/providers", providerRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/contact", contactRoutes);
 
 // ── Health check ──
 app.get("/api/health", (req, res) => {

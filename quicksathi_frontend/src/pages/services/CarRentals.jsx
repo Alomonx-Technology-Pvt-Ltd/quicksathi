@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { ShieldCheck, Wrench, Coins } from "lucide-react";
 import mercedese from "../../assets/mercedes.avif";
 import rangeRover from "../../assets/rangeRover.avif";
 import audiImg from "../../assets/audiImg.avif";
@@ -186,48 +187,51 @@ const CarRentals = () => {
         <div className="max-w-5xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-4">
           {[
             {
-              icon: "🛡️",
+              icon: ShieldCheck,
               title: "Verified Vehicles",
               desc: "Every car undergoes a 120-point safety inspection.",
             },
             {
-              icon: "🔧",
+              icon: Wrench,
               title: "24/7 Roadside",
               desc: "Instant support anywhere, anytime, for any issue.",
             },
             {
-              icon: "💰",
+              icon: Coins,
               title: "Price Guarantee",
               desc: "No hidden charges. What you see is what you pay.",
             },
-          ].map((badge, i) => (
-            <div
-              key={i}
-              className="flex items-center gap-4 p-4 rounded-2xl"
-              style={{ backgroundColor: "rgba(255,255,255,0.08)" }}
-            >
+          ].map((badge, i) => {
+            const Icon = badge.icon;
+            return (
               <div
-                className="w-12 h-12 rounded-xl flex items-center justify-center text-xl"
-                style={{ backgroundColor: "rgba(255,255,255,0.12)" }}
+                key={i}
+                className="flex items-center gap-4 p-4 rounded-2xl"
+                style={{ backgroundColor: "rgba(255,255,255,0.08)" }}
               >
-                {badge.icon}
-              </div>
-              <div>
-                <p
-                  className="text-white text-sm font-semibold m-0"
-                  style={{ fontFamily: "var(--font-body)" }}
+                <div
+                  className="w-12 h-12 rounded-xl flex items-center justify-center text-white"
+                  style={{ backgroundColor: "rgba(255,255,255,0.12)" }}
                 >
-                  {badge.title}
-                </p>
-                <p
-                  className="text-white/50 text-xs m-0 mt-1"
-                  style={{ fontFamily: "var(--font-body)" }}
-                >
-                  {badge.desc}
-                </p>
+                  <Icon size={20} strokeWidth={1.5} />
+                </div>
+                <div>
+                  <p
+                    className="text-white text-sm font-semibold m-0"
+                    style={{ fontFamily: "var(--font-body)" }}
+                  >
+                    {badge.title}
+                  </p>
+                  <p
+                    className="text-white/50 text-xs m-0 mt-1"
+                    style={{ fontFamily: "var(--font-body)" }}
+                  >
+                    {badge.desc}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 

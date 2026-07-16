@@ -2,11 +2,13 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../config/api";
 import { useAuth } from "../../context/AuthContext";
+import { Search } from "lucide-react";
 
 const ROLE_COLORS = {
   admin: "#ec4899",
   provider: "#22c55e",
   client: "#3b82f6",
+  user: "#3b82f6",
 };
 
 const AdminUsers = () => {
@@ -123,14 +125,14 @@ const AdminUsers = () => {
             placeholder="Search by name or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-5 py-3 rounded-2xl border outline-none text-white text-sm"
+            className="w-full px-5 py-3 pr-10 rounded-2xl border outline-none text-white text-sm"
             style={{
               fontFamily: "var(--font-body)",
               backgroundColor: "rgba(255,255,255,0.04)",
               borderColor: "rgba(255,255,255,0.08)",
             }}
           />
-          <span className="absolute right-5 top-1/2 -translate-y-1/2 text-white/30 text-sm">🔍</span>
+          <Search size={14} className="absolute right-5 top-1/2 -translate-y-1/2 text-white/30" />
         </div>
 
         {/* Role Pills */}
@@ -230,6 +232,27 @@ const AdminUsers = () => {
                               style={{ borderColor: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", backgroundColor: "transparent" }}
                             >
                               Revoke Admin
+                            </button>
+                          )}
+
+                          {u.role !== "provider" && u.role !== "admin" && (
+                            <button
+                              disabled={actioningId === u._id}
+                              onClick={() => handleRoleChange(u._id, "provider")}
+                              className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase cursor-pointer border hover:bg-white/5 transition-all text-white"
+                              style={{ borderColor: "rgba(255,255,255,0.1)", backgroundColor: "transparent" }}
+                            >
+                              Make Provider
+                            </button>
+                          )}
+                          {u.role === "provider" && (
+                            <button
+                              disabled={actioningId === u._id}
+                              onClick={() => handleRoleChange(u._id, "client")}
+                              className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase cursor-pointer border hover:bg-white/5 transition-all"
+                              style={{ borderColor: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", backgroundColor: "transparent" }}
+                            >
+                              Revoke Provider
                             </button>
                           )}
                           

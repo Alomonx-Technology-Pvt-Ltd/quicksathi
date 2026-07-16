@@ -104,6 +104,9 @@ const serviceSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // Cities where this service is available.
+    // Empty array = "Available Everywhere" (shows in all city filters).
+    cities: [{ type: String, trim: true }],
     provider: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Provider",

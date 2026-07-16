@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { ShieldCheck, Gem, CreditCard } from "lucide-react";
 import api from "../config/api";
 import Card from "../components/common/Card";
 import Hero from "../components/Hero";
@@ -7,9 +8,12 @@ import { Link, useNavigate } from "react-router-dom";
 import AboutSection from "./AboutSection";
 import { mockCategories } from "../data/mockCategories";
 import { mockServices } from "../data/mockServices";
+import LocationBanner from "../components/common/LocationBanner";
+import { useLocation } from "../context/LocationContext";
 
 const Home = () => {
   const navigate = useNavigate();
+  const { city } = useLocation();
   const [categories, setCategories] = useState([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [services, setServices] = useState([]);
@@ -54,11 +58,12 @@ const Home = () => {
     fetchCategories();
   }, []);
 
-  // Fetch services for dynamic linking
+  // Fetch services for dynamic linking — refetch when city changes
   useEffect(() => {
     const fetchServices = async () => {
       try {
-        const { data } = await api.get("/services");
+        const params = city ? `?city=${encodeURIComponent(city)}` : "";
+        const { data } = await api.get(`/services${params}`);
         if (data && data.length > 0) {
           const mapped = data.map(srv => ({
             ...srv,
@@ -80,7 +85,7 @@ const Home = () => {
       }
     };
     fetchServices();
-  }, []);
+  }, [city]);
 
   const getServiceLink = (name, subId) => {
     const match = services?.find(
@@ -147,6 +152,7 @@ const Home = () => {
         categories={categories}
         style={{ backgroundColor: "var(--color-bg)" }}
       />
+      <LocationBanner />
       <AboutSection
         categories={categories}
         style={{ backgroundColor: "var(--color-bg-soft)" }}
@@ -289,9 +295,9 @@ const Home = () => {
               Join the QuickSathi partner network to list your elite facilities, coordinate wedding decoration packages, manage vehicle rentals, or deploy CCTV security setups. Enjoy immediate payouts and high-value client matching.
             </p>
             <div className="flex flex-wrap gap-6 text-xs text-white/50 mb-8" style={{ fontFamily: "var(--font-body)" }}>
-              <span className="flex items-center gap-2">🛡️ Vetted Listings</span>
-              <span className="flex items-center gap-2">💎 Premium Clients</span>
-              <span className="flex items-center gap-2">💳 Fast Automated Payments</span>
+              <span className="flex items-center gap-1.5"><ShieldCheck size={14} className="text-[#C4A882]" /> Vetted Listings</span>
+              <span className="flex items-center gap-1.5"><Gem size={14} className="text-[#C4A882]" /> Premium Clients</span>
+              <span className="flex items-center gap-1.5"><CreditCard size={14} className="text-[#C4A882]" /> Fast Automated Payments</span>
             </div>
 
             <Link to="/provider/onboarding" className="no-underline">

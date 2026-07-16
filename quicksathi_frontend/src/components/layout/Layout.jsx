@@ -1,8 +1,43 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Outlet, Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Footer from "../common/Footer";
 import BottomNav from "./BottomNav";
+import ChatBot from "../chatbot/ChatBot";
+import api from "../../config/api";
+import { Bell, Trash2, Check, X, ShieldAlert } from "lucide-react";
+
+const LogoImg = ({ size = 28, style = {} }) => (
+  <svg
+    viewBox="0 0 200 230"
+    width={size}
+    height={size}
+    style={{ display: "block", ...style }}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M100 10 C60 10 28 42 28 82 C28 130 100 220 100 220 C100 220 172 130 172 82 C172 42 140 10 100 10Z"
+      fill="#1a3a8b"
+    />
+    <circle cx="100" cy="82" r="50" fill="white" />
+    <path
+      d="M58 78 C65 70 76 70 82 78 L90 86 L98 78 C104 70 115 70 122 78 L122 94 C115 102 104 102 98 94 L90 86 L82 94 C76 102 65 102 58 94Z"
+      fill="#1a3a8b"
+      opacity="0.9"
+    />
+    <text
+      x="106"
+      y="76"
+      fontFamily="Arial Black, Impact, sans-serif"
+      fontWeight="900"
+      fontSize="44"
+      fill="#e85c2a"
+      dominantBaseline="auto"
+    >
+      S
+    </text>
+  </svg>
+);
 
 const Navbar = () => {
   const { pathname } = useLocation();
@@ -12,11 +47,79 @@ const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
 
+  // Notifications states
+  const [notifications, setNotifications] = useState([]);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const notifRef = useRef(null);
+
+  // Fetch notifications
+  const fetchNotifications = async () => {
+    try {
+      const response = await api.get("/notifications");
+      setNotifications(response.data);
+    } catch (err) {
+      console.error("Failed to fetch notifications:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchNotifications();
+      // Poll notifications every 20 seconds for real-time updates
+      const interval = setInterval(fetchNotifications, 20000);
+      return () => clearInterval(interval);
+    } else {
+      setNotifications([]);
+    }
+  }, [isAuthenticated]);
+
+  // Click outside listener for notifications dropdown
+  useEffect(() => {
+    const handleOutsideClick = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setNotifOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const handleMarkAllRead = async () => {
+    try {
+      await api.put("/notifications/read-all");
+      setNotifications(notifications.map(n => ({ ...n, read: true })));
+    } catch (err) {
+      console.error("Failed to mark all notifications as read:", err);
+    }
+  };
+
+  const handleMarkRead = async (id) => {
+    try {
+      await api.put(`/notifications/${id}/read`);
+      setNotifications(notifications.map(n => n._id === id ? { ...n, read: true } : n));
+    } catch (err) {
+      console.error("Failed to mark notification as read:", err);
+    }
+  };
+
+  const handleDeleteNotif = async (e, id) => {
+    e.stopPropagation(); // Avoid triggering parent click
+    try {
+      await api.delete(`/notifications/${id}`);
+      setNotifications(notifications.filter(n => n._id !== id));
+    } catch (err) {
+      console.error("Failed to delete notification:", err);
+    }
+  };
+
   // Close menu on route change
   useEffect(() => {
     Promise.resolve().then(() => {
       setMenuOpen(false);
       setProfileOpen(false);
+      setNotifOpen(false);
     });
   }, [pathname]);
 
@@ -46,16 +149,17 @@ const Navbar = () => {
               }
         }
       >
-        {/* Brand */}
+        {/* Brand with logo */}
         <Link
           to="/"
-          className="px-2 sm:px-6 py-2 text-xl sm:text-2xl font-bold tracking-tight no-underline"
+          className="px-2 sm:px-6 py-2 text-xl sm:text-2xl font-bold tracking-tight no-underline flex items-center gap-2.5"
           style={{
             fontFamily: "var(--font-display)",
             color: isFullBleed ? "#ffffff" : "var(--color-text-dark)",
           }}
         >
-          QuickSathi
+          <LogoImg size={28} />
+          <span>QuickSathi</span>
         </Link>
 
         {/* Desktop Links */}
@@ -98,49 +202,142 @@ const Navbar = () => {
 
           {/* Auth buttons */}
           {isAuthenticated ? (
-            <div className="relative">
-              <button
-                onClick={() => setProfileOpen(!profileOpen)}
-                className="flex items-center gap-2 px-3 py-2 rounded-full border-0 cursor-pointer transition-all duration-200 hover:opacity-80"
-                style={{
-                  backgroundColor: isFullBleed ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.04)",
-                  backdropFilter: "blur(8px)",
-                }}
-              >
-                <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                  style={{ backgroundColor: "var(--color-primary)" }}>
-                  {user?.name?.[0] || "U"}
-                </div>
-                <span className="text-sm font-medium" style={{
-                  fontFamily: "var(--font-body)",
-                  color: isFullBleed ? "#fff" : "var(--color-text-dark)",
-                }}>
-                  {user?.name?.split(" ")[0] || "User"}
-                </span>
-              </button>
-
-              {/* Dropdown */}
-              {profileOpen && (
-                <div className="absolute top-full right-0 mt-2 w-48 rounded-xl overflow-hidden"
-                  style={{ backgroundColor: "var(--color-bg-white)", boxShadow: "0 8px 32px rgba(0,0,0,0.12)", border: "1px solid var(--color-border)" }}>
-                  <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--color-border)" }}>
-                    <p className="text-sm font-semibold m-0" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>{user?.name}</p>
-                    <p className="text-xs m-0" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-muted)" }}>{user?.email}</p>
-                  </div>
-                  {user?.role === "admin" && (
-                    <Link to="/admin" className="block px-4 py-2.5 text-sm no-underline hover:opacity-70" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>
-                      📊 Admin Panel
-                    </Link>
+            <div className="flex items-center gap-3 relative">
+              {/* Notification Bell */}
+              <div className="relative" ref={notifRef}>
+                <button
+                  onClick={() => setNotifOpen(!notifOpen)}
+                  className="w-9 h-9 rounded-full flex items-center justify-center border-0 cursor-pointer transition-all duration-200 hover:opacity-80"
+                  style={{
+                    backgroundColor: isFullBleed ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.04)",
+                    color: isFullBleed ? "#fff" : "var(--color-text-dark)",
+                    backdropFilter: "blur(8px)",
+                  }}
+                >
+                  <Bell size={18} />
+                  {unreadCount > 0 && (
+                    <span 
+                      className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-[9px] font-bold"
+                      style={{ border: "1.5px solid var(--color-bg-white)" }}
+                    >
+                      {unreadCount}
+                    </span>
                   )}
-                  <Link to="/my-bookings" className="block px-4 py-2.5 text-sm no-underline hover:opacity-70" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>
-                    📋 My Bookings
-                  </Link>
-                  <button onClick={logout} className="w-full text-left px-4 py-2.5 text-sm border-0 cursor-pointer hover:opacity-70"
-                    style={{ fontFamily: "var(--font-body)", color: "#dc2626", backgroundColor: "transparent", borderTop: "1px solid var(--color-border)" }}>
-                    Sign Out
-                  </button>
-                </div>
-              )}
+                </button>
+
+                {/* Notifications Dropdown */}
+                {notifOpen && (
+                  <div className="absolute top-full right-0 mt-3 w-80 rounded-2xl overflow-hidden shadow-2xl z-50 text-left border"
+                    style={{ 
+                      backgroundColor: "var(--color-bg-white)", 
+                      borderColor: "var(--color-border)",
+                      maxHeight: "360px",
+                      display: "flex",
+                      flexDirection: "column"
+                    }}
+                  >
+                    {/* Header */}
+                    <div className="px-4 py-3 flex items-center justify-between border-b" style={{ borderColor: "var(--color-border)" }}>
+                      <span className="text-xs font-bold" style={{ color: "var(--color-text-dark)", fontFamily: "var(--font-body)" }}>Notifications</span>
+                      {unreadCount > 0 && (
+                        <button 
+                          onClick={handleMarkAllRead}
+                          className="bg-transparent border-0 text-[10px] font-bold text-blue-600 hover:text-blue-700 cursor-pointer p-0"
+                          style={{ fontFamily: "var(--font-body)" }}
+                        >
+                          Mark all as read
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Notification list */}
+                    <div className="overflow-y-auto flex-1 flex flex-col" style={{ maxHeight: "290px" }}>
+                      {notifications.length > 0 ? (
+                        notifications.map((notif) => (
+                          <div 
+                            key={notif._id}
+                            onClick={() => !notif.read && handleMarkRead(notif._id)}
+                            className="px-4 py-3 flex gap-2 items-start justify-between cursor-pointer border-b hover:bg-neutral-50 dark:hover:bg-white/[0.02] transition-all"
+                            style={{ 
+                              borderColor: "var(--color-border)",
+                              backgroundColor: notif.read ? "transparent" : "rgba(59, 130, 246, 0.04)"
+                            }}
+                          >
+                            <div className="flex flex-col gap-0.5 flex-1 min-w-0 pr-2">
+                              <span className="text-xs font-bold truncate" style={{ color: "var(--color-text-dark)", fontFamily: "var(--font-body)" }}>{notif.title}</span>
+                              <span className="text-[10px] leading-relaxed" style={{ color: "var(--color-text-mid)", fontFamily: "var(--font-body)", whiteSpace: "pre-line" }}>{notif.message}</span>
+                              <span className="text-[8px] mt-1" style={{ color: "var(--color-text-muted)", fontFamily: "var(--font-body)" }}>
+                                {new Date(notif.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              {!notif.read && (
+                                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0" />
+                              )}
+                              <button 
+                                onClick={(e) => handleDeleteNotif(e, notif._id)}
+                                className="bg-transparent border-0 text-neutral-400 hover:text-red-500 cursor-pointer p-0.5"
+                              >
+                                <Trash2 size={12} />
+                              </button>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="px-4 py-8 text-center text-xs text-neutral-400" style={{ fontFamily: "var(--font-body)" }}>
+                          You have no notifications
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Profile button */}
+              <div className="relative">
+                <button
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-full border-0 cursor-pointer transition-all duration-200 hover:opacity-80"
+                  style={{
+                    backgroundColor: isFullBleed ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.04)",
+                    backdropFilter: "blur(8px)",
+                  }}
+                >
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white"
+                    style={{ backgroundColor: "var(--color-primary)" }}>
+                    {user?.name?.[0] || "U"}
+                  </div>
+                  <span className="text-sm font-medium" style={{
+                    fontFamily: "var(--font-body)",
+                    color: isFullBleed ? "#fff" : "var(--color-text-dark)",
+                  }}>
+                    {user?.name?.split(" ")[0] || "User"}
+                  </span>
+                </button>
+
+                {/* Dropdown */}
+                {profileOpen && (
+                  <div className="absolute top-full right-0 mt-3 w-48 rounded-xl overflow-hidden shadow-2xl z-50 text-left border"
+                    style={{ backgroundColor: "var(--color-bg-white)", borderColor: "var(--color-border)" }}>
+                    <div className="px-4 py-3 border-b" style={{ borderColor: "var(--color-border)" }}>
+                      <p className="text-sm font-semibold m-0" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>{user?.name}</p>
+                      <p className="text-xs m-0" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-muted)" }}>{user?.email}</p>
+                    </div>
+                    {user?.role === "admin" && (
+                      <Link to="/admin" className="block px-4 py-2.5 text-sm no-underline hover:bg-neutral-50 dark:hover:bg-white/[0.02]" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>
+                        📊 Admin Panel
+                      </Link>
+                    )}
+                    <Link to="/my-bookings" className="block px-4 py-2.5 text-sm no-underline hover:bg-neutral-50 dark:hover:bg-white/[0.02]" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>
+                      📋 My Bookings
+                    </Link>
+                    <button onClick={logout} className="w-full text-left px-4 py-2.5 text-sm border-0 cursor-pointer hover:bg-neutral-50 dark:hover:bg-white/[0.02]"
+                      style={{ fontFamily: "var(--font-body)", color: "#dc2626", backgroundColor: "transparent", borderTop: "1px solid var(--color-border)", borderColor: "var(--color-border)" }}>
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           ) : (
             <button
@@ -296,6 +493,8 @@ const Layout = () => (
       <Footer />
     </div>
     <BottomNav />
+    {/* QuickSathi AI Chatbot — floating bottom-right */}
+    <ChatBot />
   </div>
 );
 

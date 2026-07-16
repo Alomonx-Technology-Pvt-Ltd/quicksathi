@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../../config/api";
+import { CITY_OPTIONS } from "../../context/LocationContext";
 
 const SERVICE_MODES = ["ON_SITE", "AT_HOME", "RENTAL", "REMOTE"];
 
@@ -24,6 +25,7 @@ const emptyService = {
   featured: false,
   packages: [],
   faqs: [],
+  cities: [],
 };
 
 const AdminServices = () => {
@@ -133,6 +135,7 @@ const AdminServices = () => {
       featured: service.featured || false,
       packages: service.packages || [],
       faqs: service.faqs || [],
+      cities: service.cities || [],
     });
     setShowForm(true);
   };
@@ -299,7 +302,7 @@ const AdminServices = () => {
           <table className="w-full" style={{ fontFamily: "var(--font-body)" }}>
             <thead>
               <tr>
-                {["Image", "Name", "Category", "Price", "Rating", "Status", "Featured", "Actions"].map((h) => (
+                {["Image", "Name", "Category", "Price", "Rating", "Cities", "Status", "Featured", "Actions"].map((h) => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.25)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>{h}</th>
                 ))}
               </tr>
@@ -321,6 +324,20 @@ const AdminServices = () => {
                   <td className="px-4 py-3 text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>{service.categoryName}</td>
                   <td className="px-4 py-3 text-sm text-white font-semibold">₹{service.startingPrice?.toLocaleString()}</td>
                   <td className="px-4 py-3 text-sm" style={{ color: "rgba(255,255,255,0.6)" }}>⭐ {service.rating} ({service.totalReviews})</td>
+                  <td className="px-4 py-3">
+                    {(!service.cities || service.cities.length === 0) ? (
+                      <span style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px" }}>🌐 All</span>
+                    ) : (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: "3px", maxWidth: "160px" }}>
+                        {service.cities.slice(0, 3).map((c) => (
+                          <span key={c} style={{ padding: "1px 6px", borderRadius: "10px", fontSize: "10px", background: "rgba(232,92,42,0.15)", color: "#e85c2a", border: "1px solid rgba(232,92,42,0.3)" }}>{c}</span>
+                        ))}
+                        {service.cities.length > 3 && (
+                          <span style={{ padding: "1px 6px", borderRadius: "10px", fontSize: "10px", color: "rgba(255,255,255,0.3)" }}>+{service.cities.length - 3}</span>
+                        )}
+                      </div>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <button onClick={() => handleToggle(service._id)} className="px-2.5 py-1 rounded-full text-xs font-semibold border-0 cursor-pointer" style={{ backgroundColor: service.available ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", color: service.available ? "#22c55e" : "#ef4444" }}>
                       {service.available ? "Active" : "Inactive"}
@@ -412,6 +429,82 @@ const AdminServices = () => {
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={labelStyle}>Price Unit</label>
                   <input type="text" value={form.priceUnit} onChange={(e) => setForm((p) => ({ ...p, priceUnit: e.target.value }))} style={inputStyle} className="w-full px-3 py-2.5 rounded-xl text-sm border-0 outline-none" placeholder="per event" />
                 </div>
+              </div>
+
+              {/* Service Cities */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider mb-2" style={labelStyle}>
+                  📍 Available Cities
+                  <span style={{ color: "rgba(255,255,255,0.3)", fontWeight: 400, marginLeft: 8, textTransform: "none", letterSpacing: 0 }}>
+                    (leave empty = available everywhere)
+                  </span>
+                </label>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(130px, 1fr))",
+                    gap: "6px",
+                    background: "rgba(255,255,255,0.03)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    borderRadius: "12px",
+                    padding: "12px",
+                  }}
+                >
+                  {CITY_OPTIONS.map((city) => {
+                    const checked = (form.cities || []).includes(city);
+                    return (
+                      <label
+                        key={city}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "7px",
+                          cursor: "pointer",
+                          padding: "5px 8px",
+                          borderRadius: "8px",
+                          background: checked ? "rgba(232,92,42,0.15)" : "transparent",
+                          border: checked ? "1px solid rgba(232,92,42,0.4)" : "1px solid transparent",
+                          transition: "all 0.15s",
+                          userSelect: "none",
+                        }}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => {
+                            setForm((prev) => ({
+                              ...prev,
+                              cities: checked
+                                ? prev.cities.filter((c) => c !== city)
+                                : [...(prev.cities || []), city],
+                            }));
+                          }}
+                          style={{ accentColor: "#e85c2a", width: "13px", height: "13px" }}
+                        />
+                        <span
+                          style={{
+                            color: checked ? "#e85c2a" : "rgba(255,255,255,0.6)",
+                            fontSize: "12px",
+                            fontFamily: "Inter, sans-serif",
+                            fontWeight: checked ? "600" : "400",
+                          }}
+                        >
+                          {city}
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+                {(form.cities || []).length === 0 && (
+                  <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "11px", marginTop: "6px", fontFamily: "Inter, sans-serif" }}>
+                    🌐 This service will be shown to users in ALL cities.
+                  </p>
+                )}
+                {(form.cities || []).length > 0 && (
+                  <p style={{ color: "rgba(232,92,42,0.7)", fontSize: "11px", marginTop: "6px", fontFamily: "Inter, sans-serif" }}>
+                    📍 Shown only to users in: {form.cities.join(", ")}
+                  </p>
+                )}
               </div>
 
               {/* Images */}

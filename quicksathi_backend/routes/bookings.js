@@ -1,6 +1,7 @@
 import { Router } from "express";
 import Booking from "../models/Booking.js";
 import Service from "../models/Service.js";
+import Notification from "../models/Notification.js";
 import { protect } from "../middleware/auth.js";
 
 const router = Router();
@@ -20,6 +21,7 @@ router.post("/", protect, async (req, res) => {
     const booking = await Booking.create({
       user: req.user._id,
       service: serviceId,
+      provider: service.provider || undefined,
       serviceName: service.name,
       packageTitle: pkg?.title || "",
       scheduledDate,
@@ -99,6 +101,18 @@ router.patch("/:id/cancel", protect, async (req, res) => {
     booking.cancelReason = req.body.reason || "";
     await booking.save();
 
+    // Create In-Website Notification
+    try {
+      await Notification.create({
+        recipient: booking.user,
+        title: "Booking Cancelled ❌",
+        message: `Your booking ${booking.bookingId || "request"} has been cancelled by ${booking.cancelledBy}. Reason: ${booking.cancelReason || "No reason specified"}`,
+        type: "booking",
+      });
+    } catch (notifError) {
+      console.error("Failed to create cancellation notification:", notifError);
+    }
+
     res.json(booking);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -120,6 +134,18 @@ router.patch("/:id/status", protect, async (req, res) => {
 
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
+    }
+
+    // Create In-Website Notification
+    try {
+      await Notification.create({
+        recipient: booking.user,
+        title: `Booking Update: ${req.body.status.toUpperCase()} 🔄`,
+        message: `The status of your booking ${booking.bookingId || ""} for ${booking.serviceName} has been updated to "${req.body.status}".`,
+        type: "booking",
+      });
+    } catch (notifError) {
+      console.error("Failed to create status update notification:", notifError);
     }
 
     res.json(booking);

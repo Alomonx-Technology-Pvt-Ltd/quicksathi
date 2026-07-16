@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { ShieldCheck, Clock, CreditCard, Handshake } from "lucide-react";
 
 const stats = [
   { value: "10K+", label: "Happy Customers" },
@@ -10,22 +11,22 @@ const stats = [
 
 const values = [
   {
-    icon: "🛡️",
+    icon: ShieldCheck,
     title: "100% Vetted Professionals",
     desc: "Every provider is thoroughly verified, background-checked, and monitored for quality assurance.",
   },
   {
-    icon: "⏱️",
+    icon: Clock,
     title: "Instant Live Booking",
     desc: "Schedule services instantly with transparent availability and real-time confirmations.",
   },
   {
-    icon: "💳",
+    icon: CreditCard,
     title: "Upfront & Fair Quotes",
     desc: "Clear itemized pricing packages. What you see is exactly what you pay, with no surprise surcharges.",
   },
   {
-    icon: "🤝",
+    icon: Handshake,
     title: "Locally Vetted & Vested",
     desc: "We are proudly Bihar-grown. Every booking supports local businesses and highly skilled professionals.",
   },
@@ -299,10 +300,10 @@ const About = () => {
                 }}
               >
                 <div
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl mb-6 shadow-sm"
-                  style={{ backgroundColor: "rgba(139,26,26,0.06)", border: "1px solid rgba(139,26,26,0.10)" }}
+                  className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6 shadow-sm"
+                  style={{ backgroundColor: "rgba(139,26,26,0.06)", border: "1px solid rgba(139,26,26,0.10)", color: "var(--color-primary)" }}
                 >
-                  {v.icon}
+                  <v.icon size={22} strokeWidth={1.5} />
                 </div>
                 <h3
                   className="font-semibold text-base m-0 mb-3"

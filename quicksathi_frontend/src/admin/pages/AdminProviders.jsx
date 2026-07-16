@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../config/api";
+import { Search } from "lucide-react";
 
 const STATUS_STYLES = {
   pending: { bg: "rgba(245,158,11,0.08)", border: "rgba(245,158,11,0.15)", color: "#f59e0b", label: "Pending Review" },
@@ -117,14 +118,14 @@ const AdminProviders = () => {
             placeholder="Search by business, name or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-5 py-3 rounded-2xl border outline-none text-white text-sm"
+            className="w-full px-5 py-3 pr-10 rounded-2xl border outline-none text-white text-sm"
             style={{
               fontFamily: "var(--font-body)",
               backgroundColor: "rgba(255,255,255,0.04)",
               borderColor: "rgba(255,255,255,0.08)",
             }}
           />
-          <span className="absolute right-5 top-1/2 -translate-y-1/2 text-white/30 text-sm">🔍</span>
+          <Search size={14} className="absolute right-5 top-1/2 -translate-y-1/2 text-white/30" />
         </div>
 
         {/* Filters pills */}

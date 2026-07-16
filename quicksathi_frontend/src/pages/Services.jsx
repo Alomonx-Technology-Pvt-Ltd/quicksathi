@@ -2,10 +2,13 @@ import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../config/api";
+import { Search } from "lucide-react";
 import weddingImgg from "../assets/weddingImgg.avif";
 import carImg from "../assets/carImg.avif";
 import CCTVImg from "../assets/CCTVImg.avif";
 import serviceHeroImg from "../assets/serviceHeroImg.avif";
+import LocationBanner from "../components/common/LocationBanner";
+import { useLocation } from "../context/LocationContext";
 const CATEGORIES = [
   {
     id: "weddings",
@@ -49,15 +52,16 @@ const Services = () => {
   const [categories, setCategories] = useState([]);
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
-
-  // Fetch categories and services from backend
+  const { city } = useLocation();
+  // Fetch categories and services from backend — refetch when city changes
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
+        const cityParam = city ? `?city=${encodeURIComponent(city)}` : "";
         const [catRes, svcRes] = await Promise.all([
           api.get("/categories"),
-          api.get("/services"),
+          api.get(`/services${cityParam}`),
         ]);
         setCategories(catRes.data);
         setServices(svcRes.data);
@@ -68,7 +72,7 @@ const Services = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [city]);
 
   // Build a service link using the service's _id from the backend
   const getServiceLink = (name, mongoId) => {
@@ -165,7 +169,7 @@ const Services = () => {
               placeholder="Search for photography, car rentals, smart locks..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-6 py-4 rounded-full text-sm outline-none transition-all duration-300 shadow-lg text-white"
+              className="w-full px-6 py-4 pr-12 rounded-full text-sm outline-none transition-all duration-300 shadow-lg text-white"
               style={{
                 fontFamily: "var(--font-body)",
                 backgroundColor: "rgba(255,255,255,0.08)",
@@ -173,10 +177,12 @@ const Services = () => {
                 backdropFilter: "blur(12px)",
               }}
             />
-            <span className="absolute right-6 top-1/2 -translate-y-1/2 text-white/50">🔍</span>
+            <Search size={16} className="absolute right-6 top-1/2 -translate-y-1/2 text-white/50" />
           </motion.div>
         </div>
       </section>
+
+      <LocationBanner />
 
       <section className="px-6 py-16 sm:py-24 max-w-7xl mx-auto">
         <div className="text-center mb-12">
@@ -294,7 +300,7 @@ const Services = () => {
                 exit={{ opacity: 0 }}
                 className="text-center py-12"
               >
-                <span className="text-4xl block mb-4">🔍</span>
+                <Search size={36} className="mx-auto text-neutral-400 mb-4 opacity-50" />
                 <p className="text-lg m-0" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
                   No services found matching your query.
                 </p>

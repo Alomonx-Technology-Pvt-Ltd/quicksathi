@@ -1,9 +1,11 @@
 import { Router } from "express";
+import nodemailer from "nodemailer";
 import User from "../models/User.js";
 import Provider from "../models/Provider.js";
 import Booking from "../models/Booking.js";
 import Service from "../models/Service.js";
 import Category from "../models/Category.js";
+import Notification from "../models/Notification.js";
 import { protect } from "../middleware/auth.js";
 import { adminOnly } from "../middleware/admin.js";
 import { v2 as cloudinary } from "cloudinary";
@@ -478,6 +480,7 @@ router.get("/bookings", protect, adminOnly, async (req, res) => {
     const bookings = await Booking.find(filter)
       .populate("user", "name email phone")
       .populate("service", "name thumbnail")
+      .populate("provider", "businessName")
       .sort("-createdAt")
       .limit(parseInt(limit));
 
@@ -506,6 +509,77 @@ router.patch("/bookings/:id/status", protect, adminOnly, async (req, res) => {
   }
 });
 
+// PATCH /api/admin/bookings/:id/assign — Assign provider to a booking
+router.patch("/bookings/:id/assign", protect, adminOnly, async (req, res) => {
+  try {
+    const { providerId } = req.body;
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found" });
+    }
+
+    if (providerId) {
+      const provider = await Provider.findById(providerId);
+      if (!provider) {
+        return res.status(404).json({ message: "Provider not found" });
+      }
+      booking.provider = provider._id;
+      if (booking.status === "pending") {
+        booking.status = "confirmed";
+      }
+
+      // Notify the provider
+      try {
+        await Notification.create({
+          recipient: provider.user,
+          title: "New Job Assigned! 💼",
+          message: `You have been assigned to booking ${booking.bookingId || ""} for ${booking.serviceName}.`,
+          type: "booking",
+        });
+      } catch (notifError) {
+        console.error("Failed to notify provider:", notifError);
+      }
+
+      // Notify the user
+      try {
+        await Notification.create({
+          recipient: booking.user,
+          title: "Provider Assigned 👨‍🔧",
+          message: `Your booking for ${booking.serviceName} has been assigned to ${provider.businessName}.`,
+          type: "booking",
+        });
+      } catch (notifError) {
+        console.error("Failed to notify user:", notifError);
+      }
+    } else {
+      booking.provider = undefined;
+    }
+
+    await booking.save();
+
+    const updatedBooking = await Booking.findById(booking._id)
+      .populate("user", "name email phone")
+      .populate("service", "name thumbnail")
+      .populate("provider", "businessName");
+
+    res.json({ message: "Provider assigned successfully", booking: updatedBooking });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// GET /api/admin/providers/approved — List all approved providers
+router.get("/providers/approved", protect, adminOnly, async (req, res) => {
+  try {
+    const providers = await Provider.find({ approvalStatus: "approved" })
+      .populate("user", "name email")
+      .sort("businessName");
+    res.json(providers);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // ─── USERS ─────────────────────────────────────────────
 
 // GET /api/admin/users — List all users
@@ -529,8 +603,48 @@ router.patch("/users/:id/role", protect, adminOnly, async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    user.role = role;
+    
+    // Map "client" to "user" for DB schema enum compliance
+    const finalRole = role === "client" ? "user" : role;
+    user.role = finalRole;
     await user.save();
+
+    // If making user a provider, create/approve their Provider profile
+    if (finalRole === "provider") {
+      let providerProfile = await Provider.findOne({ user: user._id });
+      if (!providerProfile) {
+        // Find first available Category to link by default
+        const defaultCat = await Category.findOne({});
+        providerProfile = new Provider({
+          user: user._id,
+          businessName: `${user.name} Services`,
+          businessType: "Individual / Freelancer",
+          description: "Professional services provided on QuickSathi.",
+          category: defaultCat ? defaultCat._id : undefined,
+          categoryName: defaultCat ? defaultCat.name : "Uncategorized",
+          servicesOffered: [],
+          experience: "1 Year",
+          location: {
+            address: "",
+            city: "Patna",
+            state: "Bihar",
+            pincode: ""
+          },
+          phone: user.phone || "",
+          email: user.email,
+          approvalStatus: "approved",
+          approvedBy: req.user._id,
+          approvedAt: new Date()
+        });
+        await providerProfile.save();
+      } else if (providerProfile.approvalStatus !== "approved") {
+        providerProfile.approvalStatus = "approved";
+        providerProfile.approvedBy = req.user._id;
+        providerProfile.approvedAt = new Date();
+        await providerProfile.save();
+      }
+    }
+
     res.json({ message: "User role updated successfully", user });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -633,6 +747,161 @@ router.post("/upload", protect, adminOnly, async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ message: error.message || "Failed to upload image" });
+  }
+});
+
+// POST /api/admin/send-email — Send notifications to users via Email or In-Website
+router.post("/send-email", protect, adminOnly, async (req, res) => {
+  try {
+    const { recipientType, email, subject, body, channels = ["email"] } = req.body;
+    if (!subject || !body) {
+      return res.status(400).json({ message: "Subject and Body are required" });
+    }
+
+    let recipients = [];
+    if (recipientType === "all") {
+      const users = await User.find({}, "email");
+      recipients = users.map(u => u.email);
+    } else if (recipientType === "providers") {
+      const providers = await Provider.find({ approvalStatus: "approved" }).populate("user", "email");
+      recipients = providers.map(p => p.user?.email).filter(Boolean);
+    } else if (recipientType === "users") {
+      const users = await User.find({ role: "user" }, "email");
+      recipients = users.map(u => u.email);
+    } else if (recipientType === "individual") {
+      if (!email) {
+        return res.status(400).json({ message: "Individual email recipient is required" });
+      }
+      recipients = [email];
+    } else {
+      return res.status(400).json({ message: "Invalid recipient type" });
+    }
+
+    if (recipients.length === 0) {
+      return res.status(400).json({ message: "No matching recipients found" });
+    }
+
+    let emailSent = false;
+    let isMock = true;
+    let webSent = false;
+    let webCount = 0;
+
+    // --- Channel 1: Email ---
+    if (channels.includes("email")) {
+      const smtpHost = process.env.SMTP_HOST;
+      const smtpPort = process.env.SMTP_PORT || 587;
+      const smtpUser = process.env.SMTP_USER;
+      const smtpPass = process.env.SMTP_PASS;
+      const smtpSender = process.env.SMTP_SENDER || `"QuickSathi Notifications" <no-reply@quicksathi.com>`;
+
+      if (smtpHost && smtpUser && smtpPass) {
+        const transporter = nodemailer.createTransport({
+          host: smtpHost,
+          port: parseInt(smtpPort),
+          secure: parseInt(smtpPort) === 465,
+          auth: { user: smtpUser, pass: smtpPass }
+        });
+
+        await transporter.sendMail({
+          from: smtpSender,
+          to: smtpSender,
+          bcc: recipients.join(", "),
+          subject: subject,
+          text: body,
+          html: `<div style="font-family: sans-serif; padding: 20px; color: #333; line-height: 1.6;">
+                   <h2 style="color: #3b82f6;">Platform Notification</h2>
+                   <p style="white-space: pre-line;">${body}</p>
+                   <hr style="border: 0; border-top: 1px solid #eee; margin-top: 20px;" />
+                   <p style="font-size: 11px; color: #888;">You received this service announcement from the QuickSathi Administrator.</p>
+                 </div>`
+        });
+        isMock = false;
+      } else {
+        console.log("\n=================== MOCK EMAIL NOTIFICATION ===================");
+        console.log(`FROM: ${smtpSender}`);
+        console.log(`BCC RECIPIENTS: [${recipients.length} accounts] -> ${recipients.join(", ")}`);
+        console.log(`SUBJECT: ${subject}`);
+        console.log(`BODY:\n${body}`);
+        console.log("================================================================\n");
+      }
+      emailSent = true;
+    }
+
+    // --- Channel 2: In-Website Alerts ---
+    if (channels.includes("web")) {
+      // Find matching users in database
+      const matchedUsers = await User.find({ email: { $in: recipients } }, "_id");
+      if (matchedUsers.length > 0) {
+        const notificationDocs = matchedUsers.map(u => ({
+          recipient: u._id,
+          title: subject,
+          message: body,
+          type: recipientType === "providers" ? "system" : "info"
+        }));
+        await Notification.insertMany(notificationDocs);
+        webCount = matchedUsers.length;
+        webSent = true;
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Notification broadcasted successfully. Channels: ${channels.join(", ")}.`,
+      count: recipients.length,
+      emailSent,
+      webSent,
+      webCount,
+      mock: isMock,
+      recipients: recipients
+    });
+  } catch (error) {
+    console.error("Send notification error:", error);
+    res.status(500).json({ message: error.message || "Failed to broadcast notification" });
+  }
+});
+
+// GET /api/admin/notifications — Live admin notifications feed
+router.get("/notifications", protect, adminOnly, async (req, res) => {
+  try {
+    const [pendingProviders, recentBookings] = await Promise.all([
+      Provider.find({ approvalStatus: "pending" }).populate("user", "name"),
+      Booking.find().populate("user", "name").sort("-createdAt").limit(15)
+    ]);
+
+    const alerts = [];
+
+    // Map pending providers
+    pendingProviders.forEach((p) => {
+      alerts.push({
+        _id: `provider-${p._id}`,
+        type: "provider",
+        title: "Provider Request",
+        color: "#8b5cf6",
+        message: `${p.businessName || p.user?.name || "Partner"} submitted details`,
+        createdAt: p.createdAt,
+      });
+    });
+
+    // Map recent bookings
+    recentBookings.forEach((b) => {
+      alerts.push({
+        _id: `booking-${b._id}`,
+        type: "booking",
+        title: "New Booking",
+        color: "#10b981",
+        message: `₹${(b.amount || 0).toLocaleString()} ${b.serviceName || "service"} logged`,
+        createdAt: b.createdAt,
+      });
+    });
+
+    // Sort by date descending
+    alerts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // Limit to top 10 alerts
+    res.json(alerts.slice(0, 10));
+  } catch (error) {
+    console.error("Admin notifications error:", error);
+    res.status(500).json({ message: error.message || "Failed to retrieve admin alerts" });
   }
 });
 
