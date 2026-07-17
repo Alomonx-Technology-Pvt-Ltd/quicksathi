@@ -1,5 +1,37 @@
 import { Link } from "react-router-dom";
 
+const LogoImg = ({ size = 32, style = {} }) => (
+  <svg
+    viewBox="0 0 200 230"
+    width={size}
+    height={size}
+    style={{ display: "block", ...style }}
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M100 10 C60 10 28 42 28 82 C28 130 100 220 100 220 C100 220 172 130 172 82 C172 42 140 10 100 10Z"
+      fill="#1a3a8b"
+    />
+    <circle cx="100" cy="82" r="50" fill="white" />
+    <path
+      d="M58 78 C65 70 76 70 82 78 L90 86 L98 78 C104 70 115 70 122 78 L122 94 C115 102 104 102 98 94 L90 86 L82 94 C76 102 65 102 58 94Z"
+      fill="#1a3a8b"
+      opacity="0.9"
+    />
+    <text
+      x="106"
+      y="76"
+      fontFamily="Arial Black, Impact, sans-serif"
+      fontWeight="900"
+      fontSize="44"
+      fill="#e85c2a"
+      dominantBaseline="auto"
+    >
+      S
+    </text>
+  </svg>
+);
+
 const Instagram = ({ size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
     <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
@@ -182,22 +214,32 @@ const Footer = () => (
       ))}
     </div>
 
-    {/* Giant Brand Mark */}
-    <p
+    {/* Giant Brand Mark with Logo */}
+    <div
       style={{
-        fontFamily: "'Bebas Neue', sans-serif",
-        fontSize: "clamp(60px, 14vw, 120px)",
-        lineHeight: 0.88,
-        color: "#1a1a18",
-        margin: "0 0 0 -4px",
-        letterSpacing: "0.01em",
-        userSelect: "none",
-        pointerEvents: "none",
+        display: "flex",
+        alignItems: "center",
+        gap: "16px",
         paddingLeft: "clamp(12px, 3vw, 36px)",
+        paddingBottom: "16px",
       }}
     >
-      QUICKSATHI
-    </p>
+      <LogoImg size={48} />
+      <p
+        style={{
+          fontFamily: "'Bebas Neue', sans-serif",
+          fontSize: "clamp(60px, 14vw, 120px)",
+          lineHeight: 0.88,
+          color: "#1a1a18",
+          margin: 0,
+          letterSpacing: "0.01em",
+          userSelect: "none",
+          pointerEvents: "none",
+        }}
+      >
+        QUICKSATHI
+      </p>
+    </div>
   </footer>
 );
 

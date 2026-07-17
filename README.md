@@ -1,6 +1,6 @@
 # QuickSathi — Premium Local Service Booking Platform
 
-QuickSathi is a premium, high-end platform for exploring and booking local services including **Wedding Services & Planning, Luxury Car Rentals, and Smart CCTV Security Monitoring**. It is designed with a modern dark-mode aesthetic, dynamic Framer Motion animations, and responsive components.
+QuickSathi is a premium, high-end platform for exploring and booking local services including **Wedding Services & Planning, Luxury Car Rentals, and Smart CCTV Security Monitoring**. It is designed with a modern dark-mode aesthetic, dynamic Framer Motion animations, interactive location-aware elements, an integrated chatbot assistant, and a full-featured admin and provider ecosystem.
 
 This project is organized as a **monorepo** containing both the React frontend and Node.js backend.
 
@@ -11,14 +11,28 @@ This project is organized as a **monorepo** containing both the React frontend a
 ```text
 QuickSathi/
 ├── quicksathi_frontend/     # React + Vite Client (Vercel / Netlify)
+│   ├── public/              # Static assets and logo
+│   └── src/
+│       ├── admin/           # Administrative layout, dashboards, and management pages
+│       ├── components/      # Chatbot, Layout, and common UI components (e.g. LocationBanner)
+│       ├── context/         # Location and application state contexts
+│       └── pages/           # Customer pages (Home, Services, About, Contact, etc.)
 └── quicksathi_backend/      # Express + MongoDB + Firebase Admin Server (Render)
+    ├── models/              # Mongoose database schemas (Service, Booking, Contact, Notification, etc.)
+    ├── routes/              # Express API routers (admin, services, bookings, contact, notifications)
+    ├── seed/                # Database seeding and helper scripts
+    └── server.js            # Express application entrypoint
 ```
 
 ---
 
 ## ✨ Features
 
-- 🌟 **Premium User Interface**: Dark/cream premium aesthetic, fluid hover micro-animations, and smooth page transitions using Framer Motion.
+- 🌟 **Premium User Interface**: Modern dark/cream premium aesthetic, fluid hover micro-animations, and smooth page transitions using Framer Motion.
+- 📍 **Location-Aware Experience**: Integrated `LocationBanner` and `LocationContext` that allows users to select, save, and dynamically view services available in their area.
+- 💬 **Interactive AI Assistant**: An on-demand chatbot component providing immediate guidance, helping users find services, answering FAQs, and assisting in navigation.
+- 📬 **Inquiry & Feedback Loop**: Dedicated contact backend models, API routes, and a corresponding Admin Contact panel to manage and respond to customer queries.
+- 🔔 **Notification Engine**: System-wide notifications system utilizing MongoDB models (`Notification.js`) and administrative control interface (`AdminNotifications.jsx`) to push and manage notifications.
 - 🛍️ **Multi-Vertical Services**:
   - **Wedding Services**: Custom packages for venues, photography, makeup, catering, and floral arrangements.
   - **Car Rentals**: Hourly/daily rates for premium cars (Tesla, Range Rover, Audi, etc.) with custom checkout routes.
@@ -26,16 +40,16 @@ QuickSathi/
 - 📅 **Dynamic Checkout & Booking**: Multi-step calendar schedule, package pickers, and live pricing calculations.
 - 💳 **Razorpay Payment Integration**: Secure local checkout handling (Test mode).
 - 🔐 **Firebase Auth Integration**: Secure client-side email login, state persistence, and backend JWT access validation.
-- 🛠️ **Admin & Provider Panels**:
-  - **Admin Panel**: Manage services, user roles, listings, and categories.
-  - **Provider Dashboard**: For service experts to onboard, manage bookings, and view stats.
+- 🛠️ **Admin & Provider Management**:
+  * **Super Admin Panel**: Manage services, view bookings, control user roles, process service provider requests, publish system announcements/notifications, and view contact submissions.
+  * **Provider Dashboard**: For service experts to onboard, manage incoming bookings, and track service analytics.
 
 ---
 
 ## 🚀 Local Quickstart
 
 ### 1. Prerequisites
-Ensure you have [Node.js](https://nodejs.org/) (v18+) and [MongoDB](https://www.mongodb.com/) installed/running locally (or a MongoDB Atlas connection string).
+Ensure you have [Node.js](https://nodejs.org/) (v18+) and [MongoDB](https://www.mongodb.com/) installed and running locally (or a MongoDB Atlas connection string).
 
 ---
 
@@ -48,12 +62,16 @@ Ensure you have [Node.js](https://nodejs.org/) (v18+) and [MongoDB](https://www.
    ```bash
    npm install
    ```
-3. Create a `.env` file in the `quicksathi_backend/` folder based on `.env.example` (see variables below).
+3. Create a `.env` file in the `quicksathi_backend/` folder based on `.env.example` (see [Environment Variables Config](#-environment-variables-config)).
 4. **Seed the database** with initial categories and services:
    ```bash
    npm run seed
    ```
-5. Start the development server:
+5. **Manage roles and test promotions (Optional)**:
+   * Validate user roles: `node seed/checkRoles.js`
+   * Onboard/verify providers: `node seed/manageProviders.js`
+   * Verify promotional features: `node seed/testPromotion.js`
+6. Start the development server:
    ```bash
    npm run dev
    ```
@@ -70,7 +88,7 @@ Ensure you have [Node.js](https://nodejs.org/) (v18+) and [MongoDB](https://www.
    ```bash
    npm install
    ```
-3. Create a `.env` file in the `quicksathi_frontend/` folder based on `.env.example` (see variables below).
+3. Create a `.env` file in the `quicksathi_frontend/` folder based on `.env.example` (see [Environment Variables Config](#-environment-variables-config)).
 4. Start the frontend development server:
    ```bash
    npm run dev
@@ -132,4 +150,4 @@ VITE_FIREBASE_APP_ID=your_app_id
 
 ### Backend (Render / Railway / Heroku)
 - **Settings**: Build command `npm install`, start command `npm start`.
-- **Environment Variables**: Set `CLIENT_URL` to your production frontend domain (e.g. `https://quicksathi.vercel.app` or `https://quicksathi.netlify.app`), set `NODE_ENV` to `production`, and configure all backend API keys.
+- **Environment Variables**: Set `CLIENT_URL` to your production frontend domain (e.g. `https://quicksathi.vercel.app`), set `NODE_ENV` to `production`, and configure all backend API keys.

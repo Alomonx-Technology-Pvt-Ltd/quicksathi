@@ -3,6 +3,8 @@ import Provider from "../models/Provider.js";
 import Category from "../models/Category.js";
 import Service from "../models/Service.js";
 import User from "../models/User.js";
+import Booking from "../models/Booking.js";
+import Notification from "../models/Notification.js";
 import { protect } from "../middleware/auth.js";
 import { providerOnly } from "../middleware/admin.js";
 
@@ -188,6 +190,64 @@ router.get("/services", protect, providerOnly, async (req, res) => {
       .sort("-createdAt");
 
     res.json(services);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// GET /api/providers/bookings — Provider views their assigned bookings
+router.get("/bookings", protect, providerOnly, async (req, res) => {
+  try {
+    const provider = await Provider.findOne({ user: req.user._id });
+    if (!provider) {
+      return res.status(404).json({ message: "Provider profile not found" });
+    }
+
+    const bookings = await Booking.find({ provider: provider._id })
+      .populate("user", "name email phone")
+      .populate("service", "name thumbnail")
+      .sort("-createdAt");
+
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// PATCH /api/providers/bookings/:id/status — Provider updates status of their assigned booking
+router.patch("/bookings/:id/status", protect, providerOnly, async (req, res) => {
+  try {
+    const provider = await Provider.findOne({ user: req.user._id });
+    if (!provider) {
+      return res.status(404).json({ message: "Provider profile not found" });
+    }
+
+    const { status } = req.body;
+    if (!["pending", "confirmed", "in_progress", "completed", "cancelled"].includes(status)) {
+      return res.status(400).json({ message: "Invalid status" });
+    }
+
+    const booking = await Booking.findOne({ _id: req.params.id, provider: provider._id });
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found or not assigned to you" });
+    }
+
+    booking.status = status;
+    await booking.save();
+
+    // Create Notification for the client user
+    try {
+      await Notification.create({
+        recipient: booking.user,
+        title: `Booking Update: ${status.toUpperCase()} 🔄`,
+        message: `Your booking ${booking.bookingId || ""} for ${booking.serviceName} has been updated to "${status}" by the provider.`,
+        type: "booking",
+      });
+    } catch (notifErr) {
+      console.error("Failed to create provider booking notification:", notifErr);
+    }
+
+    res.json({ message: "Booking status updated successfully", booking });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

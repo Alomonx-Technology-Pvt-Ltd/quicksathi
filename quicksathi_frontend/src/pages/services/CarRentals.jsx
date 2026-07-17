@@ -304,292 +304,290 @@ const CarRentals = () => {
 
       {/* Explore Fleet */}
       {/* Explore Fleet */}
-<section className="px-4 sm:px-8 lg:px-16 py-16 sm:py-20">
-  <div className="max-w-6xl mx-auto">
-    {/* Header with Black Friday Banner */}
-    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10">
-      <div>
-        <h2
-          className="font-normal mb-2"
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "clamp(24px, 3vw, 36px)",
-            color: "var(--color-text-dark)",
-          }}
-        >
-          Explore Our Fleet
-        </h2>
-        <p
-          className="text-sm"
-          style={{
-            fontFamily: "var(--font-body)",
-            color: "var(--color-text-mid)",
-          }}
-        >
-          Filter by category to find your perfect match.
-        </p>
-      </div>
-      
-     
-    </div>
-
-    {/* Filter Buttons */}
-    <div className="flex flex-wrap gap-2 mb-8">
-      {FILTERS.map((f) => (
-        <button
-          key={f}
-          onClick={() => setActiveFilter(f)}
-          className="px-4 py-2 rounded-full text-xs font-semibold border cursor-pointer transition-all duration-200"
-          style={{
-            fontFamily: "var(--font-body)",
-            backgroundColor:
-              activeFilter === f ? "#1a3a6b" : "transparent",
-            color:
-              activeFilter === f ? "#fff" : "var(--color-text-mid)",
-            borderColor:
-              activeFilter === f ? "#1a3a6b" : "var(--color-border)",
-          }}
-        >
-          {f}
-        </button>
-      ))}
-    </div>
-
-    {/* Latest Submissions Label */}
-    <div className="mb-6">
-      <p
-        className="text-xs font-semibold uppercase tracking-[0.2em]"
-        style={{
-          fontFamily: "var(--font-body)",
-          color: "var(--color-text-mid)",
-          opacity: 0.5,
-        }}
-      >
-        Latest Submissions
-      </p>
-      <h3
-        className="text-lg font-normal mt-1"
-        style={{
-          fontFamily: "var(--font-display)",
-          color: "var(--color-text-dark)",
-        }}
-      >
-        Find the Best Deals For You
-      </h3>
-    </div>
-
-    {/* Featured Car - Full Width Banner Style */}
-    {featuredCar && activeFilter === "All Cars" && (
-      <div className="relative overflow-hidden rounded-2xl group cursor-pointer mb-8">
-        <div className="relative" style={{ height: "320px" }}>
-          <img
-            src={featuredCar.image}
-            alt={featuredCar.name}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.1) 80%)",
-            }}
-          />
-          
-          {/* Tags */}
-          <div className="absolute top-4 left-4 flex gap-2">
-            {featuredCar.tags.slice(0, 2).map((tag) => (
-              <span
-                key={tag}
-                className="px-3 py-1 rounded-full text-xs font-semibold text-white"
+      <section className="px-4 sm:px-8 lg:px-16 py-16 sm:py-20">
+        <div className="max-w-6xl mx-auto">
+          {/* Header with Black Friday Banner */}
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10">
+            <div>
+              <h2
+                className="font-normal mb-2"
                 style={{
-                  backgroundColor: tag.includes("WEDDING")
-                    ? "#c4185a"
-                    : "#1a3a6b",
-                  fontFamily: "var(--font-body)",
+                  fontFamily: "var(--font-display)",
+                  fontSize: "clamp(24px, 3vw, 36px)",
+                  color: "var(--color-text-dark)",
                 }}
               >
-                {tag}
-              </span>
+                Explore Our Fleet
+              </h2>
+              <p
+                className="text-sm"
+                style={{
+                  fontFamily: "var(--font-body)",
+                  color: "var(--color-text-mid)",
+                }}
+              >
+                Filter by category to find your perfect match.
+              </p>
+            </div>
+          </div>
+
+          {/* Filter Buttons */}
+          <div className="flex flex-wrap gap-2 mb-8">
+            {FILTERS.map((f) => (
+              <button
+                key={f}
+                onClick={() => setActiveFilter(f)}
+                className="px-4 py-2 rounded-full text-xs font-semibold border cursor-pointer transition-all duration-200"
+                style={{
+                  fontFamily: "var(--font-body)",
+                  backgroundColor:
+                    activeFilter === f ? "#1a3a6b" : "transparent",
+                  color: activeFilter === f ? "#fff" : "var(--color-text-mid)",
+                  borderColor:
+                    activeFilter === f ? "#1a3a6b" : "var(--color-border)",
+                }}
+              >
+                {f}
+              </button>
             ))}
           </div>
 
-          {/* Content */}
-          <div className="absolute bottom-6 left-6 right-6">
-            <div className="flex items-center gap-3 mb-1.5">
-              <p
-                className="text-white/60 text-xs uppercase tracking-wider m-0"
-                style={{ fontFamily: "var(--font-body)" }}
-              >
-                {featuredCar.segment}
-              </p>
-              <span className="flex items-center gap-1 text-xs text-white/85">
-                <Star size={12} strokeWidth={0} fill="#facc15" />
-                {featuredCar.rating ?? 4.8}
-              </span>
-            </div>
-            <h3
-              className="text-white text-3xl font-normal mb-2"
-              style={{ fontFamily: "var(--font-display)" }}
+          {/* Latest Submissions Label */}
+          <div className="mb-6">
+            <p
+              className="text-xs font-semibold uppercase tracking-[0.2em]"
+              style={{
+                fontFamily: "var(--font-body)",
+                color: "var(--color-text-mid)",
+                opacity: 0.5,
+              }}
             >
-              {featuredCar.name}
+              Latest Submissions
+            </p>
+            <h3
+              className="text-lg font-normal mt-1"
+              style={{
+                fontFamily: "var(--font-display)",
+                color: "var(--color-text-dark)",
+              }}
+            >
+              Find the Best Deals For You
             </h3>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div
-                className="flex flex-wrap items-center gap-4 text-white/60 text-xs"
-                style={{ fontFamily: "var(--font-body)" }}
-              >
-                <span className="flex items-center gap-1.5">
-                  <Users size={13} strokeWidth={1.8} />
-                  {featuredCar.seats} Seats
-                </span>
-                {featuredCar.kit && (
-                  <span className="flex items-center gap-1.5">
-                    <Briefcase size={13} strokeWidth={1.8} />
-                    {featuredCar.kit}
-                  </span>
-                )}
-                {featuredCar.fuel && (
-                  <span className="flex items-center gap-1.5">
-                    <Fuel size={13} strokeWidth={1.8} />
-                    {featuredCar.fuel}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2">
-                  {featuredCar.originalPrice && (
+          </div>
+
+          {/* Featured Car - Full Width Banner Style */}
+          {featuredCar && activeFilter === "All Cars" && (
+            <div className="relative overflow-hidden rounded-2xl group cursor-pointer mb-8">
+              <div className="relative" style={{ height: "320px" }}>
+                <img
+                  src={featuredCar.image}
+                  alt={featuredCar.name}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background:
+                      "linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0.1) 80%)",
+                  }}
+                />
+
+                {/* Tags */}
+                <div className="absolute top-4 left-4 flex gap-2">
+                  {featuredCar.tags.slice(0, 2).map((tag) => (
                     <span
-                      className="text-white/40 line-through text-sm"
+                      key={tag}
+                      className="px-3 py-1 rounded-full text-xs font-semibold text-white"
+                      style={{
+                        backgroundColor: tag.includes("WEDDING")
+                          ? "#c4185a"
+                          : "#1a3a6b",
+                        fontFamily: "var(--font-body)",
+                      }}
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+
+                {/* Content */}
+                <div className="absolute bottom-6 left-6 right-6">
+                  <div className="flex items-center gap-3 mb-1.5">
+                    <p
+                      className="text-white/60 text-xs uppercase tracking-wider m-0"
                       style={{ fontFamily: "var(--font-body)" }}
                     >
-                      ₹{featuredCar.originalPrice.toLocaleString()}
+                      {featuredCar.segment}
+                    </p>
+                    <span className="flex items-center gap-1 text-xs text-white/85">
+                      <Star size={12} strokeWidth={0} fill="#facc15" />
+                      {featuredCar.rating ?? 4.8}
                     </span>
-                  )}
-                  <span
-                    className="text-white font-bold text-2xl"
+                  </div>
+                  <h3
+                    className="text-white text-3xl font-normal mb-2"
                     style={{ fontFamily: "var(--font-display)" }}
                   >
-                    ₹{featuredCar.price.toLocaleString()}
-                  </span>
-                  <span
-                    className="text-white/50 text-xs"
-                    style={{ fontFamily: "var(--font-body)" }}
-                  >
-                    /day
-                  </span>
+                    {featuredCar.name}
+                  </h3>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div
+                      className="flex flex-wrap items-center gap-4 text-white/60 text-xs"
+                      style={{ fontFamily: "var(--font-body)" }}
+                    >
+                      <span className="flex items-center gap-1.5">
+                        <Users size={13} strokeWidth={1.8} />
+                        {featuredCar.seats} Seats
+                      </span>
+                      {featuredCar.kit && (
+                        <span className="flex items-center gap-1.5">
+                          <Briefcase size={13} strokeWidth={1.8} />
+                          {featuredCar.kit}
+                        </span>
+                      )}
+                      {featuredCar.fuel && (
+                        <span className="flex items-center gap-1.5">
+                          <Fuel size={13} strokeWidth={1.8} />
+                          {featuredCar.fuel}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        {featuredCar.originalPrice && (
+                          <span
+                            className="text-white/40 line-through text-sm"
+                            style={{ fontFamily: "var(--font-body)" }}
+                          >
+                            ₹{featuredCar.originalPrice.toLocaleString()}
+                          </span>
+                        )}
+                        <span
+                          className="text-white font-bold text-2xl"
+                          style={{ fontFamily: "var(--font-display)" }}
+                        >
+                          ₹{featuredCar.price.toLocaleString()}
+                        </span>
+                        <span
+                          className="text-white/50 text-xs"
+                          style={{ fontFamily: "var(--font-body)" }}
+                        >
+                          /day
+                        </span>
+                      </div>
+                      <Link
+                        to={featuredCar.link}
+                        className="inline-block px-6 py-2.5 rounded-xl text-sm font-semibold border-0 cursor-pointer no-underline transition-all duration-200 hover:opacity-90 text-center"
+                        style={{
+                          fontFamily: "var(--font-body)",
+                          backgroundColor: "#1a3a6b",
+                          color: "#fff",
+                        }}
+                      >
+                        View Details
+                      </Link>
+                    </div>
+                  </div>
                 </div>
-                <Link
-                  to={featuredCar.link}
-                  className="inline-block px-6 py-2.5 rounded-xl text-sm font-semibold border-0 cursor-pointer no-underline transition-all duration-200 hover:opacity-90 text-center"
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    backgroundColor: "#1a3a6b",
-                    color: "#fff",
-                  }}
-                >
-                  View Details
-                </Link>
               </div>
             </div>
+          )}
+
+          {/* Car Grid - 4 Cards Per Row */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {filteredCars
+              .filter((c) => !c.featured || activeFilter !== "All Cars")
+              .map((car, i) => (
+                <div
+                  key={i}
+                  className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-2 group"
+                  style={{
+                    backgroundColor: "var(--color-bg-white)",
+                    border: "1px solid var(--color-border)",
+                  }}
+                >
+                  <div className="relative h-48 overflow-hidden">
+                    <img
+                      src={car.image}
+                      alt={car.name}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute top-3 left-3 flex gap-2">
+                      {car.tags?.slice(0, 2).map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2 py-1 rounded text-[9px] font-semibold text-white"
+                          style={{
+                            backgroundColor: tag.includes("ELECTRIC")
+                              ? "#16a34a"
+                              : "#1a3a6b",
+                            fontFamily: "var(--font-body)",
+                          }}
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    <span
+                      className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold"
+                      style={{
+                        backgroundColor: "rgba(255,255,255,0.95)",
+                        color: "var(--color-text-dark)",
+                      }}
+                    >
+                      <Star size={11} strokeWidth={0} fill="#facc15" />
+                      {car.rating ?? 4.6}
+                    </span>
+                  </div>
+
+                  <div className="p-4">
+                    <h3
+                      className="text-sm font-semibold mb-1"
+                      style={{
+                        fontFamily: "var(--font-display)",
+                        color: "var(--color-text-dark)",
+                      }}
+                    >
+                      {car.name}
+                    </h3>
+
+                    <div
+                      className="flex items-center justify-between mt-2 pt-2 border-t"
+                      style={{ borderColor: "var(--color-border)" }}
+                    >
+                      <span
+                        className="text-base font-bold"
+                        style={{
+                          fontFamily: "var(--font-display)",
+                          color: "#1a3a6b",
+                        }}
+                      >
+                        ₹{car.price.toLocaleString()}
+                        <span
+                          className="text-[10px] font-normal"
+                          style={{ color: "var(--color-text-muted)" }}
+                        >
+                          /day
+                        </span>
+                      </span>
+                      <Link
+                        to={car.link}
+                        className="text-xs font-semibold no-underline transition-all duration-200 hover:opacity-70"
+                        style={{
+                          fontFamily: "var(--font-body)",
+                          color: "#1a3a6b",
+                        }}
+                      >
+                        View Details
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              ))}
           </div>
         </div>
-      </div>
-    )}
-
-    {/* Car Grid - 4 Cards Per Row */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {filteredCars
-        .filter((c) => !c.featured || activeFilter !== "All Cars")
-        .map((car, i) => (
-          <div
-            key={i}
-            className="rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:-translate-y-2 group"
-            style={{
-              backgroundColor: "var(--color-bg-white)",
-              border: "1px solid var(--color-border)",
-            }}
-          >
-            <div className="relative h-48 overflow-hidden">
-              <img
-                src={car.image}
-                alt={car.name}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
-              <div className="absolute top-3 left-3 flex gap-2">
-                {car.tags?.slice(0, 2).map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-2 py-1 rounded text-[9px] font-semibold text-white"
-                    style={{
-                      backgroundColor: tag.includes("ELECTRIC")
-                        ? "#16a34a"
-                        : "#1a3a6b",
-                      fontFamily: "var(--font-body)",
-                    }}
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              
-              <span
-                className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold"
-                style={{
-                  backgroundColor: "rgba(255,255,255,0.95)",
-                  color: "var(--color-text-dark)",
-                }}
-              >
-                <Star size={11} strokeWidth={0} fill="#facc15" />
-                {car.rating ?? 4.6}
-              </span>
-            </div>
-            
-            <div className="p-4">
-              <h3
-                className="text-sm font-semibold mb-1"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  color: "var(--color-text-dark)",
-                }}
-              >
-                {car.name}
-              </h3>
-              
-              <div className="flex items-center justify-between mt-2 pt-2 border-t"
-                style={{ borderColor: "var(--color-border)" }}
-              >
-                <span
-                  className="text-base font-bold"
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    color: "#1a3a6b",
-                  }}
-                >
-                  ₹{car.price.toLocaleString()}
-                  <span
-                    className="text-[10px] font-normal"
-                    style={{ color: "var(--color-text-muted)" }}
-                  >
-                    /day
-                  </span>
-                </span>
-                <Link
-                  to={car.link}
-                  className="text-xs font-semibold no-underline transition-all duration-200 hover:opacity-70"
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    color: "#1a3a6b",
-                  }}
-                >
-                  View Details
-                </Link>
-              </div>
-            </div>
-          </div>
-        ))}
-    </div>
-  </div>
-</section>
+      </section>
 
       {/* Documents Requirements  */}
       <DocumentRequirement />

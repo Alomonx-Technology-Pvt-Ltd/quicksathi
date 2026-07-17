@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
+import { LocationProvider } from "./context/LocationContext";
 import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
@@ -31,12 +32,16 @@ import AdminBookings from "./admin/pages/AdminBookings";
 import AdminServices from "./admin/pages/AdminServices";
 import AdminCategories from "./admin/pages/AdminCategories";
 import AdminUsers from "./admin/pages/AdminUsers";
+import AdminServiceRequests from "./admin/pages/AdminServiceRequests";
+import AdminNotifications from "./admin/pages/AdminNotifications";
+import AdminContacts from "./admin/pages/AdminContacts";
 import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <LocationProvider>
+        <BrowserRouter>
       <ScrollToTop/>
 
         <Routes>
@@ -101,9 +106,13 @@ function App() {
             <Route path="providers" element={<AdminProviders />} />
             <Route path="bookings" element={<AdminBookings />} />
             <Route path="users" element={<AdminUsers />} />
+            <Route path="service-requests" element={<AdminServiceRequests />} />
+            <Route path="send-email" element={<AdminNotifications />} />
+            <Route path="contacts" element={<AdminContacts />} />
           </Route>
         </Routes>
       </BrowserRouter>
+      </LocationProvider>
     </AuthProvider>
   );
 }

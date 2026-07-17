@@ -2,40 +2,48 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../config/api";
-import { mockCategories } from "../data/mockCategories";
-import { mockServices } from "../data/mockServices";
+import { Search } from "lucide-react";
 import weddingImgg from "../assets/weddingImgg.avif";
 import carImg from "../assets/carImg.avif";
 import CCTVImg from "../assets/CCTVImg.avif";
 import serviceHeroImg from "../assets/serviceHeroImg.avif";
-import WorkProcess from "../components/servicePage/Workprocess";
-
-import {
-  Search,
-  CalendarDays,
-  CreditCard,
-  ShieldCheck,
-  ArrowRight,
-  BadgeCheck,
-  CheckCircle2,
-  Zap,
-  HeartHandshake,
-  Star,
-  Timer,
-  Shield,
-  Car,
-  Camera,
-  Mail,
-  Phone,
-  MessageCircle,
-  Clock,
-  Headphones,
-  Award,
-  ThumbsUp,
-  PartyPopper,
-  GraduationCap,
-  X,
-} from "lucide-react";
+import LocationBanner from "../components/common/LocationBanner";
+import { useLocation } from "../context/LocationContext";
+const CATEGORIES = [
+  {
+    id: "weddings",
+    name: "Wedding & Party",
+    tagline: "Exquisite Moments",
+    description: "Photography, décor, catering & styling.",
+    image: weddingImgg,
+    link: "/services/weddings",
+    color: "#440101",
+    icon: "💍",
+    stats: { providers: "50+", rating: "4.8" },
+  },
+  {
+    id: "car-rentals",
+    name: "Car Rentals",
+    tagline: "Premium Rides",
+    description: "Luxury sedans to rugged SUVs.",
+    image: carImg,
+    link: "/services/car-rentals",
+    color: "#0c193b",
+    icon: "🚗",
+    stats: { providers: "30+", rating: "4.6" },
+  },
+  {
+    id: "cctv",
+    name: "CCTV Security",
+    tagline: "Smart Vigilance",
+    description: "Enterprise-grade CCTV & monitoring.",
+    image: CCTVImg,
+    link: "/services/cctv",
+    color: "#1b2c4d",
+    icon: "📹",
+    stats: { providers: "20+", rating: "4.7" },
+  },
+];
 
 const Services = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -45,22 +53,17 @@ const Services = () => {
   const [categories, setCategories] = useState([]);
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
-
-  const resultsSectionRef = useRef(null);
-  const filterSectionRef = useRef(null);
-  const searchInputRef = useRef(null);
-
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const [catRes, svcRes] = await Promise.all([
-        api.get("/categories"),
-        api.get("/services"),
-      ]);
-      if (catRes.data?.length > 0) {
+  const { city } = useLocation();
+  // Fetch categories and services from backend — refetch when city changes
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const cityParam = city ? `?city=${encodeURIComponent(city)}` : "";
+        const [catRes, svcRes] = await Promise.all([
+          api.get("/categories"),
+          api.get(`/services${cityParam}`),
+        ]);
         setCategories(catRes.data);
       } else {
         throw new Error("No categories returned from backend");
@@ -80,19 +83,11 @@ const Services = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [city]);
 
-  useEffect(() => {
-    if (isMobileSearchOpen && searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  }, [isMobileSearchOpen]);
-
-  const getServiceLink = (name, mongoId, subId) => {
-    const isRental =
-      name.toLowerCase().includes("rental") ||
-      name.toLowerCase().includes("car") ||
-      name.toLowerCase().includes("bike");
+  // Build a service link using the service's _id from the backend
+  const getServiceLink = (name, mongoId) => {
+    const isRental = name.toLowerCase().includes("rental") || name.toLowerCase().includes("car") || name.toLowerCase().includes("bike");
     const prefix = isRental ? "/product" : "/service";
     const id = mongoId || subId;
     return id ? `${prefix}/${id}` : "#";
@@ -288,240 +283,31 @@ const Services = () => {
           <motion.div
             initial={{ y: 14, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut", delay: 0.22 }}
-            className="hidden sm:block w-full max-w-xl"
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="w-full max-w-lg mt-4 relative"
           >
-            <div
-              className="flex items-center w-full rounded-full pl-5 pr-1.5 py-1.5 transition-all duration-300
-        focus-within:border-white/40"
+            <input
+              type="text"
+              placeholder="Search for photography, car rentals, smart locks..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-6 py-4 pr-12 rounded-full text-sm outline-none transition-all duration-300 shadow-lg text-white"
               style={{
-                backgroundColor: "rgba(255,255,255,0.07)",
-                border: "1px solid rgba(255,255,255,0.20)",
-                backdropFilter: "blur(10px)",
-                boxShadow: "0 12px 32px -12px rgba(0,0,0,0.45)",
+                fontFamily: "var(--font-body)",
+                backgroundColor: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.25)",
+                backdropFilter: "blur(12px)",
               }}
-            >
-              <Search size={16} className="text-white/55 mr-2 shrink-0" />
-              <input
-                type="text"
-                placeholder="Search for photography, car rentals, smart locks..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                onKeyDown={handleSearchKeyDown}
-                className="flex-1 bg-transparent outline-none text-xs sm:text-sm py-2.5 text-white placeholder:text-white/55"
-                style={{ fontFamily: "var(--font-body)" }}
-              />
-              <button
-                onClick={handleSearch}
-                aria-label="Search services"
-                className="group/search flex items-center justify-center gap-1.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full text-[10px] sm:text-xs font-semibold
-          transition-colors duration-300 ease-out hover:opacity-90 active:scale-[0.97] shrink-0"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  backgroundColor: "var(--color-primary)",
-                  color: "#fff",
-                }}
-              >
-                <span>Search</span>
-                <ArrowRight
-                  size={13}
-                  strokeWidth={2}
-                  className="transition-transform duration-300 ease-out group-hover/search:translate-x-1"
-                />
-              </button>
-            </div>
-          </motion.div>
-
-          {/* Mobile Search Button */}
-          <motion.button
-            initial={{ y: 14, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut", delay: 0.22 }}
-            onClick={() => setIsMobileSearchOpen(true)}
-            className="sm:hidden flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold w-full max-w-xs justify-center
-      transition-all duration-300 ease-out hover:opacity-90 active:scale-[0.97]"
-            style={{
-              fontFamily: "var(--font-body)",
-              backgroundColor: "var(--color-primary)",
-              color: "#fff",
-              boxShadow: "0 10px 26px -10px rgba(139,26,26,0.4)",
-            }}
-          >
-            <Search size={18} />
-            Search Services
-          </motion.button>
-
-          {/* Trust line */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.32 }}
-            className="flex flex-wrap items-center justify-center gap-x-5 sm:gap-x-6 gap-y-2 mt-7 sm:mt-8 text-white/55 text-[10px] sm:text-[11px]"
-            style={{ fontFamily: "var(--font-body)" }}
-          >
-            <span>10,000+ Bookings Completed</span>
-            <span className="w-1 h-1 rounded-full bg-white/25" />
-            <span>Verified Professionals</span>
-            <span className="w-1 h-1 rounded-full bg-white/25" />
-            <span>4.8★ Average Rating</span>
-          </motion.div>
-
-          {/* Quick category chips */}
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="hidden sm:flex flex-wrap items-center justify-center gap-2 mt-6"
-          >
-            {[
-              { id: "WEDDING", label: "Wedding" },
-              { id: "RENTAL", label: "Car Rentals" },
-              { id: "SECURITY", label: "Security" },
-              { id: "HOME_TUITION", label: "Home Tuition" },
-            ].map((chip) => (
-              <button
-                key={chip.id}
-                onClick={() => {
-                  setSelectedFilter(chip.id);
-                  setSearchQuery("");
-                  setSearchInput("");
-                  scrollToResults();
-                }}
-                className="px-4 py-1.5 rounded-full text-[10px] sm:text-[11px] font-medium transition-colors duration-300 hover:bg-white/15"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  backgroundColor: "rgba(255,255,255,0.07)",
-                  border: "1px solid rgba(255,255,255,0.15)",
-                  color: "rgba(255,255,255,0.75)",
-                }}
-              >
-                {chip.label}
-              </button>
-            ))}
+            />
+            <Search size={16} className="absolute right-6 top-1/2 -translate-y-1/2 text-white/50" />
           </motion.div>
         </div>
       </section>
 
-      {/* ============ MOBILE SEARCH OVERLAY ============ */}
-      <AnimatePresence>
-        {isMobileSearchOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-start justify-center px-4"
-            style={{
-              backgroundColor: "rgba(0,0,0,0.75)",
-              backdropFilter: "blur(16px)",
-              paddingTop: "max(3rem, env(safe-area-inset-top))",
-            }}
-            onClick={() => setIsMobileSearchOpen(false)}
-          >
-            <motion.div
-              initial={{ y: -20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -20, opacity: 0 }}
-              transition={{ type: "spring", damping: 30, stiffness: 400 }}
-              className="w-full max-w-md"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center gap-3 mb-4">
-                <div
-                  className="flex-1 flex items-center rounded-full px-4 py-2 transition-colors duration-300 focus-within:border-white/40"
-                  style={{
-                    backgroundColor: "rgba(255,255,255,0.09)",
-                    border: "1px solid rgba(255,255,255,0.18)",
-                  }}
-                >
-                  <Search size={18} className="text-white/55 mr-2 shrink-0" />
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    placeholder="Search services..."
-                    value={searchInput}
-                    onChange={(e) => setSearchInput(e.target.value)}
-                    onKeyDown={handleSearchKeyDown}
-                    className="flex-1 bg-transparent outline-none text-sm text-white placeholder:text-white/55 py-2"
-                    style={{ fontFamily: "var(--font-body)" }}
-                  />
-                  {searchInput && (
-                    <button
-                      onClick={() => setSearchInput("")}
-                      className="text-white/50 hover:text-white/80 transition-colors shrink-0"
-                      aria-label="Clear search text"
-                    >
-                      <X size={16} />
-                    </button>
-                  )}
-                </div>
-                <button
-                  onClick={() => setIsMobileSearchOpen(false)}
-                  aria-label="Close search"
-                  className="flex items-center justify-center rounded-full text-white/60 hover:text-white transition-colors shrink-0"
-                  style={{
-                    width: "40px",
-                    height: "40px",
-                    backgroundColor: "rgba(255,255,255,0.08)",
-                    border: "1px solid rgba(255,255,255,0.12)",
-                  }}
-                >
-                  <X size={20} />
-                </button>
-              </div>
+      <LocationBanner />
 
-              {/* Quick category suggestions — reuses existing filter logic, no new state */}
-              <div className="flex flex-wrap items-center gap-2 mb-5">
-                {[
-                  { id: "WEDDING", label: "Wedding" },
-                  { id: "RENTAL", label: "Car Rentals" },
-                  { id: "SECURITY", label: "Security" },
-                ].map((chip) => (
-                  <button
-                    key={chip.id}
-                    onClick={() => {
-                      setSelectedFilter(chip.id);
-                      setSearchQuery("");
-                      setSearchInput("");
-                      setIsMobileSearchOpen(false);
-                      scrollToResults();
-                    }}
-                    className="px-3.5 py-1.5 rounded-full text-[11px] font-medium transition-colors duration-300"
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      backgroundColor: "rgba(255,255,255,0.07)",
-                      border: "1px solid rgba(255,255,255,0.15)",
-                      color: "rgba(255,255,255,0.7)",
-                    }}
-                  >
-                    {chip.label}
-                  </button>
-                ))}
-              </div>
-
-              <button
-                onClick={handleSearch}
-                className="group/search w-full flex items-center justify-center gap-2 py-3 rounded-full text-sm font-semibold transition-all duration-200 hover:opacity-90 active:scale-[0.98]"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  backgroundColor: "var(--color-primary)",
-                  color: "#fff",
-                }}
-              >
-                <span>Search</span>
-                <ArrowRight
-                  size={15}
-                  strokeWidth={2}
-                  className="transition-transform duration-300 ease-out group-hover/search:translate-x-1"
-                />
-              </button>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* ============ SPECIALTY FACILITIES ============ */}
-      <section className="px-4 sm:px-6 py-12 sm:py-16 md:py-20 max-w-7xl mx-auto">
-        <div className="text-center mb-10 sm:mb-14">
+      <section className="px-6 py-16 sm:py-24 max-w-7xl mx-auto">
+        <div className="text-center mb-12">
           <span
             className="inline-block px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold mb-3 sm:mb-4 border uppercase tracking-widest"
             style={{
@@ -878,56 +664,12 @@ const Services = () => {
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.4 }}
-                className="flex flex-col items-center justify-center text-center py-16 sm:py-20 md:py-24 px-8 rounded-[32px] max-w-lg mx-auto"
-                style={{
-                  backgroundColor: "var(--color-bg-soft)",
-                  border: "1px solid rgba(0,0,0,0.02)",
-                  boxShadow: "0 4px 24px rgba(0,0,0,0.02)",
-                }}
+                className="text-center py-12"
               >
-                <div
-                  className="flex items-center justify-center rounded-full text-4xl mb-6"
-                  style={{
-                    width: "72px",
-                    height: "72px",
-                    backgroundColor: "rgba(139,26,26,0.04)",
-                    border: "1px solid rgba(139,26,26,0.06)",
-                  }}
-                >
-                  🔍
-                </div>
-                <h3
-                  className="m-0 mb-3 font-normal text-xl sm:text-2xl"
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    color: "var(--color-text-dark)",
-                  }}
-                >
-                  No services found
-                </h3>
-                <p
-                  className="m-0 mb-7 text-sm leading-relaxed max-w-xs"
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    color: "var(--color-text-mid)",
-                  }}
-                >
-                  Try adjusting your search or browse our full range of premium
-                  services.
+                <Search size={36} className="mx-auto text-neutral-400 mb-4 opacity-50" />
+                <p className="text-lg m-0" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+                  No services found matching your query.
                 </p>
-                <button
-                  onClick={handleClearSearch}
-                  className="px-8 sm:px-10 py-3 sm:py-3.5 rounded-full text-xs font-semibold cursor-pointer border-0 transition-all duration-300 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    backgroundColor: "var(--color-primary)",
-                    color: "#fff",
-                    boxShadow: "0 4px 20px rgba(139,26,26,0.25)",
-                  }}
-                >
-                  Clear Search
-                </button>
               </motion.div>
             ) : (
               /* ============ SERVICE CARDS ============ */

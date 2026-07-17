@@ -5,16 +5,39 @@ import { adminOnly } from "../middleware/admin.js";
 
 const router = Router();
 
+// GET /api/services/cities — Get all distinct cities across services
+router.get("/cities", async (req, res) => {
+  try {
+    const cities = await Service.distinct("cities", {
+      available: true,
+      approvalStatus: "approved",
+      cities: { $ne: "" },
+    });
+    res.json(cities.filter(Boolean).sort());
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // GET /api/services — Get all services (with optional filters)
 router.get("/", async (req, res) => {
   try {
-    const { category, featured, search, limit = 50 } = req.query;
+    const { category, featured, search, city, limit = 50 } = req.query;
     const filter = { available: true, approvalStatus: "approved" };
 
     if (category) filter.category = category;
     if (featured === "true") filter.featured = true;
     if (search) {
       filter.$text = { $search: search };
+    }
+
+    // City filter: match services that include this city OR have no city restrictions (empty array)
+    if (city && city !== "all") {
+      filter.$or = [
+        { cities: city },
+        { cities: { $size: 0 } },
+        { cities: { $exists: false } },
+      ];
     }
 
     const services = await Service.find(filter)

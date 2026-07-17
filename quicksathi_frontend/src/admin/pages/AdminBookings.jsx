@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../../config/api";
+import { Search } from "lucide-react";
 
 const STATUS_COLORS = {
   pending: "#f59e0b",
@@ -13,6 +14,7 @@ const STATUS_COLORS = {
 const AdminBookings = () => {
   const [filter, setFilter] = useState("all");
   const [bookings, setBookings] = useState([]);
+  const [providers, setProviders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [actioningId, setActioningId] = useState(null);
@@ -29,9 +31,19 @@ const AdminBookings = () => {
     }
   };
 
+  const fetchProviders = async () => {
+    try {
+      const { data } = await api.get("/admin/providers/approved");
+      setProviders(data);
+    } catch (err) {
+      console.error("Failed to fetch approved providers:", err);
+    }
+  };
+
   useEffect(() => {
     Promise.resolve().then(() => {
       fetchBookings();
+      fetchProviders();
     });
   }, []);
 
@@ -45,6 +57,21 @@ const AdminBookings = () => {
     } catch (err) {
       console.error("Failed to update booking status:", err);
       alert(err.response?.data?.message || "Failed to update status");
+    } finally {
+      setActioningId(null);
+    }
+  };
+
+  const handleAssignProvider = async (bookingId, providerId) => {
+    setActioningId(bookingId);
+    try {
+      const { data } = await api.patch(`/admin/bookings/${bookingId}/assign`, { providerId });
+      setBookings((prev) =>
+        prev.map((b) => (b._id === bookingId ? { ...b, provider: data.booking.provider, status: data.booking.status } : b))
+      );
+    } catch (err) {
+      console.error("Failed to assign provider:", err);
+      alert(err.response?.data?.message || "Failed to assign provider");
     } finally {
       setActioningId(null);
     }
@@ -106,14 +133,14 @@ const AdminBookings = () => {
             placeholder="Search by ID, customer name or service..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-5 py-3 rounded-2xl border outline-none text-white text-sm"
+            className="w-full px-5 py-3 pr-10 rounded-2xl border outline-none text-white text-sm"
             style={{
               fontFamily: "var(--font-body)",
               backgroundColor: "rgba(255,255,255,0.04)",
               borderColor: "rgba(255,255,255,0.08)",
             }}
           />
-          <span className="absolute right-5 top-1/2 -translate-y-1/2 text-white/30 text-sm">🔍</span>
+          <Search size={14} className="absolute right-5 top-1/2 -translate-y-1/2 text-white/30" />
         </div>
 
         {/* Filters pills */}
@@ -142,7 +169,7 @@ const AdminBookings = () => {
           <table className="w-full text-left" style={{ fontFamily: "var(--font-body)" }}>
             <thead>
               <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                {["Booking ID", "Customer details", "Service Details", "Billing Amount", "Status Stage", "Log Date", "Status Actions"].map((h) => (
+                {["Booking ID", "Customer details", "Service Details", "Assigned Provider", "Billing Amount", "Status Stage", "Log Date", "Status Actions"].map((h) => (
                   <th key={h} className="px-6 py-4 text-xs font-semibold uppercase tracking-wider whitespace-nowrap" style={{ color: "rgba(255,255,255,0.25)" }}>
                     {h}
                   </th>
@@ -175,9 +202,30 @@ const AdminBookings = () => {
                       {/* Service & Package */}
                       <td className="px-6 py-4">
                         <p className="text-sm text-white/80 m-0 leading-snug">{b.serviceName || b.service?.name || "—"}</p>
-                        {b.packageName && (
-                          <p className="text-[10px] m-0 leading-snug" style={{ color: "rgba(255,255,255,0.35)" }}>{b.packageName}</p>
+                        {b.packageTitle && (
+                          <p className="text-[10px] m-0 leading-snug" style={{ color: "rgba(255,255,255,0.35)" }}>{b.packageTitle}</p>
                         )}
+                      </td>
+
+                      {/* Assigned Provider */}
+                      <td className="px-6 py-4">
+                        <select
+                          disabled={actioningId === b._id}
+                          value={b.provider?._id || b.provider || ""}
+                          onChange={(e) => handleAssignProvider(b._id, e.target.value)}
+                          className="px-3 py-1.5 rounded-xl text-xs border outline-none font-medium text-white/80 transition"
+                          style={{
+                            backgroundColor: "rgba(255,255,255,0.04)",
+                            borderColor: "rgba(255,255,255,0.08)",
+                          }}
+                        >
+                          <option value="">Unassigned</option>
+                          {providers.map((p) => (
+                            <option key={p._id} value={p._id}>
+                              {p.businessName}
+                            </option>
+                          ))}
+                        </select>
                       </td>
 
                       {/* Amount & Payment */}
