@@ -9,6 +9,7 @@ import CCTVImg from "../assets/CCTVImg.avif";
 import serviceHeroImg from "../assets/serviceHeroImg.avif";
 import LocationBanner from "../components/common/LocationBanner";
 import { useLocation } from "../context/LocationContext";
+import WorkProcess from "../components/servicePage/workProcess";
 const CATEGORIES = [
   {
     id: "weddings",
@@ -53,21 +54,27 @@ const Services = () => {
   const [categories, setCategories] = useState([]);
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+    const filterSectionRef = useRef(null); 
+    const resultsSectionRef = useRef(null); 
   const { city } = useLocation();
+
   // Fetch categories and services from backend — refetch when city changes
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const cityParam = city ? `?city=${encodeURIComponent(city)}` : "";
-        const [catRes, svcRes] = await Promise.all([
-          api.get("/categories"),
-          api.get(`/services${cityParam}`),
-        ]);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const cityParam = city ? `?city=${encodeURIComponent(city)}` : "";
+      const [catRes, svcRes] = await Promise.all([
+        api.get("/categories"),
+        api.get(`/services${cityParam}`),
+      ]);
+
+      if (catRes.data?.length > 0) {
         setCategories(catRes.data);
       } else {
         throw new Error("No categories returned from backend");
       }
+
       setServices(svcRes.data?.length > 0 ? svcRes.data : mockServices);
     } catch (err) {
       console.warn(
@@ -966,6 +973,6 @@ const Services = () => {
       </motion.section>
     </motion.div>
   );
-};
+  };
 
 export default Services;
