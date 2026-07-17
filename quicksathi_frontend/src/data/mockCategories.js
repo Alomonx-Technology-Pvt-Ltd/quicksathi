@@ -18,7 +18,7 @@ import audiImg from "../assets/audiImg.avif";
 import rangeRover from "../assets/rangeRover.avif";
 import venueImg from "../assets/venueImg.avif";
 import catering from "../assets/catering.avif";
-
+import homeTuitionImg from "../assets/HomeTution/homeTuitionImg.avif";
 
 export const mockCategories = [
   {
@@ -171,10 +171,8 @@ export const mockCategories = [
           "Candid and artistic wedding photography services designed to beautifully capture every emotion, ritual, celebration, and unforgettable moment of your special day with creativity, precision, and cinematic storytelling.",
         vertical: "WEDDING",
         type: "SERVICE_ONLY",
-        imageUrl:
-          photographyImg,
-        secondaryImageUrl:
-          photographyImg1,
+        imageUrl: photographyImg,
+        secondaryImageUrl: photographyImg1,
         displayOrder: 1,
         active: true,
         parent: 10,
@@ -187,8 +185,7 @@ export const mockCategories = [
           "Elegant wedding decoration services featuring floral arrangements, stage setups, lighting concepts, entrance styling, and customized venue themes crafted to perfectly match your dream wedding vision.",
         vertical: "WEDDING",
         type: "SERVICE_ONLY",
-        imageUrl:
-          decorationImg,
+        imageUrl: decorationImg,
         secondaryImageUrl: venueImg,
         displayOrder: 2,
         active: true,
@@ -202,8 +199,7 @@ export const mockCategories = [
           "Premium wedding catering services offering rich multi-cuisine menus, live food counters, professional hospitality staff, and beautifully presented dining experiences tailored for every celebration size.",
         vertical: "WEDDING",
         type: "SERVICE_ONLY",
-        imageUrl:
-          cateringImg,
+        imageUrl: cateringImg,
         secondaryImageUrl: catering,
         displayOrder: 3,
         active: true,
@@ -217,13 +213,82 @@ export const mockCategories = [
           "Look your absolute best on your special day with our certified bridal makeup artists specializing in HD, airbrush, and traditional looks.",
         vertical: "WEDDING",
         type: "SERVICE_ONLY",
-        imageUrl:
-          makeupArtist
-          ,
+        imageUrl: makeupArtist,
         secondaryImageUrl: makeupArtist,
         displayOrder: 4,
         active: true,
         parent: 10,
+        subCategories: [],
+      },
+    ],
+  },
+  {
+    id: 15,
+    name: "Home Tuition",
+    description:
+      "Experienced and verified tutors for school academics, competitive exams, languages, and online learning at your convenience.",
+    vertical: "HOME_TUITION",
+    type: "BOTH",
+    imageUrl: homeTuitionImg,
+    secondaryImageUrl: homeTuitionImg,
+    displayOrder: 4,
+    active: true,
+    parent: null,
+    subCategories: [
+      {
+        id: 16,
+        name: "School Tuition",
+        description:
+          "Personalized home tuition for Classes 1–12 across CBSE, ICSE, and State Boards with experienced tutors.",
+        vertical: "HOME_TUITION",
+        type: "SERVICE_ONLY",
+        imageUrl: homeTuitionImg,
+        secondaryImageUrl: homeTuitionImg,
+        displayOrder: 1,
+        active: true,
+        parent: 15,
+        subCategories: [],
+      },
+      {
+        id: 17,
+        name: "Online Tuition",
+        description:
+          "Interactive online classes with expert tutors, flexible schedules, live doubt solving, and recorded sessions.",
+        vertical: "HOME_TUITION",
+        type: "SERVICE_ONLY",
+        imageUrl: homeTuitionImg,
+        secondaryImageUrl: homeTuitionImg,
+        displayOrder: 2,
+        active: true,
+        parent: 15,
+        subCategories: [],
+      },
+      {
+        id: 18,
+        name: "Competitive Exam Coaching",
+        description:
+          "Expert coaching for JEE, NEET, MHT-CET, UPSC, SSC, Banking, and other competitive examinations.",
+        vertical: "HOME_TUITION",
+        type: "SERVICE_ONLY",
+        imageUrl: homeTuitionImg,
+        secondaryImageUrl: homeTuitionImg,
+        displayOrder: 3,
+        active: true,
+        parent: 15,
+        subCategories: [],
+      },
+      {
+        id: 19,
+        name: "Language Classes",
+        description:
+          "Learn Spoken English, Hindi, Marathi, French, German, and other languages from certified trainers.",
+        vertical: "HOME_TUITION",
+        type: "SERVICE_ONLY",
+        imageUrl: homeTuitionImg,
+        secondaryImageUrl: homeTuitionImg,
+        displayOrder: 4,
+        active: true,
+        parent: 15,
         subCategories: [],
       },
     ],

@@ -24,33 +24,39 @@ const ServiceDetail = () => {
   const isNumericId = !isNaN(id) && !isNaN(parseInt(id));
 
   useEffect(() => {
-    if (isNumericId) {
-      Promise.resolve().then(() => {
-        const match = mockServices.find((s) => s.id === parseInt(id));
-        if (match) {
-          setService(match);
-          setError(null);
-        } else {
-          setError("Service not found");
-        }
-        setLoading(false);
-      });
-    } else {
-      const fetchService = async () => {
-        try {
-          setLoading(true);
-          setError(null);
-          const { data } = await api.get(`/services/${id}`);
-          setService(data);
-        } catch (err) {
-          setError(err.response?.data?.message || err.message || "Failed to fetch service");
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchService();
+  const fetchService = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      const { data } = await api.get(`/services/${id}`);
+
+      setService(data);
+
+    } catch (err) {
+      console.warn("Backend failed, checking mock data");
+
+      const match = mockServices.find(
+        (s) => String(s.id) === String(id)
+      );
+
+      if (match) {
+        setService(match);
+      } else {
+        setError(
+          err.response?.data?.message ||
+          "Service not found"
+        );
+      }
+
+    } finally {
+      setLoading(false);
     }
-  }, [id, isNumericId]);
+  };
+
+  fetchService();
+
+}, [id]);
 
   if (loading)
     return (

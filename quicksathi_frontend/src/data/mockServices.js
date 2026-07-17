@@ -2,6 +2,7 @@
 import homeCCTV1 from "../assets/cctv/cctvHeroImg.avif";
 import homeCCTV2 from "../assets/cctv/cctvImg1.avif";
 import photogarphyHeroImg from "../assets/photographyService/photographyImg1.avif"
+import homeTuitionImg from "../assets/HomeTution/homeTuitionImg.avif"
 
 export const mockServices = [
   {
@@ -12,7 +13,7 @@ export const mockServices = [
     fullDescription:
       "Capture your special moments with professional photographers, cinematic wedding films, candid photography, and premium editing services.",
     categoryId: 10,
-    categoryName: "Wedding Services",
+    categoryName: "Wedding Services", 
     thumbnail:
       photogarphyHeroImg,
     bannerImage:
@@ -758,4 +759,367 @@ export const mockServices = [
       },
     ],
   },
+  {
+ id: 16,
+slug: "school-tuition",
+name: "School Tuition",
+  shortDescription:
+    "Experienced home tutors for all classes and competitive exams.",
+
+  fullDescription:
+    "Learn from verified and experienced tutors at home. We provide personalized coaching for school students, college subjects, spoken English, coding, and competitive exam preparation.",
+
+  categoryId: 15,
+  categoryName: "Home Tuition",
+
+  thumbnail: homeTuitionImg,
+  bannerImage: homeTuitionImg,
+  gallery: [homeTuitionImg],
+
+  startingPrice: 499,
+  priceUnit: "per session",
+
+  rating: 4.8,
+  totalReviews: 165,
+  experience: "6 Years",
+
+  available: true,
+  serviceMode: "AT_HOME",
+
+  tags: [
+    "Home Tutor",
+    "Math",
+    "Science",
+    "English",
+    "Coding",
+  ],
+
+  featured: true,
+
+  packages: [
+    {
+      id: 1,
+      title: "School Tuition",
+      price: 499,
+      features: [
+        "1 Hour Session",
+        "Class 1-10",
+        "Weekly Progress",
+      ],
+    },
+    {
+      id: 2,
+      title: "Advanced Coaching",
+      price: 999,
+      features: [
+        "Class 11-12",
+        "JEE/NEET Foundation",
+        "Experienced Tutor",
+      ],
+    },
+  ],
+
+  faqs: [
+    {
+      question: "Can I choose the tutor?",
+      answer:
+        "Yes. You can select tutors based on subject, experience, and ratings.",
+    },
+    {
+      question: "Do you provide demo classes?",
+      answer: "Yes, a free demo class is available.",
+    },
+  ],
+
+  reviews: [
+    {
+      id: 1,
+      user: "Aarav Patel",
+      rating: 5,
+      comment:
+        "Excellent tutor. My son's grades improved significantly.",
+    },
+  ],
+
+  providers: [
+    {
+      id: 12,
+      name: "EduHome Tutors",
+      rating: 4.9,
+      experience: "8 Years",
+      location: "Pune",
+      startingPrice: 600,
+      image:
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1974&auto=format&fit=crop",
+    },
+  ],
+},
+{
+  id: 17,
+  slug: "online-tuition",
+  name: "Online Tuition",
+
+  shortDescription:
+    "Live online classes with experienced tutors for all subjects.",
+
+  fullDescription:
+    "Attend interactive online classes from the comfort of your home. Learn through live video sessions, digital notes, recorded lectures, and one-on-one doubt solving.",
+
+  categoryId: 15,
+  categoryName: "Home Tuition",
+
+  thumbnail: homeTuitionImg,
+  bannerImage: homeTuitionImg,
+  gallery: [homeTuitionImg],
+
+  startingPrice: 599,
+  priceUnit: "per session",
+
+  rating: 4.8,
+  totalReviews: 120,
+  experience: "5 Years",
+
+  available: true,
+  serviceMode: "ONLINE",
+
+  tags: [
+    "Online",
+    "Tutor",
+    "Live Classes",
+    "Education",
+  ],
+
+  featured: true,
+
+  packages: [
+    {
+      id: 1,
+      title: "Basic Online",
+      price: 599,
+      features: [
+        "1 Hour Live Class",
+        "Recorded Session",
+        "Doubt Solving",
+      ],
+    },
+    {
+      id: 2,
+      title: "Premium Online",
+      price: 999,
+      features: [
+        "Personal Mentor",
+        "Assignments",
+        "Weekly Tests",
+      ],
+    },
+  ],
+
+  faqs: [
+    {
+      question: "Do classes get recorded?",
+      answer: "Yes, every session is recorded.",
+    },
+  ],
+
+  reviews: [
+    {
+      id: 1,
+      user: "Riya Sharma",
+      rating: 5,
+      comment: "Very interactive online classes.",
+    },
+  ],
+
+  providers: [
+    {
+      id: 13,
+      name: "Edu Online Academy",
+      rating: 4.8,
+      experience: "6 Years",
+      location: "Pune",
+      startingPrice: 599,
+      image:
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1974&auto=format&fit=crop",
+    },
+  ],
+},
+{
+  id: 18,
+  slug: "competitive-exam-coaching",
+  name: "Competitive Exam Coaching",
+
+  shortDescription:
+    "Expert coaching for JEE, NEET, UPSC, SSC, Banking and more.",
+
+  fullDescription:
+    "Prepare with experienced faculty through structured study plans, mock tests, doubt solving sessions, and personalized mentorship.",
+
+  categoryId: 15,
+  categoryName: "Home Tuition",
+
+  thumbnail: homeTuitionImg,
+  bannerImage: homeTuitionImg,
+  gallery: [homeTuitionImg],
+
+  startingPrice: 999,
+  priceUnit: "per session",
+
+  rating: 4.9,
+  totalReviews: 210,
+  experience: "10 Years",
+
+  available: true,
+  serviceMode: "BOTH",
+
+  tags: [
+    "JEE",
+    "NEET",
+    "UPSC",
+    "SSC",
+  ],
+
+  featured: true,
+
+  packages: [
+    {
+      id: 1,
+      title: "Foundation Batch",
+      price: 999,
+      features: [
+        "Live Classes",
+        "Weekly Tests",
+        "Study Material",
+      ],
+    },
+    {
+      id: 2,
+      title: "Advanced Batch",
+      price: 1999,
+      features: [
+        "Mock Tests",
+        "Personal Mentor",
+        "Performance Analysis",
+      ],
+    },
+  ],
+
+  faqs: [
+    {
+      question: "Do you provide mock tests?",
+      answer: "Yes, every week.",
+    },
+  ],
+
+  reviews: [
+    {
+      id: 1,
+      user: "Akash Verma",
+      rating: 5,
+      comment: "Best coaching experience.",
+    },
+  ],
+
+  providers: [
+    {
+      id: 14,
+      name: "Success Academy",
+      rating: 4.9,
+      experience: "10 Years",
+      location: "Pune",
+      startingPrice: 999,
+      image:
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1974&auto=format&fit=crop",
+    },
+  ],
+},
+{
+  id: 19,
+  slug: "language-classes",
+  name: "Language Classes",
+
+  shortDescription:
+    "Learn English, Hindi, Marathi, German, French and more.",
+
+  fullDescription:
+    "Master new languages with certified trainers through practical speaking sessions, grammar lessons, and interactive activities.",
+
+  categoryId: 15,
+  categoryName: "Home Tuition",
+
+  thumbnail: homeTuitionImg,
+  bannerImage: homeTuitionImg,
+  gallery: [homeTuitionImg],
+
+  startingPrice: 699,
+  priceUnit: "per session",
+
+  rating: 4.7,
+  totalReviews: 140,
+  experience: "7 Years",
+
+  available: true,
+  serviceMode: "BOTH",
+
+  tags: [
+    "English",
+    "French",
+    "German",
+    "Spoken English",
+  ],
+
+  featured: true,
+
+  packages: [
+    {
+      id: 1,
+      title: "Basic Language Course",
+      price: 699,
+      features: [
+        "Speaking Practice",
+        "Grammar",
+        "Vocabulary",
+      ],
+    },
+    {
+      id: 2,
+      title: "Advanced Fluency",
+      price: 1299,
+      features: [
+        "Conversation",
+        "Interview Preparation",
+        "Certification",
+      ],
+    },
+  ],
+
+  faqs: [
+    {
+      question: "Do you provide certificates?",
+      answer: "Yes, after successful course completion.",
+    },
+  ],
+
+  reviews: [
+    {
+      id: 1,
+      user: "Priya Patil",
+      rating: 5,
+      comment: "My spoken English improved a lot.",
+    },
+  ],
+
+  providers: [
+    {
+      id: 15,
+      name: "Speak Fluent Academy",
+      rating: 4.8,
+      experience: "7 Years",
+      location: "Pune",
+      startingPrice: 699,
+      image:
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1974&auto=format&fit=crop",
+    },
+  ],
+}
+
 ];

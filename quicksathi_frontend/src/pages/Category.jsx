@@ -3,8 +3,11 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import api from "../config/api";
 import Card from "../components/common/Card";
+import { mockCategories } from "../data/mockCategories";
+import { mockServices } from "../data/mockServices";
 
 const INTERVAL_MS = 4000;
+const MotionLink = motion(Link);
 
 const CategoryBanner = ({
   category,
@@ -163,17 +166,50 @@ const Category = () => {
   const [loading, setLoading] = useState(true);
   const [services, setServices] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [sortBy, setSortBy] = useState("popular");
+  const [filterType, setFilterType] = useState("ALL");
 
-  // Fetch the category by ID from the API
+  // Fetch the category by ID from the API.
+  // 1) Pehle single-category endpoint try karo
+  // 2) Fail ho toh /categories (poori list) try karo
+  // 3) Backend hi down ho (jaise abhi, .env na hone ki wajah se) toh local
+  //    mockCategories se id match karke offline kaam chalao — isse backend
+  //    ke bina bhi frontend pe develop/test kar sakti ho.
   useEffect(() => {
     const fetchCategory = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
         const { data } = await api.get(`/categories/${id}`);
-        setCategory(data);
+        if (data) {
+          setCategory(data);
+          return;
+        }
+        throw new Error("Empty response from /categories/:id");
       } catch (err) {
-        console.error("Failed to fetch category:", err);
-        setCategory(null);
+        console.warn(
+          `/categories/${id} failed, falling back to /categories list:`,
+          err
+        );
+        try {
+          const { data } = await api.get("/categories");
+          const found = data?.find(
+            (cat) => (cat._id || cat.id)?.toString() === id?.toString()
+          );
+          if (found) {
+            setCategory(found);
+            return;
+          }
+          throw new Error("Category not found in list either");
+        } catch (fallbackErr) {
+          console.warn(
+            "Backend unreachable, falling back to local mockCategories:",
+            fallbackErr
+          );
+          const mockFound = mockCategories.find(
+            (cat) => (cat.id || cat._id)?.toString() === id?.toString()
+          );
+          setCategory(mockFound ?? null);
+        }
       } finally {
         setLoading(false);
       }
@@ -192,13 +228,22 @@ const Category = () => {
   }, [subs.length]);
 
   // Fetch services to link subcategories to real service pages
+  // Backend down ho toh mockServices se offline kaam chalega
   useEffect(() => {
     const fetchServices = async () => {
       try {
         const { data } = await api.get("/services");
-        setServices(data);
+        if (data && data.length > 0) {
+          setServices(data);
+        } else {
+          throw new Error("No services returned from backend");
+        }
       } catch (err) {
-        console.error("Failed to fetch services:", err);
+        console.warn(
+          "Failed to fetch services, falling back to local mockServices:",
+          err
+        );
+        setServices(mockServices);
       }
     };
     fetchServices();
@@ -212,9 +257,45 @@ const Category = () => {
     );
     const isRental = name.toLowerCase().includes("rental") || name.toLowerCase().includes("car") || name.toLowerCase().includes("bike");
     const prefix = isRental ? "/product" : "/service";
-    if (match) return `${prefix}/${match._id}`;
+    if (match) return `${prefix}/${match._id || match.id}`;
     return `${prefix}/${subId}`;
   };
+
+  // Enrich each subCategory with its matched service (for price/rating),
+  // then filter by type and sort — all derived from existing state,
+  // no new fetches.
+  const enrichedSubs = (category?.subCategories ?? []).map((sub) => {
+    const matched = services?.find(
+      (s) => s.name.toLowerCase() === sub.name.toLowerCase()
+    );
+    return { ...sub, matched };
+  });
+
+  const filteredSubs = enrichedSubs.filter((sub) => {
+    if (filterType === "ALL") return true;
+    if (filterType === "SERVICE") return sub.type === "SERVICE_ONLY" || sub.type === "BOTH";
+    if (filterType === "RENTAL") return sub.type === "PRODUCT_ONLY" || sub.type === "BOTH";
+    return true;
+  });
+
+  const sortedSubs = [...filteredSubs].sort((a, b) => {
+    if (sortBy === "price-low" || sortBy === "price-high") {
+      const priceA = a.matched?.startingPrice ?? Infinity;
+      const priceB = b.matched?.startingPrice ?? Infinity;
+      return sortBy === "price-low" ? priceA - priceB : priceB - priceA;
+    }
+    if (sortBy === "rating") {
+      const ratingA = a.matched?.rating ?? -1;
+      const ratingB = b.matched?.rating ?? -1;
+      return ratingB - ratingA;
+    }
+    // "popular" — keep original displayOrder if present, else original array order
+    return (a.displayOrder ?? 0) - (b.displayOrder ?? 0);
+  });
+
+  const hasRentalOrService = enrichedSubs.some(
+    (s) => s.type === "PRODUCT_ONLY" || s.type === "SERVICE_ONLY" || s.type === "BOTH"
+  );
 
   if (loading) {
     return (
@@ -273,25 +354,28 @@ const Category = () => {
 
       {/* ── Services grid ── */}
       <div id="services" className="px-4 sm:px-8 lg:px-10 mt-10 sm:mt-14">
-        <div className="flex items-center gap-5 mb-8 sm:mb-10">
-          <h2
-            className="text-xl sm:text-2xl font-normal whitespace-nowrap m-0"
-            style={{
-              fontFamily: "var(--font-display)",
-              color: "var(--color-text-dark)",
-            }}
-          >
-            Available Services
-          </h2>
-          <div
-            className="flex-1 h-px"
-            style={{
-              background:
-                "linear-gradient(to right, var(--color-accent), transparent)",
-            }}
-          />
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <div className="flex items-center gap-5 flex-1">
+            <h2
+              className="text-xl sm:text-2xl font-normal whitespace-nowrap m-0"
+              style={{
+                fontFamily: "var(--font-display)",
+                color: "var(--color-text-dark)",
+              }}
+            >
+              Available Services
+            </h2>
+            <div
+              className="flex-1 h-px hidden sm:block"
+              style={{
+                background:
+                  "linear-gradient(to right, var(--color-accent), transparent)",
+              }}
+            />
+          </div>
         </div>
 
+      
         <motion.div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
           initial="hidden"
@@ -302,26 +386,165 @@ const Category = () => {
             visible: { transition: { staggerChildren: 0.08 } }
           }}
         >
-          {category.subCategories?.map((service) => (
-            <motion.div
-              key={service._id || service.id}
-              variants={{
-                hidden: { y: 20, opacity: 0 },
-                visible: { y: 0, opacity: 1, transition: { duration: 0.5 } }
-              }}
+          {sortedSubs.length === 0 ? (
+            <p
+              className="col-span-full text-center py-12 text-sm"
+              style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
             >
-              <Card
-                title={service.name}
-                description={service.description}
-                image={service.imageUrl}
-                primaryAction="Book Service"
-                variant="overlay"
-                linkTo={getServiceLink(service.name, service._id)}
-              />
-            </motion.div>
-          ))}
+              No services match this filter.
+            </p>
+          ) : (
+            sortedSubs.map((service) => {
+              const matched = service.matched;
+
+              return (
+                <motion.div
+                  key={service._id || service.id}
+                  className="relative"
+                  variants={{
+                    hidden: { y: 20, opacity: 0 },
+                    visible: { y: 0, opacity: 1, transition: { duration: 0.5 } }
+                  }}
+                >
+                  {matched?.rating && (
+                    <span
+                      className="absolute top-3 right-3 z-10 px-2.5 py-1 rounded-full text-[11px] font-semibold flex items-center gap-1"
+                      style={{
+                        backgroundColor: "rgba(0,0,0,0.65)",
+                        backdropFilter: "blur(4px)",
+                        color: "#fff",
+                        fontFamily: "var(--font-body)",
+                      }}
+                    >
+                      ★ {matched.rating}
+                    </span>
+                  )}
+
+                  <Card
+                    title={service.name}
+                    description={service.description}
+                    image={service.imageUrl}
+                    primaryAction="Book Service"
+                    variant="overlay"
+                    linkTo={getServiceLink(service.name, service._id)}
+                  />
+
+                  {matched?.startingPrice != null && (
+                    <p
+                      className="mt-2 text-sm font-semibold"
+                      style={{ fontFamily: "var(--font-body)", color: "var(--color-primary)" }}
+                    >
+                      Starting at ₹{matched.startingPrice.toLocaleString("en-IN")}
+                      {matched.priceUnit && (
+                        <span
+                          className="text-xs font-normal ml-1"
+                          style={{ color: "var(--color-text-mid)" }}
+                        >
+                          /{matched.priceUnit}
+                        </span>
+                      )}
+                    </p>
+                  )}
+                </motion.div>
+              );
+            })
+          )}
         </motion.div>
       </div>
+
+      {/* ── Bottom CTA — category-specific, animated ── */}
+      <motion.section
+        className="relative px-4 sm:px-8 lg:px-16 py-20 sm:py-24 mt-16 sm:mt-20 text-center border-t overflow-hidden"
+        style={{ backgroundColor: "var(--color-bg-soft)", borderColor: "var(--color-border)" }}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-100px" }}
+        variants={{
+          hidden: {},
+          visible: { transition: { staggerChildren: 0.15 } },
+        }}
+      >
+        {/* Ambient glow — subtle, continuous pulse, purely decorative */}
+        <motion.div
+          className="absolute left-1/2 top-1/2 pointer-events-none"
+          style={{
+            width: "480px",
+            height: "480px",
+            marginLeft: "-240px",
+            marginTop: "-240px",
+            borderRadius: "9999px",
+            background: "var(--color-primary)",
+            filter: "blur(120px)",
+          }}
+          animate={{ opacity: [0.06, 0.14, 0.06], scale: [1, 1.08, 1] }}
+          transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+        />
+
+        <motion.h2
+          className="relative font-normal mb-4"
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "clamp(26px, 3.5vw, 42px)",
+            color: "var(--color-text-dark)",
+            letterSpacing: "-0.02em",
+          }}
+          variants={{
+            hidden: { y: 24, opacity: 0 },
+            visible: { y: 0, opacity: 1, transition: { duration: 0.6, ease: "easeOut" } },
+          }}
+        >
+          Need Help With {category.name}?
+        </motion.h2>
+
+        <motion.p
+          className="relative mb-8 text-base mx-auto"
+          style={{
+            fontFamily: "var(--font-body)",
+            color: "var(--color-text-mid)",
+            maxWidth: "500px",
+          }}
+          variants={{
+            hidden: { y: 20, opacity: 0 },
+            visible: { y: 0, opacity: 1, transition: { duration: 0.6, ease: "easeOut" } },
+          }}
+        >
+          Get matched with verified {category.name.toLowerCase()} specialists near you. Compare packages, check reviews, and book with confidence.
+        </motion.p>
+
+        <motion.div
+          variants={{
+            hidden: { y: 16, opacity: 0, scale: 0.96 },
+            visible: {
+              y: 0,
+              opacity: 1,
+              scale: 1,
+              transition: { duration: 0.5, ease: "easeOut" },
+            },
+          }}
+        >
+          <MotionLink
+            to="/contact"
+            className="relative inline-flex items-center gap-3 px-8 py-4 rounded-full text-sm font-semibold no-underline"
+            style={{
+              fontFamily: "var(--font-body)",
+              backgroundColor: "var(--color-text-dark)",
+              color: "#fff",
+              boxShadow: "0 4px 20px rgba(44,24,16,0.2)",
+            }}
+            whileHover={{ scale: 1.05, boxShadow: "0 8px 28px rgba(44,24,16,0.3)" }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ type: "spring", stiffness: 400, damping: 20 }}
+          >
+            Contact Support
+            <motion.span
+              animate={{ x: [0, 4, 0] }}
+              transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+            >
+              →
+            </motion.span>
+          </MotionLink>
+        </motion.div>
+      </motion.section>
     </motion.div>
   );
 };

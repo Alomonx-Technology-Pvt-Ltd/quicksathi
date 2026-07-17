@@ -242,21 +242,32 @@ const Home = () => {
                 </div>
 
                 <div className="flex flex-col gap-6">
-                  {parent.subCategories?.slice(0, 1).map((service) => (
-                    <Card
-                      key={service._id || service.name}
-                      title={service.name}
-                      description={service.description}
-                      image={service.imageUrl}
-                      secondaryImage={service.secondaryImageUrl}
-                      primaryAction="View Details"
-                      secondaryAction="Book Now"
-                      variant="servicePreview"
-                      linkTo={getServiceLink(service.name, service._id || service.id)}
-                      onSecondaryAction={() => handleBookNow(service.name, service._id || service.id)}
-                    />
-                  ))}
-                </div>
+  {parent.subCategories?.slice(0, 1).map((service) => {
+
+    console.log("Service:", service);
+    console.log(
+      "Link:",
+      getServiceLink(service.name, service._id || service.id)
+    );
+
+    return (
+      <Card
+        key={service._id || service.name}
+        title={service.name}
+        description={service.description}
+        image={service.imageUrl}
+        secondaryImage={service.secondaryImageUrl}
+        primaryAction="View Details"
+        secondaryAction="Book Now"
+        variant="servicePreview"
+        linkTo={getServiceLink(service.name, service._id || service.id)}
+        onSecondaryAction={() =>
+          handleBookNow(service.name, service._id || service.id)
+        }
+      />
+    );
+  })}
+</div>
               </motion.div>
             );
           })}

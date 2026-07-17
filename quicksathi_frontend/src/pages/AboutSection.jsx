@@ -2,58 +2,104 @@ import { Link } from "react-router-dom";
 import weddingImg from "../assets/weddingImg.avif";
 import carImg from "../assets/carImg.avif";
 import smartLock from "../assets/cctv/smartLock.avif";
+import homeTuitionImg from "../assets/homeTution/homeTuitionImg.avif";
 
 const AboutSection = () => {
   const pillars = [
     {
       icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
         </svg>
       ),
       title: "Verified Experts",
-      description: "Every professional undergoes comprehensive identity & background checks."
+      description:
+        "Every professional undergoes comprehensive identity & background checks.",
     },
     {
       icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <circle cx="12" cy="12" r="10" />
           <polyline points="12 6 12 12 16 14" />
         </svg>
       ),
       title: "Instant Scheduling",
-      description: "Book services instantly and get immediate real-time confirmations."
+      description:
+        "Book services instantly and get immediate real-time confirmations.",
     },
     {
       icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <line x1="12" y1="1" x2="12" y2="23" />
           <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
         </svg>
       ),
       title: "Upfront Pricing",
-      description: "Clear, transparent quotes with zero hidden fees or surprises."
+      description:
+        "Clear, transparent quotes with zero hidden fees or surprises.",
     },
     {
       icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
         </svg>
       ),
       title: "24/7 Human Help",
-      description: "Dedicated support team ready to assist you at any time of day."
-    }
+      description:
+        "Dedicated support team ready to assist you at any time of day.",
+    },
   ];
 
   return (
     <section
       className="px-4 sm:px-8 lg:px-16 py-20 sm:py-28"
-      style={{ backgroundColor: "var(--color-bg-soft)", borderBottom: "1px solid var(--color-border)" }}
+      style={{
+        backgroundColor: "var(--color-bg-soft)",
+        borderBottom: "1px solid var(--color-border)",
+      }}
     >
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-16 lg:gap-24 items-center">
-        
         {/* ── Left Column: Overlapping Collage (Visual Showcase) ── */}
-        <div className="w-full lg:w-1/2 relative flex items-center justify-center" style={{ height: "460px" }}>
+        <div
+          className="w-full lg:w-1/2 relative flex items-center justify-center"
+          style={{ height: "460px" }}
+        >
           {/* Main Back Image */}
           <div
             className="absolute rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 hover:scale-[1.02]"
@@ -113,6 +159,25 @@ const AboutSection = () => {
             <div className="absolute inset-0 bg-black/10" />
           </div>
 
+            {/* tuition img */}
+          <div
+            className="absolute rounded-2xl overflow-hidden shadow-xl hidden lg:block transition-all duration-500 hover:scale-[1.05]"
+            style={{
+              width: "28%",
+              height: "140px",
+              right: "20px",
+              top: "30px",
+              zIndex: 4,
+              border: "6px solid var(--color-bg-soft)",
+            }}
+          >
+            <img
+              src={homeTuitionImg}
+              alt="Home Tuition"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/10" />
+          </div>
         </div>
 
         {/* ── Right Column: Text Content & Trust Grid ── */}
@@ -151,7 +216,10 @@ const AboutSection = () => {
               maxWidth: "600px",
             }}
           >
-            At QuickSathi, we believe in making local services seamless. Whether securing your property, renting a luxury car, or planning your dream wedding, we connect you with vetted specialists dedicated to quality and reliability.
+            At QuickSathi, we believe in making local services seamless. Whether
+            securing your property, renting a luxury car, or planning your dream
+            wedding, we connect you with vetted specialists dedicated to quality
+            and reliability.
           </p>
 
           {/* Pillars Grid */}
@@ -171,13 +239,19 @@ const AboutSection = () => {
                 <div>
                   <h4
                     className="m-0 mb-1.5 font-semibold text-sm"
-                    style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}
+                    style={{
+                      fontFamily: "var(--font-body)",
+                      color: "var(--color-text-dark)",
+                    }}
                   >
                     {item.title}
                   </h4>
                   <p
                     className="m-0 text-xs leading-relaxed"
-                    style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
+                    style={{
+                      fontFamily: "var(--font-body)",
+                      color: "var(--color-text-mid)",
+                    }}
                   >
                     {item.description}
                   </p>
@@ -200,7 +274,6 @@ const AboutSection = () => {
             <span style={{ fontSize: "16px" }}>→</span>
           </Link>
         </div>
-
       </div>
 
       {/* Embedded CSS for Floating animation */}
