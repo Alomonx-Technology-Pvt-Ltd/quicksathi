@@ -104,7 +104,7 @@ const CarRentals = () => {
       style={{ backgroundColor: "var(--color-bg)" }}
     >
       {/* Hero */}
-      {/* Hero */}
+     
       <section
         className="relative w-full overflow-hidden flex items-end"
         style={{
@@ -303,77 +303,77 @@ const CarRentals = () => {
       </section>
 
       {/* Explore Fleet */}
-      {/* Explore Fleet */}
+      
       <section className="px-4 sm:px-8 lg:px-16 py-16 sm:py-20">
         <div className="max-w-6xl mx-auto">
           {/* Header with Black Friday Banner */}
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10">
-            <div>
-              <h2
-                className="font-normal mb-2"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  fontSize: "clamp(24px, 3vw, 36px)",
-                  color: "var(--color-text-dark)",
-                }}
-              >
-                Explore Our Fleet
-              </h2>
-              <p
-                className="text-sm"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  color: "var(--color-text-mid)",
-                }}
-              >
-                Filter by category to find your perfect match.
-              </p>
-            </div>
-          </div>
+          {/* Header with Filters on Right */}
+<div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-10">
+  <div>
+    <h2
+      className="font-normal mb-2"
+      style={{
+        fontFamily: "var(--font-display)",
+        fontSize: "clamp(24px, 3vw, 36px)",
+        color: "var(--color-text-dark)",
+      }}
+    >
+      Explore Our Fleet
+    </h2>
+    <p
+      className="text-sm"
+      style={{
+        fontFamily: "var(--font-body)",
+        color: "var(--color-text-mid)",
+      }}
+    >
+      Filter by category to find your perfect match.
+    </p>
+  </div>
 
-          {/* Filter Buttons */}
-          <div className="flex flex-wrap gap-2 mb-8">
-            {FILTERS.map((f) => (
-              <button
-                key={f}
-                onClick={() => setActiveFilter(f)}
-                className="px-4 py-2 rounded-full text-xs font-semibold border cursor-pointer transition-all duration-200"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  backgroundColor:
-                    activeFilter === f ? "#1a3a6b" : "transparent",
-                  color: activeFilter === f ? "#fff" : "var(--color-text-mid)",
-                  borderColor:
-                    activeFilter === f ? "#1a3a6b" : "var(--color-border)",
-                }}
-              >
-                {f}
-              </button>
-            ))}
-          </div>
+  {/* Premium Filter Pills */}
+  <div
+    className="flex flex-wrap gap-1 p-1.5 rounded-2xl w-fit"
+    style={{
+      backgroundColor: "rgba(26, 58, 107, 0.05)",
+      border: "1px solid var(--color-border)",
+    }}
+  >
+    {FILTERS.map((f) => (
+      <button
+        key={f}
+        onClick={() => setActiveFilter(f)}
+        className="px-4 py-2 rounded-xl text-xs font-semibold border-0 cursor-pointer transition-all duration-300 whitespace-nowrap"
+        style={{
+          fontFamily: "var(--font-body)",
+          background:
+            activeFilter === f
+              ? "linear-gradient(135deg, #1a3a6b 0%, #234a85 100%)"
+              : "transparent",
+          color: activeFilter === f ? "#fff" : "var(--color-text-mid)",
+          boxShadow:
+            activeFilter === f
+              ? "0 4px 12px rgba(26, 58, 107, 0.25)"
+              : "none",
+        }}
+      >
+        {f}
+      </button>
+    ))}
+  </div>
+</div>
 
-          {/* Latest Submissions Label */}
-          <div className="mb-6">
-            <p
-              className="text-xs font-semibold uppercase tracking-[0.2em]"
-              style={{
-                fontFamily: "var(--font-body)",
-                color: "var(--color-text-mid)",
-                opacity: 0.5,
-              }}
-            >
-              Latest Submissions
-            </p>
-            <h3
-              className="text-lg font-normal mt-1"
-              style={{
-                fontFamily: "var(--font-display)",
-                color: "var(--color-text-dark)",
-              }}
-            >
-              Find the Best Deals For You
-            </h3>
-          </div>
+<div className="mb-6">
+  <h3
+    className="text-lg font-normal mt-1"
+    style={{
+      fontFamily: "var(--font-display)",
+      color: "var(--color-text-dark)",
+    }}
+  >
+    Find the Best Deals For You
+  </h3>
+</div>
 
           {/* Featured Car - Full Width Banner Style */}
           {featuredCar && activeFilter === "All Cars" && (
@@ -591,6 +591,8 @@ const CarRentals = () => {
 
       {/* Documents Requirements  */}
       <DocumentRequirement />
+
+     
 
       {/* How it work Process */}
       <Process />
