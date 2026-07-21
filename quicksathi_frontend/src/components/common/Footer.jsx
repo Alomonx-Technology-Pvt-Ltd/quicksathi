@@ -1,36 +1,26 @@
 import { Link } from "react-router-dom";
 
-const LogoImg = ({ size = 32, style = {} }) => (
-  <svg
-    viewBox="0 0 200 230"
-    width={size}
-    height={size}
-    style={{ display: "block", ...style }}
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M100 10 C60 10 28 42 28 82 C28 130 100 220 100 220 C100 220 172 130 172 82 C172 42 140 10 100 10Z"
-      fill="#1a3a8b"
+const LogoImg = ({ size = 32, style = {} }) => {
+  const pad = -Math.round(size * 0.25);
+  return (
+    <img
+      src="/logo.png"
+      alt="QuickSathi Logo"
+      style={{
+        width: `${size}px`,
+        height: `${size}px`,
+        display: "block",
+        objectFit: "contain",
+        transform: "scale(1.5)",
+        marginLeft: `${pad}px`,
+        marginRight: `${pad}px`,
+        marginTop: `${pad}px`,
+        marginBottom: `${pad}px`,
+        ...style
+      }}
     />
-    <circle cx="100" cy="82" r="50" fill="white" />
-    <path
-      d="M58 78 C65 70 76 70 82 78 L90 86 L98 78 C104 70 115 70 122 78 L122 94 C115 102 104 102 98 94 L90 86 L82 94 C76 102 65 102 58 94Z"
-      fill="#1a3a8b"
-      opacity="0.9"
-    />
-    <text
-      x="106"
-      y="76"
-      fontFamily="Arial Black, Impact, sans-serif"
-      fontWeight="900"
-      fontSize="44"
-      fill="#e85c2a"
-      dominantBaseline="auto"
-    >
-      S
-    </text>
-  </svg>
-);
+  );
+};
 
 const Instagram = ({ size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -224,7 +214,7 @@ const Footer = () => (
         paddingBottom: "16px",
       }}
     >
-      <LogoImg size={48} />
+      <LogoImg size={144} />
       <p
         style={{
           fontFamily: "'Bebas Neue', sans-serif",

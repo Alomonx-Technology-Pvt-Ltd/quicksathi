@@ -2,14 +2,16 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../config/api";
-import { Search } from "lucide-react";
+import { Search, Shield, Car, PartyPopper, GraduationCap, Camera, ArrowRight, Star, BadgeCheck, Timer, Sparkles } from "lucide-react";
 import weddingImgg from "../assets/weddingImgg.avif";
 import carImg from "../assets/carImg.avif";
 import CCTVImg from "../assets/CCTVImg.avif";
 import serviceHeroImg from "../assets/serviceHeroImg.avif";
 import LocationBanner from "../components/common/LocationBanner";
 import { useLocation } from "../context/LocationContext";
-import WorkProcess from "../components/servicePage/workProcess";
+import WorkProcess from "../components/servicePage/Workprocess";
+import { mockServices } from "../data/mockServices";
+import { mockCategories } from "../data/mockCategories";
 const CATEGORIES = [
   {
     id: "weddings",
@@ -93,7 +95,7 @@ const Services = () => {
   }, [city]);
 
   // Build a service link using the service's _id from the backend
-  const getServiceLink = (name, mongoId) => {
+  const getServiceLink = (name, mongoId, subId) => {
     const isRental = name.toLowerCase().includes("rental") || name.toLowerCase().includes("car") || name.toLowerCase().includes("bike");
     const prefix = isRental ? "/product" : "/service";
     const id = mongoId || subId;
@@ -110,6 +112,8 @@ const Services = () => {
         return PartyPopper;
       case "HOME_TUITION":
         return GraduationCap;
+      case "HOUSE_HELP":
+        return Sparkles;
       default:
         return Camera;
     }
@@ -148,6 +152,8 @@ const Services = () => {
       return item.vertical === "CCTV_SECURITY" && matchesSearch;
     if (selectedFilter === "HOME_TUITION")
       return item.vertical === "HOME_TUITION" && matchesSearch;
+    if (selectedFilter === "HOUSE_HELP")
+      return item.vertical === "HOUSE_HELP" && matchesSearch;
 
     return matchesSearch;
   });
@@ -217,6 +223,7 @@ const Services = () => {
     { id: "RENTAL", label: "🚗 Rentals" },
     { id: "SECURITY", label: "📹 Security" },
     { id: "HOME_TUITION", label: "📚 Home Tuition" },
+    { id: "HOUSE_HELP", label: "🧹 House Help" },
   ];
 
   return (
@@ -431,6 +438,69 @@ const Services = () => {
         </div>
       </section>
 
+      {/* ============ PREMIUM HEADER ============ */}
+      <section className="px-4 sm:px-6 pt-12 sm:pt-16 max-w-7xl mx-auto">
+        <div className="text-center">
+          <div
+            className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full mb-5 sm:mb-6 backdrop-blur-sm"
+            style={{
+              backgroundColor: "rgba(255,255,255,0.6)",
+              border: "1px solid rgba(255,255,255,0.3)",
+              boxShadow: "0 4px 20px rgba(0,0,0,0.02)",
+            }}
+          >
+            <span
+              className="w-1.5 h-1.5 rounded-full animate-pulse"
+              style={{ backgroundColor: "var(--color-primary)" }}
+            />
+            <span
+              className="text-[10px] font-medium uppercase tracking-[0.2em]"
+              style={{
+                fontFamily: "var(--font-body)",
+                color: "var(--color-primary)",
+                opacity: 0.8,
+              }}
+            >
+              Premium Services
+            </span>
+          </div>
+
+          <h2
+            className="font-normal m-0 mb-3 sm:mb-4"
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "clamp(28px, 5vw, 52px)",
+              color: "var(--color-text-dark)",
+              letterSpacing: "-0.03em",
+              lineHeight: "1.1",
+            }}
+          >
+            Trusted Professionals, <br className="hidden sm:inline" />
+            <span
+              style={{
+                color: "var(--color-primary)",
+                opacity: 0.6,
+                display: "inline-block",
+              }}
+            >
+              Just a Click Away
+            </span>
+          </h2>
+
+          <p
+            className="text-sm sm:text-base max-w-lg mx-auto m-0 leading-relaxed"
+            style={{
+              fontFamily: "var(--font-body)",
+              color: "var(--color-text-mid)",
+              opacity: 0.75,
+            }}
+          >
+            Discover handpicked professionals for every need — from weddings to
+            security, all verified and trusted.
+          </p>
+        </div>
+      </section>
+
       {/* ============ FILTER BAR ============ */}
       <section
         ref={filterSectionRef}
@@ -498,67 +568,6 @@ const Services = () => {
         ref={resultsSectionRef}
         className="px-4 sm:px-6 py-12 sm:py-16 md:py-20 lg:py-24 max-w-7xl mx-auto scroll-mt-6"
       >
-        {/* ============ PREMIUM HEADER ============ */}
-        <div className="text-center mb-12 sm:mb-16 md:mb-20">
-          <div
-            className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full mb-5 sm:mb-6 backdrop-blur-sm"
-            style={{
-              backgroundColor: "rgba(255,255,255,0.6)",
-              border: "1px solid rgba(255,255,255,0.3)",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.02)",
-            }}
-          >
-            <span
-              className="w-1.5 h-1.5 rounded-full animate-pulse"
-              style={{ backgroundColor: "var(--color-primary)" }}
-            />
-            <span
-              className="text-[10px] font-medium uppercase tracking-[0.2em]"
-              style={{
-                fontFamily: "var(--font-body)",
-                color: "var(--color-primary)",
-                opacity: 0.8,
-              }}
-            >
-              Premium Services
-            </span>
-          </div>
-
-          <h2
-            className="font-normal m-0 mb-3 sm:mb-4"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(28px, 5vw, 52px)",
-              color: "var(--color-text-dark)",
-              letterSpacing: "-0.03em",
-              lineHeight: "1.1",
-            }}
-          >
-            Trusted Professionals, <br className="hidden sm:inline" />
-            <span
-              style={{
-                color: "var(--color-primary)",
-                opacity: 0.6,
-                display: "inline-block",
-              }}
-            >
-              Just a Click Away
-            </span>
-          </h2>
-
-          <p
-            className="text-sm sm:text-base max-w-lg mx-auto m-0 leading-relaxed"
-            style={{
-              fontFamily: "var(--font-body)",
-              color: "var(--color-text-mid)",
-              opacity: 0.75,
-            }}
-          >
-            Discover handpicked professionals for every need — from weddings to
-            security, all verified and trusted.
-          </p>
-        </div>
-
         {/* ============ LOADING STATE ============ */}
         {loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 md:gap-8">

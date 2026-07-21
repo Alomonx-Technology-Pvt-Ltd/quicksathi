@@ -100,39 +100,18 @@ function inlineFormat(text) {
 // ─── Logo Component ─────────────────────────────────────────────────────────
 // Uses branded inline SVG matching QuickSathi colors (blue pin, handshake, orange S)
 const LogoImg = ({ size = 36, style = {} }) => (
-  <svg
-    viewBox="0 0 200 230"
-    width={size}
-    height={size}
-    style={{ display: "block", ...style }}
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    {/* Location pin shape */}
-    <path
-      d="M100 10 C60 10 28 42 28 82 C28 130 100 220 100 220 C100 220 172 130 172 82 C172 42 140 10 100 10Z"
-      fill="#1a3a8b"
-    />
-    {/* White inner circle */}
-    <circle cx="100" cy="82" r="50" fill="white" />
-    {/* Handshake left side */}
-    <path
-      d="M58 78 C65 70 76 70 82 78 L90 86 L98 78 C104 70 115 70 122 78 L122 94 C115 102 104 102 98 94 L90 86 L82 94 C76 102 65 102 58 94Z"
-      fill="#1a3a8b"
-      opacity="0.9"
-    />
-    {/* Orange S letter */}
-    <text
-      x="106"
-      y="76"
-      fontFamily="Arial Black, Impact, sans-serif"
-      fontWeight="900"
-      fontSize="44"
-      fill="#e85c2a"
-      dominantBaseline="auto"
-    >
-      S
-    </text>
-  </svg>
+  <img
+    src="/logo.png"
+    alt="QuickSathi Logo"
+    style={{
+      width: `${size}px`,
+      height: `${size}px`,
+      display: "block",
+      objectFit: "contain",
+      transform: "scale(1.6)",
+      ...style
+    }}
+  />
 );
 
 // ─── QuickSathi Knowledge Base ──────────────────────────────────────────────

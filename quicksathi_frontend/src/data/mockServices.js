@@ -1120,6 +1120,141 @@ name: "School Tuition",
         "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1974&auto=format&fit=crop",
     },
   ],
+},
+{
+  id: 20,
+  slug: "maid-service",
+  name: "Maid Service",
+  shortDescription: "Daily cleaning, dusting, and sweeping services",
+  fullDescription: "Background-verified, professional, and reliable daily maid services for sweeping, mopping, utensil washing, and keeping your home clean and hygienic.",
+  categoryId: 20,
+  categoryName: "House Help",
+  thumbnail: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=2070&auto=format&fit=crop",
+  bannerImage: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=2070&auto=format&fit=crop",
+  gallery: [],
+  startingPrice: 2000,
+  priceUnit: "per month",
+  rating: 4.8,
+  totalReviews: 195,
+  experience: "4 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["Maid", "Cleaning", "Housekeeping", "Helper"],
+  featured: true,
+  packages: [
+    { id: 1, title: "Standard Housekeeping", price: 2000, features: ["Daily Sweeping & Mopping", "Utensil Washing", "Light dusting"] },
+    { id: 2, title: "Premium Full-Day Maid", price: 4500, features: ["All standard features", "Laundry & Ironing", "Kitchen cleaning", "Flexible hours"] }
+  ],
+  faqs: [
+    { question: "Are your maids background verified?", answer: "Yes, police verification and ID checks are completed for all partners." }
+  ],
+  reviews: [
+    { id: 1, user: "Deepak Joshi", rating: 5, comment: "Very punctual and cleans the house perfectly." }
+  ],
+  providers: [
+    { id: 20, name: "Homely Comfort Housekeepers", rating: 4.8, experience: "4 Years", location: "Patna", startingPrice: 2000, image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1974&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 21,
+  slug: "cooking-service",
+  name: "Cooking Service",
+  shortDescription: "Delicious home-cooked healthy meals",
+  fullDescription: "Hire highly experienced home cooks and professional chefs for preparation of hygienic, delicious, and customized home-cooked meals (Veg/Non-Veg) matching your taste.",
+  categoryId: 20,
+  categoryName: "House Help",
+  thumbnail: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2070&auto=format&fit=crop",
+  bannerImage: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2070&auto=format&fit=crop",
+  gallery: [],
+  startingPrice: 3000,
+  priceUnit: "per month",
+  rating: 4.7,
+  totalReviews: 124,
+  experience: "5 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["Cook", "Chef", "Food", "Kitchen"],
+  featured: true,
+  packages: [
+    { id: 1, title: "Single Meal Cook", price: 3000, features: ["Lunch or Dinner preparation", "Daily clean-up of cooktop", "Simple Indian Menus"] },
+    { id: 2, title: "Full Day Cook", price: 6000, features: ["Breakfast, Lunch, & Dinner prep", "Dietary adjustments (low salt/sugar)", "Up to 5 family members", "Snack prep support"] }
+  ],
+  faqs: [
+    { question: "Does the cook buy groceries?", answer: "Grocery shopping can be arranged at an additional cost, or you can provide materials." }
+  ],
+  reviews: [
+    { id: 1, user: "Sneha Kapoor", rating: 5, comment: "Cook makes excellent North Indian dishes. Very polite too." }
+  ],
+  providers: [
+    { id: 21, name: "Patna Foodies Kitchen Cooks", rating: 4.7, experience: "5 Years", location: "Patna", startingPrice: 3000, image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=2070&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 22,
+  slug: "babysitting-nanny",
+  name: "Babysitting / Nanny",
+  shortDescription: "Caring child care and babysitting services",
+  fullDescription: "Trained, gentle, and child-loving nannies and babysitters to support your family. Experienced in child feeding, playtime interaction, and maintaining a safe and clean environment for kids.",
+  categoryId: 20,
+  categoryName: "House Help",
+  thumbnail: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=2038&auto=format&fit=crop",
+  bannerImage: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=2038&auto=format&fit=crop",
+  gallery: [],
+  startingPrice: 5000,
+  priceUnit: "per month",
+  rating: 4.6,
+  totalReviews: 54,
+  experience: "3 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["Nanny", "Babysitting", "Child Care", "Toddler"],
+  featured: false,
+  packages: [
+    { id: 1, title: "Part-Time Nanny", price: 5000, features: ["4 Hours Daily Coverage", "Feeding support", "Safety Monitoring", "Creative Play"] },
+    { id: 2, title: "Full-Time Care Nanny", price: 10000, features: ["8-10 Hours Daily Coverage", "Bathing & dressing support", "Nap schedule maintenance", "Homework/reading support"] }
+  ],
+  faqs: [
+    { question: "Do babysitters have CPR training?", answer: "Many of our elite nannies are certified in basic child safety and first aid." }
+  ],
+  reviews: [
+    { id: 1, user: "Ankita Patel", rating: 4, comment: "Excellent nanny. Very patient with my active toddler." }
+  ],
+  providers: [
+    { id: 22, name: "TinyTots Babysitting Co.", rating: 4.6, experience: "3 Years", location: "Patna", startingPrice: 5000, image: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=1974&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 23,
+  slug: "elder-care",
+  name: "Elder Care / Patient Care",
+  shortDescription: "Compassionate nursing and elder assistance",
+  fullDescription: "Dedicated elderly care assistants and home nurse aides to assist your loved ones with daily activities, medication schedules, mobility support, and companionship.",
+  categoryId: 20,
+  categoryName: "House Help",
+  thumbnail: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=2018&auto=format&fit=crop",
+  bannerImage: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=2018&auto=format&fit=crop",
+  gallery: [],
+  startingPrice: 8000,
+  priceUnit: "per month",
+  rating: 4.8,
+  totalReviews: 96,
+  experience: "7 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["Elder Care", "Senior", "Patient Care", "Nurse Helper"],
+  featured: false,
+  packages: [
+    { id: 1, title: "Day Companion", price: 8000, features: ["Medication reminders", "Daily walk support", "Companion talks (4 hrs/day)"] },
+    { id: 2, title: "Full-Time Nursing Assistant", price: 15000, features: ["10 Hours daily assistance", "Grooming & bathing help", "Vitals monitoring", "Doctor coordination support"] }
+  ],
+  faqs: [
+    { question: "Do they handle medical injections?", answer: "They provide general caregiver support. For medical nursing like IVs or injections, ask for our specialized nurse list." }
+  ],
+  reviews: [
+    { id: 1, user: "Prabhat Sinha", rating: 5, comment: "Provided excellent care for my grandfather post-surgery." }
+  ],
+  providers: [
+    { id: 23, name: "Caring Hearts Elder Care", rating: 4.8, experience: "7 Years", location: "Patna", startingPrice: 8000, image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=1974&auto=format&fit=crop" }
+  ]
 }
-
 ];

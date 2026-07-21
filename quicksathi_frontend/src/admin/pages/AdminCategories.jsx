@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import api from "../../config/api";
 
-const VERTICALS = ["WEDDING", "VEHICLE_RENTAL", "CCTV_SECURITY"];
+const VERTICALS = ["WEDDING", "VEHICLE_RENTAL", "CCTV_SECURITY", "HOME_TUITION", "HOUSE_HELP"];
 const TYPES = ["SERVICE_ONLY", "PRODUCT_ONLY", "BOTH"];
 
 const emptyCategory = {

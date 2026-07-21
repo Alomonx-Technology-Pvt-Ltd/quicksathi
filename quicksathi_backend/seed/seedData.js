@@ -128,6 +128,110 @@ const categoriesData = [
         active: true
       }
     ]
+  },
+  {
+    name: "Home Tuition",
+    description: "Experienced and verified tutors for school academics, competitive exams, languages, and online learning at your convenience.",
+    vertical: "HOME_TUITION",
+    type: "BOTH",
+    imageUrl: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070&auto=format&fit=crop",
+    secondaryImageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop",
+    displayOrder: 4,
+    active: true,
+    subCategories: [
+      {
+        name: "School Tuition",
+        description: "Personalized home tuition for Classes 1–12 across CBSE, ICSE, and State Boards with experienced tutors.",
+        vertical: "HOME_TUITION",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=2070&auto=format&fit=crop",
+        displayOrder: 1,
+        active: true
+      },
+      {
+        name: "Online Tuition",
+        description: "Interactive online classes with expert tutors, flexible schedules, live doubt solving, and recorded sessions.",
+        vertical: "HOME_TUITION",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop",
+        displayOrder: 2,
+        active: true
+      },
+      {
+        name: "Competitive Exam Coaching",
+        description: "Expert coaching for JEE, NEET, MHT-CET, UPSC, SSC, Banking, and other competitive examinations.",
+        vertical: "HOME_TUITION",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=2068&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=2068&auto=format&fit=crop",
+        displayOrder: 3,
+        active: true
+      },
+      {
+        name: "Language Classes",
+        description: "Learn Spoken English, Hindi, Marathi, French, German, and other languages from certified trainers.",
+        vertical: "HOME_TUITION",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=1974&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=1974&auto=format&fit=crop",
+        displayOrder: 4,
+        active: true
+      }
+    ]
+  },
+  {
+    name: "House Help",
+    description: "Professional and verified home helper services — maid, deep cleaning, cooking, and babysitting at your convenience.",
+    vertical: "HOUSE_HELP",
+    type: "BOTH",
+    imageUrl: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=2070&auto=format&fit=crop",
+    secondaryImageUrl: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2070&auto=format&fit=crop",
+    displayOrder: 5,
+    active: true,
+    subCategories: [
+      {
+        name: "Maid Service",
+        description: "Daily or monthly home cleaning services with verified maids.",
+        vertical: "HOUSE_HELP",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=2070&auto=format&fit=crop",
+        displayOrder: 1,
+        active: true
+      },
+      {
+        name: "Cooking Service",
+        description: "Experienced home cooks offering multi-cuisine healthy home-cooked meals.",
+        vertical: "HOUSE_HELP",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2070&auto=format&fit=crop",
+        displayOrder: 2,
+        active: true
+      },
+      {
+        name: "Babysitting / Nanny",
+        description: "Professional and caring child care services for toddlers and kids.",
+        vertical: "HOUSE_HELP",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=2038&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=2038&auto=format&fit=crop",
+        displayOrder: 3,
+        active: true
+      },
+      {
+        name: "Elder Care / Patient Care",
+        description: "Trained caregivers for assistance and support for elderly family members.",
+        vertical: "HOUSE_HELP",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=2018&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=2018&auto=format&fit=crop",
+        displayOrder: 4,
+        active: true
+      }
+    ]
   }
 ];
 
@@ -458,6 +562,262 @@ const servicesData = [
     ],
     providers: [
       { name: "Elite Drive Luxury", rating: 4.9, experience: "10 Years", location: "Patna", startingPrice: 8999, image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1974&auto=format&fit=crop" }
+    ]
+  },
+  {
+    slug: "school-tuition",
+    name: "School Tuition",
+    shortDescription: "Personalized home tuition for Classes 1–12",
+    fullDescription: "Comprehensive home tuition matching for students in Classes 1 to 12. Experienced tutors available for CBSE, ICSE, and State Boards in all major subjects including Math, Science, and English.",
+    categoryGroup: "Home Tuition",
+    thumbnail: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=2070&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=2070&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 1500,
+    priceUnit: "per month",
+    rating: 4.7,
+    totalReviews: 142,
+    experience: "5 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["Tuition", "School", "Education", "Home Tutor"],
+    featured: true,
+    packages: [
+      { title: "Primary Classes (1-5)", price: 1500, features: ["All Subjects", "3 Days / Week", "Monthly Progress Tests"] },
+      { title: "High School (9-10)", price: 3000, features: ["Math & Science Focus", "5 Days / Week", "Board Exam Prep", "Weekly Test Series"] }
+    ],
+    faqs: [
+      { question: "Are your tutors background-verified?", answer: "Yes, all tutors undergo strict identity checks and academic vetting." }
+    ],
+    reviews: [
+      { userName: "Sumit Verma", rating: 5, comment: "Our daughter's math grades improved significantly." }
+    ],
+    providers: [
+      { name: "Academic Achievers Academy", rating: 4.7, experience: "5 Years", location: "Patna", startingPrice: 1500, image: "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=1974&auto=format&fit=crop" }
+    ]
+  },
+  {
+    slug: "online-tuition",
+    name: "Online Tuition",
+    shortDescription: "Interactive online classes with expert tutors",
+    fullDescription: "Highly interactive online classes with top educators. Enjoy flexible schedules, one-on-one live doubt solving, interactive whiteboards, and recorded sessions for revision.",
+    categoryGroup: "Home Tuition",
+    thumbnail: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 1200,
+    priceUnit: "per month",
+    rating: 4.6,
+    totalReviews: 89,
+    experience: "4 Years",
+    available: true,
+    serviceMode: "REMOTE",
+    tags: ["Tuition", "Online", "Education", "Webinar"],
+    featured: false,
+    packages: [
+      { title: "Weekly Group Sessions", price: 1200, features: ["Small Batch (Max 5)", "Doubt Clearing Sessions", "Access to Study Material"] },
+      { title: "1-on-1 Personal Mentor", price: 3500, features: ["Exclusive Live Mentor", "Custom Pace & Schedule", "Daily Homework Help", "Parent Dashboard Access"] }
+    ],
+    faqs: [
+      { question: "What tools do I need for online classes?", answer: "A laptop/tablet with high-speed internet and Zoom/Meet is required." }
+    ],
+    reviews: [
+      { userName: "Rakesh Ranjan", rating: 4, comment: "Very convenient and interactive platform." }
+    ],
+    providers: [
+      { name: "Global EduTech Partners", rating: 4.6, experience: "4 Years", location: "Patna", startingPrice: 1200, image: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=2068&auto=format&fit=crop" }
+    ]
+  },
+  {
+    slug: "competitive-exam-coaching",
+    name: "Competitive Exam Coaching",
+    shortDescription: "Expert coaching for JEE, NEET, and competitive exams",
+    fullDescription: "Rigorous preparation support for key competitive exams like JEE Main/Advanced, NEET, Olympiads, and NTSE. Taught by top subject matter experts with proven track records.",
+    categoryGroup: "Home Tuition",
+    thumbnail: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=2068&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=2068&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 3000,
+    priceUnit: "per month",
+    rating: 4.9,
+    totalReviews: 215,
+    experience: "8 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["JEE", "NEET", "Coaching", "Exams"],
+    featured: true,
+    packages: [
+      { title: "Foundation Course (9-10)", price: 3000, features: ["Science & Math Basics", "Mock Test Papers", "Mental Ability sessions"] },
+      { title: "JEE/NEET Crash Course", price: 8000, features: ["Physics, Chemistry, Math/Bio", "Daily Practice Problems (DPPs)", "Weekly Mock Tests", "Doubt Solvers Support"] }
+    ],
+    faqs: [
+      { question: "Do you provide test series?", answer: "Yes, standard mock tests and analytics report are included." }
+    ],
+    reviews: [
+      { userName: "Ankit Kumar", rating: 5, comment: "Helped me secure a great rank in JEE Mains." }
+    ],
+    providers: [
+      { name: "Apex Coaching Classes", rating: 4.9, experience: "8 Years", location: "Patna", startingPrice: 3000, image: "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=1974&auto=format&fit=crop" }
+    ]
+  },
+  {
+    slug: "language-classes",
+    name: "Language Classes",
+    shortDescription: "Learn spoken English, French, German, and more",
+    fullDescription: "Learn new languages or polish your spoken English with native-level certified language trainers. Ideal for students, professionals, and study-abroad aspirants.",
+    categoryGroup: "Home Tuition",
+    thumbnail: "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=1974&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=1974&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 699,
+    priceUnit: "per session",
+    rating: 4.5,
+    totalReviews: 64,
+    experience: "6 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["Languages", "English", "French", "German"],
+    featured: false,
+    packages: [
+      { title: "Spoken English Basic", price: 699, features: ["Grammar Essentials", "Vocabulary building", "Daily Conversations"] },
+      { title: "Foreign Language Special", price: 1500, features: ["French/German A1 Level Prep", "Reading & Writing practice", "Audio comprehension"] }
+    ],
+    faqs: [
+      { question: "Are study materials included?", answer: "Yes, PDF textbooks and worksheets are shared for free." }
+    ],
+    reviews: [
+      { userName: "Simran Kaur", rating: 5, comment: "Excellent French lessons! Very interactive." }
+    ],
+    providers: [
+      { name: "Vanguard Language Hub", rating: 4.6, experience: "6 Years", location: "Patna", startingPrice: 699, image: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=2068&auto=format&fit=crop" }
+    ]
+  },
+  {
+    slug: "maid-service",
+    name: "Maid Service",
+    shortDescription: "Daily cleaning, dusting, and sweeping services",
+    fullDescription: "Background-verified, professional, and reliable daily maid services for sweeping, mopping, utensil washing, and keeping your home clean and hygienic.",
+    categoryGroup: "House Help",
+    thumbnail: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=2070&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=2070&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 2000,
+    priceUnit: "per month",
+    rating: 4.8,
+    totalReviews: 195,
+    experience: "4 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["Maid", "Cleaning", "Housekeeping", "Helper"],
+    featured: true,
+    packages: [
+      { title: "Standard Housekeeping", price: 2000, features: ["Daily Sweeping & Mopping", "Utensil Washing", "Light dusting"] },
+      { title: "Premium Full-Day Maid", price: 4500, features: ["All standard features", "Laundry & Ironing", "Kitchen cleaning", "Flexible hours"] }
+    ],
+    faqs: [
+      { question: "Are your maids background verified?", answer: "Yes, police verification and ID checks are completed for all partners." }
+    ],
+    reviews: [
+      { userName: "Deepak Joshi", rating: 5, comment: "Very punctual and cleans the house perfectly." }
+    ],
+    providers: [
+      { name: "Homely Comfort Housekeepers", rating: 4.8, experience: "4 Years", location: "Patna", startingPrice: 2000, image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1974&auto=format&fit=crop" }
+    ]
+  },
+  {
+    slug: "cooking-service",
+    name: "Cooking Service",
+    shortDescription: "Delicious home-cooked healthy meals",
+    fullDescription: "Hire highly experienced home cooks and professional chefs for preparation of hygienic, delicious, and customized home-cooked meals (Veg/Non-Veg) matching your taste.",
+    categoryGroup: "House Help",
+    thumbnail: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2070&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2070&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 3000,
+    priceUnit: "per month",
+    rating: 4.7,
+    totalReviews: 124,
+    experience: "5 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["Cook", "Chef", "Food", "Kitchen"],
+    featured: true,
+    packages: [
+      { title: "Single Meal Cook", price: 3000, features: ["Lunch or Dinner preparation", "Daily clean-up of cooktop", "Simple Indian Menus"] },
+      { title: "Full Day Cook", price: 6000, features: ["Breakfast, Lunch, & Dinner prep", "Dietary adjustments (low salt/sugar)", "Up to 5 family members", "Snack prep support"] }
+    ],
+    faqs: [
+      { question: "Does the cook buy groceries?", answer: "Grocery shopping can be arranged at an additional cost, or you can provide materials." }
+    ],
+    reviews: [
+      { userName: "Sneha Kapoor", rating: 5, comment: "Cook makes excellent North Indian dishes. Very polite too." }
+    ],
+    providers: [
+      { name: "Patna Foodies Kitchen Cooks", rating: 4.7, experience: "5 Years", location: "Patna", startingPrice: 3000, image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=2070&auto=format&fit=crop" }
+    ]
+  },
+  {
+    slug: "babysitting-nanny",
+    name: "Babysitting / Nanny",
+    shortDescription: "Caring child care and babysitting services",
+    fullDescription: "Trained, gentle, and child-loving nannies and babysitters to support your family. Experienced in child feeding, playtime interaction, and maintaining a safe and clean environment for kids.",
+    categoryGroup: "House Help",
+    thumbnail: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=2038&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=2038&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 5000,
+    priceUnit: "per month",
+    rating: 4.6,
+    totalReviews: 54,
+    experience: "3 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["Nanny", "Babysitting", "Child Care", "Toddler"],
+    featured: false,
+    packages: [
+      { title: "Part-Time Nanny", price: 5000, features: ["4 Hours Daily Coverage", "Feeding support", "Safety Monitoring", "Creative Play"] },
+      { title: "Full-Time Care Nanny", price: 10000, features: ["8-10 Hours Daily Coverage", "Bathing & dressing support", "Nap schedule maintenance", "Homework/reading support"] }
+    ],
+    faqs: [
+      { question: "Do babysitters have CPR training?", answer: "Many of our elite nannies are certified in basic child safety and first aid." }
+    ],
+    reviews: [
+      { userName: "Ankita Patel", rating: 4, comment: "Excellent nanny. Very patient with my active toddler." }
+    ],
+    providers: [
+      { name: "TinyTots Babysitting Co.", rating: 4.6, experience: "3 Years", location: "Patna", startingPrice: 5000, image: "https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?q=80&w=1974&auto=format&fit=crop" }
+    ]
+  },
+  {
+    slug: "elder-care",
+    name: "Elder Care / Patient Care",
+    shortDescription: "Compassionate nursing and elder assistance",
+    fullDescription: "Dedicated elderly care assistants and home nurse aides to assist your loved ones with daily activities, medication schedules, mobility support, and companionship.",
+    categoryGroup: "House Help",
+    thumbnail: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=2018&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=2018&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 8000,
+    priceUnit: "per month",
+    rating: 4.8,
+    totalReviews: 96,
+    experience: "7 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["Elder Care", "Senior", "Patient Care", "Nurse Helper"],
+    featured: false,
+    packages: [
+      { title: "Day Companion", price: 8000, features: ["Medication reminders", "Daily walk support", "Companion talks (4 hrs/day)"] },
+      { title: "Full-Time Nursing Assistant", price: 15000, features: ["10 Hours daily assistance", "Grooming & bathing help", "Vitals monitoring", "Doctor coordination support"] }
+    ],
+    faqs: [
+      { question: "Do they handle medical injections?", answer: "They provide general caregiver support. For medical nursing like IVs or injections, ask for our specialized nurse list." }
+    ],
+    reviews: [
+      { userName: "Prabhat Sinha", rating: 5, comment: "Provided excellent care for my grandfather post-surgery." }
+    ],
+    providers: [
+      { name: "Caring Hearts Elder Care", rating: 4.8, experience: "7 Years", location: "Patna", startingPrice: 8000, image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=1974&auto=format&fit=crop" }
     ]
   }
 ];

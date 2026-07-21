@@ -4,6 +4,9 @@ import connectDB from "../config/db.js";
 import User from "../models/User.js";
 import Provider from "../models/Provider.js";
 import Category from "../models/Category.js";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 
 const run = async () => {
   await connectDB();
@@ -84,6 +87,37 @@ const run = async () => {
   console.log(`Email: ${testEmail}`);
   console.log("Password: password123");
   
+  // Update or append to .env
+  const envPath = path.join(path.dirname(fileURLToPath(import.meta.url)), "../.env");
+  try {
+    let envContent = fs.readFileSync(envPath, "utf8");
+    
+    const vars = {
+      MOCK_PROVIDER_EMAIL: testEmail,
+      MOCK_PROVIDER_PASSWORD: "password123",
+      MOCK_PROVIDER_USER_ID: testUser._id.toString(),
+      MOCK_PROVIDER_ID: testProvider._id.toString()
+    };
+
+    for (const [key, value] of Object.entries(vars)) {
+      const regex = new RegExp(`^${key}=.*$`, "m");
+      if (regex.test(envContent)) {
+        envContent = envContent.replace(regex, `${key}=${value}`);
+      } else {
+        // If not found, append to the end of the file
+        if (!envContent.endsWith("\n")) {
+          envContent += "\n";
+        }
+        envContent += `${key}=${value}\n`;
+      }
+    }
+
+    fs.writeFileSync(envPath, envContent, "utf8");
+    console.log("Updated .env file with Mock Provider credentials & IDs.");
+  } catch (envErr) {
+    console.warn("Could not update .env file automatically:", envErr.message);
+  }
+
   process.exit(0);
 };
 
