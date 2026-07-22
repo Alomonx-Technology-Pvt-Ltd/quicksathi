@@ -232,6 +232,68 @@ const categoriesData = [
         active: true
       }
     ]
+  },
+  {
+    name: "Home Salon & Beauty",
+    description: "Professional salon, spa, and beauty grooming services at the comfort of your home.",
+    vertical: "HOME_SALON",
+    type: "SERVICE_ONLY",
+    imageUrl: "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=2070&auto=format&fit=crop",
+    secondaryImageUrl: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=2070&auto=format&fit=crop",
+    displayOrder: 6,
+    active: true,
+    subCategories: [
+      {
+        name: "Hair Styling & Care",
+        description: "Professional haircuts, hair coloring, keratin, smoothening, and scalp treatments.",
+        vertical: "HOME_SALON",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=2069&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=2069&auto=format&fit=crop",
+        displayOrder: 1,
+        active: true
+      },
+      {
+        name: "Facial & Cleanup",
+        description: "Rejuvenating facials, organic cleanups, skin brightening, and anti-aging care.",
+        vertical: "HOME_SALON",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=2070&auto=format&fit=crop",
+        displayOrder: 2,
+        active: true
+      },
+      {
+        name: "Bridal & Party Makeup",
+        description: "HD & 3D Airbrush bridal makeup, party glam, saree draping, and hairstyle art.",
+        vertical: "HOME_SALON",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=2071&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=2071&auto=format&fit=crop",
+        displayOrder: 3,
+        active: true
+      },
+      {
+        name: "Manicure & Pedicure",
+        description: "Spa manicure, gel nail art, foot reflexology, and hygiene pedicure treatments.",
+        vertical: "HOME_SALON",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=1974&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=1974&auto=format&fit=crop",
+        displayOrder: 4,
+        active: true
+      },
+      {
+        name: "Waxing & Threading",
+        description: "RICA wax, full body waxing, pain-free threading, and body polishing.",
+        vertical: "HOME_SALON",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=2070&auto=format&fit=crop",
+        displayOrder: 5,
+        active: true
+      }
+    ]
   }
 ];
 
@@ -818,6 +880,168 @@ const servicesData = [
     ],
     providers: [
       { name: "Caring Hearts Elder Care", rating: 4.8, experience: "7 Years", location: "Patna", startingPrice: 8000, image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=1974&auto=format&fit=crop" }
+    ]
+  },
+  {
+    slug: "hair-styling-care",
+    name: "Hair Styling & Care",
+    shortDescription: "Expert hair styling, haircuts, and nourishing spa treatments at home",
+    fullDescription: "Transform your look with certified hairstylists. Includes haircut, blow dry, deep conditioning hair spa, hair coloring, keratin, and smoothening treatments using premium salon products.",
+    categoryGroup: "Home Salon & Beauty",
+    thumbnail: "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=2069&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=2069&auto=format&fit=crop",
+    gallery: [
+      "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=2070&auto=format&fit=crop"
+    ],
+    startingPrice: 499,
+    priceUnit: "per service",
+    rating: 4.9,
+    totalReviews: 210,
+    experience: "6 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["Haircut", "Hair Spa", "Hair Color", "Salon at Home"],
+    featured: true,
+    packages: [
+      { title: "Haircut & Blow Dry", price: 499, features: ["Styling Consultation", "Precision Haircut", "Blow Dry Styling"] },
+      { title: "Nourishing Hair Spa & Cut", price: 1299, features: ["Scalp Massage", "Deep Moisture Mask", "Steam Treatment", "Haircut & Blow Dry"] }
+    ],
+    faqs: [
+      { question: "Do salon professionals bring their own products?", answer: "Yes, our beauty professionals carry complete single-use disposable kits and branded products." }
+    ],
+    reviews: [
+      { userName: "Ananya Sharma", rating: 5, comment: "Super convenient and amazing haircut right at home!" }
+    ],
+    providers: [
+      { name: "Glamour Home Salon", rating: 4.9, experience: "6 Years", location: "Patna", startingPrice: 499, image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=2070&auto=format&fit=crop" }
+    ]
+  },
+  {
+    slug: "facial-cleanup",
+    name: "Facial & Cleanup",
+    shortDescription: "Glow & rejuvenation facials by expert beauticians",
+    fullDescription: "Restore natural radiance with customized facials: O3+ Whitening, Lotus Herbal, Cheryl's Glow, and Deep Cleansing cleanups tailored for your skin type.",
+    categoryGroup: "Home Salon & Beauty",
+    thumbnail: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=2070&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=2070&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 799,
+    priceUnit: "per session",
+    rating: 4.8,
+    totalReviews: 175,
+    experience: "5 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["Facial", "Cleanup", "Skincare", "Glow"],
+    featured: true,
+    packages: [
+      { title: "Fruit Cleanup & De-Tan", price: 799, features: ["Face Scrub", "Steam & Blackhead Removal", "De-Tan Pack"] },
+      { title: "O3+ Radiant Glow Facial", price: 1899, features: ["Skin Analysis", "O3+ D-Tan", "Micro-massage", "Vitamin C Serum", "Glow Mask"] }
+    ],
+    faqs: [
+      { question: "How long does the facial session take?", answer: "A standard cleanup takes 45 mins while an advanced facial takes 75 mins." }
+    ],
+    reviews: [
+      { userName: "Neha Gupta", rating: 5, comment: "My skin felt glowing immediately. Loved the massage!" }
+    ],
+    providers: [
+      { name: "Beautico At Home", rating: 4.8, experience: "5 Years", location: "Patna", startingPrice: 799, image: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=2070&auto=format&fit=crop" }
+    ]
+  },
+  {
+    slug: "bridal-party-makeup",
+    name: "Bridal & Party Makeup",
+    shortDescription: "HD Airbrush bridal makeup and party glam at your doorstep",
+    fullDescription: "Look stunning on your special occasion with celebrity makeup artists. HD Bridal Makeup, Engagement Look, Saree Draping, and Hair Artistry.",
+    categoryGroup: "Home Salon & Beauty",
+    thumbnail: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=2071&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=2071&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 2500,
+    priceUnit: "per event",
+    rating: 4.9,
+    totalReviews: 140,
+    experience: "8 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["Bridal Makeup", "Party Glam", "HD Makeup", "Airbrush"],
+    featured: true,
+    packages: [
+      { title: "Party Glam Makeup", price: 2500, features: ["HD Face Makeup", "Hair Styling", "Saree/Dupatta Draping", "Eyelashes"] },
+      { title: "Royal Bridal Airbrush Package", price: 12000, features: ["Airbrush HD Makeup", "Trial Session", "Bridal Hairstyle", "Jewelry & Outfit Draping", "Premium Lashes"] }
+    ],
+    faqs: [
+      { question: "Do you offer makeup trial sessions?", answer: "Yes, trial sessions are included in premium bridal packages." }
+    ],
+    reviews: [
+      { userName: "Pooja Roy", rating: 5, comment: "Flawless bridal makeup! Stayed fresh all night." }
+    ],
+    providers: [
+      { name: "Aura Bridal Studio", rating: 4.9, experience: "8 Years", location: "Patna", startingPrice: 2500, image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=2071&auto=format&fit=crop" }
+    ]
+  },
+  {
+    slug: "manicure-pedicure",
+    name: "Manicure & Pedicure",
+    shortDescription: "Luxurious spa manicure & pedicure at home",
+    fullDescription: "Pamper your hands and feet with relaxing spa manicure, foot reflexology massage, nail shaping, cuticle care, and gel polish.",
+    categoryGroup: "Home Salon & Beauty",
+    thumbnail: "https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=1974&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=1974&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 699,
+    priceUnit: "per session",
+    rating: 4.7,
+    totalReviews: 120,
+    experience: "4 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["Manicure", "Pedicure", "Spa", "Nail Care"],
+    featured: false,
+    packages: [
+      { title: "Classic Mani-Pedi Combo", price: 699, features: ["Soak & Scrub", "Nail Shaping", "Cuticle Care", "Massage & Polish"] },
+      { title: "Ice Cream Spa Mani-Pedi", price: 1299, features: ["Aroma Soak", "Exfoliating Scrub", "Crème Mask", "Deep Reflexology Massage", "Gel Polish"] }
+    ],
+    faqs: [
+      { question: "Is warm water required for Mani-Pedi?", answer: "Yes, the professional will use warm water from your home." }
+    ],
+    reviews: [
+      { userName: "Simran Kaur", rating: 5, comment: "Very soothing foot massage and neat nail polish." }
+    ],
+    providers: [
+      { name: "Urban Spa at Home", rating: 4.7, experience: "4 Years", location: "Patna", startingPrice: 699, image: "https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=1974&auto=format&fit=crop" }
+    ]
+  },
+  {
+    slug: "waxing-threading",
+    name: "Waxing & Threading",
+    shortDescription: "Hygienic RICA & Roll-On Waxing at home",
+    fullDescription: "Gentle, pain-free waxing services using RICA and Liposoluble wax for full body, legs, arms, and underarms with threading.",
+    categoryGroup: "Home Salon & Beauty",
+    thumbnail: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=2070&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=2070&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 399,
+    priceUnit: "per session",
+    rating: 4.8,
+    totalReviews: 190,
+    experience: "5 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["Waxing", "RICA Wax", "Threading", "Body Care"],
+    featured: false,
+    packages: [
+      { title: "Full Arms + Full Legs Waxing", price: 599, features: ["RICA Peel-off Wax", "Pre-Wax Oil", "Post-Wax Gel Lotion"] },
+      { title: "Full Body RICA Waxing Package", price: 1499, features: ["Full Arms", "Full Legs", "Underarms", "Full Back & Stomach", "Free Threading"] }
+    ],
+    faqs: [
+      { question: "Is RICA wax suitable for sensitive skin?", answer: "Yes, RICA colophony-free wax is specially recommended for sensitive skin." }
+    ],
+    reviews: [
+      { userName: "Ritu Verma", rating: 5, comment: "Painless RICA waxing experience at home. Highly recommend!" }
+    ],
+    providers: [
+      { name: "Glamour Home Salon", rating: 4.8, experience: "5 Years", location: "Patna", startingPrice: 399, image: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=2070&auto=format&fit=crop" }
     ]
   }
 ];

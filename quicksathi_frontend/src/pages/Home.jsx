@@ -89,11 +89,14 @@ const Home = () => {
 
   const getServiceLink = (name, subId) => {
     const match = services?.find(
-      (s) => s.name.toLowerCase() === name.toLowerCase(),
+      (s) =>
+        s.name.toLowerCase() === name.toLowerCase() ||
+        s.name.toLowerCase().includes(name.toLowerCase()) ||
+        name.toLowerCase().includes(s.name.toLowerCase())
     );
     const isRental = name.toLowerCase().includes("rental") || name.toLowerCase().includes("car") || name.toLowerCase().includes("bike");
     const prefix = isRental ? "/product" : "/service";
-    if (match) return `${prefix}/${match._id || match.id}`;
+    if (match) return `${prefix}/${match.slug || match._id || match.id}`;
     return `${prefix}/${subId}`;
   };
 

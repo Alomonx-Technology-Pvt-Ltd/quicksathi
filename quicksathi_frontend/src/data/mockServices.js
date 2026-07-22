@@ -1204,6 +1204,200 @@ name: "School Tuition",
   priceUnit: "per month",
   rating: 4.6,
   totalReviews: 54,
+  reviews: [
+    {
+      id: 1,
+      user: "Akash Verma",
+      rating: 5,
+      comment: "Best coaching experience.",
+    },
+  ],
+
+  providers: [
+    {
+      id: 14,
+      name: "Success Academy",
+      rating: 4.9,
+      experience: "10 Years",
+      location: "Pune",
+      startingPrice: 999,
+      image:
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1974&auto=format&fit=crop",
+    },
+  ],
+},
+{
+  id: 19,
+  slug: "language-classes",
+  name: "Language Classes",
+
+  shortDescription:
+    "Learn English, Hindi, Marathi, German, French and more.",
+
+  fullDescription:
+    "Master new languages with certified trainers through practical speaking sessions, grammar lessons, and interactive activities.",
+
+  categoryId: 15,
+  categoryName: "Home Tuition",
+
+  thumbnail: homeTuitionImg,
+  bannerImage: homeTuitionImg,
+  gallery: [homeTuitionImg],
+
+  startingPrice: 699,
+  priceUnit: "per session",
+
+  rating: 4.7,
+  totalReviews: 140,
+  experience: "7 Years",
+
+  available: true,
+  serviceMode: "BOTH",
+
+  tags: [
+    "English",
+    "French",
+    "German",
+    "Spoken English",
+  ],
+
+  featured: true,
+
+  packages: [
+    {
+      id: 1,
+      title: "Basic Language Course",
+      price: 699,
+      features: [
+        "Speaking Practice",
+        "Grammar",
+        "Vocabulary",
+      ],
+    },
+    {
+      id: 2,
+      title: "Advanced Fluency",
+      price: 1299,
+      features: [
+        "Conversation",
+        "Interview Preparation",
+        "Certification",
+      ],
+    },
+  ],
+
+  faqs: [
+    {
+      question: "Do you provide certificates?",
+      answer: "Yes, after successful course completion.",
+    },
+  ],
+
+  reviews: [
+    {
+      id: 1,
+      user: "Priya Patil",
+      rating: 5,
+      comment: "My spoken English improved a lot.",
+    },
+  ],
+
+  providers: [
+    {
+      id: 15,
+      name: "Speak Fluent Academy",
+      rating: 4.8,
+      experience: "7 Years",
+      location: "Pune",
+      startingPrice: 699,
+      image:
+        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1974&auto=format&fit=crop",
+    },
+  ],
+},
+{
+  id: 20,
+  slug: "maid-service",
+  name: "Maid Service",
+  shortDescription: "Daily cleaning, dusting, and sweeping services",
+  fullDescription: "Background-verified, professional, and reliable daily maid services for sweeping, mopping, utensil washing, and keeping your home clean and hygienic.",
+  categoryId: 20,
+  categoryName: "House Help",
+  thumbnail: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=2070&auto=format&fit=crop",
+  bannerImage: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=2070&auto=format&fit=crop",
+  gallery: [],
+  startingPrice: 2000,
+  priceUnit: "per month",
+  rating: 4.8,
+  totalReviews: 195,
+  experience: "4 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["Maid", "Cleaning", "Housekeeping", "Helper"],
+  featured: true,
+  packages: [
+    { id: 1, title: "Standard Housekeeping", price: 2000, features: ["Daily Sweeping & Mopping", "Utensil Washing", "Light dusting"] },
+    { id: 2, title: "Premium Full-Day Maid", price: 4500, features: ["All standard features", "Laundry & Ironing", "Kitchen cleaning", "Flexible hours"] }
+  ],
+  faqs: [
+    { question: "Are your maids background verified?", answer: "Yes, police verification and ID checks are completed for all partners." }
+  ],
+  reviews: [
+    { id: 1, user: "Deepak Joshi", rating: 5, comment: "Very punctual and cleans the house perfectly." }
+  ],
+  providers: [
+    { id: 20, name: "Homely Comfort Housekeepers", rating: 4.8, experience: "4 Years", location: "Patna", startingPrice: 2000, image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1974&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 21,
+  slug: "cooking-service",
+  name: "Cooking Service",
+  shortDescription: "Delicious home-cooked healthy meals",
+  fullDescription: "Hire highly experienced home cooks and professional chefs for preparation of hygienic, delicious, and customized home-cooked meals (Veg/Non-Veg) matching your taste.",
+  categoryId: 20,
+  categoryName: "House Help",
+  thumbnail: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2070&auto=format&fit=crop",
+  bannerImage: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2070&auto=format&fit=crop",
+  gallery: [],
+  startingPrice: 3000,
+  priceUnit: "per month",
+  rating: 4.7,
+  totalReviews: 124,
+  experience: "5 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["Cook", "Chef", "Food", "Kitchen"],
+  featured: true,
+  packages: [
+    { id: 1, title: "Single Meal Cook", price: 3000, features: ["Lunch or Dinner preparation", "Daily clean-up of cooktop", "Simple Indian Menus"] },
+    { id: 2, title: "Full Day Cook", price: 6000, features: ["Breakfast, Lunch, & Dinner prep", "Dietary adjustments (low salt/sugar)", "Up to 5 family members", "Snack prep support"] }
+  ],
+  faqs: [
+    { question: "Does the cook buy groceries?", answer: "Grocery shopping can be arranged at an additional cost, or you can provide materials." }
+  ],
+  reviews: [
+    { id: 1, user: "Sneha Kapoor", rating: 5, comment: "Cook makes excellent North Indian dishes. Very polite too." }
+  ],
+  providers: [
+    { id: 21, name: "Patna Foodies Kitchen Cooks", rating: 4.7, experience: "5 Years", location: "Patna", startingPrice: 3000, image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=2070&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 22,
+  slug: "babysitting-nanny",
+  name: "Babysitting / Nanny",
+  shortDescription: "Caring child care and babysitting services",
+  fullDescription: "Trained, gentle, and child-loving nannies and babysitters to support your family. Experienced in child feeding, playtime interaction, and maintaining a safe and clean environment for kids.",
+  categoryId: 20,
+  categoryName: "House Help",
+  thumbnail: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=2038&auto=format&fit=crop",
+  bannerImage: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=2038&auto=format&fit=crop",
+  gallery: [],
+  startingPrice: 5000,
+  priceUnit: "per month",
+  rating: 4.6,
+  totalReviews: 54,
   experience: "3 Years",
   available: true,
   serviceMode: "AT_HOME",
@@ -1255,6 +1449,178 @@ name: "School Tuition",
   ],
   providers: [
     { id: 23, name: "Caring Hearts Elder Care", rating: 4.8, experience: "7 Years", location: "Patna", startingPrice: 8000, image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=1974&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 24,
+  slug: "hair-styling-care",
+  name: "Hair Styling & Care",
+  shortDescription: "Expert hair styling, haircuts, and nourishing spa treatments at home",
+  fullDescription: "Transform your look with certified hairstylists. Includes haircut, blow dry, deep conditioning hair spa, hair coloring, keratin, and smoothening treatments using premium salon products.",
+  categoryId: 25,
+  categoryName: "Home Salon & Beauty",
+  thumbnail: "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=2069&auto=format&fit=crop",
+  bannerImage: "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=2069&auto=format&fit=crop",
+  gallery: [
+    "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=2070&auto=format&fit=crop"
+  ],
+  startingPrice: 499,
+  priceUnit: "per service",
+  rating: 4.9,
+  totalReviews: 210,
+  experience: "6 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["Haircut", "Hair Spa", "Hair Color", "Salon at Home"],
+  featured: true,
+  packages: [
+    { id: 1, title: "Haircut & Blow Dry", price: 499, features: ["Styling Consultation", "Precision Haircut", "Blow Dry Styling"] },
+    { id: 2, title: "Nourishing Hair Spa & Cut", price: 1299, features: ["Scalp Massage", "Deep Moisture Mask", "Steam Treatment", "Haircut & Blow Dry"] }
+  ],
+  faqs: [
+    { question: "Do salon professionals bring their own products?", answer: "Yes, our beauty professionals carry complete single-use disposable kits and branded products." }
+  ],
+  reviews: [
+    { id: 1, user: "Ananya Sharma", rating: 5, comment: "Super convenient and amazing haircut right at home!" }
+  ],
+  providers: [
+    { id: 24, name: "Glamour Home Salon", rating: 4.9, experience: "6 Years", location: "Patna", startingPrice: 499, image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=2070&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 25,
+  slug: "facial-cleanup",
+  name: "Facial & Cleanup",
+  shortDescription: "Glow & rejuvenation facials by expert beauticians",
+  fullDescription: "Restore natural radiance with customized facials: O3+ Whitening, Lotus Herbal, Cheryl's Glow, and Deep Cleansing cleanups tailored for your skin type.",
+  categoryId: 25,
+  categoryName: "Home Salon & Beauty",
+  thumbnail: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=2070&auto=format&fit=crop",
+  bannerImage: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=2070&auto=format&fit=crop",
+  gallery: [],
+  startingPrice: 799,
+  priceUnit: "per session",
+  rating: 4.8,
+  totalReviews: 175,
+  experience: "5 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["Facial", "Cleanup", "Skincare", "Glow"],
+  featured: true,
+  packages: [
+    { id: 1, title: "Fruit Cleanup & De-Tan", price: 799, features: ["Face Scrub", "Steam & Blackhead Removal", "De-Tan Pack"] },
+    { id: 2, title: "O3+ Radiant Glow Facial", price: 1899, features: ["Skin Analysis", "O3+ D-Tan", "Micro-massage", "Vitamin C Serum", "Glow Mask"] }
+  ],
+  faqs: [
+    { question: "How long does the facial session take?", answer: "A standard cleanup takes 45 mins while an advanced facial takes 75 mins." }
+  ],
+  reviews: [
+    { id: 1, user: "Neha Gupta", rating: 5, comment: "My skin felt glowing immediately. Loved the massage!" }
+  ],
+  providers: [
+    { id: 25, name: "Beautico At Home", rating: 4.8, experience: "5 Years", location: "Patna", startingPrice: 799, image: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=2070&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 26,
+  slug: "bridal-party-makeup",
+  name: "Bridal & Party Makeup",
+  shortDescription: "HD Airbrush bridal makeup and party glam at your doorstep",
+  fullDescription: "Look stunning on your special occasion with celebrity makeup artists. HD Bridal Makeup, Engagement Look, Saree Draping, and Hair Artistry.",
+  categoryId: 25,
+  categoryName: "Home Salon & Beauty",
+  thumbnail: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=2071&auto=format&fit=crop",
+  bannerImage: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=2071&auto=format&fit=crop",
+  gallery: [],
+  startingPrice: 2500,
+  priceUnit: "per event",
+  rating: 4.9,
+  totalReviews: 140,
+  experience: "8 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["Bridal Makeup", "Party Glam", "HD Makeup", "Airbrush"],
+  featured: true,
+  packages: [
+    { id: 1, title: "Party Glam Makeup", price: 2500, features: ["HD Face Makeup", "Hair Styling", "Saree/Dupatta Draping", "Eyelashes"] },
+    { id: 2, title: "Royal Bridal Airbrush Package", price: 12000, features: ["Airbrush HD Makeup", "Trial Session", "Bridal Hairstyle", "Jewelry & Outfit Draping", "Premium Lashes"] }
+  ],
+  faqs: [
+    { question: "Do you offer makeup trial sessions?", answer: "Yes, trial sessions are included in premium bridal packages." }
+  ],
+  reviews: [
+    { id: 1, user: "Pooja Roy", rating: 5, comment: "Flawless bridal makeup! Stayed fresh all night." }
+  ],
+  providers: [
+    { id: 26, name: "Aura Bridal Studio", rating: 4.9, experience: "8 Years", location: "Patna", startingPrice: 2500, image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=2071&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 27,
+  slug: "manicure-pedicure",
+  name: "Manicure & Pedicure",
+  shortDescription: "Luxurious spa manicure & pedicure at home",
+  fullDescription: "Pamper your hands and feet with relaxing spa manicure, foot reflexology massage, nail shaping, cuticle care, and gel polish.",
+  categoryId: 25,
+  categoryName: "Home Salon & Beauty",
+  thumbnail: "https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=1974&auto=format&fit=crop",
+  bannerImage: "https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=1974&auto=format&fit=crop",
+  gallery: [],
+  startingPrice: 699,
+  priceUnit: "per session",
+  rating: 4.7,
+  totalReviews: 120,
+  experience: "4 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["Manicure", "Pedicure", "Spa", "Nail Care"],
+  featured: false,
+  packages: [
+    { id: 1, title: "Classic Mani-Pedi Combo", price: 699, features: ["Soak & Scrub", "Nail Shaping", "Cuticle Care", "Massage & Polish"] },
+    { id: 2, title: "Ice Cream Spa Mani-Pedi", price: 1299, features: ["Aroma Soak", "Exfoliating Scrub", "Crème Mask", "Deep Reflexology Massage", "Gel Polish"] }
+  ],
+  faqs: [
+    { question: "Is warm water required for Mani-Pedi?", answer: "Yes, the professional will use warm water from your home." }
+  ],
+  reviews: [
+    { id: 1, user: "Simran Kaur", rating: 5, comment: "Very soothing foot massage and neat nail polish." }
+  ],
+  providers: [
+    { id: 27, name: "Urban Spa at Home", rating: 4.7, experience: "4 Years", location: "Patna", startingPrice: 699, image: "https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=1974&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 28,
+  slug: "waxing-threading",
+  name: "Waxing & Threading",
+  shortDescription: "Hygienic RICA & Roll-On Waxing at home",
+  fullDescription: "Gentle, pain-free waxing services using RICA and Liposoluble wax for full body, legs, arms, and underarms with threading.",
+  categoryId: 25,
+  categoryName: "Home Salon & Beauty",
+  thumbnail: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=2070&auto=format&fit=crop",
+  bannerImage: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=2070&auto=format&fit=crop",
+  gallery: [],
+  startingPrice: 399,
+  priceUnit: "per session",
+  rating: 4.8,
+  totalReviews: 190,
+  experience: "5 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["Waxing", "RICA Wax", "Threading", "Body Care"],
+  featured: false,
+  packages: [
+    { id: 1, title: "Full Arms + Full Legs Waxing", price: 599, features: ["RICA Peel-off Wax", "Pre-Wax Oil", "Post-Wax Gel Lotion"] },
+    { id: 2, title: "Full Body RICA Waxing Package", price: 1499, features: ["Full Arms", "Full Legs", "Underarms", "Full Back & Stomach", "Free Threading"] }
+  ],
+  faqs: [
+    { question: "Is RICA wax suitable for sensitive skin?", answer: "Yes, RICA colophony-free wax is specially recommended for sensitive skin." }
+  ],
+  reviews: [
+    { id: 1, user: "Ritu Verma", rating: 5, comment: "Painless RICA waxing experience at home. Highly recommend!" }
+  ],
+  providers: [
+    { id: 28, name: "Glamour Home Salon", rating: 4.8, experience: "5 Years", location: "Patna", startingPrice: 399, image: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=2070&auto=format&fit=crop" }
   ]
 }
 ];

@@ -24,39 +24,42 @@ const ServiceDetail = () => {
   const isNumericId = !isNaN(id) && !isNaN(parseInt(id));
 
   useEffect(() => {
-  const fetchService = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+    const fetchService = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      const { data } = await api.get(`/services/${id}`);
+        const { data } = await api.get(`/services/${id}`);
 
-      setService(data);
+        setService(data);
 
-    } catch (err) {
-      console.warn("Backend failed, checking mock data");
+      } catch (err) {
+        console.warn("Backend failed, checking mock data");
 
-      const match = mockServices.find(
-        (s) => String(s.id) === String(id)
-      );
-
-      if (match) {
-        setService(match);
-      } else {
-        setError(
-          err.response?.data?.message ||
-          "Service not found"
+        const match = mockServices.find(
+          (s) =>
+            String(s.id) === String(id) ||
+            s.slug === String(id) ||
+            s.name?.toLowerCase() === String(id).toLowerCase()
         );
+
+        if (match) {
+          setService(match);
+        } else {
+          setError(
+            err.response?.data?.message ||
+            "Service not found"
+          );
+        }
+
+      } finally {
+        setLoading(false);
       }
+    };
 
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchService();
 
-  fetchService();
-
-}, [id]);
+  }, [id]);
 
   if (loading)
     return (

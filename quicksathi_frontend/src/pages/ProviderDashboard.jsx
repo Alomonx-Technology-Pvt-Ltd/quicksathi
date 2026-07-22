@@ -60,6 +60,7 @@ const ProviderDashboard = () => {
   const [provider, setProvider] = useState(providerProfile);
   const [services, setServices] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [activeTab, setActiveTab] = useState("dashboard"); // "dashboard", "bookings", "listings"
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -71,7 +72,7 @@ const ProviderDashboard = () => {
   const [theme, setTheme] = useState(() => localStorage.getItem("provider-theme") || "dark");
 
   const [formData, setFormData] = useState({
-    name: "", shortDescription: "", fullDescription: "",
+    name: "", category: "", shortDescription: "", fullDescription: "",
     startingPrice: "", priceUnit: "per service", serviceMode: "ON_SITE",
     tags: "",
   });
@@ -83,14 +84,20 @@ const ProviderDashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [providerRes, servicesRes, bookingsRes] = await Promise.all([
+        const [providerRes, servicesRes, bookingsRes, categoriesRes] = await Promise.all([
           api.get("/providers/me"),
           api.get("/providers/services").catch(() => ({ data: [] })),
           api.get("/providers/bookings").catch(() => ({ data: [] })),
+          api.get("/categories").catch(() => ({ data: [] })),
         ]);
         setProvider(providerRes.data);
         setServices(servicesRes.data);
         setBookings(bookingsRes.data);
+        setCategories(categoriesRes.data);
+        if (providerRes.data?.category?._id || providerRes.data?.category) {
+          const catId = providerRes.data.category._id || providerRes.data.category;
+          setFormData((prev) => ({ ...prev, category: catId }));
+        }
       } catch (err) {
         console.error("Dashboard fetch error:", err);
       } finally {
@@ -138,17 +145,27 @@ const ProviderDashboard = () => {
     try {
       const { data } = await api.post("/providers/services", {
         ...formData,
+        category: formData.category || provider?.category?._id || provider?.category,
         startingPrice: Number(formData.startingPrice) || 0,
-        tags: formData.tags.split(",").map((t) => t.trim()).filter(Boolean),
+        tags: typeof formData.tags === "string" ? formData.tags.split(",").map((t) => t.trim()).filter(Boolean) : formData.tags,
         cities: selectedCities,
       });
       setServices((prev) => [data, ...prev]);
       setShowForm(false);
-      setFormData({ name: "", shortDescription: "", fullDescription: "", startingPrice: "", priceUnit: "per service", serviceMode: "ON_SITE", tags: "" });
+      setFormData({
+        name: "",
+        category: provider?.category?._id || provider?.category || "",
+        shortDescription: "",
+        fullDescription: "",
+        startingPrice: "",
+        priceUnit: "per service",
+        serviceMode: "ON_SITE",
+        tags: "",
+      });
       setSelectedCities([]);
       setMessage("Service listing submitted for admin approval!");
     } catch (err) {
-      setMessage(err.response?.data?.message || "Failed to submit service");
+      setMessage(err.response?.data?.message || err.message || "Failed to submit service");
     } finally {
       setSubmitting(false);
     }
@@ -696,17 +713,37 @@ const ProviderDashboard = () => {
                         Your listing will be reviewed by admin before it goes live on the website.
                       </p>
 
-                      <div>
-                        <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>Service Name *</label>
-                        <input
-                          name="name"
-                          value={formData.name}
-                          onChange={handleChange}
-                          required
-                          placeholder="e.g. Premium Wedding Photography"
-                          className="w-full px-4 py-3 rounded-xl text-sm border outline-none"
-                          style={inputStyle}
-                        />
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>Service Name *</label>
+                          <input
+                            name="name"
+                            value={formData.name}
+                            onChange={handleChange}
+                            required
+                            placeholder="e.g. Premium Wedding Photography"
+                            className="w-full px-4 py-3 rounded-xl text-sm border outline-none"
+                            style={inputStyle}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>Category *</label>
+                          <select
+                            name="category"
+                            value={formData.category}
+                            onChange={handleChange}
+                            required
+                            className="w-full px-4 py-3 rounded-xl text-sm border outline-none font-sans"
+                            style={inputStyle}
+                          >
+                            <option value="">Select Category...</option>
+                            {categories.map((cat) => (
+                              <option key={cat._id || cat.id} value={cat._id || cat.id}>
+                                {cat.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
 
                       <div>

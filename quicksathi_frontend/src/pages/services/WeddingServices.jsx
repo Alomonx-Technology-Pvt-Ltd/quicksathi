@@ -12,25 +12,25 @@ const SERVICES = [
     desc: "Explore top exclusive gardens, boutique venues, and historic palaces that match your celebrations dream palette.",
     image: venueImg,
     tag: "Popular",
-    link: "/service/101",
+    link: "/service/decoration",
   },
   {
     name: "Photography",
     desc: "Professional candid, cinematic shoots with premium editing.",
     image: photographyImg,
-    link: "/service/101",
+    link: "/service/photography",
   },
   {
     name: "Gourmet Catering",
     desc: "Multi-cuisine menus, live counters, and bespoke dining.",
     image: cateringImg,
-    link: "/service/103",
+    link: "/service/catering",
   },
   {
     name: "Floral & Décor",
     desc: "Transform your venue with stunning floral arrangements and thematic setups.",
     image: floralImg,
-    link: "/service/102",
+    link: "/service/decoration",
   },
 ];
 

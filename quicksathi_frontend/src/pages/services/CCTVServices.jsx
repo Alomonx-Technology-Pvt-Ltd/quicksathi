@@ -9,7 +9,7 @@ const PLANS = [
     features: ["2 High-Res Indoor Cameras", "Motion-activated Alerts", "Two-way Audio Communication"],
     cta: "Select Plan",
     color: "var(--color-bg-white)",
-    link: "/service/106",
+    link: "/service/home-cctv",
   },
   {
     name: "Commercial Pro",
@@ -19,7 +19,7 @@ const PLANS = [
     cta: "Get Quote",
     featured: true,
     color: "#1a408b",
-    link: "/service/106",
+    link: "/service/commercial-cctv",
   },
   {
     name: "Smart Kits",
@@ -28,7 +28,7 @@ const PLANS = [
     features: ["DIY Plug & Play Setup", "Customizable Sensor Modules", "Smart Home Integration", "Video Cloud Backup"],
     cta: "Shop Now",
     color: "var(--color-bg-white)",
-    link: "/service/105",
+    link: "/service/smart-locks",
   },
 ];
 

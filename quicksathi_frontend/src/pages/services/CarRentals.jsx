@@ -40,7 +40,7 @@ const CARS = [
     tags: ["WEDDING FAVOURITE", "AUTOMATIC"],
     featured: true,
     type: "Luxury",
-    link: "/product/111",
+    link: "/product/luxury-cars",
   },
   {
     name: "Range Rover Defender",
@@ -50,7 +50,7 @@ const CARS = [
     seats: 7,
     tags: ["OFF ROAD READY"],
     type: "SUVs",
-    link: "/product/111",
+    link: "/product/luxury-cars",
   },
   {
     name: "Audi A4 Executive",
@@ -59,7 +59,7 @@ const CARS = [
     price: 8000,
     tags: ["PETROL", "AUTO"],
     type: "Economy",
-    link: "/product/109",
+    link: "/product/car-rental",
   },
   {
     name: "Tesla Model 3",
@@ -68,7 +68,7 @@ const CARS = [
     price: 9500,
     tags: ["ELECTRIC", "FULL AUTOPILOT"],
     type: "Economy",
-    link: "/product/109",
+    link: "/product/car-rental",
   },
   {
     name: "Honda Civic Comfort",
@@ -77,7 +77,7 @@ const CARS = [
     price: 3500,
     tags: ["ECONOMY", "FUEL EFFICIENT"],
     type: "Economy",
-    link: "/product/109",
+    link: "/product/car-rental",
   },
 ];
 

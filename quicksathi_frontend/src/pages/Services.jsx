@@ -114,13 +114,20 @@ const Services = () => {
         return GraduationCap;
       case "HOUSE_HELP":
         return Sparkles;
+      case "HOME_SALON":
+        return Sparkles;
       default:
         return Camera;
     }
   };
 
   const findMatchedService = (subName) =>
-    services.find((s) => s.name.toLowerCase() === subName.toLowerCase());
+    services.find(
+      (s) =>
+        s.name.toLowerCase() === subName.toLowerCase() ||
+        s.name.toLowerCase().includes(subName.toLowerCase()) ||
+        subName.toLowerCase().includes(s.name.toLowerCase())
+    );
 
   const allSubCategories = categories.flatMap((cat) =>
     (cat.subCategories || []).map((sub) => {
@@ -130,7 +137,7 @@ const Services = () => {
         parentName: cat.name,
         parentId: cat._id,
         vertical: cat.vertical,
-        mongoServiceId: matched?._id ?? null,
+        mongoServiceId: matched?.slug ?? matched?._id ?? null,
         startingPrice: matched?.startingPrice ?? null,
         priceUnit: matched?.priceUnit ?? "per visit",
         rating: matched?.rating ?? null,

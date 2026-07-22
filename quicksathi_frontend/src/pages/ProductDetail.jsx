@@ -39,33 +39,34 @@ const ProductDetail = () => {
   const isNumericId = !isNaN(id) && !isNaN(parseInt(id));
 
   useEffect(() => {
-    if (isNumericId) {
-      Promise.resolve().then(() => {
-        const match = mockServices.find((s) => s.id === parseInt(id));
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const { data } = await api.get(`/services/${id}`);
+        setProduct(data);
+      } catch (err) {
+        console.warn("Backend failed or product not found, checking mock data");
+        const match = mockServices.find(
+          (s) =>
+            String(s.id) === String(id) ||
+            s.slug === String(id) ||
+            s.name?.toLowerCase() === String(id).toLowerCase()
+        );
+
         if (match) {
           setProduct(match);
-          setError(null);
         } else {
-          setError("Product not found");
+          setError(
+            err.response?.data?.message || err.message || "Product not found"
+          );
         }
+      } finally {
         setLoading(false);
-      });
-    } else {
-      const fetchProduct = async () => {
-        try {
-          setLoading(true);
-          setError(null);
-          const { data } = await api.get(`/services/${id}`);
-          setProduct(data);
-        } catch (err) {
-          setError(err.response?.data?.message || err.message || "Failed to fetch product details");
-        } finally {
-          setLoading(false);
-        }
-      };
-      fetchProduct();
-    }
-  }, [id, isNumericId]);
+      }
+    };
+    fetchProduct();
+  }, [id]);
 
   if (loading)
     return (

@@ -133,42 +133,70 @@ router.post("/services", protect, providerOnly, async (req, res) => {
 
     const {
       name, shortDescription, fullDescription,
-      categoryName, thumbnail, bannerImage, gallery,
-      startingPrice, priceUnit, serviceMode, tags, packages, faqs,
+      category, categoryName, thumbnail, bannerImage, gallery,
+      startingPrice, priceUnit, serviceMode, tags, packages, faqs, cities
     } = req.body;
 
-    // Auto-generate slug
-    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-    const existing = await Service.findOne({ slug });
-    if (existing) {
-      return res.status(400).json({ message: `A service with this name already exists` });
+    if (!name || !name.trim()) {
+      return res.status(400).json({ message: "Service name is required" });
+    }
+
+    // 1. Resolve Category & CategoryName safely
+    let categoryRef = category || provider.category;
+    let resolvedCategoryName = categoryName || provider.categoryName || "";
+
+    if (categoryRef && mongoose.Types.ObjectId.isValid(categoryRef)) {
+      const catObj = await Category.findById(categoryRef);
+      if (catObj) {
+        resolvedCategoryName = catObj.name;
+      }
+    }
+
+    // If categoryRef is still null/invalid, pick the first available Category in DB
+    if (!categoryRef || !mongoose.Types.ObjectId.isValid(categoryRef)) {
+      const firstCat = await Category.findOne({});
+      if (firstCat) {
+        categoryRef = firstCat._id;
+        resolvedCategoryName = firstCat.name;
+      }
+    }
+
+    // 2. Auto-generate a unique slug
+    let baseSlug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    if (!baseSlug) baseSlug = "service";
+
+    let slug = baseSlug;
+    let count = 1;
+    while (await Service.findOne({ slug })) {
+      slug = `${baseSlug}-${count++}`;
     }
 
     const service = await Service.create({
       slug,
-      name,
+      name: name.trim(),
       shortDescription: shortDescription || "",
       fullDescription: fullDescription || "",
-      category: provider.category,
-      categoryName: categoryName || provider.categoryName,
+      category: categoryRef,
+      categoryName: resolvedCategoryName || "General",
       thumbnail: thumbnail || "",
       bannerImage: bannerImage || "",
       gallery: gallery || [],
-      startingPrice: startingPrice || 0,
+      startingPrice: Number(startingPrice) || 0,
       priceUnit: priceUnit || "per service",
       serviceMode: serviceMode || "ON_SITE",
       tags: tags || [],
       packages: packages || [],
       faqs: faqs || [],
+      cities: cities || [],
       provider: provider._id,
       approvalStatus: "pending", // needs admin approval
       providers: [{
         provider: provider._id,
         name: provider.businessName,
-        rating: provider.rating,
-        experience: provider.experience,
+        rating: provider.rating || 5.0,
+        experience: provider.experience || "",
         location: provider.location?.city || "",
-        startingPrice: startingPrice || 0,
+        startingPrice: Number(startingPrice) || 0,
       }],
     });
 

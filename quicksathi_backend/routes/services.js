@@ -1,4 +1,5 @@
 import { Router } from "express";
+import mongoose from "mongoose";
 import Service from "../models/Service.js";
 import { protect } from "../middleware/auth.js";
 import { adminOnly } from "../middleware/admin.js";
@@ -50,10 +51,50 @@ router.get("/", async (req, res) => {
   }
 });
 
-// GET /api/services/:id — Get single service
+// GET /api/services/:id — Get single service (by Service ObjectId, SubCategory/Category ObjectId, slug, or name)
 router.get("/:id", async (req, res) => {
   try {
-    const service = await Service.findById(req.params.id);
+    const { id } = req.params;
+    let service = null;
+
+    // 1. Try finding by Service ObjectId
+    if (mongoose.Types.ObjectId.isValid(id)) {
+      service = await Service.findById(id);
+    }
+
+    // 2. Try finding by slug or exact name
+    if (!service) {
+      const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      service = await Service.findOne({
+        $or: [
+          { slug: id.toLowerCase() },
+          { name: { $regex: new RegExp(`^${escapedId}$`, "i") } },
+        ],
+      });
+    }
+
+    // 3. If ID is a SubCategory or Category ObjectId, find matching category/subCategory and retrieve its Service
+    if (!service && mongoose.Types.ObjectId.isValid(id)) {
+      const Category = (await import("../models/Category.js")).default;
+      const cat = await Category.findOne({
+        $or: [{ _id: id }, { "subCategories._id": id }],
+      });
+
+      if (cat) {
+        const sub = cat.subCategories?.id(id);
+        const searchName = sub ? sub.name : cat.name;
+        const escapedSearchName = searchName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+        service = await Service.findOne({
+          $or: [
+            { name: { $regex: new RegExp(escapedSearchName, "i") } },
+            { categoryName: { $regex: new RegExp(escapedSearchName, "i") } },
+            { category: cat._id },
+          ],
+        });
+      }
+    }
+
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
     }
