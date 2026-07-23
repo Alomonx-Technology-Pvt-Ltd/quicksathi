@@ -2,7 +2,19 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../config/api";
-import { Search, Shield, Car, PartyPopper, GraduationCap, Camera, ArrowRight, Star, BadgeCheck, Timer, Sparkles } from "lucide-react";
+import {
+  Search,
+  Shield,
+  Car,
+  PartyPopper,
+  GraduationCap,
+  Camera,
+  ArrowRight,
+  Star,
+  BadgeCheck,
+  Timer,
+  Sparkles,
+} from "lucide-react";
 import weddingImgg from "../assets/weddingImgg.avif";
 import carImg from "../assets/carImg.avif";
 import CCTVImg from "../assets/CCTVImg.avif";
@@ -57,8 +69,8 @@ const Services = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-    const filterSectionRef = useRef(null); 
-    const resultsSectionRef = useRef(null); 
+  const filterSectionRef = useRef(null);
+  const resultsSectionRef = useRef(null);
   const { city } = useLocation();
 
   // Fetch categories and services from backend — refetch when city changes
@@ -96,7 +108,10 @@ const Services = () => {
 
   // Build a service link using the service's _id from the backend
   const getServiceLink = (name, mongoId, subId) => {
-    const isRental = name.toLowerCase().includes("rental") || name.toLowerCase().includes("car") || name.toLowerCase().includes("bike");
+    const isRental =
+      name.toLowerCase().includes("rental") ||
+      name.toLowerCase().includes("car") ||
+      name.toLowerCase().includes("bike");
     const prefix = isRental ? "/product" : "/service";
     const id = mongoId || subId;
     return id ? `${prefix}/${id}` : "#";
@@ -126,7 +141,7 @@ const Services = () => {
       (s) =>
         s.name.toLowerCase() === subName.toLowerCase() ||
         s.name.toLowerCase().includes(subName.toLowerCase()) ||
-        subName.toLowerCase().includes(s.name.toLowerCase())
+        subName.toLowerCase().includes(s.name.toLowerCase()),
     );
 
   const allSubCategories = categories.flatMap((cat) =>
@@ -161,6 +176,8 @@ const Services = () => {
       return item.vertical === "HOME_TUITION" && matchesSearch;
     if (selectedFilter === "HOUSE_HELP")
       return item.vertical === "HOUSE_HELP" && matchesSearch;
+    if (selectedFilter === "HOME_SALON")
+      return item.vertical === "HOME_SALON" && matchesSearch;
 
     return matchesSearch;
   });
@@ -231,6 +248,7 @@ const Services = () => {
     { id: "SECURITY", label: "📹 Security" },
     { id: "HOME_TUITION", label: "📚 Home Tuition" },
     { id: "HOUSE_HELP", label: "🧹 House Help" },
+    { id: "HOME_SALON", label: "💄 Home Salon" },
   ];
 
   return (
@@ -320,7 +338,10 @@ const Services = () => {
                 backdropFilter: "blur(12px)",
               }}
             />
-            <Search size={16} className="absolute right-6 top-1/2 -translate-y-1/2 text-white/50" />
+            <Search
+              size={16}
+              className="absolute right-6 top-1/2 -translate-y-1/2 text-white/50"
+            />
           </motion.div>
         </div>
       </section>
@@ -689,8 +710,17 @@ const Services = () => {
                 exit={{ opacity: 0 }}
                 className="text-center py-12"
               >
-                <Search size={36} className="mx-auto text-neutral-400 mb-4 opacity-50" />
-                <p className="text-lg m-0" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+                <Search
+                  size={36}
+                  className="mx-auto text-neutral-400 mb-4 opacity-50"
+                />
+                <p
+                  className="text-lg m-0"
+                  style={{
+                    fontFamily: "var(--font-body)",
+                    color: "var(--color-text-mid)",
+                  }}
+                >
                   No services found matching your query.
                 </p>
               </motion.div>
@@ -989,6 +1019,6 @@ const Services = () => {
       </motion.section>
     </motion.div>
   );
-  };
+};
 
 export default Services;
