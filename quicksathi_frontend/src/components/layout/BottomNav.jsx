@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { Home, Info, Phone } from "lucide-react";
+import { Home, Grid, CalendarCheck, Phone } from "lucide-react";
 
 const BottomNav = () => {
   const navItems = [
@@ -10,9 +10,14 @@ const BottomNav = () => {
       icon: <Home size={22} strokeWidth={1.5} />,
     },
     {
-      to: "/about",
-      label: "About",
-      icon: <Info size={22} strokeWidth={1.5} />,
+      to: "/services",
+      label: "Services",
+      icon: <Grid size={22} strokeWidth={1.5} />,
+    },
+    {
+      to: "/my-bookings",
+      label: "My Bookings",
+      icon: <CalendarCheck size={22} strokeWidth={1.5} />,
     },
     {
       to: "/contact",
@@ -46,7 +51,7 @@ const BottomNav = () => {
             {icon}
           </div>
           <span
-            className="text-[9px] sm:text-[10px] font-medium tracking-wide"
+            className="text-[9px] sm:text-[10px] font-medium tracking-wide whitespace-nowrap"
             style={{ fontFamily: "var(--font-body)" }}
           >
             {label}

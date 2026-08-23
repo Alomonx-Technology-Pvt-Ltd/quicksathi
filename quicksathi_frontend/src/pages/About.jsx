@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ShieldCheck, Clock, CreditCard, Handshake } from "lucide-react";
+import AboutSection from "./AboutSection";
 
 const stats = [
   { value: "10K+", label: "Happy Customers" },
@@ -166,6 +167,8 @@ const About = () => {
           </div>
         ))}
       </div>
+
+      <AboutSection style={{ backgroundColor: "var(--color-bg-soft)" }} />
 
       {/* ── Our Story ── */}
       <section className="px-4 sm:px-8 lg:px-16 py-20 sm:py-28 max-w-7xl mx-auto">

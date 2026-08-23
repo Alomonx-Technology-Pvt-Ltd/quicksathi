@@ -71,6 +71,12 @@ const ProviderDashboard = () => {
   // Theme Switcher matching Admin Panel theme
   const [theme, setTheme] = useState(() => localStorage.getItem("provider-theme") || "dark");
 
+  const inputStyle = {
+    backgroundColor: "var(--admin-bg-input)",
+    borderColor: "var(--admin-border)",
+    color: "var(--admin-text-primary)",
+  };
+
   const [formData, setFormData] = useState({
     name: "", category: "", shortDescription: "", fullDescription: "",
     startingPrice: "", priceUnit: "per service", serviceMode: "ON_SITE",
@@ -140,6 +146,21 @@ const ProviderDashboard = () => {
 
   const handleSubmitService = async (e) => {
     e.preventDefault();
+    console.log("handleSubmitService triggered", formData);
+    
+    if (!formData.name?.trim()) {
+      setMessage("Service Name is required");
+      return;
+    }
+    if (!formData.shortDescription?.trim()) {
+      setMessage("Short Description is required");
+      return;
+    }
+    if (!formData.startingPrice) {
+      setMessage("Starting Price is required");
+      return;
+    }
+    
     setSubmitting(true);
     setMessage("");
     try {
@@ -295,10 +316,10 @@ const ProviderDashboard = () => {
       </aside>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto h-screen">
+      <div className="flex-1 flex flex-col min-w-0">
         {/* Top Header bar (With Theme Switcher) */}
         <header
-          className="h-16 flex items-center justify-between px-6 sm:px-8 border-b flex-shrink-0 admin-transition"
+          className="h-16 flex items-center justify-between px-6 sm:px-8 border-b flex-shrink-0 admin-transition sticky top-0 z-40"
           style={{ borderColor: "var(--admin-border)", backgroundColor: "var(--admin-bg-sidebar)" }}
         >
           <div className="md:hidden flex items-center gap-2">
@@ -369,7 +390,7 @@ const ProviderDashboard = () => {
         </header>
 
         {/* Content Body */}
-        <div className="flex-1 px-6 sm:px-8 py-8">
+        <div className="flex-1 px-6 sm:px-8 py-8 pb-32">
           {/* Header Title */}
           <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
@@ -411,9 +432,9 @@ const ProviderDashboard = () => {
             <div
               className="px-4 py-3 rounded-xl text-sm mb-6 border"
               style={{
-                backgroundColor: message.includes("Failed") ? "rgba(239,68,68,0.06)" : "rgba(34,197,94,0.06)",
-                borderColor: message.includes("Failed") ? "rgba(239,68,68,0.15)" : "rgba(34,197,94,0.15)",
-                color: message.includes("Failed") ? "#ef4444" : "#22c55e",
+                backgroundColor: (message.includes("Failed") || message.includes("required")) ? "rgba(239,68,68,0.06)" : "rgba(34,197,94,0.06)",
+                borderColor: (message.includes("Failed") || message.includes("required")) ? "rgba(239,68,68,0.15)" : "rgba(34,197,94,0.15)",
+                color: (message.includes("Failed") || message.includes("required")) ? "#ef4444" : "#22c55e",
               }}
             >
               {message}
@@ -720,7 +741,6 @@ const ProviderDashboard = () => {
                             name="name"
                             value={formData.name}
                             onChange={handleChange}
-                            required
                             placeholder="e.g. Premium Wedding Photography"
                             className="w-full px-4 py-3 rounded-xl text-sm border outline-none"
                             style={inputStyle}
@@ -732,7 +752,6 @@ const ProviderDashboard = () => {
                             name="category"
                             value={formData.category}
                             onChange={handleChange}
-                            required
                             className="w-full px-4 py-3 rounded-xl text-sm border outline-none font-sans"
                             style={inputStyle}
                           >
@@ -752,7 +771,6 @@ const ProviderDashboard = () => {
                           name="shortDescription"
                           value={formData.shortDescription}
                           onChange={handleChange}
-                          required
                           placeholder="Brief description"
                           className="w-full px-4 py-3 rounded-xl text-sm border outline-none"
                           style={inputStyle}
@@ -780,7 +798,6 @@ const ProviderDashboard = () => {
                             type="number"
                             value={formData.startingPrice}
                             onChange={handleChange}
-                            required
                             placeholder="e.g. 5000"
                             className="w-full px-4 py-3 rounded-xl text-sm border outline-none"
                             style={inputStyle}
@@ -834,7 +851,7 @@ const ProviderDashboard = () => {
                       </div>
 
                       {/* Cities checkboxes for Location feature */}
-                      <div>
+                      <div className="mb-6">
                         <label className="block text-xs font-semibold uppercase tracking-wider mb-2 font-bold" style={{ color: "var(--admin-text-secondary)" }}>
                           📍 Operating Location Cities (leave empty for all cities)
                         </label>
@@ -884,14 +901,16 @@ const ProviderDashboard = () => {
                       <button
                         type="submit"
                         disabled={submitting}
-                        className="w-full py-3.5 rounded-2xl text-sm font-semibold border-0 cursor-pointer transition-all hover:opacity-90 mt-2 font-sans"
+                        className="w-full py-4 rounded-2xl text-sm font-bold border-0 cursor-pointer transition-all mt-4"
                         style={{
-                          backgroundColor: "var(--color-primary)",
-                          color: "#fff",
-                          opacity: submitting ? 0.7 : 1,
+                          backgroundColor: "#ff0000",
+                          color: "#ffffff",
+                          display: "block",
+                          minHeight: "50px",
+                          boxShadow: "0 0 10px rgba(255,0,0,0.5)"
                         }}
                       >
-                        {submitting ? "Submitting..." : "Submit Listing Request"}
+                        {submitting ? "Submitting..." : "SUBMIT THIS SERVICE (CLICK HERE)"}
                       </button>
                     </form>
                   )}

@@ -4,9 +4,13 @@
   "description": "QuickSathi MVP Backend — MongoDB + Express",
   "main": "server.js",
   "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "start": "node server.js",
     "dev": "node --watch server.js",
+    "build": "echo 'No build step required'",
     "seed": "node seed/seedData.js"
   },
   "dependencies": {

@@ -5,11 +5,12 @@ import api from "../config/api";
 import Card from "../components/common/Card";
 import Hero from "../components/Hero";
 import { Link, useNavigate } from "react-router-dom";
-import AboutSection from "./AboutSection";
 import { mockCategories } from "../data/mockCategories";
 import { mockServices } from "../data/mockServices";
 import LocationBanner from "../components/common/LocationBanner";
 import { useLocation } from "../context/LocationContext";
+
+import QuickServicesSection from "../components/QuickServicesSection";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -155,11 +156,8 @@ const Home = () => {
         categories={categories}
         style={{ backgroundColor: "var(--color-bg)" }}
       />
+      <QuickServicesSection categories={categories} services={services} />
       <LocationBanner />
-      <AboutSection
-        categories={categories}
-        style={{ backgroundColor: "var(--color-bg-soft)" }}
-      />
 
       <section className="px-4 sm:px-8 lg:px-16 py-12">
         {/* Section header — stacks on mobile */}

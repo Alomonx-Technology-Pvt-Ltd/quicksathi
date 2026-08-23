@@ -144,21 +144,52 @@ const Services = () => {
         subName.toLowerCase().includes(s.name.toLowerCase()),
     );
 
-  const allSubCategories = categories.flatMap((cat) =>
-    (cat.subCategories || []).map((sub) => {
-      const matched = findMatchedService(sub.name);
-      return {
-        ...sub,
-        parentName: cat.name,
-        parentId: cat._id,
-        vertical: cat.vertical,
-        mongoServiceId: matched?.slug ?? matched?._id ?? null,
-        startingPrice: matched?.startingPrice ?? null,
-        priceUnit: matched?.priceUnit ?? "per visit",
-        rating: matched?.rating ?? null,
-      };
-    }),
-  );
+  const allSubCategories = [
+    ...categories.flatMap((cat) =>
+      (cat.subCategories || []).map((sub) => {
+        const matched = findMatchedService(sub.name);
+        return {
+          ...sub,
+          parentName: cat.name,
+          parentId: cat._id,
+          vertical: cat.vertical,
+          mongoServiceId: matched?.slug ?? matched?._id ?? null,
+          startingPrice: matched?.startingPrice ?? null,
+          priceUnit: matched?.priceUnit ?? "per visit",
+          rating: matched?.rating ?? null,
+        };
+      })
+    ),
+    ...services
+      .filter((s) => {
+        // Only include services that haven't been matched to an existing subcategory
+        return !categories.some((cat) =>
+          (cat.subCategories || []).some(
+            (sub) =>
+              s.name.toLowerCase() === sub.name.toLowerCase() ||
+              s.name.toLowerCase().includes(sub.name.toLowerCase()) ||
+              sub.name.toLowerCase().includes(s.name.toLowerCase())
+          )
+        );
+      })
+      .map((s) => {
+        // Find parent category to inherit styles/verticals
+        const parentCat =
+          categories.find((c) => c._id === s.category || c.id === s.category) || {};
+        return {
+          _id: s._id,
+          name: s.name,
+          description: s.shortDescription || s.fullDescription || "Professional Service",
+          parentName: parentCat.name || s.categoryName || "General",
+          parentId: parentCat._id || s.category || null,
+          vertical: parentCat.vertical || "OTHER",
+          mongoServiceId: s.slug || s._id,
+          startingPrice: s.startingPrice || 0,
+          priceUnit: s.priceUnit || "per service",
+          rating: s.rating || 5.0,
+        };
+      })
+  ];
 
   const filteredServices = allSubCategories.filter((item) => {
     const matchesSearch =
@@ -598,8 +629,8 @@ const Services = () => {
       >
         {/* ============ LOADING STATE ============ */}
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 md:gap-8">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
+            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
               <div
                 key={i}
                 className="rounded-[28px] overflow-hidden animate-pulse"
@@ -610,7 +641,7 @@ const Services = () => {
                 }}
               >
                 <div
-                  className="h-[200px] sm:h-[220px] lg:h-[240px]"
+                  className="h-[160px] sm:h-[180px] lg:h-[190px]"
                   style={{ backgroundColor: "rgba(139,26,26,0.04)" }}
                 />
                 <div className="p-6 sm:p-7 space-y-4">
@@ -735,7 +766,7 @@ const Services = () => {
                   hidden: {},
                   visible: { transition: { staggerChildren: 0.06 } },
                 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 md:gap-8"
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6"
               >
                 {filteredServices.map((item) => (
                   <motion.div
@@ -784,7 +815,7 @@ const Services = () => {
                     </span>
 
                     {/* ============ IMAGE ============ */}
-                    <div className="relative overflow-hidden h-[200px] sm:h-[220px] lg:h-[240px]">
+                    <div className="relative overflow-hidden h-[160px] sm:h-[180px] lg:h-[190px]">
                       <img
                         src={item.imageUrl}
                         alt={item.name}
@@ -794,9 +825,9 @@ const Services = () => {
                     </div>
 
                     {/* ============ CONTENT ============ */}
-                    <div className="relative p-5 sm:p-6 lg:p-7 flex flex-col flex-1">
+                    <div className="relative p-4 sm:p-5 flex flex-col flex-1">
                       <h3
-                        className="m-0 mb-2.5 font-normal text-base sm:text-lg md:text-xl tracking-tight text-[var(--color-text-dark)]"
+                        className="m-0 mb-3 font-normal text-base sm:text-lg tracking-tight text-[var(--color-text-dark)] line-clamp-1"
                         style={{
                           fontFamily: "var(--font-display)",
                           letterSpacing: "-0.02em",
@@ -804,16 +835,6 @@ const Services = () => {
                       >
                         {item.name}
                       </h3>
-                      <p
-                        className="m-0 mb-5 text-[10px] sm:text-xs leading-relaxed flex-1 text-[var(--color-text-mid)] line-clamp-2 sm:line-clamp-3"
-                        style={{
-                          fontFamily: "var(--font-body)",
-                          opacity: 0.8,
-                          lineHeight: "1.7",
-                        }}
-                      >
-                        {item.description}
-                      </p>
 
                       {/* ============ METADATA ROW ============ */}
                       <div

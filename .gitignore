@@ -1,6 +1,6 @@
 # ── QuickSathi Monorepo Root .gitignore ──
 
-# OS artifacts
+# ── OS artifacts ──
 .DS_Store
 .DS_Store?
 ._*
@@ -10,32 +10,46 @@ ehthumbs.db
 Thumbs.db
 Desktop.ini
 
-# Editor/IDE directories
+# ── Editor / IDE ──
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# Logs
+# ── Logs ──
 *.log
 logs/
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
 
-# Dependency directories (handled per-subproject, but belt-and-suspenders)
+# ── Dependencies ──
 node_modules/
 
-# Environment files (security — handled per-subproject too)
+# ── Environment files (SECURITY — handled per-subproject too) ──
+# NEVER commit real .env files — they contain secrets!
 .env
 .env.local
+.env.production
+.env.staging
 .env.*.local
 
-# Build output
+# ── Firebase Service Account JSON (contains private key) ──
+**/config/firebase-service-account.json
+
+# ── Build output ──
 dist/
 dist-ssr/
 build/
 
-# Deploy artifacts (generated, not source)
+# ── Deploy artifacts (generated, not source) ──
 quicksathi_deploy/
+
+# ── Uploaded / generated files ──
+uploads/
+coverage/
+*.lcov

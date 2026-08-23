@@ -19,6 +19,23 @@ const AdminUsers = () => {
   const [selectedRole, setSelectedRole] = useState("ALL");
   const [actioningId, setActioningId] = useState(null);
 
+  const [success, setSuccess] = useState("");
+  const [error, setError] = useState("");
+
+  const showMessage = (msg, isError = false) => {
+    if (isError) {
+      setError(msg);
+      setSuccess("");
+    } else {
+      setSuccess(msg);
+      setError("");
+    }
+    setTimeout(() => {
+      setSuccess("");
+      setError("");
+    }, 4000);
+  };
+
   const fetchUsers = async () => {
     try {
       setLoading(true);
@@ -26,6 +43,7 @@ const AdminUsers = () => {
       setUsers(data);
     } catch (err) {
       console.error("Failed to fetch users:", err);
+      showMessage("Failed to load users", true);
     } finally {
       setLoading(false);
     }
@@ -40,13 +58,14 @@ const AdminUsers = () => {
   const handleRoleChange = async (userId, newRole) => {
     setActioningId(userId);
     try {
-      await api.patch(`/admin/users/${userId}/role`, { role: newRole });
+      const { data } = await api.patch(`/admin/users/${userId}/role`, { role: newRole });
       setUsers((prev) =>
-        prev.map((u) => (u._id === userId ? { ...u, role: newRole } : u))
+        prev.map((u) => (u._id === userId ? { ...u, role: data.user.role } : u))
       );
+      showMessage(`User role updated to ${data.user.role}`);
     } catch (err) {
       console.error("Failed to update user role:", err);
-      alert(err.response?.data?.message || "Failed to update role");
+      showMessage(err.response?.data?.message || "Failed to update role", true);
     } finally {
       setActioningId(null);
     }
@@ -86,8 +105,8 @@ const AdminUsers = () => {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-20">
         <div className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin"
-          style={{ borderColor: "rgba(255,255,255,0.06)", borderTopColor: "var(--color-primary)" }} />
-        <span className="text-xs text-muted" style={{ color: "rgba(255,255,255,0.3)" }}>Loading user list...</span>
+          style={{ borderColor: "var(--color-border)", borderTopColor: "var(--color-primary)" }} />
+        <span className="text-xs" style={{ color: "var(--color-text-mid)" }}>Loading user list...</span>
       </div>
     );
   }
@@ -101,20 +120,24 @@ const AdminUsers = () => {
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "var(--font-display)" }}>User Accounts</h1>
-          <p className="text-sm m-0" style={{ fontFamily: "var(--font-body)", color: "rgba(255,255,255,0.35)" }}>
+          <h1 className="text-2xl font-bold mb-1" style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}>User Accounts</h1>
+          <p className="text-sm m-0" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
             Monitor registrations, assign roles, and audit access permissions.
           </p>
         </div>
         
         {/* Statistics badge */}
         <div className="flex gap-4">
-          <div className="px-5 py-2.5 rounded-2xl border flex flex-col items-center" style={{ backgroundColor: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.06)" }}>
-            <span className="text-[10px] uppercase font-bold" style={{ color: "rgba(255,255,255,0.35)", fontFamily: "var(--font-body)" }}>Total Users</span>
-            <span className="text-lg font-bold text-white mt-0.5">{users.length}</span>
+          <div className="px-5 py-2.5 rounded-2xl border flex flex-col items-center" style={{ backgroundColor: "var(--color-bg-soft)", borderColor: "var(--color-border)" }}>
+            <span className="text-[10px] uppercase font-bold" style={{ color: "var(--color-text-mid)", fontFamily: "var(--font-body)" }}>Total Users</span>
+            <span className="text-lg font-bold mt-0.5" style={{ color: "var(--color-text-dark)" }}>{users.length}</span>
           </div>
         </div>
       </div>
+
+      {/* Messages */}
+      {success && <div className="px-4 py-3 rounded-xl text-sm mb-4" style={{ backgroundColor: "rgba(34,197,94,0.1)", color: "#22c55e", border: "1px solid rgba(34,197,94,0.2)", fontFamily: "var(--font-body)" }}>{success}</div>}
+      {error && <div className="px-4 py-3 rounded-xl text-sm mb-4" style={{ backgroundColor: "rgba(239,68,68,0.1)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.2)", fontFamily: "var(--font-body)" }}>{error}</div>}
 
       {/* Utilities panel */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6 items-stretch sm:items-center justify-between">
@@ -125,14 +148,15 @@ const AdminUsers = () => {
             placeholder="Search by name or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-5 py-3 pr-10 rounded-2xl border outline-none text-white text-sm"
+            className="w-full px-5 py-3 pr-10 rounded-2xl border outline-none text-sm"
             style={{
               fontFamily: "var(--font-body)",
-              backgroundColor: "rgba(255,255,255,0.04)",
-              borderColor: "rgba(255,255,255,0.08)",
+              backgroundColor: "var(--color-bg-soft)",
+              borderColor: "var(--color-border)",
+              color: "var(--color-text-dark)",
             }}
           />
-          <Search size={14} className="absolute right-5 top-1/2 -translate-y-1/2 text-white/30" />
+          <Search size={14} className="absolute right-5 top-1/2 -translate-y-1/2" style={{ color: "var(--color-text-mid)" }} />
         </div>
 
         {/* Role Pills */}
@@ -144,9 +168,9 @@ const AdminUsers = () => {
               className="px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer transition-all border"
               style={{
                 fontFamily: "var(--font-body)",
-                backgroundColor: selectedRole === role ? "var(--color-primary)" : "rgba(255,255,255,0.02)",
-                color: selectedRole === role ? "#fff" : "rgba(255,255,255,0.45)",
-                borderColor: selectedRole === role ? "var(--color-primary)" : "rgba(255,255,255,0.06)",
+                backgroundColor: selectedRole === role ? "var(--color-primary)" : "var(--color-bg-soft)",
+                color: selectedRole === role ? "#fff" : "var(--color-text-mid)",
+                borderColor: selectedRole === role ? "var(--color-primary)" : "var(--color-border)",
               }}
             >
               {role}
@@ -156,13 +180,13 @@ const AdminUsers = () => {
       </div>
 
       {/* Users table */}
-      <div className="rounded-3xl border overflow-hidden" style={{ backgroundColor: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}>
+      <div className="rounded-3xl border overflow-hidden" style={{ backgroundColor: "var(--color-bg-soft)", borderColor: "var(--color-border)" }}>
         <div className="overflow-x-auto">
           <table className="w-full text-left" style={{ fontFamily: "var(--font-body)" }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <tr style={{ borderBottom: "1px solid var(--color-border)" }}>
                 {["User Details", "Role Status", "Joined Date", "Role Actions"].map((h) => (
-                  <th key={h} className="px-6 py-4.5 text-xs font-bold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.3)" }}>
+                  <th key={h} className="px-6 py-4 text-xs font-bold uppercase tracking-wider" style={{ color: "var(--color-text-mid)" }}>
                     {h}
                   </th>
                 ))}
@@ -177,8 +201,8 @@ const AdminUsers = () => {
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}
-                      className="hover:bg-white/[0.01] transition-all"
+                      style={{ borderBottom: "1px solid var(--color-border)" }}
+                      className="transition-all"
                     >
                       {/* Name & Email */}
                       <td className="px-6 py-4 flex items-center gap-3">
@@ -187,8 +211,8 @@ const AdminUsers = () => {
                           {u.name ? u.name[0].toUpperCase() : "?"}
                         </div>
                         <div>
-                          <p className="m-0 text-sm font-semibold text-white">{u.name || "Unnamed User"}</p>
-                          <p className="m-0 text-xs" style={{ color: "rgba(255,255,255,0.3)" }}>{u.email}</p>
+                          <p className="m-0 text-sm font-semibold" style={{ color: "var(--color-text-dark)" }}>{u.name || "Unnamed User"}</p>
+                          <p className="m-0 text-xs" style={{ color: "var(--color-text-mid)" }}>{u.email}</p>
                         </div>
                       </td>
 
@@ -206,63 +230,64 @@ const AdminUsers = () => {
                       </td>
 
                       {/* Joined Date */}
-                      <td className="px-6 py-4 text-xs" style={{ color: "rgba(255,255,255,0.4)" }}>
+                      <td className="px-6 py-4 text-xs" style={{ color: "var(--color-text-mid)" }}>
                         {u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}
                       </td>
 
                       {/* Actions */}
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          {/* Role toggles */}
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {/* Make Admin */}
                           {u.role !== "admin" && (
                             <button
                               disabled={actioningId === u._id}
                               onClick={() => handleRoleChange(u._id, "admin")}
-                              className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase cursor-pointer border hover:bg-white/5 transition-all text-white"
-                              style={{ borderColor: "rgba(255,255,255,0.1)", backgroundColor: "transparent" }}
+                              className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase cursor-pointer transition-all hover:opacity-80"
+                              style={{ backgroundColor: "rgba(99,102,241,0.15)", color: "var(--admin-text-primary)", border: "1px solid rgba(99,102,241,0.4)" }}
                             >
                               Make Admin
                             </button>
                           )}
+                          {/* Revoke Admin */}
                           {u.role === "admin" && u._id !== currentAdmin?._id && (
                             <button
                               disabled={actioningId === u._id}
                               onClick={() => handleRoleChange(u._id, "client")}
-                              className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase cursor-pointer border hover:bg-white/5 transition-all"
-                              style={{ borderColor: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", backgroundColor: "transparent" }}
+                              className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase cursor-pointer transition-all hover:opacity-80"
+                              style={{ backgroundColor: "var(--admin-bg-input)", color: "var(--admin-text-secondary)", border: "1px solid var(--admin-border-focus)" }}
                             >
                               Revoke Admin
                             </button>
                           )}
-
+                          {/* Make Provider */}
                           {u.role !== "provider" && u.role !== "admin" && (
                             <button
                               disabled={actioningId === u._id}
                               onClick={() => handleRoleChange(u._id, "provider")}
-                              className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase cursor-pointer border hover:bg-white/5 transition-all text-white"
-                              style={{ borderColor: "rgba(255,255,255,0.1)", backgroundColor: "transparent" }}
+                              className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase cursor-pointer transition-all hover:opacity-80"
+                              style={{ backgroundColor: "rgba(34,197,94,0.15)", color: "var(--admin-text-primary)", border: "1px solid rgba(34,197,94,0.4)" }}
                             >
                               Make Provider
                             </button>
                           )}
+                          {/* Revoke Provider */}
                           {u.role === "provider" && (
                             <button
                               disabled={actioningId === u._id}
                               onClick={() => handleRoleChange(u._id, "client")}
-                              className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase cursor-pointer border hover:bg-white/5 transition-all"
-                              style={{ borderColor: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)", backgroundColor: "transparent" }}
+                              className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase cursor-pointer transition-all hover:opacity-80"
+                              style={{ backgroundColor: "var(--admin-bg-input)", color: "var(--admin-text-secondary)", border: "1px solid var(--admin-border-focus)" }}
                             >
                               Revoke Provider
                             </button>
                           )}
-                          
-                          {/* Delete user */}
+                          {/* Delete */}
                           {u._id !== currentAdmin?._id && (
                             <button
                               disabled={actioningId === u._id}
                               onClick={() => handleDeleteUser(u._id)}
-                              className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase cursor-pointer border transition-all hover:bg-red-500/10"
-                              style={{ borderColor: "rgba(239,68,68,0.2)", color: "#ef4444", backgroundColor: "transparent" }}
+                              className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase cursor-pointer transition-all hover:opacity-80"
+                              style={{ backgroundColor: "rgba(239,68,68,0.15)", color: "var(--admin-text-primary)", border: "1px solid rgba(239,68,68,0.5)" }}
                             >
                               Delete
                             </button>
@@ -273,7 +298,7 @@ const AdminUsers = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} className="px-6 py-12 text-center text-sm" style={{ color: "rgba(255,255,255,0.3)" }}>
+                    <td colSpan={4} className="px-6 py-12 text-center text-sm" style={{ color: "var(--color-text-mid)" }}>
                       No registered users found.
                     </td>
                   </tr>

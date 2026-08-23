@@ -49,6 +49,7 @@ router.get("/", protect, async (req, res) => {
 
     const bookings = await Booking.find(filter)
       .populate("service", "name thumbnail startingPrice")
+      .populate("provider", "businessName phone email")
       .sort("-createdAt");
 
     res.json(bookings);

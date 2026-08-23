@@ -17,6 +17,8 @@ dist-ssr
 # ── Local env files (NEVER commit these) ──
 .env
 .env.local
+.env.production
+.env.staging
 .env.*.local
 *.local
 

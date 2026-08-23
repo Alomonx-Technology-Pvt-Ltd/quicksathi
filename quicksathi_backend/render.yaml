@@ -1,0 +1,98 @@
+# render.yaml — Render deployment configuration for QuickSathi Backend
+# Docs: https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: quicksathi-backend
+    runtime: node
+    region: oregon   # or: frankfurt, singapore — pick closest to your users
+    plan: free       # change to: starter, standard, etc. for production
+
+    # ── Build & Start ──
+    buildCommand: npm install
+    startCommand: npm start
+
+    # ── Health Check ──
+    # Render pings this URL to confirm the service is healthy after deploy
+    healthCheckPath: /api/health
+
+    # ── Environment Variables ──
+    # Set these in the Render dashboard: https://dashboard.render.com
+    # → Your Service → Environment → Add Environment Variable
+    #
+    # DO NOT put real secret values here — this file is committed to git.
+    # The "value" fields below are just documentation placeholders.
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      - key: PORT
+        value: 5000
+
+      # MongoDB Atlas connection string
+      # ⚠️  Include the database name before '?':
+      #     mongodb+srv://user:pass@cluster.mongodb.net/quicksathi?appName=...
+      - key: MONGODB_URI
+        sync: false   # means: set this manually in Render dashboard
+
+      # JWT
+      - key: JWT_SECRET
+        sync: false   # REQUIRED — use a strong random string in production
+
+      - key: JWT_EXPIRES_IN
+        value: 7d
+
+      # Frontend URL (your Vercel URL) — used for CORS
+      - key: CLIENT_URL
+        sync: false   # e.g. https://quicksathi.vercel.app
+
+      # Admin emails (comma-separated)
+      - key: ADMIN_EMAILS
+        sync: false
+
+      # Firebase Admin SDK (copy from your service account JSON)
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false   # paste the full -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- string
+
+      # Cloudinary
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+
+      - key: CLOUDINARY_API_KEY
+        sync: false
+
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+
+      # Email (Gmail SMTP)
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+
+      - key: SMTP_PORT
+        value: 587
+
+      - key: SMTP_USER
+        sync: false
+
+      - key: SMTP_PASS
+        sync: false   # Use a Gmail App Password (16-char), NOT your regular password
+
+      - key: SMTP_SENDER
+        sync: false   # e.g. "QuickSathi" <quicksathi9@gmail.com>
+
+      # Razorpay
+      - key: RAZORPAY_KEY_ID
+        sync: false
+
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+
+      # Groq AI
+      - key: GROQ_API_KEY
+        sync: false

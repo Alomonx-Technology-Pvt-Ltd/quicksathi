@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
+import api from "../config/api";
 
 const PaymentPage = () => {
   const [searchParams] = useSearchParams();
@@ -11,23 +12,50 @@ const PaymentPage = () => {
   const packageTitle = searchParams.get("package") || "";
   const price = parseInt(searchParams.get("price") || "0");
   const date = searchParams.get("date") || "";
+  
+  // Extract all remaining data needed for booking
+  const serviceId = searchParams.get("serviceId");
+  const time = searchParams.get("time") || "";
+  const address = searchParams.get("address") || "";
+  const city = searchParams.get("city") || "";
+  const pincode = searchParams.get("pincode") || "";
+  const notes = searchParams.get("notes") || "";
 
   const handlePayment = async () => {
     setProcessing(true);
+    
+    try {
+      // Common booking payload for both COD and online payment
+      const bookingData = {
+        serviceId,
+        scheduledDate: date,
+        scheduledTime: time,
+        location: {
+          address,
+          city,
+          pincode,
+        },
+        notes,
+        paymentMethod,
+        amount: price,
+        // Optional: you could pass packageIndex if we passed it in URL, but backend will fallback to price/packageTitle
+      };
 
-    if (paymentMethod === "razorpay") {
-      // Simulated Razorpay checkout (test mode)
-      // In production, you'd create an order via backend first
-      setTimeout(() => {
-        setProcessing(false);
+      if (paymentMethod === "razorpay") {
+        // Simulated Razorpay checkout (test mode), but we actually create the booking
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        await api.post("/bookings", bookingData);
         setSuccess(true);
-      }, 2000);
-    } else {
-      // COD
-      setTimeout(() => {
-        setProcessing(false);
+      } else {
+        // COD - create booking directly
+        await api.post("/bookings", bookingData);
         setSuccess(true);
-      }, 1000);
+      }
+    } catch (err) {
+      console.error("Booking creation failed:", err);
+      alert(err.response?.data?.message || "Failed to create booking. Please try again.");
+    } finally {
+      setProcessing(false);
     }
   };
 

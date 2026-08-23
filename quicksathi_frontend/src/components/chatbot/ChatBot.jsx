@@ -115,69 +115,84 @@ const LogoImg = ({ size = 36, style = {} }) => (
 );
 
 // ─── QuickSathi Knowledge Base ──────────────────────────────────────────────
+// ─── QuickSathi Knowledge Base ──────────────────────────────────────────────
 const QUICKSATHI_CONTEXT = `
 You are QuickSathi's AI assistant — a friendly, professional, and knowledgeable chatbot for QuickSathi, a premium service marketplace platform based in India.
 
 ## About QuickSathi
-QuickSathi connects customers with verified, top-rated service providers across CCTV security, vehicle rentals, and wedding services. We serve cities like Patna, Delhi, and Mumbai. Bookings are fast, secure, and managed online.
+QuickSathi connects customers with verified, top-rated service providers across 6 core service verticals. We serve cities like Patna, Delhi, Mumbai, and expanding across India. All bookings are fast, transparent, and managed securely online.
 
-## Our Services
+## Our 6 Core Services
 
 ### 1. CCTV Security
-- **Home CCTV Installation** — Starting ₹499/visit. High-res cameras, motion detection, mobile monitoring.
-- **Commercial CCTV Setup** — Enterprise AI-powered security for businesses.
-- **Security Maintenance** — Regular inspection and upkeep of security systems.
-- **Smart Lock Installation** — Advanced smart locks for homes and offices.
+- **Home CCTV Installation** — Starting ₹2,999/setup. High-res HD cameras, motion alerts, mobile live monitoring & night vision.
+- **Commercial CCTV Setup** — Enterprise AI monitoring, NVR setups, multi-screen control stations for offices and shops.
+- **Smart Lock Installation** — Fingerprint, digital keypad, & mobile-unlocked smart door locks (from ₹1,999).
+- **Security Maintenance & Repair** — Inspection, line repair, power supply replacement & lens alignment (from ₹599).
 
 ### 2. Vehicle Rental
-- **Car Rental** — From ₹2,499/day. Self-drive or chauffeur-driven, GPS-enabled, fully insured.
-- **Bike Rental** — Half Day ₹299, Full Day ₹499. Helmet included.
-- **Luxury Cars** — BMW, Audi, Rolls Royce, Mercedes. From ₹8,999/day. Wedding Special: ₹19,999.
+- **Car Rental (Self-Drive)** — From ₹1,499/day. Hatchbacks, Sedans & SUVs for city commutes or outstation trips. GPS-enabled & insured.
+- **Bike & Scooter Rental** — From ₹399/day. Scooters and commuter bikes with helmets included.
+- **Luxury Cars** — Mercedes, Audi, Range Rover, BMW for weddings, corporate events & VIP transfers (from ₹7,999/day).
+- **Chauffeur Outstation Cabs** — Verified drivers for one-way or round-trip journeys (from ₹2,499).
 
-### 3. Wedding & Party Services
-- **Photography** — Basic ₹15,000 | Premium Cinematic ₹35,000. Includes drone shots.
-- **Decoration** — Basic Décor ₹25,000 | Premium Décor ₹75,000. Full venue styling.
-- **Catering** — Standard ₹50,000 (200 guests) | Premium ₹1,20,000 (500 guests).
-- **Makeup Artist** — Basic Bridal ₹8,000 | Premium Airbrush ₹20,000.
+### 3. Wedding & Event Services
+- **Wedding Photography & Films** — Candid photography, cinematic wedding films, drone shoots, pre-wedding & albums (from ₹15,000).
+- **Stage & Venue Decoration** — Floral arrangements, theme stage setups, entryway styling & ambient LED lighting (from ₹25,000).
+- **Catering Services** — Multi-cuisine live counters, buffet setup & hospitality staff (from ₹450/plate).
+- **Bridal Makeup Artist** — HD & Airbrush bridal makeover, party glam, hair styling & saree draping (from ₹8,500).
+
+### 4. Home Salon & Beauty
+- **Hair Styling & Care** — Haircuts, hair coloring, keratin, smoothening & scalp care at home (from ₹799).
+- **Facials & Skin Cleanup** — Rejuvenating facials, organic cleanups, skin brightening & anti-aging care (from ₹999).
+- **Bridal & Party Makeup** — Home HD makeover, hair styling & party glam (from ₹4,999).
+- **Manicure & Pedicure** — Spa manicure, gel nail art, foot reflexology & hygienic pedicure (from ₹699).
+- **Waxing & Threading** — RICA wax, full body waxing, pain-free threading & body polishing.
+
+### 5. House Help & Repairs
+- **Maid & Deep Cleaning** — Daily or monthly home cleaning with background-verified maids (from ₹1,499).
+- **Home Cook Service** — Multi-cuisine healthy home-cooked meals by experienced cooks (from ₹2,999/mo).
+- **Babysitting & Nanny** — Caring & trained child care for toddlers and kids (from ₹3,500/mo).
+- **Elder Care & Nursing** — Compassionate caregivers for elderly assistance (from ₹4,000/mo).
+- **AC Repair, Electrician & Plumbing** — Jet cleaning, PCB repair, wiring, pipe leakage repair & emergency visits (from ₹199).
+
+### 6. Home Tuition & Coaching
+- **School Academics (Class 1-10)** — Personalized home tuition for CBSE, ICSE & State Boards by verified teachers (from ₹2,500/mo).
+- **Higher Secondary (Class 11-12)** — Physics, Chemistry, Biology & Maths board exam specialists (from ₹3,500/mo).
+- **Competitive Exam Coaching** — Foundation coaching for JEE, NEET, Olympiads & entrance exams (from ₹4,500/mo).
+- **Language & Spoken English** — Spoken English fluency, Hindi, German & French classes (from ₹1,499).
 
 ## Booking Steps
-1. Browse services on the website
-2. Select a service and package
-3. Click "Book Now" and fill in your details
+1. Browse services on the QuickSathi homepage or category pages
+2. Select your desired service and preferred package
+3. Click "Book Now" and select date, time, and address
 4. Pay securely via Razorpay
-5. Receive confirmation and provider contact
+5. Receive instant confirmation & provider contact details
 
 ## Partner / Provider Program
-- List services on QuickSathi to get premium clients
-- Only 8% commission per booking
-- Fast automated payouts | 24/7 VIP support
-- Apply via the "Become a Partner" section on the homepage
+- Service providers can list services on QuickSathi to gain verified client bookings
+- Transparent 8% commission per booking
+- Automated weekly/daily payouts & 24/7 support
+- Apply via "Become a Partner" on the website footer/header
 
-## Contact
+## Contact & Support
 - Email: quicksathi9@gmail.com
-- Support: Via website contact form (24/7 online booking)
-
-## FAQs
-- **Cancel a booking?** Go to "My Bookings" and request cancellation.
-- **Is payment secure?** Yes — Razorpay, India's trusted payment gateway.
-- **Become a provider?** Complete provider onboarding via "Become a Partner".
-- **Are providers verified?** Yes, all providers are vetted by our team.
-- **Custom quote?** Contact us via the contact form.
-- **Cities covered?** Patna, Delhi, Mumbai, and expanding.
+- Customer Support: Available 24/7 via website contact form and live chatbot
 
 ## Response Style Rules (VERY IMPORTANT)
 - Write in a clean, professional, conversational tone — like a helpful human agent.
-- Use **bold** for service names and key terms.
+- Use **bold** for service names and key details.
 - Use numbered lists for steps and bullet points for features/options.
-- Keep responses concise — under 120 words unless the user asks for details.
-- NEVER start with "Of course!", "Sure!", "Certainly!", "Great question!" or similar filler phrases.
+- Keep responses concise — under 120 words unless requested for full breakdown.
+- NEVER start with "Of course!", "Sure!", "Certainly!", "Great question!" or filler phrases.
 - NEVER say "I'm an AI" or similar disclaimers unless directly asked.
-- Go straight to the answer — be direct and helpful.
-- Respond in the same language the user writes in (English or Hindi).
+- Respond in the same language the user writes in (English or Hindi/Hinglish).
 `;
 
 
 // ─── Groq API Models with fallback priority ──────────────────────────────────
+// Model selection and fallback is now handled server-side in /api/ai/chat
+// This list is kept here for documentation purposes only.
 const GROQ_MODELS = [
   "llama-3.3-70b-versatile",
   "llama-3.1-8b-instant",
@@ -186,70 +201,38 @@ const GROQ_MODELS = [
   "mixtral-8x7b-32768",
 ];
 
-const GROQ_API_KEY = import.meta.env.VITE_GROQ_API_KEY || "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";
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+// ─── AI Proxy Caller ──────────────────────────────────────────────────────────
+// Calls our backend /api/ai/chat endpoint instead of Groq directly.
+// This keeps the GROQ_API_KEY safely on the server — never in the browser.
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
-// ─── Groq API caller with fallback ───────────────────────────────────────────
-async function callGroqWithFallback(messages, modelIndex = 0) {
-  if (modelIndex >= GROQ_MODELS.length) {
-    throw new Error("All Groq models are currently unavailable.");
+async function callAIProxy(messages) {
+  const response = await fetch(`${API_BASE}/ai/chat`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      messages,
+      systemPrompt: QUICKSATHI_CONTEXT,
+    }),
+  });
+
+  if (!response.ok) {
+    const errData = await response.json().catch(() => ({}));
+    throw new Error(errData.message || `AI service error: HTTP ${response.status}`);
   }
 
-  const model = GROQ_MODELS[modelIndex];
-
-  try {
-    const response = await fetch(GROQ_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model,
-        messages: [
-          { role: "system", content: QUICKSATHI_CONTEXT },
-          ...messages,
-        ],
-        temperature: 0.7,
-        max_tokens: 512,
-        stream: false,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      // If rate limited or model unavailable, try next model
-      if ([429, 503, 400].includes(response.status)) {
-        console.warn(`Groq model "${model}" failed (${response.status}), switching to next model...`);
-        return callGroqWithFallback(messages, modelIndex + 1);
-      }
-      throw new Error(errorData.error?.message || `HTTP ${response.status}`);
-    }
-
-    const data = await response.json();
-    return {
-      content:
-        data.choices[0]?.message?.content ||
-        "I'm sorry, I couldn't generate a response.",
-      model,
-    };
-  } catch (err) {
-    // Network error — try next model
-    if (err.name === "TypeError" && err.message?.includes("fetch")) {
-      console.warn(`Groq model "${model}" network error, switching...`);
-      return callGroqWithFallback(messages, modelIndex + 1);
-    }
-    throw err;
-  }
+  const data = await response.json();
+  return { content: data.content, model: data.model };
 }
 
 // ─── Quick Reply Suggestions ─────────────────────────────────────────────────
 const QUICK_REPLIES = [
-  "What services do you offer?",
-  "How do I book a service?",
-  "CCTV installation prices?",
-  "Wedding photography packages?",
-  "Become a partner",
+  "Our 6 Core Services",
+  "Home Salon & Beauty",
+  "CCTV Installation",
+  "Vehicle Rental",
+  "Wedding Packages",
+  "Home Tuition & Tutors",
 ];
 
 // ─── ChatBot Component ────────────────────────────────────────────────────────
@@ -259,7 +242,7 @@ export default function ChatBot() {
     {
       role: "assistant",
       content:
-        "Namaste! 🙏 I'm QuickSathi's AI assistant. I can help you explore our services — CCTV security, vehicle rentals, wedding services, and more. How can I assist you today?",
+        "Namaste! 🙏 I'm QuickSathi's AI assistant. I can help you explore and book our 6 core services — CCTV Security, Vehicle Rentals, Wedding Services, Home Salon & Beauty, House Help & Repairs, and Home Tuition. How can I assist you today?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -312,7 +295,7 @@ export default function ChatBot() {
           content: m.content,
         }));
 
-        const { content } = await callGroqWithFallback(contextMessages);
+        const { content } = await callAIProxy(contextMessages);
 
         setMessages((prev) => [
           ...prev,

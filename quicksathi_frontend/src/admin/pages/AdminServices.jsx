@@ -201,6 +201,16 @@ const AdminServices = () => {
     }
   };
 
+  const updateApprovalStatus = async (id, status) => {
+    try {
+      await api.put(`/admin/services/${id}`, { approvalStatus: status });
+      showMessage(`Service marked as ${status}`);
+      fetchServices();
+    } catch (err) {
+      showMessage(err.response?.data?.message || "Failed to update status", "error");
+    }
+  };
+
   // Tag helpers
   const addTag = () => {
     if (newTag.trim() && !form.tags.includes(newTag.trim())) {
@@ -302,7 +312,7 @@ const AdminServices = () => {
           <table className="w-full" style={{ fontFamily: "var(--font-body)" }}>
             <thead>
               <tr>
-                {["Image", "Name", "Category", "Price", "Rating", "Cities", "Status", "Featured", "Actions"].map((h) => (
+                {["Image", "Name", "Category", "Price", "Rating", "Cities", "Status", "Featured", "Approval", "Actions"].map((h) => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.25)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>{h}</th>
                 ))}
               </tr>
@@ -345,6 +355,21 @@ const AdminServices = () => {
                   </td>
                   <td className="px-4 py-3 text-sm">{service.featured ? "⭐" : "—"}</td>
                   <td className="px-4 py-3">
+                    {service.approvalStatus === "pending" ? (
+                      <div className="flex flex-col gap-1.5">
+                        <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Pending</span>
+                        <div className="flex gap-1">
+                          <button onClick={() => updateApprovalStatus(service._id, "approved")} className="px-2 py-1 rounded bg-green-500/10 text-green-500 border border-green-500/20 cursor-pointer hover:bg-green-500/20 text-[9px] font-bold transition-all">Approve</button>
+                          <button onClick={() => updateApprovalStatus(service._id, "rejected")} className="px-2 py-1 rounded bg-red-500/10 text-red-500 border border-red-500/20 cursor-pointer hover:bg-red-500/20 text-[9px] font-bold transition-all">Reject</button>
+                        </div>
+                      </div>
+                    ) : service.approvalStatus === "rejected" ? (
+                      <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider">Rejected</span>
+                    ) : (
+                      <span className="text-[10px] font-bold text-green-500 uppercase tracking-wider">Approved</span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
                     <div className="flex gap-2">
                       <button onClick={() => openEditForm(service)} className="px-3 py-1.5 rounded-lg text-xs border-0 cursor-pointer transition-all duration-200 hover:opacity-80" style={{ backgroundColor: "rgba(99,102,241,0.15)", color: "#818cf8", fontFamily: "var(--font-body)" }}>Edit</button>
                       <button onClick={() => setDeleteConfirm(service._id)} className="px-3 py-1.5 rounded-lg text-xs border-0 cursor-pointer transition-all duration-200 hover:opacity-80" style={{ backgroundColor: "rgba(239,68,68,0.15)", color: "#ef4444", fontFamily: "var(--font-body)" }}>Delete</button>
@@ -354,7 +379,7 @@ const AdminServices = () => {
               ))}
               {filteredServices.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="px-4 py-12 text-center text-sm" style={{ color: "rgba(255,255,255,0.3)" }}>No services found</td>
+                  <td colSpan={10} className="px-4 py-12 text-center text-sm" style={{ color: "rgba(255,255,255,0.3)" }}>No services found</td>
                 </tr>
               )}
             </tbody>

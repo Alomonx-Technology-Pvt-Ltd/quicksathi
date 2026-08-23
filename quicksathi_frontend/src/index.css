@@ -321,5 +321,14 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 0 2px rgba(139, 26, 26, 0.15);
 }
 
-
-
+/* ─────────────────────────────────────────
+   Hide scrollbar — used on horizontal
+   scrollable pill tab bars (mobile)
+───────────────────────────────────────── */
+.no-scrollbar {
+  scrollbar-width: none;        /* Firefox */
+  -ms-overflow-style: none;     /* IE / Edge */
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;                /* Chrome / Safari / Opera */
+}

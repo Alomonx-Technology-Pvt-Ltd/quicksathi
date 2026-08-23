@@ -205,7 +205,7 @@ const AdminCategories = () => {
       {/* Categories Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {categories.map((cat) => (
-          <div key={cat._id} className="rounded-2xl overflow-hidden" style={{ backgroundColor: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+          <div key={cat._id} className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--color-bg-soft)", border: "1px solid var(--color-border)" }}>
             {/* Image */}
             {cat.imageUrl ? (
               <div className="relative h-36 overflow-hidden">
@@ -216,8 +216,8 @@ const AdminCategories = () => {
                 </div>
               </div>
             ) : (
-              <div className="h-20 flex items-center px-5" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                <h3 className="text-lg font-bold text-white m-0" style={{ fontFamily: "var(--font-display)" }}>{cat.name}</h3>
+              <div className="h-20 flex items-center px-5" style={{ borderBottom: "1px solid var(--color-border)" }}>
+                <h3 className="text-lg font-bold m-0" style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}>{cat.name}</h3>
               </div>
             )}
 
@@ -231,17 +231,17 @@ const AdminCategories = () => {
                 </span>
               </div>
 
-              <p className="text-xs m-0 mb-3 line-clamp-2" style={{ color: "rgba(255,255,255,0.4)", fontFamily: "var(--font-body)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+              <p className="text-xs m-0 mb-3" style={{ color: "var(--color-text-mid)", fontFamily: "var(--font-body)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                 {cat.description || "No description"}
               </p>
 
-              <p className="text-xs m-0 mb-4" style={{ color: "rgba(255,255,255,0.3)", fontFamily: "var(--font-body)" }}>
+              <p className="text-xs m-0 mb-4" style={{ color: "var(--color-text-mid)", fontFamily: "var(--font-body)" }}>
                 {cat.subCategories?.length || 0} subcategories • Order: {cat.displayOrder}
               </p>
 
               <div className="flex gap-2">
                 <button onClick={() => openEditForm(cat)} className="flex-1 px-3 py-2 rounded-xl text-xs font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-80" style={{ backgroundColor: "rgba(99,102,241,0.15)", color: "#818cf8", fontFamily: "var(--font-body)" }}>Edit</button>
-                <button onClick={() => handleToggle(cat._id)} className="px-3 py-2 rounded-xl text-xs border-0 cursor-pointer transition-all duration-200 hover:opacity-80" style={{ backgroundColor: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)", fontFamily: "var(--font-body)" }}>
+                <button onClick={() => handleToggle(cat._id)} className="px-3 py-2 rounded-xl text-xs border-0 cursor-pointer transition-all duration-200 hover:opacity-80" style={{ backgroundColor: "var(--color-border)", color: "var(--color-text-mid)", fontFamily: "var(--font-body)" }}>
                   {cat.active ? "Disable" : "Enable"}
                 </button>
                 <button onClick={() => setDeleteConfirm(cat._id)} className="px-3 py-2 rounded-xl text-xs border-0 cursor-pointer transition-all duration-200 hover:opacity-80" style={{ backgroundColor: "rgba(239,68,68,0.15)", color: "#ef4444", fontFamily: "var(--font-body)" }}>Delete</button>
@@ -251,7 +251,7 @@ const AdminCategories = () => {
         ))}
 
         {categories.length === 0 && (
-          <div className="col-span-full text-center py-12" style={{ color: "rgba(255,255,255,0.3)", fontFamily: "var(--font-body)" }}>
+          <div className="col-span-full text-center py-12" style={{ color: "var(--color-text-mid)", fontFamily: "var(--font-body)" }}>
             No categories found. Click "Add Category" to create one.
           </div>
         )}

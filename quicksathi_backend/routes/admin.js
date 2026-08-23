@@ -905,4 +905,116 @@ router.get("/notifications", protect, adminOnly, async (req, res) => {
   }
 });
 
+// ─── PROVIDER SERVICE REQUESTS (APPROVAL WORKFLOW) ─────────────────────────
+
+// GET /api/admin/service-requests — List all provider service submissions
+router.get("/service-requests", protect, adminOnly, async (req, res) => {
+  try {
+    const services = await Service.find({ provider: { $exists: true, $ne: null } })
+      .populate("provider", "businessName email phone location")
+      .populate("category", "name")
+      .sort("-createdAt");
+    res.json(services);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// PATCH /api/admin/service-requests/:id/approve — Approve a service listing
+router.patch("/service-requests/:id/approve", protect, adminOnly, async (req, res) => {
+  try {
+    const service = await Service.findById(req.params.id).populate("provider", "businessName user");
+    if (!service) return res.status(404).json({ message: "Service not found" });
+
+    service.approvalStatus = "approved";
+    service.available = true;
+    service.approvedBy = req.user._id;
+    service.approvedAt = new Date();
+    service.rejectionReason = "";
+    await service.save();
+
+    // Notify the provider
+    if (service.provider?.user) {
+      try {
+        await Notification.create({
+          recipient: service.provider.user,
+          title: "🎉 Service Listing Approved!",
+          message: `Your service "${service.name}" has been approved and is now live on QuickSathi!`,
+          type: "system",
+        });
+      } catch (notifErr) {
+        console.error("Notification create error:", notifErr);
+      }
+    }
+
+    res.json({ message: "Service approved successfully", service });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// PATCH /api/admin/service-requests/:id/reject — Reject a service listing
+router.patch("/service-requests/:id/reject", protect, adminOnly, async (req, res) => {
+  try {
+    const { reason } = req.body;
+    const service = await Service.findById(req.params.id).populate("provider", "businessName user");
+    if (!service) return res.status(404).json({ message: "Service not found" });
+
+    service.approvalStatus = "rejected";
+    service.available = false;
+    service.rejectionReason = reason || "Did not meet listing standards";
+    await service.save();
+
+    // Notify the provider
+    if (service.provider?.user) {
+      try {
+        await Notification.create({
+          recipient: service.provider.user,
+          title: "❌ Service Listing Rejected",
+          message: `Your service "${service.name}" was not approved. Reason: ${service.rejectionReason}`,
+          type: "system",
+        });
+      } catch (notifErr) {
+        console.error("Notification create error:", notifErr);
+      }
+    }
+
+    res.json({ message: "Service rejected", service });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// ─── ADMIN BOOKINGS & PROVIDERS ──────────────────────────
+
+// GET /api/admin/bookings — List all bookings (for Admin Panel)
+router.get("/bookings", protect, adminOnly, async (req, res) => {
+  try {
+    const { status, limit = 100 } = req.query;
+    const filter = {};
+    if (status && status !== "all") filter.status = status;
+
+    const bookings = await Booking.find(filter)
+      .populate("user", "name email phone")
+      .populate("provider", "businessName user")
+      .sort("-createdAt")
+      .limit(parseInt(limit));
+    res.json(bookings);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// GET /api/admin/providers/approved — List all approved providers
+router.get("/providers/approved", protect, adminOnly, async (req, res) => {
+  try {
+    const providers = await Provider.find({ approvalStatus: "approved", isActive: true })
+      .populate("user", "name email phone")
+      .select("businessName experience location rating isActive");
+    res.json(providers);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 export default router;
