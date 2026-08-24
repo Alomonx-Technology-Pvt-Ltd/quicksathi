@@ -79,6 +79,25 @@ app.use("/api/notifications", notificationRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/ai", aiRoutes);
 
+// ── Root route — friendly API info ──
+app.get("/", (req, res) => {
+  res.json({
+    name: "QuickSathi API",
+    status: "🟢 Running",
+    version: "1.0.0",
+    message: "Welcome to the QuickSathi backend. Use /api/* endpoints to interact with the API.",
+    endpoints: {
+      health:     "GET /api/health",
+      auth:       "POST /api/auth/login | /api/auth/register",
+      categories: "GET /api/categories",
+      services:   "GET /api/services",
+      bookings:   "GET /api/bookings",
+      providers:  "GET /api/providers",
+    },
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // ── Health check ──
 app.get("/api/health", (req, res) => {
   res.json({
