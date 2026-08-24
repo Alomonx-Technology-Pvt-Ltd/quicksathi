@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import weddingImg from "../assets/weddingImg.avif";
 import carImg from "../assets/carImg.avif";
 import smartLock from "../assets/cctv/smartLock.avif";
-import homeTuitionImg from "../assets/homeTution/homeTuitionImg.avif";
+import homeTuitionImg from "../assets/HomeTution/homeTuitionImg.avif";
 
 const AboutSection = () => {
   const pillars = [
