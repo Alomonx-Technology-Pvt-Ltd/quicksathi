@@ -26,7 +26,30 @@ router.get("/", async (req, res) => {
     const { category, featured, search, city, limit = 50 } = req.query;
     const filter = { available: true, approvalStatus: "approved" };
 
-    if (category) filter.category = category;
+    if (category) {
+      if (mongoose.Types.ObjectId.isValid(category)) {
+        // Caller passed a real ObjectId — filter directly on the ref field
+        filter.category = category;
+      } else {
+        // Caller passed a name string (e.g. "Tuition") — resolve to ObjectId
+        // and also match on the denormalised categoryName field as a fallback
+        const Category = (await import("../models/Category.js")).default;
+        const cat = await Category.findOne({
+          name: { $regex: new RegExp(`^${category.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") },
+        });
+
+        if (cat) {
+          filter.$or = [
+            { category: cat._id },
+            { categoryName: { $regex: new RegExp(category, "i") } },
+          ];
+        } else {
+          // No matching category ObjectId found — fall back to categoryName string match
+          filter.categoryName = { $regex: new RegExp(category, "i") };
+        }
+      }
+    }
+
     if (featured === "true") filter.featured = true;
     if (search) {
       filter.$text = { $search: search };
@@ -34,11 +57,21 @@ router.get("/", async (req, res) => {
 
     // City filter: match services that include this city OR have no city restrictions (empty array)
     if (city && city !== "all") {
-      filter.$or = [
+      const cityFilter = [
         { cities: city },
         { cities: { $size: 0 } },
         { cities: { $exists: false } },
       ];
+      // Merge with any existing $or (e.g. from category name lookup)
+      if (filter.$or) {
+        filter.$and = [
+          { $or: filter.$or },
+          { $or: cityFilter },
+        ];
+        delete filter.$or;
+      } else {
+        filter.$or = cityFilter;
+      }
     }
 
     const services = await Service.find(filter)
