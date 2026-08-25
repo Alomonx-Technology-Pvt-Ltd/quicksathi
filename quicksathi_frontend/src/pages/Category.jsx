@@ -162,56 +162,33 @@ const CategoryBanner = ({
 
 const Category = () => {
   const { id } = useParams();
-  const [category, setCategory] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [services, setServices] = useState([]);
+
+  // ── Instant render: find mock category for this id immediately
+  const findMock = (catId) =>
+    mockCategories.find((c) => (c.id || c._id)?.toString() === catId?.toString()) ?? null;
+
+  const [category, setCategory] = useState(() => findMock(id));
+  const [services, setServices] = useState(() => mockServices);
   const [activeIndex, setActiveIndex] = useState(0);
   const [sortBy, setSortBy] = useState("popular");
   const [filterType, setFilterType] = useState("ALL");
 
-  // Fetch the category by ID from the API.
-  // 1) Pehle single-category endpoint try karo
-  // 2) Fail ho toh /categories (poori list) try karo
-  // 3) Backend hi down ho (jaise abhi, .env na hone ki wajah se) toh local
-  //    mockCategories se id match karke offline kaam chalao — isse backend
-  //    ke bina bhi frontend pe develop/test kar sakti ho.
+  // Background fetch — no blocking spinner, silently upgrades mock → real data
   useEffect(() => {
     const fetchCategory = async () => {
-      setLoading(true);
       try {
         const { data } = await api.get(`/categories/${id}`);
-        if (data) {
-          setCategory(data);
-          return;
-        }
-        throw new Error("Empty response from /categories/:id");
-      } catch (err) {
-        console.warn(
-          `/categories/${id} failed, falling back to /categories list:`,
-          err
-        );
-        try {
-          const { data } = await api.get("/categories");
-          const found = data?.find(
-            (cat) => (cat._id || cat.id)?.toString() === id?.toString()
-          );
-          if (found) {
-            setCategory(found);
-            return;
-          }
-          throw new Error("Category not found in list either");
-        } catch (fallbackErr) {
-          console.warn(
-            "Backend unreachable, falling back to local mockCategories:",
-            fallbackErr
-          );
-          const mockFound = mockCategories.find(
-            (cat) => (cat.id || cat._id)?.toString() === id?.toString()
-          );
-          setCategory(mockFound ?? null);
-        }
-      } finally {
-        setLoading(false);
+        if (data) { setCategory(data); return; }
+      } catch {
+        // fallback: try full list
+      }
+      try {
+        const { data } = await api.get("/categories");
+        const found = data?.find((cat) => (cat._id || cat.id)?.toString() === id?.toString());
+        if (found) setCategory(found);
+        // If not found, keep mock data already displayed
+      } catch {
+        // Keep mock already displayed
       }
     };
     fetchCategory();
@@ -227,26 +204,11 @@ const Category = () => {
     return () => clearInterval(timer);
   }, [subs.length]);
 
-  // Fetch services to link subcategories to real service pages
-  // Backend down ho toh mockServices se offline kaam chalega
+  // Fetch services — background, mock already loaded
   useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        const { data } = await api.get("/services");
-        if (data && data.length > 0) {
-          setServices(data);
-        } else {
-          throw new Error("No services returned from backend");
-        }
-      } catch (err) {
-        console.warn(
-          "Failed to fetch services, falling back to local mockServices:",
-          err
-        );
-        setServices(mockServices);
-      }
-    };
-    fetchServices();
+    api.get("/services").then(({ data }) => {
+      if (data && data.length > 0) setServices(data);
+    }).catch(() => {/* keep mock */});
   }, []);
 
   const activeSub = subs[activeIndex] ?? null;
@@ -298,28 +260,7 @@ const Category = () => {
     (s) => s.type === "PRODUCT_ONLY" || s.type === "SERVICE_ONLY" || s.type === "BOTH"
   );
 
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-4 min-h-[40vh]">
-        <div
-          className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin"
-          style={{
-            borderColor: "var(--color-border)",
-            borderTopColor: "var(--color-primary)",
-          }}
-        />
-        <span
-          className="text-sm italic"
-          style={{
-            fontFamily: "var(--font-body)",
-            color: "var(--color-text-mid)",
-          }}
-        >
-          Loading category…
-        </span>
-      </div>
-    );
-  }
+
 
   if (!category) {
     return (

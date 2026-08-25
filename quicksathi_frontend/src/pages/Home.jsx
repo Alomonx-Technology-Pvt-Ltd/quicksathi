@@ -15,100 +15,81 @@ import QuickServicesSection from "../components/QuickServicesSection";
 const Home = () => {
   const navigate = useNavigate();
   const { city } = useLocation();
-  const [categories, setCategories] = useState([]);
-  const [categoriesLoading, setCategoriesLoading] = useState(true);
-  const [services, setServices] = useState([]);
 
-  // Fetch categories from backend
+  // ── Instant render: start with mock data so the page is visible immediately.
+  // API data silently hydrates the UI in the background once the server warms up.
+  const [categories, setCategories] = useState(() =>
+    mockCategories.map(cat => ({
+      ...cat,
+      id: cat.id || cat._id,
+      _id: cat._id || cat.id,
+      subCategories: cat.subCategories?.map(sub => ({
+        ...sub,
+        id: sub.id || sub._id,
+        _id: sub._id || sub.id,
+      })),
+    }))
+  );
+  const [services, setServices] = useState(() =>
+    mockServices.map(srv => ({ ...srv, id: srv.id || srv._id, _id: srv._id || srv.id }))
+  );
+
+  // Background fetch — no loading spinner, silently upgrades mock → real data
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        // Check in-memory cache first for instant repeat loads
         const cached = getCached("/categories");
         if (cached && cached.length > 0) {
-          const mapped = cached.map(cat => ({
+          setCategories(cached.map(cat => ({
             ...cat,
             id: cat.id || cat._id,
             _id: cat._id || cat.id,
             subCategories: cat.subCategories?.map(sub => ({
               ...sub,
               id: sub.id || sub._id,
-              _id: sub._id || sub.id
-            }))
-          }));
-          setCategories(mapped);
-          setCategoriesLoading(false);
+              _id: sub._id || sub.id,
+            })),
+          })));
           return;
         }
-
         const { data } = await api.get("/categories");
         if (data && data.length > 0) {
-          const mapped = data.map(cat => ({
+          setCategories(data.map(cat => ({
             ...cat,
             id: cat.id || cat._id,
             _id: cat._id || cat.id,
             subCategories: cat.subCategories?.map(sub => ({
               ...sub,
               id: sub.id || sub._id,
-              _id: sub._id || sub.id
-            }))
-          }));
-          setCategories(mapped);
-        } else {
-          throw new Error("No categories returned from backend");
+              _id: sub._id || sub.id,
+            })),
+          })));
         }
       } catch (err) {
-        console.warn("Failed to fetch categories, falling back to local mockCategories:", err);
-        const mapped = mockCategories.map(cat => ({
-          ...cat,
-          id: cat.id || cat._id,
-          _id: cat._id || cat.id,
-          subCategories: cat.subCategories?.map(sub => ({
-            ...sub,
-            id: sub.id || sub._id,
-            _id: sub._id || sub.id
-          }))
-        }));
-        setCategories(mapped);
-      } finally {
-        setCategoriesLoading(false);
+        // Keep mock data on error — already showing
+        console.warn("Categories fetch failed, keeping mock data:", err?.message);
       }
     };
     fetchCategories();
   }, []);
 
-  // Fetch services for dynamic linking — refetch when city changes
+  // Fetch services — also non-blocking, already seeded with mock data above
   useEffect(() => {
     const fetchServices = async () => {
       try {
         const cacheKey = `/services${city ? `?city=${encodeURIComponent(city)}` : ""}`;
-        // Check cache first — avoids redundant fetch on back-navigation
         const cached = getCached(cacheKey);
         if (cached && cached.length > 0) {
           setServices(cached.map(srv => ({ ...srv, id: srv.id || srv._id, _id: srv._id || srv.id })));
           return;
         }
-
         const params = city ? `?city=${encodeURIComponent(city)}` : "";
         const { data } = await api.get(`/services${params}`);
         if (data && data.length > 0) {
-          const mapped = data.map(srv => ({
-            ...srv,
-            id: srv.id || srv._id,
-            _id: srv._id || srv.id
-          }));
-          setServices(mapped);
-        } else {
-          throw new Error("No services returned from backend");
+          setServices(data.map(srv => ({ ...srv, id: srv.id || srv._id, _id: srv._id || srv.id })));
         }
       } catch (err) {
-        console.warn("Failed to fetch services, falling back to local mockServices:", err);
-        const mapped = mockServices.map(srv => ({
-          ...srv,
-          id: srv.id || srv._id,
-          _id: srv._id || srv.id
-        }));
-        setServices(mapped);
+        console.warn("Services fetch failed, keeping mock data:", err?.message);
       }
     };
     fetchServices();
@@ -152,22 +133,6 @@ const Home = () => {
     navigate(`/booking/${serviceId}?${params.toString()}`);
   };
 
-  if (categoriesLoading) {
-    return (
-      <div
-        className="flex justify-center items-center"
-        style={{ minHeight: "92vh" }}
-      >
-        <div
-          className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin"
-          style={{
-            borderColor: "var(--color-border)",
-            borderTopColor: "var(--color-primary)",
-          }}
-        />
-      </div>
-    );
-  }
 
   return (
     <motion.div
