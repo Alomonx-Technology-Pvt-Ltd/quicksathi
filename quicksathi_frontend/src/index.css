@@ -1,6 +1,9 @@
 /* Tailwind CSS */
 @import "tailwindcss";
 
+/* Leaflet map styles */
+@import "leaflet/dist/leaflet.css";
+
 html,
 body,
 #root {

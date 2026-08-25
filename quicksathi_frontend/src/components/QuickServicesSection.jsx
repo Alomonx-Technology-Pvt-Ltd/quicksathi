@@ -443,7 +443,7 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
           })}
         </div>
 
-        {/* ── BOTTOM: Filtered Service Cards ── */}
+        {/* ── BOTTOM: Category title row + Cards — no wrapper box ── */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeCategoryId}
@@ -451,17 +451,9 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.22 }}
-            className="rounded-2xl p-5 sm:p-8"
-            style={{
-              backgroundColor: "#FFFDF8",
-              border: "1px solid rgba(0,0,0,0.08)",
-            }}
           >
-            {/* Active Category Title & Link Header */}
-            <div
-              className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 mb-6 gap-3"
-              style={{ borderBottom: "1px solid rgba(0,0,0,0.08)" }}
-            >
+            {/* Category Title & "View All" — sits directly on section bg */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
               <div className="flex items-center gap-3">
                 <h3
                   className="text-xl sm:text-2xl font-semibold m-0"
@@ -469,7 +461,6 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
                 >
                   {activeCategoryConfig.title}
                 </h3>
-                {/* Decorative line */}
                 <div
                   className="hidden sm:block h-px w-16"
                   style={{ backgroundColor: "rgba(0,0,0,0.15)" }}
@@ -481,7 +472,7 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
                 className="inline-flex items-center gap-1.5 no-underline self-start sm:self-auto"
               >
                 <span
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200 hover:opacity-80"
                   style={{
                     backgroundColor: "#1c1c1c",
                     color: "#ffffff",
@@ -495,92 +486,121 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
             </div>
 
             {/* Service Cards Grid — 2 cols on mobile, 4 on desktop */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {displayServices.map((service) => (
                 <div
                   key={service._id || service.id}
-                  className="flex flex-col justify-between overflow-hidden hover:-translate-y-1 transition-all duration-300 group"
+                  className="flex flex-col justify-between overflow-hidden group cursor-pointer"
                   style={{
                     backgroundColor: "#ffffff",
-                    borderRadius: "16px",
-                    border: "1px solid rgba(0,0,0,0.07)",
+                    borderRadius: "20px",
+                    border: "1px solid rgba(0,0,0,0.06)",
+                    boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
+                    transition: "transform 0.28s ease, box-shadow 0.28s ease",
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.transform = "translateY(-6px)";
+                    e.currentTarget.style.boxShadow = "0 16px 40px rgba(0,0,0,0.13)";
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.transform = "translateY(0)";
+                    e.currentTarget.style.boxShadow = "0 2px 12px rgba(0,0,0,0.06)";
                   }}
                 >
-                  <div>
-                    {/* Thumbnail Image */}
-                    <div className="relative h-28 sm:h-44 w-full overflow-hidden" style={{ borderRadius: "16px 16px 0 0", backgroundColor: "#e8e0d4" }}>
-                      <img
-                        src={service.imageUrl || service.thumbnail || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop"}
-                        alt={service.name}
-                        loading="lazy"
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      />
-                      {/* Outlined badge — image 3 style */}
-                      {service.badge && (
-                        <span
-                          className="absolute top-2.5 left-2.5 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider"
-                          style={{
-                            border: "1px solid rgba(255,255,255,0.85)",
-                            borderRadius: "6px",
-                            color: "#ffffff",
-                            backgroundColor: "rgba(0,0,0,0.35)",
-                            backdropFilter: "blur(4px)",
-                          }}
-                        >
-                          {service.badge}
-                        </span>
-                      )}
-                      <div
-                        className="absolute top-2.5 right-2.5 flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-semibold"
+                  {/* Thumbnail Image */}
+                  <div
+                    className="relative w-full overflow-hidden"
+                    style={{
+                      borderRadius: "20px 20px 0 0",
+                      backgroundColor: "#e8e0d4",
+                      height: "clamp(120px, 18vw, 180px)",
+                    }}
+                  >
+                    <img
+                      src={service.imageUrl || service.thumbnail || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop"}
+                      alt={service.name}
+                      loading="lazy"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+
+                    {/* Gradient overlay at bottom for text readability */}
+                    <div
+                      className="absolute inset-x-0 bottom-0 h-1/2 pointer-events-none"
+                      style={{ background: "linear-gradient(to top, rgba(0,0,0,0.22), transparent)" }}
+                    />
+
+                    {/* Badge */}
+                    {service.badge && (
+                      <span
+                        className="absolute top-2.5 left-2.5 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider"
                         style={{
-                          backgroundColor: "rgba(255,255,255,0.92)",
                           borderRadius: "6px",
-                          color: "#1c1c1c",
+                          color: "#ffffff",
+                          backgroundColor: "rgba(0,0,0,0.42)",
+                          backdropFilter: "blur(6px)",
+                          border: "1px solid rgba(255,255,255,0.2)",
                         }}
                       >
-                        <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
-                        <span>{service.rating || 4.8}</span>
-                      </div>
-                    </div>
+                        {service.badge}
+                      </span>
+                    )}
 
-                    {/* Content */}
-                    <div className="p-3 sm:p-4">
-                      <h4
-                        className="text-xs sm:text-sm font-semibold m-0 mb-1 line-clamp-2"
-                        style={{ fontFamily: "var(--font-display)", color: "#1c1c1c" }}
-                      >
-                        {service.name}
-                      </h4>
+                    {/* Star rating */}
+                    <div
+                      className="absolute top-2.5 right-2.5 flex items-center gap-0.5 px-1.5 py-0.5 text-[10px] font-bold"
+                      style={{
+                        backgroundColor: "rgba(255,255,255,0.95)",
+                        borderRadius: "8px",
+                        color: "#1c1c1c",
+                        boxShadow: "0 1px 4px rgba(0,0,0,0.12)",
+                      }}
+                    >
+                      <Star className="w-2.5 h-2.5 fill-amber-400 text-amber-400" />
+                      <span>{service.rating || 4.8}</span>
                     </div>
                   </div>
 
-                  {/* Price & Book Footer */}
-                  <div
-                    className="px-3 sm:px-4 pb-3 sm:pb-4 pt-2.5 flex items-center justify-between mt-auto"
-                    style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}
-                  >
-                    <div>
-                      <span className="text-[9px] sm:text-[10px] uppercase font-semibold tracking-wider block" style={{ color: "#999" }}>From</span>
-                      <span
-                        className="text-sm sm:text-base font-bold"
-                        style={{ color: "var(--color-primary)", fontFamily: "var(--font-display)" }}
-                      >
-                        ₹{(service.startingPrice || 999).toLocaleString()}
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={() => handleBookClick(service)}
-                      className="px-3 sm:px-4 py-1.5 sm:py-2 text-[10px] sm:text-xs font-semibold text-white border-none cursor-pointer hover:opacity-90 active:scale-95 transition-all flex items-center gap-1"
-                      style={{
-                        backgroundColor: "#1c1c1c",
-                        borderRadius: "20px",
-                        fontFamily: "var(--font-body)",
-                      }}
+                  {/* Card Body */}
+                  <div className="flex flex-col flex-1 p-3.5 sm:p-5 gap-3">
+                    <h4
+                      className="text-xs sm:text-sm font-semibold m-0 leading-snug line-clamp-2 flex-1"
+                      style={{ fontFamily: "var(--font-display)", color: "#1c1c1c" }}
                     >
-                      <CalendarCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                      <span>Book</span>
-                    </button>
+                      {service.name}
+                    </h4>
+
+                    {/* Price & Book in one row */}
+                    <div className="flex items-center justify-between mt-auto">
+                      <div>
+                        <span
+                          className="text-[9px] uppercase font-semibold tracking-widest block"
+                          style={{ color: "#aaa" }}
+                        >
+                          From
+                        </span>
+                        <span
+                          className="text-sm sm:text-base font-bold leading-none"
+                          style={{ color: "var(--color-primary)", fontFamily: "var(--font-display)" }}
+                        >
+                          ₹{(service.startingPrice || 999).toLocaleString()}
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={() => handleBookClick(service)}
+                        className="flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold text-white border-none cursor-pointer active:scale-95 transition-all"
+                        style={{
+                          backgroundColor: "#1c1c1c",
+                          borderRadius: "20px",
+                          padding: "6px 14px",
+                          fontFamily: "var(--font-body)",
+                          letterSpacing: "0.03em",
+                        }}
+                      >
+                        <CalendarCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                        <span>Book</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
