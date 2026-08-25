@@ -479,9 +479,7 @@ const Layout = () => (
     <main className="flex-grow w-full">
       <Outlet />
     </main>
-    <div className="hidden md:block">
-      <Footer />
-    </div>
+    <Footer />
     <BottomNav />
     {/* QuickSathi AI Chatbot — floating bottom-right */}
     <ChatBot />

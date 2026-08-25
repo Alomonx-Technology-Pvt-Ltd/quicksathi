@@ -206,12 +206,12 @@ const Footer = () => (
 
     {/* Giant Brand Mark with Logo */}
     <div
+      className="pb-24 md:pb-6"
       style={{
         display: "flex",
         alignItems: "center",
         gap: "16px",
         paddingLeft: "clamp(12px, 3vw, 36px)",
-        paddingBottom: "16px",
       }}
     >
       <LogoImg size={144} />
