@@ -386,7 +386,7 @@ export default function ChatBot() {
         }
         #quicksathi-chatbot-toggle:hover {
           transform: scale(1.07) !important;
-          box-shadow: 0 6px 28px rgba(26,58,139,0.6), 0 2px 10px rgba(0,0,0,0.3) !important;
+          box-shadow: 0 6px 28px rgba(11,79,216,0.6), 0 2px 10px rgba(0,0,0,0.3) !important;
         }
       `}</style>
 
@@ -400,17 +400,17 @@ export default function ChatBot() {
             width: "58px",
             height: "58px",
             borderRadius: "50%",
-            border: "2.5px solid rgba(255,255,255,0.2)",
+            border: "2.5px solid rgba(255,255,255,0.25)",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             background: isOpen
-              ? "linear-gradient(135deg, #1a3a8b 0%, #0d2060 100%)"
-              : "linear-gradient(135deg, #1a3a8b 0%, #0d2060 100%)",
+              ? "linear-gradient(135deg, #0b4fd8 0%, #0739a8 100%)"
+              : "linear-gradient(135deg, #0b4fd8 0%, #0739a8 100%)",
             boxShadow: isOpen
-              ? "0 2px 16px rgba(26,58,139,0.4)"
-              : "0 4px 24px rgba(26,58,139,0.5), 0 2px 8px rgba(0,0,0,0.25)",
+              ? "0 2px 16px rgba(11,79,216,0.4)"
+              : "0 4px 24px rgba(11,79,216,0.5), 0 2px 8px rgba(0,0,0,0.25)",
             transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
             transform: isOpen ? "scale(0.92) rotate(8deg)" : "scale(1)",
             position: "relative",
@@ -425,7 +425,7 @@ export default function ChatBot() {
                   position: "absolute",
                   inset: "-7px",
                   borderRadius: "50%",
-                  border: "2px solid rgba(26,58,139,0.6)",
+                  border: "2px solid rgba(11,79,216,0.6)",
                   animation: "chatPulse 2s ease-out 0s infinite",
                 }}
               />
@@ -434,7 +434,7 @@ export default function ChatBot() {
                   position: "absolute",
                   inset: "-14px",
                   borderRadius: "50%",
-                  border: "1.5px solid rgba(26,58,139,0.3)",
+                  border: "1.5px solid rgba(11,79,216,0.3)",
                   animation: "chatPulse 2s ease-out 0.4s infinite",
                 }}
               />
@@ -451,7 +451,7 @@ export default function ChatBot() {
                 width: "16px",
                 height: "16px",
                 borderRadius: "50%",
-                background: "#e85c2a",
+                background: "#ff6b00",
                 border: "2px solid white",
                 fontSize: "9px",
                 color: "#fff",
@@ -877,7 +877,7 @@ export default function ChatBot() {
               background:
                 !input.trim() || loading
                   ? "rgba(255,255,255,0.09)"
-                  : "linear-gradient(135deg, #e85c2a 0%, #c94516 100%)",
+                  : "linear-gradient(135deg, #ff6b00 0%, #e05600 100%)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -886,7 +886,7 @@ export default function ChatBot() {
               boxShadow:
                 !input.trim() || loading
                   ? "none"
-                  : "0 3px 10px rgba(232,92,42,0.4)",
+                  : "0 3px 12px rgba(255,107,0,0.45)",
               outline: "none",
             }}
             aria-label="Send message"

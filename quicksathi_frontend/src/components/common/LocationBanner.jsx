@@ -45,8 +45,8 @@ export default function LocationBanner() {
   return (
     <div
       style={{
-        background: "linear-gradient(90deg, #0e1e52 0%, #1a3a8b 50%, #0e1e52 100%)",
-        borderBottom: "1px solid rgba(232,92,42,0.25)",
+        background: "linear-gradient(90deg, #0739a8 0%, #0b4fd8 50%, #0739a8 100%)",
+        borderBottom: "1px solid rgba(255,107,0,0.3)",
         padding: "9px 20px",
         display: "flex",
         alignItems: "center",
@@ -62,43 +62,41 @@ export default function LocationBanner() {
       {/* Label */}
       <span
         style={{
-          color: "rgba(255,255,255,0.55)",
-          fontSize: "12px",
+          color: "rgba(255,255,255,0.7)",
+          fontSize: "12.5px",
           fontFamily: "Inter, sans-serif",
-          fontWeight: "500",
-          flexShrink: 0,
         }}
       >
-        Showing services in:
+        Showing services for:
       </span>
 
-      {/* City display + change button */}
-      <div ref={dropRef} style={{ position: "relative", flexShrink: 0 }}>
+      {/* Current City Pill + Dropdown trigger */}
+      <div style={{ position: "relative" }} ref={dropRef}>
         <button
-          onClick={() => setDropdownOpen((p) => !p)}
+          onClick={() => setDropdownOpen((v) => !v)}
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-            background: "rgba(232,92,42,0.18)",
-            border: "1px solid rgba(232,92,42,0.45)",
+            background: "rgba(255,107,0,0.18)",
+            border: "1px solid rgba(255,107,0,0.45)",
+            color: "#ffffff",
+            padding: "3px 10px 3px 12px",
             borderRadius: "20px",
-            padding: "4px 13px",
-            cursor: "pointer",
-            color: "white",
-            fontFamily: "Inter, sans-serif",
             fontSize: "12.5px",
             fontWeight: "600",
-            transition: "all 0.2s",
+            fontFamily: "Inter, sans-serif",
+            cursor: "pointer",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "5px",
+            transition: "all 0.18s ease",
             outline: "none",
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.background = "rgba(232,92,42,0.3)";
-            e.currentTarget.style.borderColor = "rgba(232,92,42,0.7)";
+            e.currentTarget.style.background = "rgba(255,107,0,0.30)";
+            e.currentTarget.style.borderColor = "rgba(255,107,0,0.7)";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = "rgba(232,92,42,0.18)";
-            e.currentTarget.style.borderColor = "rgba(232,92,42,0.45)";
+            e.currentTarget.style.background = "rgba(255,107,0,0.18)";
+            e.currentTarget.style.borderColor = "rgba(255,107,0,0.45)";
           }}
         >
           {detecting ? (
@@ -110,7 +108,7 @@ export default function LocationBanner() {
                   height: "10px",
                   borderRadius: "50%",
                   border: "2px solid rgba(255,255,255,0.3)",
-                  borderTopColor: "#e85c2a",
+                  borderTopColor: "#ff6b00",
                   animation: "locSpin 0.8s linear infinite",
                 }}
               />

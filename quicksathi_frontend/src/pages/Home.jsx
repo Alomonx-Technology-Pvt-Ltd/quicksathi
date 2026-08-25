@@ -121,10 +121,8 @@ const Home = () => {
         s.name.toLowerCase().includes(name.toLowerCase()) ||
         name.toLowerCase().includes(s.name.toLowerCase())
     );
-    const isRental = name.toLowerCase().includes("rental") || name.toLowerCase().includes("car") || name.toLowerCase().includes("bike");
-    const prefix = isRental ? "/product" : "/service";
-    if (match) return `${prefix}/${match.slug || match._id || match.id}`;
-    return `${prefix}/${subId}`;
+    if (match) return `/service/${match.slug || match._id || match.id}`;
+    return `/service/${subId}`;
   };
 
   const handleBookNow = (name, subId) => {
@@ -185,14 +183,14 @@ const Home = () => {
       <QuickServicesSection categories={categories} services={services} />
       <LocationBanner />
 
-      <section className="px-4 sm:px-8 lg:px-16 py-12">
+      <section className="px-4 sm:px-8 lg:px-16 py-12" style={{ backgroundColor: "var(--color-bg)" }}>
         {/* Section header — stacks on mobile */}
         <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4 mb-7">
           <h2
             className="text-lg sm:text-xl font-semibold uppercase tracking-[0.2em] flex-shrink-0"
             style={{
               fontFamily: "var(--font-body)",
-              color: "#C4A882",
+              color: "var(--color-primary)",
             }}
           >
             Popular Services
@@ -201,7 +199,7 @@ const Home = () => {
           <div
             className="hidden sm:block h-px flex-1"
             style={{
-              background: "linear-gradient(to right, #C4A88240, transparent)",
+              background: "linear-gradient(to right, rgba(11,79,216,0.35), transparent)",
             }}
           />
 
@@ -209,8 +207,8 @@ const Home = () => {
             className="text-xl sm:text-2xl lg:text-3xl font-normal italic flex-shrink-0"
             style={{
               fontFamily: "var(--font-display)",
-              color: "#C4A882",
-              opacity: 0.9,
+              color: "var(--color-text-mid)",
+              opacity: 0.95,
             }}
           >
             Discover our services and how we do it better.
@@ -242,7 +240,7 @@ const Home = () => {
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
                   <div className="flex items-center gap-4">
                     <h3
-                      className="text-xl font-normal m-0"
+                      className="text-xl font-semibold m-0"
                       style={{
                         fontFamily: "var(--font-display)",
                         color: "var(--color-text-dark)",
@@ -261,12 +259,12 @@ const Home = () => {
 
                   <Link
                     to={`/category/${parent._id}`}
-                    className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold no-underline transition-all duration-200 hover:scale-105 self-start sm:self-auto"
+                    className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold no-underline transition-all duration-200 hover:scale-105 self-start sm:self-auto shadow-sm"
                     style={{
                       fontFamily: "var(--font-body)",
-                      backgroundColor: "var(--color-text-dark)",
+                      backgroundColor: "var(--color-primary)",
                       color: "#fff",
-                      boxShadow: "0 2px 12px rgba(44,24,16,0.15)",
+                      boxShadow: "0 2px 12px rgba(11,79,216,0.25)",
                     }}
                   >
                     View All Services{" "}
@@ -305,30 +303,30 @@ const Home = () => {
         <div
           className="rounded-3xl p-8 sm:p-12 relative overflow-hidden flex flex-col md:flex-row items-center gap-10"
           style={{
-            backgroundImage: "linear-gradient(135deg, rgba(30, 27, 26, 0.96) 0%, rgba(18, 15, 14, 0.98) 100%), url('https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=1000&auto=format&fit=crop')",
+            backgroundImage: "linear-gradient(135deg, rgba(15, 23, 42, 0.97) 0%, rgba(7, 57, 168, 0.94) 100%), url('https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=1000&auto=format&fit=crop')",
             backgroundSize: "cover",
             backgroundPosition: "center",
-            boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)",
-            border: "1px solid rgba(196,168,130,0.18)"
+            boxShadow: "0 25px 50px -12px rgba(11,79,216,0.3)",
+            border: "1px solid rgba(255,107,0,0.2)"
           }}
         >
           {/* Subtle background glow */}
-          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full filter blur-[120px] opacity-15 pointer-events-none" style={{ backgroundColor: "#C4A882" }} />
+          <div className="absolute -top-24 -right-24 w-96 h-96 rounded-full filter blur-[120px] opacity-20 pointer-events-none" style={{ backgroundColor: "var(--color-accent)" }} />
 
           <div className="flex-1 relative z-10">
-            <span className="inline-block px-3 py-1 rounded-full text-[10px] font-bold tracking-widest text-[#C4A882] bg-white/5 border border-white/10 uppercase mb-4">
+            <span className="inline-block px-3 py-1 rounded-full text-[10px] font-bold tracking-widest text-[#ff6b00] bg-white/10 border border-[#ff6b00]/30 uppercase mb-4">
               Partner Program
             </span>
             <h2 className="text-3xl sm:text-4xl text-white font-normal leading-tight mb-4" style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.01em" }}>
               Expand Your Service Horizons
             </h2>
-            <p className="text-sm leading-relaxed mb-6 max-w-lg" style={{ fontFamily: "var(--font-body)", color: "rgba(255,255,255,0.65)" }}>
+            <p className="text-sm leading-relaxed mb-6 max-w-lg" style={{ fontFamily: "var(--font-body)", color: "rgba(255,255,255,0.75)" }}>
               Join the QuickSathi partner network to list your elite facilities, coordinate wedding decoration packages, manage vehicle rentals, or deploy CCTV security setups. Enjoy immediate payouts and high-value client matching.
             </p>
-            <div className="flex flex-wrap gap-6 text-xs text-white/50 mb-8" style={{ fontFamily: "var(--font-body)" }}>
-              <span className="flex items-center gap-1.5"><ShieldCheck size={14} className="text-[#C4A882]" /> Vetted Listings</span>
-              <span className="flex items-center gap-1.5"><Gem size={14} className="text-[#C4A882]" /> Premium Clients</span>
-              <span className="flex items-center gap-1.5"><CreditCard size={14} className="text-[#C4A882]" /> Fast Automated Payments</span>
+            <div className="flex flex-wrap gap-6 text-xs text-white/70 mb-8" style={{ fontFamily: "var(--font-body)" }}>
+              <span className="flex items-center gap-1.5"><ShieldCheck size={14} className="text-[#ff6b00]" /> Vetted Listings</span>
+              <span className="flex items-center gap-1.5"><Gem size={14} className="text-[#ff6b00]" /> Premium Clients</span>
+              <span className="flex items-center gap-1.5"><CreditCard size={14} className="text-[#ff6b00]" /> Fast Automated Payments</span>
             </div>
 
             <Link to="/provider/onboarding" className="no-underline">
@@ -336,9 +334,9 @@ const Home = () => {
                 className="px-8 py-4 rounded-full text-xs font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-90 hover:scale-[1.02]"
                 style={{
                   fontFamily: "var(--font-body)",
-                  backgroundColor: "var(--color-primary)",
+                  background: "linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%)",
                   color: "#ffffff",
-                  boxShadow: "0 6px 24px rgba(139,26,26,0.3)",
+                  boxShadow: "0 6px 24px rgba(255,107,0,0.35)",
                 }}
               >
                 Become a Partner
@@ -348,13 +346,13 @@ const Home = () => {
 
           {/* Interactive visual metrics on the right */}
           <div className="w-full md:w-72 flex flex-col gap-4 relative z-10">
-            <div className="p-5 rounded-2xl border" style={{ backgroundColor: "rgba(0,0,0,0.3)", backdropFilter: "blur(4px)", borderColor: "rgba(255,255,255,0.06)" }}>
-              <p className="text-[10px] uppercase font-bold tracking-wider m-0" style={{ color: "#C4A882", fontFamily: "var(--font-body)" }}>Average Commission</p>
-              <p className="text-2xl font-bold text-white m-0 mt-1" style={{ fontFamily: "var(--font-display)" }}>8% <span className="text-xs font-normal text-white/40">per checkout</span></p>
+            <div className="p-5 rounded-2xl border" style={{ backgroundColor: "rgba(0,0,0,0.35)", backdropFilter: "blur(6px)", borderColor: "rgba(255,255,255,0.1)" }}>
+              <p className="text-[10px] uppercase font-bold tracking-wider m-0" style={{ color: "var(--color-accent)", fontFamily: "var(--font-body)" }}>Average Commission</p>
+              <p className="text-2xl font-bold text-white m-0 mt-1" style={{ fontFamily: "var(--font-display)" }}>8% <span className="text-xs font-normal text-white/50">per checkout</span></p>
             </div>
-            <div className="p-5 rounded-2xl border" style={{ backgroundColor: "rgba(0,0,0,0.3)", backdropFilter: "blur(4px)", borderColor: "rgba(255,255,255,0.06)" }}>
-              <p className="text-[10px] uppercase font-bold tracking-wider m-0" style={{ color: "#C4A882", fontFamily: "var(--font-body)" }}>Partner Support</p>
-              <p className="text-2xl font-bold text-white m-0 mt-1" style={{ fontFamily: "var(--font-display)" }}>24/7 <span className="text-xs font-normal text-white/40">VIP line access</span></p>
+            <div className="p-5 rounded-2xl border" style={{ backgroundColor: "rgba(0,0,0,0.35)", backdropFilter: "blur(6px)", borderColor: "rgba(255,255,255,0.1)" }}>
+              <p className="text-[10px] uppercase font-bold tracking-wider m-0" style={{ color: "var(--color-accent)", fontFamily: "var(--font-body)" }}>Partner Support</p>
+              <p className="text-2xl font-bold text-white m-0 mt-1" style={{ fontFamily: "var(--font-display)" }}>24/7 <span className="text-xs font-normal text-white/50">VIP line access</span></p>
             </div>
           </div>
         </div>

@@ -356,6 +356,23 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
         service.name?.toLowerCase().includes(s.name?.toLowerCase())
     );
 
+    const isRental =
+      activeCategoryId === "rental" ||
+      service.name?.toLowerCase().includes("rental") ||
+      service.name?.toLowerCase().includes("car") ||
+      service.name?.toLowerCase().includes("bike") ||
+      realService?.serviceMode === "RENTAL";
+
+    if (isRental) {
+      if (realService) {
+        const serviceId = realService.slug || realService._id || realService.id;
+        navigate(`/service/${serviceId}`);
+      } else {
+        navigate(activeCategoryConfig.route || "/services/car-rentals");
+      }
+      return;
+    }
+
     if (realService) {
       // Use the real backend service ID and data
       const serviceId = realService._id || realService.id;
@@ -377,16 +394,16 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
   return (
     <section
       className="w-full py-14 px-4 sm:px-8 lg:px-16"
-      style={{ backgroundColor: "#F5F0E8" }}
+      style={{ backgroundColor: "var(--color-bg)" }}
     >
       <div className="max-w-7xl mx-auto">
 
-        {/* ── Section Header — editorial style from image 3 ── */}
+        {/* ── Section Header ── */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-2">
           <div>
             <p
-              className="text-[10px] font-bold tracking-[0.2em] uppercase mb-2"
-              style={{ color: "var(--color-primary)" }}
+              className="text-[11px] font-bold tracking-[0.2em] uppercase mb-2"
+              style={{ color: "var(--color-accent)", fontFamily: "var(--font-body)" }}
             >
               Popular Services
             </p>
@@ -398,10 +415,10 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
             </h2>
           </div>
           <p
-            className="text-base sm:text-lg italic hidden sm:block"
+            className="text-base sm:text-lg italic hidden sm:block font-medium"
             style={{ color: "var(--color-primary)", fontFamily: "var(--font-display)" }}
           >
-            Discover our services and how we do it better
+            Trusted local experts for every need
           </p>
         </div>
 
@@ -422,19 +439,20 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
                 onClick={() => setActiveCategoryId(category.id)}
                 className="flex-shrink-0 flex items-center gap-2.5 px-4 py-2.5 rounded-full cursor-pointer transition-all duration-200 outline-none"
                 style={{
-                  backgroundColor: isActive ? "#1c1c1c" : "transparent",
-                  border: isActive ? "1.5px solid #1c1c1c" : "1.5px solid rgba(0,0,0,0.18)",
+                  backgroundColor: isActive ? "var(--color-primary)" : "var(--color-bg-white)",
+                  border: isActive ? "1.5px solid var(--color-primary)" : "1.5px solid var(--color-border)",
+                  boxShadow: isActive ? "0 4px 16px rgba(11, 79, 216, 0.28)" : "0 1px 3px rgba(0,0,0,0.04)",
                   fontFamily: "var(--font-body)",
                 }}
               >
                 <Icon
                   className="w-4 h-4 flex-shrink-0"
-                  style={{ color: isActive ? "#ffffff" : "#444" }}
+                  style={{ color: isActive ? "#ffffff" : "var(--color-text-mid)" }}
                   strokeWidth={1.8}
                 />
                 <span
-                  className="text-sm font-medium whitespace-nowrap"
-                  style={{ color: isActive ? "#ffffff" : "#333" }}
+                  className="text-sm font-semibold whitespace-nowrap"
+                  style={{ color: isActive ? "#ffffff" : "var(--color-text-dark)" }}
                 >
                   {category.title}
                 </span>
@@ -443,7 +461,7 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
           })}
         </div>
 
-        {/* ── BOTTOM: Category title row + Cards — no wrapper box ── */}
+        {/* ── BOTTOM: Category title row + Cards ── */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeCategoryId}
@@ -452,7 +470,7 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.22 }}
           >
-            {/* Category Title & "View All" — sits directly on section bg */}
+            {/* Category Title & "View All" */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-3">
               <div className="flex items-center gap-3">
                 <h3
@@ -463,7 +481,7 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
                 </h3>
                 <div
                   className="hidden sm:block h-px w-16"
-                  style={{ backgroundColor: "rgba(0,0,0,0.15)" }}
+                  style={{ backgroundColor: "var(--color-border)" }}
                 />
               </div>
 
@@ -472,11 +490,12 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
                 className="inline-flex items-center gap-1.5 no-underline self-start sm:self-auto"
               >
                 <span
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200 hover:opacity-80"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold transition-all duration-200 hover:opacity-90"
                   style={{
-                    backgroundColor: "#1c1c1c",
+                    backgroundColor: "var(--color-primary)",
                     color: "#ffffff",
                     fontFamily: "var(--font-body)",
+                    boxShadow: "0 2px 8px rgba(11, 79, 216, 0.25)",
                   }}
                 >
                   View All Services
@@ -490,6 +509,7 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
               {displayServices.map((service) => (
                 <div
                   key={service._id || service.id}
+                  onClick={() => handleBookClick(service)}
                   className="flex flex-col justify-between overflow-hidden group cursor-pointer"
                   style={{
                     backgroundColor: "#ffffff",
@@ -587,14 +607,17 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
                       </div>
 
                       <button
-                        onClick={() => handleBookClick(service)}
-                        className="flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold text-white border-none cursor-pointer active:scale-95 transition-all"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleBookClick(service);
+                        }}
+                        className="flex items-center gap-1.5 text-[11px] font-semibold text-white border-none cursor-pointer active:scale-95 transition-all duration-200 hover:opacity-90 shadow-sm"
                         style={{
-                          backgroundColor: "#1c1c1c",
+                          backgroundColor: "var(--color-primary)",
                           borderRadius: "20px",
                           padding: "6px 14px",
                           fontFamily: "var(--font-body)",
-                          letterSpacing: "0.03em",
+                          letterSpacing: "0.02em",
                         }}
                       >
                         <CalendarCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />

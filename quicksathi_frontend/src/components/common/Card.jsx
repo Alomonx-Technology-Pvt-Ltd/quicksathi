@@ -18,51 +18,53 @@ const Card = ({
   if (variant === "servicePreview") {
     return (
       <div
-        className="w-full rounded-2xl sm:rounded-[18px] overflow-hidden border flex flex-col lg:flex-row transition-all duration-300 hover:-translate-y-1"
+        className="w-full rounded-2xl sm:rounded-[20px] overflow-hidden border flex flex-col lg:flex-row transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
         style={{
-          backgroundColor: "#F1EFE8",
+          backgroundColor: "var(--color-bg-white)",
           borderColor: "var(--color-border)",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.04)",
         }}
       >
         <div className="flex lg:w-[40%] w-full gap-2 sm:gap-3 p-3 sm:p-4 flex-shrink-0">
           <div
-            className="flex-1 overflow-hidden rounded-lg sm:rounded-[10px]"
+            className="flex-1 overflow-hidden rounded-lg sm:rounded-[12px]"
             style={{ aspectRatio: "4/3" }}
           >
             <img
               src={image}
               alt={title}
-              className="w-full h-full object-cover transition-transform duration-500 hover:scale-105 brightness-90 saturate-[0.85]"
+              className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
             />
           </div>
           <div
-            className="flex-1 overflow-hidden rounded-lg sm:rounded-[10px]"
+            className="flex-1 overflow-hidden rounded-lg sm:rounded-[12px]"
             style={{ aspectRatio: "4/3" }}
           >
             <img
               src={secondaryImage || image}
               alt={title}
-              className="w-full h-full object-cover transition-transform duration-500 hover:scale-105 brightness-90 saturate-[0.85]"
+              className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
             />
           </div>
         </div>
 
-        <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 py-3 sm:py-4 gap-2 sm:gap-3">
+        <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 py-4 sm:py-5 gap-2 sm:gap-3">
           <span
-            className="text-[9px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] sm:tracking-[0.18em] border rounded px-2 sm:px-2.5 py-0.5 sm:py-1 self-start"
+            className="text-[9px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] sm:tracking-[0.18em] border rounded px-2.5 py-0.5 sm:py-1 self-start"
             style={{
               fontFamily: "var(--font-body)",
-              color: "#F0997B",
-              borderColor: "#993C1D",
+              color: "var(--color-accent)",
+              borderColor: "var(--color-accent)",
+              backgroundColor: "var(--color-accent-soft)",
             }}
           >
             Featured
           </span>
           <h2
-            className="text-lg sm:text-2xl leading-tight m-0"
+            className="text-lg sm:text-2xl leading-tight m-0 font-semibold"
             style={{
               fontFamily: "var(--font-display)",
-              color: "#1a1a18",
+              color: "var(--color-text-dark)",
               letterSpacing: "-0.4px",
             }}
           >
@@ -72,21 +74,22 @@ const Card = ({
             className="text-xs sm:text-sm leading-relaxed m-0 line-clamp-2 sm:line-clamp-none"
             style={{
               fontFamily: "var(--font-body)",
-              color: "#888780",
+              color: "var(--color-text-mid)",
               fontWeight: 400,
             }}
           >
             {description}
           </p>
-          <div className="flex items-center flex-wrap gap-2 sm:gap-2.5 mt-1">
+          <div className="flex items-center flex-wrap gap-2.5 sm:gap-3 mt-1.5">
             {linkTo && (
               <Link
                 to={linkTo}
-                className="text-[10px] sm:text-[12px] font-semibold uppercase tracking-[0.06em] sm:tracking-[0.08em] px-4 sm:px-5 py-2 sm:py-2.5 rounded-md no-underline transition-opacity duration-200 hover:opacity-80"
+                className="text-[10px] sm:text-[12px] font-semibold uppercase tracking-[0.06em] sm:tracking-[0.08em] px-5 py-2.5 rounded-full no-underline transition-all duration-200 hover:opacity-90 shadow-sm"
                 style={{
                   fontFamily: "var(--font-body)",
-                  backgroundColor: "#1a1a18",
-                  color: "#F1EFE8",
+                  backgroundColor: "var(--color-primary)",
+                  color: "#ffffff",
+                  boxShadow: "0 2px 10px rgba(11,79,216,0.25)",
                 }}
               >
                 {primaryAction || "View Details"}
@@ -94,20 +97,20 @@ const Card = ({
             )}
             {secondaryAction && (
               <button
-                className="text-[10px] sm:text-[12px] uppercase tracking-[0.06em] sm:tracking-[0.08em] px-4 sm:px-5 py-2 sm:py-2.5 rounded-md border transition-all duration-200 cursor-pointer"
+                className="text-[10px] sm:text-[12px] uppercase tracking-[0.06em] sm:tracking-[0.08em] px-5 py-2.5 rounded-full border font-semibold transition-all duration-200 cursor-pointer"
                 style={{
                   fontFamily: "var(--font-body)",
                   backgroundColor: "transparent",
-                  color: "#888780",
-                  borderColor: "#C8C5BC",
+                  color: "var(--color-primary)",
+                  borderColor: "rgba(11,79,216,0.35)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.color = "#1a1a18";
-                  e.currentTarget.style.borderColor = "#1a1a18";
+                  e.currentTarget.style.backgroundColor = "var(--color-primary-soft)";
+                  e.currentTarget.style.borderColor = "var(--color-primary)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.color = "#888780";
-                  e.currentTarget.style.borderColor = "#C8C5BC";
+                  e.currentTarget.style.backgroundColor = "transparent";
+                  e.currentTarget.style.borderColor = "rgba(11,79,216,0.35)";
                 }}
                 onClick={onSecondaryAction}
               >
@@ -126,44 +129,46 @@ const Card = ({
   if (variant === "classic") {
     return (
       <div
-        className="rounded-2xl sm:rounded-[18px] overflow-hidden flex flex-col h-full border transition-all duration-300 hover:-translate-y-1"
+        className="rounded-2xl sm:rounded-[20px] overflow-hidden flex flex-col h-full border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
         style={{
-          backgroundColor: "#F1EFE8",
+          backgroundColor: "var(--color-bg-white)",
           borderColor: "var(--color-border)",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.04)",
         }}
       >
         {/* Image */}
         <div className="w-full overflow-hidden p-3 sm:p-4 pb-0">
           <div
-            className="w-full overflow-hidden rounded-lg sm:rounded-[10px]"
+            className="w-full overflow-hidden rounded-lg sm:rounded-[12px]"
             style={{ aspectRatio: "16/9" }}
           >
             <img
               src={image}
               alt={title}
-              className="w-full h-full object-cover transition-transform duration-500 hover:scale-105 brightness-90 saturate-[0.85]"
+              className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
             />
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex flex-col flex-grow px-4 sm:px-6 py-3 sm:py-4 gap-2 sm:gap-3">
+        <div className="flex flex-col flex-grow px-4 sm:px-6 py-4 sm:py-5 gap-2 sm:gap-3">
           <span
-            className="text-[9px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] sm:tracking-[0.18em] border rounded px-2 sm:px-2.5 py-0.5 sm:py-1 self-start"
+            className="text-[9px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] sm:tracking-[0.18em] border rounded px-2.5 py-0.5 sm:py-1 self-start"
             style={{
               fontFamily: "var(--font-body)",
-              color: "#F0997B",
-              borderColor: "#993C1D",
+              color: "var(--color-accent)",
+              borderColor: "var(--color-accent)",
+              backgroundColor: "var(--color-accent-soft)",
             }}
           >
             Featured
           </span>
 
           <h3
-            className="text-base sm:text-xl leading-tight m-0"
+            className="text-base sm:text-xl leading-tight m-0 font-semibold"
             style={{
               fontFamily: "var(--font-display)",
-              color: "#1a1a18",
+              color: "var(--color-text-dark)",
               letterSpacing: "-0.3px",
             }}
           >
@@ -174,22 +179,23 @@ const Card = ({
             className="text-xs sm:text-sm leading-relaxed m-0 flex-grow line-clamp-2 sm:line-clamp-none"
             style={{
               fontFamily: "var(--font-body)",
-              color: "#888780",
+              color: "var(--color-text-mid)",
               fontWeight: 400,
             }}
           >
             {description}
           </p>
 
-          <div className="flex items-center flex-wrap gap-2 sm:gap-2.5 mt-1">
+          <div className="flex items-center flex-wrap gap-2.5 sm:gap-3 mt-1.5">
             {linkTo && (
               <Link
                 to={linkTo}
-                className="text-[10px] sm:text-[12px] font-semibold uppercase tracking-[0.06em] sm:tracking-[0.08em] px-4 sm:px-5 py-2 sm:py-2.5 rounded-md no-underline transition-opacity duration-200 hover:opacity-80"
+                className="text-[10px] sm:text-[12px] font-semibold uppercase tracking-[0.06em] sm:tracking-[0.08em] px-5 py-2.5 rounded-full no-underline transition-all duration-200 hover:opacity-90 shadow-sm"
                 style={{
                   fontFamily: "var(--font-body)",
-                  backgroundColor: "#1a1a18",
-                  color: "#F1EFE8",
+                  backgroundColor: "var(--color-primary)",
+                  color: "#ffffff",
+                  boxShadow: "0 2px 10px rgba(11,79,216,0.25)",
                 }}
               >
                 {primaryAction || "View Details"}
@@ -197,20 +203,20 @@ const Card = ({
             )}
             {secondaryAction && (
               <button
-                className="text-[10px] sm:text-[12px] uppercase tracking-[0.06em] sm:tracking-[0.08em] px-4 sm:px-5 py-2 sm:py-2.5 rounded-md border transition-all duration-200 cursor-pointer"
+                className="text-[10px] sm:text-[12px] uppercase tracking-[0.06em] sm:tracking-[0.08em] px-5 py-2.5 rounded-full border font-semibold transition-all duration-200 cursor-pointer"
                 style={{
                   fontFamily: "var(--font-body)",
                   backgroundColor: "transparent",
-                  color: "#888780",
-                  borderColor: "#C8C5BC",
+                  color: "var(--color-primary)",
+                  borderColor: "rgba(11,79,216,0.35)",
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.color = "#1a1a18";
-                  e.currentTarget.style.borderColor = "#1a1a18";
+                  e.currentTarget.style.backgroundColor = "var(--color-primary-soft)";
+                  e.currentTarget.style.borderColor = "var(--color-primary)";
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.color = "#888780";
-                  e.currentTarget.style.borderColor = "#C8C5BC";
+                  e.currentTarget.style.backgroundColor = "transparent";
+                  e.currentTarget.style.borderColor = "rgba(11,79,216,0.35)";
                 }}
                 onClick={onSecondaryAction}
               >
@@ -231,7 +237,7 @@ const Card = ({
       <img
         src={image}
         alt={title}
-        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 brightness-90 saturate-[0.85]"
+        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
       />
 
       {/* Gradient */}
@@ -239,7 +245,7 @@ const Card = ({
         className="absolute inset-0"
         style={{
           background:
-            "linear-gradient(to top, rgba(17,17,16,0.80) 35%, rgba(17,17,16,0.0) 65%)",
+            "linear-gradient(to top, rgba(15,23,42,0.85) 30%, rgba(15,23,42,0.15) 70%, transparent 100%)",
         }}
       />
 
@@ -250,9 +256,9 @@ const Card = ({
             className="text-[9px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] sm:tracking-[0.18em] border rounded px-2 sm:px-2.5 py-0.5 sm:py-1"
             style={{
               fontFamily: "var(--font-body)",
-              color: "#F0997B",
-              borderColor: "#993C1D",
-              backgroundColor: "rgba(17,17,16,0.55)",
+              color: "var(--color-accent)",
+              borderColor: "var(--color-accent)",
+              backgroundColor: "rgba(15,23,42,0.65)",
               backdropFilter: "blur(6px)",
             }}
           >
@@ -266,9 +272,9 @@ const Card = ({
         <span
           className="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center transition-all duration-200 group-hover:scale-110"
           style={{
-            backgroundColor: "rgba(241,239,232,0.15)",
+            backgroundColor: "rgba(255,255,255,0.2)",
             backdropFilter: "blur(8px)",
-            border: "1px solid rgba(241,239,232,0.25)",
+            border: "1px solid rgba(255,255,255,0.3)",
           }}
         >
           <svg
@@ -276,8 +282,8 @@ const Card = ({
             height="12"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#F1EFE8"
-            strokeWidth="1.5"
+            stroke="#ffffff"
+            strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
             className="sm:w-[13px] sm:h-[13px]"
@@ -289,12 +295,11 @@ const Card = ({
       </div>
 
       {/* Bottom content */}
-      <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 z-10 flex flex-col gap-1 sm:gap-1.5">
+      <div className="absolute bottom-0 left-0 right-0 p-3.5 sm:p-5 z-10 flex flex-col gap-1 sm:gap-1.5">
         <h3
-          className="font-normal text-base sm:text-xl leading-tight m-0"
+          className="font-normal text-base sm:text-xl leading-tight m-0 text-white"
           style={{
             fontFamily: "var(--font-display)",
-            color: "#F1EFE8",
             letterSpacing: "-0.3px",
           }}
         >
@@ -302,8 +307,8 @@ const Card = ({
         </h3>
         {description && (
           <p
-            className="text-[11px] sm:text-xs m-0 line-clamp-1"
-            style={{ fontFamily: "var(--font-body)", color: "#888780" }}
+            className="text-[11px] sm:text-xs m-0 line-clamp-1 text-white/80"
+            style={{ fontFamily: "var(--font-body)" }}
           >
             {description}
           </p>
@@ -316,11 +321,11 @@ const Card = ({
     return (
       <Link
         to={linkTo}
-        className="group relative rounded-2xl sm:rounded-[18px] overflow-hidden block no-underline border transition-all duration-300 hover:-translate-y-1"
+        className="group relative rounded-2xl sm:rounded-[18px] overflow-hidden block no-underline border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
         style={{
           aspectRatio: "4/3",
           borderColor: "var(--color-border)",
-          boxShadow: "0 4px 24px rgba(0,0,0,0.10)",
+          boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
         }}
       >
         {content}
@@ -330,11 +335,11 @@ const Card = ({
 
   return (
     <div
-      className="group relative rounded-2xl sm:rounded-[18px] overflow-hidden border transition-all duration-300 hover:-translate-y-1"
+      className="group relative rounded-2xl sm:rounded-[18px] overflow-hidden border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
       style={{
         aspectRatio: "4/3",
         borderColor: "var(--color-border)",
-        boxShadow: "0 4px 24px rgba(0,0,0,0.10)",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
       }}
     >
       {content}

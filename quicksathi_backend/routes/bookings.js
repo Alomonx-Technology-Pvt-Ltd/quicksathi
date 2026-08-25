@@ -99,7 +99,7 @@ router.patch("/:id/cancel", protect, async (req, res) => {
 
     booking.status = "cancelled";
     booking.cancelledBy = req.user.role === "admin" ? "admin" : "user";
-    booking.cancelReason = req.body.reason || "";
+    booking.cancelReason = req.body?.reason || "";
     await booking.save();
 
     // Create In-Website Notification

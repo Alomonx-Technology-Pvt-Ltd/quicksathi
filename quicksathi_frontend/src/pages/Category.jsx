@@ -258,10 +258,8 @@ const Category = () => {
         s.name.toLowerCase().includes(name.toLowerCase()) ||
         name.toLowerCase().includes(s.name.toLowerCase())
     );
-    const isRental = name.toLowerCase().includes("rental") || name.toLowerCase().includes("car") || name.toLowerCase().includes("bike");
-    const prefix = isRental ? "/product" : "/service";
-    if (match) return `${prefix}/${match.slug || match._id || match.id}`;
-    return `${prefix}/${subId}`;
+    if (match) return `/service/${match.slug || match._id || match.id}`;
+    return `/service/${subId}`;
   };
 
   // Enrich each subCategory with its matched service (for price/rating),

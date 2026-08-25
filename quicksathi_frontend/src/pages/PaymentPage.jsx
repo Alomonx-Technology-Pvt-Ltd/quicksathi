@@ -13,6 +13,9 @@ const PaymentPage = () => {
   const price = parseInt(searchParams.get("price") || "0");
   const date = searchParams.get("date") || "";
   
+  const route = searchParams.get("route") || "";
+  const distance = searchParams.get("distance") || "";
+  
   // Extract all remaining data needed for booking
   const serviceId = searchParams.get("serviceId");
   const time = searchParams.get("time") || "";
@@ -117,7 +120,20 @@ const PaymentPage = () => {
             </div>
             {packageTitle && (
               <div className="flex justify-between text-sm" style={{ fontFamily: "var(--font-body)" }}>
-                <span style={{ color: "var(--color-text-mid)" }}>Package: {packageTitle}</span>
+                <span style={{ color: "var(--color-text-mid)" }}>Package</span>
+                <span style={{ color: "var(--color-text-dark)" }}>{packageTitle}</span>
+              </div>
+            )}
+            {route && (
+              <div className="flex justify-between text-sm" style={{ fontFamily: "var(--font-body)" }}>
+                <span style={{ color: "var(--color-text-mid)" }}>Route</span>
+                <span className="font-semibold text-right" style={{ color: "var(--color-text-dark)" }}>{route}</span>
+              </div>
+            )}
+            {distance && (
+              <div className="flex justify-between text-sm" style={{ fontFamily: "var(--font-body)" }}>
+                <span style={{ color: "var(--color-text-mid)" }}>Distance</span>
+                <span className="font-bold" style={{ color: "#16a34a" }}>{distance}</span>
               </div>
             )}
             {date && (

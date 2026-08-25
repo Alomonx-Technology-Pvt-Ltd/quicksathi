@@ -6,7 +6,14 @@ import RouteMap from "../carRental/RouteMap";
 
 const BookingCard = ({ service, pkg }) => {
   const navigate = useNavigate();
-  const isRental = service.serviceMode === "RENTAL";
+  const isRental =
+    service?.serviceMode === "RENTAL" ||
+    service?.categoryName?.toLowerCase().includes("rental") ||
+    service?.categoryName?.toLowerCase().includes("vehicle") ||
+    service?.name?.toLowerCase().includes("rental") ||
+    service?.name?.toLowerCase().includes("car") ||
+    service?.name?.toLowerCase().includes("bike");
+
   const perKmRate = service.perKmRate || 10; // admin-configured, default ₹10/km
 
   // ── Route state (only for RENTAL services) ──
@@ -51,10 +58,23 @@ const BookingCard = ({ service, pkg }) => {
       price: tripTotal.toString(),
     });
 
-    if (isRental && distanceKm > 0) {
-      params.set("route", `${pickupName} → ${dropoffName}`);
-      params.set("distance", `${distanceKm} km`);
+    if (isRental) {
       params.set("perKmRate", perKmRate.toString());
+      if (pickupName) params.set("pickup", pickupName);
+      if (dropoffName) params.set("dropoff", dropoffName);
+      if (pickup?.lat && pickup?.lon) {
+        params.set("pickupLat", pickup.lat.toString());
+        params.set("pickupLon", pickup.lon.toString());
+      }
+      if (dropoff?.lat && dropoff?.lon) {
+        params.set("dropoffLat", dropoff.lat.toString());
+        params.set("dropoffLon", dropoff.lon.toString());
+      }
+      if (distanceKm > 0) {
+        params.set("route", `${pickupName} → ${dropoffName}`);
+        params.set("distance", `${distanceKm} km`);
+        params.set("distanceKm", distanceKm.toString());
+      }
     }
 
     navigate(`/booking/${serviceId}?${params.toString()}`);

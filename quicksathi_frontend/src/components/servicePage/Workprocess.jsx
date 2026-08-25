@@ -57,17 +57,17 @@ const WorkProcess = () => {
             transition={{ delay: 0.05 }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full w-fit mx-auto mb-6"
             style={{
-              background: "linear-gradient(135deg, rgba(139,26,26,0.08), rgba(139,26,26,0.03))",
-              border: "1px solid rgba(139,26,26,0.15)",
+              background: "linear-gradient(135deg, rgba(11,79,216,0.08), rgba(11,79,216,0.03))",
+              border: "1px solid rgba(11,79,216,0.15)",
             }}
           >
             <span
               className="w-2 h-2 rounded-full animate-pulse"
-              style={{ backgroundColor: "var(--color-primary, #8B1A1A)" }}
+              style={{ backgroundColor: "var(--color-primary)" }}
             />
             <span
               className="text-[10px] font-semibold uppercase tracking-[0.2em]"
-              style={{ color: "var(--color-primary, #8B1A1A)", opacity: 0.85 }}
+              style={{ color: "var(--color-primary)", opacity: 0.95 }}
             >
               Simple Process
             </span>
@@ -80,23 +80,23 @@ const WorkProcess = () => {
             transition={{ delay: 0.12 }}
             className="font-normal m-0 mb-4 leading-[1.1]"
             style={{
-              fontFamily: "var(--font-display, 'Space Grotesk', sans-serif)",
+              fontFamily: "var(--font-display)",
               fontSize: "clamp(28px, 4.5vw, 48px)",
               letterSpacing: "-0.02em",
             }}
           >
-            <span style={{ color: "var(--color-text-dark, #1a1a1a)" }}>How </span>
+            <span style={{ color: "var(--color-text-dark)" }}>How </span>
             <span
               style={{
-                background: "linear-gradient(135deg, #8B1A1A, #6B1414)",
+                background: "linear-gradient(135deg, var(--color-primary), var(--color-accent))",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
-                fontWeight: 500,
+                fontWeight: 600,
               }}
             >
               QuickSathi
             </span>
-            <span style={{ color: "var(--color-text-dark, #1a1a1a)" }}> Works</span>
+            <span style={{ color: "var(--color-text-dark)" }}> Works</span>
           </motion.h2>
 
           <motion.p
@@ -161,23 +161,23 @@ const WorkProcess = () => {
                   style={{
                     width: 52,
                     height: 52,
-                    backgroundColor: "rgba(139,26,26,0.06)",
+                    backgroundColor: "var(--color-primary-soft)",
                   }}
                 >
                   <step.Icon
                     size={22}
                     strokeWidth={1.8}
-                    style={{ color: "var(--color-primary, #8B1A1A)" }}
+                    style={{ color: "var(--color-primary)" }}
                   />
                 </div>
 
                 <h4
                   className="m-0 mb-2"
                   style={{
-                    fontFamily: "var(--font-display, 'Space Grotesk', sans-serif)",
+                    fontFamily: "var(--font-display)",
                     fontSize: "17px",
-                    fontWeight: 500,
-                    color: "var(--color-text-dark, #1a1a1a)",
+                    fontWeight: 600,
+                    color: "var(--color-text-dark)",
                     letterSpacing: "-0.01em",
                   }}
                 >

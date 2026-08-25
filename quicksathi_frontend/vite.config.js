@@ -16,10 +16,11 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           // Split large vendor libraries into separate chunks for parallel loading
-          manualChunks: {
-            firebase: ['firebase/app', 'firebase/auth'],
-            'framer-motion': ['framer-motion'],
-            gsap: ['gsap'],
+          manualChunks(id) {
+            if (id.includes('firebase')) return 'firebase';
+            if (id.includes('framer-motion')) return 'framer-motion';
+            if (id.includes('gsap')) return 'gsap';
+            if (id.includes('leaflet')) return 'leaflet';
           },
         },
       },

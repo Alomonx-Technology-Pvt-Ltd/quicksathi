@@ -112,7 +112,7 @@ const DocumentRequirement = () => {
               color: "var(--color-text-dark)",
             }}
           >
-            <span className="bg-gradient-to-r from-[#8B1A1A] to-[#1a3a6b] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#0b4fd8] to-[#ff6b00] bg-clip-text text-transparent">
               What You'll Need
             </span>
           </h2>

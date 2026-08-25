@@ -179,7 +179,7 @@ const AdminCategories = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center" style={{ minHeight: "40vh" }}>
-        <div className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin" style={{ borderColor: "rgba(255,255,255,0.1)", borderTopColor: "#8b1a1a" }} />
+        <div className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin" style={{ borderColor: "rgba(255,255,255,0.1)", borderTopColor: "var(--color-primary)" }} />
       </div>
     );
   }
@@ -193,7 +193,7 @@ const AdminCategories = () => {
             Manage service categories and subcategories
           </p>
         </div>
-        <button onClick={openAddForm} className="px-5 py-2.5 rounded-xl text-sm font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-90" style={{ fontFamily: "var(--font-body)", backgroundColor: "#8b1a1a", color: "#fff" }}>
+        <button onClick={openAddForm} className="px-5 py-2.5 rounded-xl text-sm font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-90" style={{ fontFamily: "var(--font-body)", backgroundColor: "var(--color-primary)", color: "#fff" }}>
           + Add Category
         </button>
       </div>
@@ -394,7 +394,7 @@ const AdminCategories = () => {
               {/* Submit */}
               <div className="flex gap-3 justify-end mt-2">
                 <button type="button" onClick={closeForm} className="px-5 py-2.5 rounded-xl text-sm border-0 cursor-pointer" style={{ backgroundColor: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)", fontFamily: "var(--font-body)" }}>Cancel</button>
-                <button type="submit" disabled={saving} className="px-6 py-2.5 rounded-xl text-sm font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-90" style={{ backgroundColor: "#8b1a1a", color: "#fff", fontFamily: "var(--font-body)", opacity: saving ? 0.7 : 1 }}>
+                <button type="submit" disabled={saving} className="px-6 py-2.5 rounded-xl text-sm font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-90" style={{ backgroundColor: "var(--color-primary)", color: "#fff", fontFamily: "var(--font-body)", opacity: saving ? 0.7 : 1 }}>
                   {saving ? "Saving..." : editingId ? "Update Category" : "Create Category"}
                 </button>
               </div>

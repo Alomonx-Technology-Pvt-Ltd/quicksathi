@@ -20,22 +20,34 @@ body,
 }
 
 /* ─────────────────────────────────────────
-   CSS VARIABLES — shared across all pages
+   CSS VARIABLES — QuickSathi Brand Theme
+   Primary: Logo Electric Blue (#0B4FD8)
+   Accent: Logo Vibrant Orange (#FF6B00)
 ───────────────────────────────────────── */
 :root {
-  /* Colors */
-  --color-bg: #f5f0e8;
-  --color-bg-soft: #faf7f3;
+  /* Brand Colors from Logo */
+  --color-primary: #0b4fd8;
+  --color-primary-dark: #0739a8;
+  --color-primary-light: #2563eb;
+  --color-primary-soft: rgba(11, 79, 216, 0.08);
+
+  --color-accent: #ff6b00;
+  --color-accent-dark: #e05600;
+  --color-accent-light: #ff8533;
+  --color-accent-soft: rgba(255, 107, 0, 0.1);
+  --color-secondary: #ff6b00;
+
+  /* Clean Modern Canvas */
+  --color-bg: #f8fafc;
+  --color-bg-soft: #f1f5f9;
   --color-bg-white: #ffffff;
-  --color-border: #e8ddd4;
-  --color-accent: #c4a882;
+  --color-border: #e2e8f0;
+  --color-border-focus: #cbd5e1;
 
-  --color-primary: #8b1a1a;
-  --color-primary-dark: #6e1414;
-
-  --color-text-dark: #2c1810;
-  --color-text-mid: #6b5b50;
-  --color-text-muted: #9a8478;
+  /* Typography Colors */
+  --color-text-dark: #0f172a;
+  --color-text-mid: #475569;
+  --color-text-muted: #94a3b8;
 
   /* Typography */
   --font-display: "Playfair Display", Georgia, serif;

@@ -78,15 +78,15 @@ const Login = () => {
       {/* Left: decorative panel — hidden on mobile */}
       <div
         className="hidden lg:flex flex-col justify-end w-1/2 relative overflow-hidden"
-        style={{ backgroundColor: "#1a1040" }}
+        style={{ backgroundColor: "#0739a8" }}
       >
         <img
           src="https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2070&auto=format&fit=crop"
           alt="QuickSathi"
           className="absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: 0.3 }}
+          style={{ opacity: 0.35 }}
         />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(26,16,64,0.95) 20%, rgba(26,16,64,0.4) 100%)" }} />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(7,57,168,0.95) 20%, rgba(11,79,216,0.5) 100%)" }} />
         <div className="relative z-10 p-12 pb-16">
           <h2
             className="text-white font-normal leading-tight mb-4"
@@ -96,7 +96,7 @@ const Login = () => {
               ? "Grow your business with QuickSathi"
               : "Your one-stop platform for every service need"}
           </h2>
-          <p className="text-white/60 text-lg" style={{ fontFamily: "var(--font-body)", maxWidth: "400px" }}>
+          <p className="text-white/80 text-lg" style={{ fontFamily: "var(--font-body)", maxWidth: "400px" }}>
             {isProviderMode
               ? "Login to manage your services, track bookings, and reach thousands of customers."
               : "From weddings to car rentals to security — QuickSathi brings everything together."}
@@ -108,10 +108,10 @@ const Login = () => {
       <div className="flex-1 flex items-center justify-center px-6 py-12 pt-24">
         <div className="w-full max-w-md">
           {/* Brand */}
-          <Link to="/" className="no-underline">
+          <Link to="/" className="no-underline flex items-center gap-2 mb-2">
             <h1
-              className="text-3xl font-bold mb-2"
-              style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}
+              className="text-3xl font-bold m-0"
+              style={{ fontFamily: "var(--font-display)", color: "var(--color-primary)" }}
             >
               QuickSathi
             </h1>
@@ -123,9 +123,9 @@ const Login = () => {
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-3"
               style={{
                 fontFamily: "var(--font-body)",
-                backgroundColor: "rgba(139,26,26,0.08)",
+                backgroundColor: "var(--color-primary-soft)",
                 color: "var(--color-primary)",
-                border: "1px solid rgba(139,26,26,0.15)",
+                border: "1px solid rgba(11,79,216,0.2)",
               }}
             >
               🏢 Provider Portal

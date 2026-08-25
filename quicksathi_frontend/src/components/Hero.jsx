@@ -123,12 +123,12 @@ const Hero = ({ categories }) => {
 
         <Link
           to={`/category/${active?.id}`}
-          className="inline-block px-5 sm:px-8 py-2.5 sm:py-4 rounded-full text-xs sm:text-base font-semibold no-underline transition-all duration-200 hover:scale-105 hover:shadow-xl"
+          className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-full text-xs sm:text-base font-bold no-underline transition-all duration-300 hover:scale-105 hover:shadow-2xl"
           style={{
             fontFamily: "var(--font-body)",
-            backgroundColor: "rgba(255,255,255,0.95)",
-            color: "var(--color-text-dark)",
-            boxShadow: "0 4px 24px rgba(0,0,0,0.2)",
+            background: "linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%)",
+            color: "#ffffff",
+            boxShadow: "0 6px 28px rgba(255, 107, 0, 0.38)",
           }}
         >
           Explore {active?.name}
