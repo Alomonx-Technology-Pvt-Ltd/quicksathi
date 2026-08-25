@@ -9,6 +9,9 @@ const router = Router();
 router.get("/", async (req, res) => {
   try {
     const categories = await Category.find({ active: true }).sort("displayOrder");
+    // Cache at CDN edge for 60s, serve stale for up to 5min while revalidating
+    // This makes Vercel's Edge Network cache the response — instant for users
+    res.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
     res.json(categories);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -22,6 +25,7 @@ router.get("/:id", async (req, res) => {
     if (!category) {
       return res.status(404).json({ message: "Category not found" });
     }
+    res.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
     res.json(category);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -55,3 +59,4 @@ router.put("/:id", protect, adminOnly, async (req, res) => {
 });
 
 export default router;
+

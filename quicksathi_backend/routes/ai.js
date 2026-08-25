@@ -3,15 +3,23 @@ import { Router } from "express";
 const router = Router();
 
 // Groq models in priority order (fallback if one is overloaded / rate-limited)
+// Updated Aug 2026 — previous llama/gemma/mixtral models were deprecated by Groq.
 const GROQ_MODELS = [
-  "llama-3.3-70b-versatile",
-  "llama-3.1-8b-instant",
-  "gemma2-9b-it",
-  "llama3-8b-8192",
-  "mixtral-8x7b-32768",
+  "openai/gpt-oss-120b",   // Best quality — large model
+  "openai/gpt-oss-20b",    // Good quality, faster
+  "qwen/qwen3.6-27b",      // Fallback — NOTE: may include <think> tags
 ];
 
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+
+/**
+ * Strip <think>…</think> blocks that some models (e.g. qwen) include in output.
+ * These contain internal chain-of-thought reasoning and should not be shown to users.
+ */
+function stripThinkTags(text) {
+  if (!text) return text;
+  return text.replace(/<think>[\s\S]*?<\/think>/gi, "").trim();
+}
 
 /**
  * POST /api/ai/chat
@@ -60,8 +68,8 @@ router.post("/chat", async (req, res) => {
 
         if (!response.ok) {
           const errData = await response.json().catch(() => ({}));
-          // 429 = rate limited, 503 = overloaded — try next model
-          if ([429, 503, 400].includes(response.status)) {
+          // 429 = rate limited, 503 = overloaded, 400 = bad request, 404 = model gone — try next
+          if ([429, 503, 400, 404].includes(response.status)) {
             console.warn(`Groq model "${model}" returned ${response.status}, trying next...`);
             lastError = errData.error?.message || `HTTP ${response.status}`;
             continue;
@@ -72,7 +80,11 @@ router.post("/chat", async (req, res) => {
         }
 
         const data = await response.json();
-        const content = data.choices?.[0]?.message?.content || "No response generated.";
+        let content = data.choices?.[0]?.message?.content || "No response generated.";
+
+        // Strip <think> tags from models that include chain-of-thought reasoning
+        content = stripThinkTags(content);
+
         return res.json({ content, model });
       } catch (fetchErr) {
         console.warn(`Groq model "${model}" fetch error: ${fetchErr.message}`);

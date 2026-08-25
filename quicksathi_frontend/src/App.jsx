@@ -1,41 +1,58 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Suspense, lazy } from "react";
 import { AuthProvider } from "./context/AuthContext";
 import { LocationProvider } from "./context/LocationContext";
 import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import ScrollToTop from "./components/ScrollToTop";
 
-// Pages
-import Home from "./pages/Home";
-import Category from "./pages/Category";
-import Contact from "./pages/Contact";
-import ServiceDetail from "./pages/ServiceDetail";
-import ProductDetail from "./pages/ProductDetail";
-import About from "./pages/About";
-import Login from "./pages/Login";
-import Services from "./pages/Services";
-import BookingPage from "./pages/BookingPage";
-import PaymentPage from "./pages/PaymentPage";
-import MyBookings from "./pages/MyBookings";
-import ProviderOnboarding from "./pages/ProviderOnboarding";
-import ProviderDashboard from "./pages/ProviderDashboard";
+// ── Lazy-loaded Pages (code splitting — only loaded when navigated to) ──
+const Home = lazy(() => import("./pages/Home"));
+const Category = lazy(() => import("./pages/Category"));
+const Contact = lazy(() => import("./pages/Contact"));
+const ServiceDetail = lazy(() => import("./pages/ServiceDetail"));
+const ProductDetail = lazy(() => import("./pages/ProductDetail"));
+const About = lazy(() => import("./pages/About"));
+const Login = lazy(() => import("./pages/Login"));
+const Services = lazy(() => import("./pages/Services"));
+const BookingPage = lazy(() => import("./pages/BookingPage"));
+const PaymentPage = lazy(() => import("./pages/PaymentPage"));
+const MyBookings = lazy(() => import("./pages/MyBookings"));
+const ProviderOnboarding = lazy(() => import("./pages/ProviderOnboarding"));
+const ProviderDashboard = lazy(() => import("./pages/ProviderDashboard"));
 
 // Service Category Pages
-import WeddingServices from "./pages/services/WeddingServices";
-import CarRentals from "./pages/services/CarRentals";
-import CCTVServices from "./pages/services/CCTVServices";
+const WeddingServices = lazy(() => import("./pages/services/WeddingServices"));
+const CarRentals = lazy(() => import("./pages/services/CarRentals"));
+const CCTVServices = lazy(() => import("./pages/services/CCTVServices"));
 
-// Admin (separate folder — easy to extract later)
-import AdminLayout from "./admin/components/AdminLayout";
-import AdminDashboard from "./admin/pages/AdminDashboard";
-import AdminProviders from "./admin/pages/AdminProviders";
-import AdminBookings from "./admin/pages/AdminBookings";
-import AdminServices from "./admin/pages/AdminServices";
-import AdminCategories from "./admin/pages/AdminCategories";
-import AdminUsers from "./admin/pages/AdminUsers";
-import AdminServiceRequests from "./admin/pages/AdminServiceRequests";
-import AdminNotifications from "./admin/pages/AdminNotifications";
-import AdminContacts from "./admin/pages/AdminContacts";
-import ScrollToTop from "./components/ScrollToTop";
+// Admin (separate chunk — only loaded for admin users)
+const AdminLayout = lazy(() => import("./admin/components/AdminLayout"));
+const AdminDashboard = lazy(() => import("./admin/pages/AdminDashboard"));
+const AdminProviders = lazy(() => import("./admin/pages/AdminProviders"));
+const AdminBookings = lazy(() => import("./admin/pages/AdminBookings"));
+const AdminServices = lazy(() => import("./admin/pages/AdminServices"));
+const AdminCategories = lazy(() => import("./admin/pages/AdminCategories"));
+const AdminUsers = lazy(() => import("./admin/pages/AdminUsers"));
+const AdminServiceRequests = lazy(() => import("./admin/pages/AdminServiceRequests"));
+const AdminNotifications = lazy(() => import("./admin/pages/AdminNotifications"));
+const AdminContacts = lazy(() => import("./admin/pages/AdminContacts"));
+
+// ── Loading fallback ──
+const PageLoader = () => (
+  <div
+    className="flex justify-center items-center"
+    style={{ minHeight: "80vh" }}
+  >
+    <div
+      className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin"
+      style={{
+        borderColor: "var(--color-border)",
+        borderTopColor: "var(--color-primary)",
+      }}
+    />
+  </div>
+);
 
 function App() {
   return (
@@ -44,6 +61,7 @@ function App() {
         <BrowserRouter>
       <ScrollToTop/>
 
+        <Suspense fallback={<PageLoader />}>
         <Routes>
           {/* Main App Routes */}
           <Route path="/" element={<Layout />}>
@@ -111,6 +129,7 @@ function App() {
             <Route path="contacts" element={<AdminContacts />} />
           </Route>
         </Routes>
+        </Suspense>
       </BrowserRouter>
       </LocationProvider>
     </AuthProvider>
@@ -118,3 +137,4 @@ function App() {
 }
 
 export default App;
+

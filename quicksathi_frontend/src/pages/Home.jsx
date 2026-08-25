@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ShieldCheck, Gem, CreditCard } from "lucide-react";
-import api from "../config/api";
+import api, { getCached } from "../config/api";
 import Card from "../components/common/Card";
 import Hero from "../components/Hero";
 import { Link, useNavigate } from "react-router-dom";
@@ -23,6 +23,24 @@ const Home = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
+        // Check in-memory cache first for instant repeat loads
+        const cached = getCached("/categories");
+        if (cached && cached.length > 0) {
+          const mapped = cached.map(cat => ({
+            ...cat,
+            id: cat.id || cat._id,
+            _id: cat._id || cat.id,
+            subCategories: cat.subCategories?.map(sub => ({
+              ...sub,
+              id: sub.id || sub._id,
+              _id: sub._id || sub.id
+            }))
+          }));
+          setCategories(mapped);
+          setCategoriesLoading(false);
+          return;
+        }
+
         const { data } = await api.get("/categories");
         if (data && data.length > 0) {
           const mapped = data.map(cat => ({
@@ -63,6 +81,14 @@ const Home = () => {
   useEffect(() => {
     const fetchServices = async () => {
       try {
+        const cacheKey = `/services${city ? `?city=${encodeURIComponent(city)}` : ""}`;
+        // Check cache first — avoids redundant fetch on back-navigation
+        const cached = getCached(cacheKey);
+        if (cached && cached.length > 0) {
+          setServices(cached.map(srv => ({ ...srv, id: srv.id || srv._id, _id: srv._id || srv.id })));
+          return;
+        }
+
         const params = city ? `?city=${encodeURIComponent(city)}` : "";
         const { data } = await api.get(`/services${params}`);
         if (data && data.length > 0) {
@@ -250,13 +276,6 @@ const Home = () => {
 
                 <div className="flex flex-col gap-6">
   {parent.subCategories?.slice(0, 1).map((service) => {
-
-    console.log("Service:", service);
-    console.log(
-      "Link:",
-      getServiceLink(service.name, service._id || service.id)
-    );
-
     return (
       <Card
         key={service._id || service.name}

@@ -5,8 +5,9 @@ services:
   - type: web
     name: quicksathi-backend
     runtime: node
-    region: oregon   # or: frankfurt, singapore — pick closest to your users
+    region: singapore   # Closest to India — cuts ~200ms vs oregon/frankfurt
     plan: free       # change to: starter, standard, etc. for production
+    rootDir: quicksathi_backend # Tell Render to look inside this folder
 
     # ── Build & Start ──
     buildCommand: npm install
@@ -95,4 +96,9 @@ services:
 
       # Groq AI
       - key: GROQ_API_KEY
+        sync: false
+
+      # Render public URL — used for keepalive self-ping (set automatically by Render)
+      # Format: https://quicksathi-backend.onrender.com
+      - key: RENDER_EXTERNAL_URL
         sync: false

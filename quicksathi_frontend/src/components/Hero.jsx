@@ -39,6 +39,8 @@ const Hero = ({ categories }) => {
             key={cat.id}
             src={cat.imageUrl}
             alt={cat.name}
+            loading={i === 0 ? "eager" : "lazy"}
+            fetchPriority={i === 0 ? "high" : "auto"}
             className="absolute inset-0 w-full h-full object-cover object-center"
             style={{
               opacity: i === activeIndex ? 1 : 0,

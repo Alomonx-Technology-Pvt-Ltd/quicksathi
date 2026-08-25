@@ -13,6 +13,16 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
       sourcemap: false, // disable in production to reduce bundle size
+      rollupOptions: {
+        output: {
+          // Split large vendor libraries into separate chunks for parallel loading
+          manualChunks: {
+            firebase: ['firebase/app', 'firebase/auth'],
+            'framer-motion': ['framer-motion'],
+            gsap: ['gsap'],
+          },
+        },
+      },
     },
 
     // ── Dev Server Proxy ──
@@ -31,3 +41,4 @@ export default defineConfig(({ mode }) => {
     },
   }
 })
+

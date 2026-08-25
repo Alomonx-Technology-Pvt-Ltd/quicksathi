@@ -13,6 +13,31 @@ export const useAuth = () => {
   return context;
 };
 
+// ── Retry wrapper for backend calls (handles Render cold-start timeouts) ────
+// Retries up to `maxRetries` times with `delayMs` between attempts.
+// This prevents "network error" on first login attempt when backend is waking up.
+async function withRetry(fn, maxRetries = 3, delayMs = 2000) {
+  let lastError;
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      const isNetworkError =
+        !err.response || // no response at all (timeout/connection refused)
+        err.code === "ECONNABORTED" ||
+        err.message?.toLowerCase().includes("network");
+
+      // Only retry on network errors, not on 4xx business logic errors
+      if (!isNetworkError || attempt === maxRetries) throw err;
+
+      // Wait before retrying — gives Render time to wake up
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+  throw lastError;
+}
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     const token = localStorage.getItem("qs_token");
@@ -67,14 +92,18 @@ export const AuthProvider = ({ children }) => {
 
   // Email/Password Registration
   const register = async (name, email, password, phone) => {
-    const { data } = await api.post("/auth/register", { name, email, password, phone });
+    const { data } = await withRetry(() =>
+      api.post("/auth/register", { name, email, password, phone })
+    );
     saveSession(data.token, data.user);
     return data.user;
   };
 
   // Email/Password Login
   const login = async (email, password) => {
-    const { data } = await api.post("/auth/login", { email, password });
+    const { data } = await withRetry(() =>
+      api.post("/auth/login", { email, password })
+    );
     saveSession(data.token, data.user);
     return data.user;
   };
@@ -90,13 +119,16 @@ export const AuthProvider = ({ children }) => {
     // Get Firebase ID token for server-side verification
     const idToken = await firebaseUser.getIdToken();
 
-    const { data } = await api.post("/auth/google", {
-      idToken,
-      email: firebaseUser.email,
-      name: firebaseUser.displayName,
-      avatar: firebaseUser.photoURL,
-      firebaseUid: firebaseUser.uid,
-    });
+    // Retry backend call — Render may be cold on first attempt
+    const { data } = await withRetry(() =>
+      api.post("/auth/google", {
+        idToken,
+        email: firebaseUser.email,
+        name: firebaseUser.displayName,
+        avatar: firebaseUser.photoURL,
+        firebaseUid: firebaseUser.uid,
+      })
+    );
 
     saveSession(data.token, data.user);
     return data.user;
@@ -104,7 +136,9 @@ export const AuthProvider = ({ children }) => {
 
   // Provider Login (email/password)
   const providerLogin = async (email, password) => {
-    const { data } = await api.post("/auth/provider-login", { email, password });
+    const { data } = await withRetry(() =>
+      api.post("/auth/provider-login", { email, password })
+    );
     saveSession(data.token, data.user, data.provider);
     return data;
   };
@@ -118,13 +152,16 @@ export const AuthProvider = ({ children }) => {
     const firebaseUser = result.user;
     const idToken = await firebaseUser.getIdToken();
 
-    const { data } = await api.post("/auth/provider-google", {
-      idToken,
-      email: firebaseUser.email,
-      name: firebaseUser.displayName,
-      avatar: firebaseUser.photoURL,
-      firebaseUid: firebaseUser.uid,
-    });
+    // Retry backend call — Render may be cold on first attempt
+    const { data } = await withRetry(() =>
+      api.post("/auth/provider-google", {
+        idToken,
+        email: firebaseUser.email,
+        name: firebaseUser.displayName,
+        avatar: firebaseUser.photoURL,
+        firebaseUid: firebaseUser.uid,
+      })
+    );
 
     saveSession(data.token, data.user, data.provider);
     return data;
@@ -163,3 +200,4 @@ export const AuthProvider = ({ children }) => {
 };
 
 export default AuthContext;
+

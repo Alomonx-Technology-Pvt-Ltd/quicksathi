@@ -191,14 +191,12 @@ QuickSathi connects customers with verified, top-rated service providers across 
 
 
 // ─── Groq API Models with fallback priority ──────────────────────────────────
-// Model selection and fallback is now handled server-side in /api/ai/chat
-// This list is kept here for documentation purposes only.
+// Model selection and fallback is now handled server-side in /api/ai/chat.
+// Updated Aug 2026 — previous llama/gemma/mixtral models were deprecated.
 const GROQ_MODELS = [
-  "llama-3.3-70b-versatile",
-  "llama-3.1-8b-instant",
-  "gemma2-9b-it",
-  "llama3-8b-8192",
-  "mixtral-8x7b-32768",
+  "openai/gpt-oss-120b",
+  "openai/gpt-oss-20b",
+  "qwen/qwen3.6-27b",
 ];
 
 // ─── AI Proxy Caller ──────────────────────────────────────────────────────────
@@ -923,7 +921,7 @@ export default function ChatBot() {
             letterSpacing: "0.02em",
           }}
         >
-          Powered by QuickSathi AI · Groq LLM
+          Powered by QuickSathi AI
         </div>
       </div>
 

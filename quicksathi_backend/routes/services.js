@@ -78,6 +78,10 @@ router.get("/", async (req, res) => {
       .limit(parseInt(limit))
       .sort("-featured -rating");
 
+    // Cache at CDN edge for 60s, serve stale for 5min while revalidating
+    if (!req.headers.authorization) {
+      res.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
+    }
     res.json(services);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -131,6 +135,8 @@ router.get("/:id", async (req, res) => {
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
     }
+    // Cache single service lookup at edge for 2 minutes
+    res.set("Cache-Control", "public, s-maxage=120, stale-while-revalidate=600");
     res.json(service);
   } catch (error) {
     res.status(500).json({ message: error.message });

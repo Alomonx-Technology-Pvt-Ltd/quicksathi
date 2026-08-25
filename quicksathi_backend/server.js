@@ -131,7 +131,25 @@ const startServer = async () => {
     console.log(`🚀 QuickSathi backend running on port ${PORT}`);
     console.log(`   Environment : ${process.env.NODE_ENV || "development"}`);
     console.log(`   Allowed origins : ${ALLOWED_ORIGINS.join(", ")} + *.vercel.app previews`);
+
+    // ── Self-ping keepalive (Render free tier) ──────────────────────────────
+    // Render free plan sleeps after 15 minutes of inactivity (causes 30-60s cold starts).
+    // Pinging every 14 minutes keeps the service warm at no extra cost.
+    // Only runs in production — skipped in local dev to avoid noise.
+    if (process.env.NODE_ENV === "production") {
+      const RENDER_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+      setInterval(async () => {
+        try {
+          await fetch(`${RENDER_URL}/api/health`);
+          console.log("🏓 Keepalive ping sent");
+        } catch (err) {
+          console.warn("Keepalive ping failed:", err.message);
+        }
+      }, 14 * 60 * 1000); // every 14 minutes
+      console.log(`   Keepalive : pinging ${RENDER_URL}/api/health every 14 min`);
+    }
   });
 };
 
 startServer();
+

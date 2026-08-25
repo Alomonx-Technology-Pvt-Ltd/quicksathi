@@ -348,12 +348,30 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
   const displayServices = getDisplayServices();
 
   const handleBookClick = (service) => {
-    const serviceId = service._id || service.id;
-    const query = new URLSearchParams({
-      name: service.name,
-      price: (service.startingPrice || 999).toString()
-    });
-    navigate(`/booking/${serviceId}?${query.toString()}`);
+    // Try to find the real backend service by matching name
+    const realService = services?.find(
+      (s) =>
+        s.name?.toLowerCase() === service.name?.toLowerCase() ||
+        s.name?.toLowerCase().includes(service.name?.toLowerCase()) ||
+        service.name?.toLowerCase().includes(s.name?.toLowerCase())
+    );
+
+    if (realService) {
+      // Use the real backend service ID and data
+      const serviceId = realService._id || realService.id;
+      const price = realService.startingPrice || service.startingPrice || 999;
+      const packageTitle = realService.packages?.[0]?.title || "Standard";
+      const query = new URLSearchParams({
+        name: realService.name || service.name,
+        package: packageTitle,
+        price: price.toString(),
+      });
+      navigate(`/booking/${serviceId}?${query.toString()}`);
+    } else {
+      // No real service found — navigate to category/service detail page
+      // so user can browse and select a proper service with packages
+      navigate(activeCategoryConfig.route);
+    }
   };
 
   return (
@@ -494,6 +512,7 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
                       <img
                         src={service.imageUrl || service.thumbnail || "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop"}
                         alt={service.name}
+                        loading="lazy"
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                       {/* Outlined badge — image 3 style */}
