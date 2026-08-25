@@ -16,6 +16,7 @@ const emptyService = {
   gallery: [],
   startingPrice: 0,
   priceUnit: "per service",
+  perKmRate: 10,
   rating: 0,
   totalReviews: 0,
   experience: "",
@@ -126,6 +127,7 @@ const AdminServices = () => {
       gallery: service.gallery || [],
       startingPrice: service.startingPrice || 0,
       priceUnit: service.priceUnit || "per service",
+      perKmRate: service.perKmRate ?? 10,
       rating: service.rating || 0,
       totalReviews: service.totalReviews || 0,
       experience: service.experience || "",
@@ -454,6 +456,14 @@ const AdminServices = () => {
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={labelStyle}>Price Unit</label>
                   <input type="text" value={form.priceUnit} onChange={(e) => setForm((p) => ({ ...p, priceUnit: e.target.value }))} style={inputStyle} className="w-full px-3 py-2.5 rounded-xl text-sm border-0 outline-none" placeholder="per event" />
                 </div>
+                {/* Per KM Rate — only relevant for RENTAL services */}
+                {form.serviceMode === "RENTAL" && (
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={labelStyle}>Rate Per KM (₹) 🚗</label>
+                    <input type="number" value={form.perKmRate} onChange={(e) => setForm((p) => ({ ...p, perKmRate: Number(e.target.value) }))} min={1} step={1} style={inputStyle} className="w-full px-3 py-2.5 rounded-xl text-sm border-0 outline-none" placeholder="10" />
+                    <p style={{ color: 'rgba(255,255,255,0.35)', fontSize: '11px', marginTop: '4px', fontFamily: 'var(--font-body)' }}>Trip price = distance × this rate. Customers see this on the service detail page.</p>
+                  </div>
+                )}
               </div>
 
               {/* Service Cities */}

@@ -125,11 +125,11 @@ const CarRentals = () => {
     }, 200);
   };
 
-  // Calculate trip price based on distance
+  // Calculate trip price based on distance using admin-configured perKmRate
   const getTripPrice = (vehicle) => {
     if (!routeInfo?.distanceKm) return vehicle.startingPrice;
-    const basePricePerKm = vehicle.startingPrice / 100; // rough per-km rate
-    const distancePrice = Math.round(basePricePerKm * routeInfo.distanceKm);
+    const rate = vehicle.perKmRate || 10; // admin-configured, default ₹10/km
+    const distancePrice = Math.round(rate * routeInfo.distanceKm);
     const driverFee = serviceType === "with-driver" ? 500 : 0;
     return Math.max(distancePrice + driverFee, vehicle.startingPrice);
   };

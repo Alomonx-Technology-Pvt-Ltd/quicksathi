@@ -104,6 +104,13 @@ const serviceSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // Per-kilometre rate for RENTAL services (admin-configurable).
+    // Used to calculate trip price = distance × perKmRate.
+    perKmRate: {
+      type: Number,
+      default: 10, // ₹10 per km default
+      min: 0,
+    },
     // Cities where this service is available.
     // Empty array = "Available Everywhere" (shows in all city filters).
     cities: [{ type: String, trim: true }],
