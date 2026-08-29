@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
 import api from "../config/api";
 
-const STEPS = ["Business Info", "Services", "Documents", "Review"];
+const STEPS = ["Business Info", "Location & Services", "Documents", "Review"];
 
 const ProviderOnboarding = () => {
   const { isAuthenticated, user, register } = useAuth();
@@ -12,6 +12,7 @@ const ProviderOnboarding = () => {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [stepError, setStepError] = useState("");
   const [categories, setCategories] = useState([]);
   
   const [formData, setFormData] = useState({
@@ -77,27 +78,51 @@ const ProviderOnboarding = () => {
 
   const handleChange = (e) => setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
+  // Per-step validation before advancing
+  const validateStep = (currentStep) => {
+    if (currentStep === 0) {
+      if (!formData.businessName.trim()) return "Business name is required.";
+      if (!formData.businessType) return "Please select an organization type.";
+      if (!formData.phone.trim()) return "Mobile phone is required.";
+      if (!formData.email.trim()) return "Email is required.";
+      if (!isAuthenticated) {
+        if (!formData.ownerName.trim()) return "Owner full name is required to create your account.";
+        if (!formData.password || formData.password.length < 6) return "Password must be at least 6 characters.";
+      }
+    }
+    if (currentStep === 1) {
+      if (!formData.category) return "Please select a service category.";
+      if (!formData.services.trim()) return "Please list at least one service.";
+      if (!formData.experience.trim()) return "Professional experience is required.";
+      if (!formData.address.trim()) return "Street address is required.";
+      if (!formData.city.trim()) return "City is required.";
+      if (!formData.state.trim()) return "State is required.";
+      if (!formData.pincode.trim()) return "Pincode is required.";
+    }
+    if (currentStep === 2) {
+      if (!formData.idProof) return "Government ID proof document is required.";
+    }
+    return null;
+  };
+
+  const handleNext = () => {
+    const err = validateStep(step);
+    if (err) {
+      setStepError(err);
+      return;
+    }
+    setStepError("");
+    setStep((p) => p + 1);
+  };
+
   const handleSubmit = async () => {
     setSubmitting(true);
     setError("");
     try {
-      // 1. If not authenticated, create the user account first
       if (!isAuthenticated) {
-        if (!formData.ownerName.trim()) {
-          throw new Error("Owner name is required to create your account.");
-        }
-        if (!formData.password || formData.password.length < 6) {
-          throw new Error("Password must be at least 6 characters.");
-        }
-        await register(
-          formData.ownerName,
-          formData.email,
-          formData.password,
-          formData.phone
-        );
+        await register(formData.ownerName, formData.email, formData.password, formData.phone);
       }
 
-      // 2. Submit the provider registration application
       const activeCat = categories.find((c) => String(c._id || c.id) === String(formData.category));
       
       await api.post("/providers/register", {
@@ -132,7 +157,6 @@ const ProviderOnboarding = () => {
     fontSize: "14px",
   };
 
-  // Find selected category name for review
   const selectedCategoryName = categories.find((c) => String(c._id || c.id) === String(formData.category))?.name || "—";
 
   const renderStep = () => {
@@ -225,14 +249,29 @@ const ProviderOnboarding = () => {
             <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Professional Experience *</label>
             <input name="experience" value={formData.experience} onChange={handleChange} placeholder="e.g. 6 Years" required className="w-full px-4 py-3 rounded-2xl border outline-none" style={inputStyle} />
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>City *</label>
-              <input name="city" value={formData.city} onChange={handleChange} placeholder="Patna" required className="w-full px-4 py-3 rounded-2xl border outline-none" style={inputStyle} />
-            </div>
-            <div>
-              <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>State *</label>
-              <input name="state" value={formData.state} onChange={handleChange} placeholder="Bihar" required className="w-full px-4 py-3 rounded-2xl border outline-none" style={inputStyle} />
+
+          {/* Location Section */}
+          <div className="border-t pt-4" style={{ borderColor: "var(--color-border)" }}>
+            <p className="text-[10px] font-bold uppercase tracking-wider mb-4" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>📍 Operating Location</p>
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Street Address *</label>
+                <input name="address" value={formData.address} onChange={handleChange} placeholder="Flat, House no, Building, Street" required className="w-full px-4 py-3 rounded-2xl border outline-none" style={inputStyle} />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>City *</label>
+                  <input name="city" value={formData.city} onChange={handleChange} placeholder="Patna" required className="w-full px-4 py-3 rounded-2xl border outline-none" style={inputStyle} />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>State *</label>
+                  <input name="state" value={formData.state} onChange={handleChange} placeholder="Bihar" required className="w-full px-4 py-3 rounded-2xl border outline-none" style={inputStyle} />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Pincode *</label>
+                  <input name="pincode" value={formData.pincode} onChange={handleChange} placeholder="800001" required maxLength={6} className="w-full px-4 py-3 rounded-2xl border outline-none" style={inputStyle} />
+                </div>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -253,14 +292,12 @@ const ProviderOnboarding = () => {
           <div>
             <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Government ID Proof (Aadhaar/PAN/Passport) *</label>
             <input type="file" required className="w-full text-xs" onChange={(e) => setFormData(p => ({ ...p, idProof: e.target.files[0] }))} />
+            {formData.idProof && <p className="text-xs mt-1.5" style={{ color: "#22c55e", fontFamily: "var(--font-body)" }}>✓ {formData.idProof.name}</p>}
           </div>
           <div>
-            <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Business Registration / Tax certificate</label>
+            <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Business Registration / Tax Certificate (optional)</label>
             <input type="file" className="w-full text-xs" onChange={(e) => setFormData(p => ({ ...p, businessReg: e.target.files[0] }))} />
-          </div>
-          <div>
-            <label className="block text-[10px] font-semibold uppercase tracking-wider mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>Street Address *</label>
-            <input name="address" value={formData.address} onChange={handleChange} placeholder="Flat, House no, Building, Street" required className="w-full px-4 py-3 rounded-2xl border outline-none" style={inputStyle} />
+            {formData.businessReg && <p className="text-xs mt-1.5" style={{ color: "#22c55e", fontFamily: "var(--font-body)" }}>✓ {formData.businessReg.name}</p>}
           </div>
         </motion.div>
       );
@@ -292,7 +329,7 @@ const ProviderOnboarding = () => {
           </div>
 
           <div className="border-b pb-3 mb-2 mt-4 flex items-center justify-between">
-            <span className="font-semibold" style={{ color: "var(--color-text-dark)" }}>Service category</span>
+            <span className="font-semibold" style={{ color: "var(--color-text-dark)" }}>Service category & location</span>
             <button onClick={() => setStep(1)} type="button" className="text-xs underline border-0 bg-transparent cursor-pointer" style={{ color: "var(--color-primary)" }}>Edit</button>
           </div>
           <div className="grid grid-cols-2 gap-y-2 text-xs">
@@ -301,15 +338,34 @@ const ProviderOnboarding = () => {
 
             <span style={{ color: "var(--color-text-mid)" }}>Experience:</span>
             <span className="font-semibold text-right" style={{ color: "var(--color-text-dark)" }}>{formData.experience}</span>
+
+            <span style={{ color: "var(--color-text-mid)" }}>Services:</span>
+            <span className="font-semibold text-right" style={{ color: "var(--color-text-dark)" }}>{formData.services}</span>
+
+            <span style={{ color: "var(--color-text-mid)" }}>Address:</span>
+            <span className="font-semibold text-right" style={{ color: "var(--color-text-dark)" }}>{formData.address}</span>
+
+            <span style={{ color: "var(--color-text-mid)" }}>City / State:</span>
+            <span className="font-semibold text-right" style={{ color: "var(--color-text-dark)" }}>{formData.city}, {formData.state}</span>
+
+            <span style={{ color: "var(--color-text-mid)" }}>Pincode:</span>
+            <span className="font-semibold text-right" style={{ color: "var(--color-text-dark)" }}>{formData.pincode}</span>
           </div>
 
           <div className="border-b pb-3 mb-2 mt-4 flex items-center justify-between">
-            <span className="font-semibold" style={{ color: "var(--color-text-dark)" }}>Address</span>
+            <span className="font-semibold" style={{ color: "var(--color-text-dark)" }}>Documents</span>
             <button onClick={() => setStep(2)} type="button" className="text-xs underline border-0 bg-transparent cursor-pointer" style={{ color: "var(--color-primary)" }}>Edit</button>
           </div>
-          <p className="text-xs leading-normal m-0" style={{ color: "var(--color-text-mid)" }}>
-            {formData.address}, {formData.city}, {formData.state}
-          </p>
+          <div className="grid grid-cols-2 gap-y-2 text-xs">
+            <span style={{ color: "var(--color-text-mid)" }}>ID Proof:</span>
+            <span className="font-semibold text-right" style={{ color: formData.idProof ? "#22c55e" : "var(--color-text-dark)" }}>
+              {formData.idProof ? `✓ ${formData.idProof.name}` : "—"}
+            </span>
+            <span style={{ color: "var(--color-text-mid)" }}>Business Reg.:</span>
+            <span className="font-semibold text-right" style={{ color: formData.businessReg ? "#22c55e" : "var(--color-text-mid)" }}>
+              {formData.businessReg ? `✓ ${formData.businessReg.name}` : "Not provided"}
+            </span>
+          </div>
         </motion.div>
       );
       default: return null;
@@ -340,7 +396,14 @@ const ProviderOnboarding = () => {
           ))}
         </div>
 
-        {/* Error message */}
+        {/* Step-level validation error */}
+        {stepError && (
+          <div className="px-4 py-3 rounded-xl text-sm mb-6" style={{ backgroundColor: "rgba(220,38,38,0.08)", color: "#dc2626", border: "1px solid rgba(220,38,38,0.15)", fontFamily: "var(--font-body)" }}>
+            ⚠️ {stepError}
+          </div>
+        )}
+
+        {/* Submit-level error */}
         {error && (
           <div className="px-4 py-3 rounded-xl text-sm mb-6" style={{ backgroundColor: "rgba(220,38,38,0.08)", color: "#dc2626", border: "1px solid rgba(220,38,38,0.15)", fontFamily: "var(--font-body)" }}>
             {error}
@@ -357,7 +420,7 @@ const ProviderOnboarding = () => {
             {step > 0 ? (
               <button 
                 type="button" 
-                onClick={() => setStep(p => p - 1)} 
+                onClick={() => { setStepError(""); setStep(p => p - 1); }} 
                 className="px-6 py-3 rounded-full text-xs font-semibold border cursor-pointer bg-transparent transition-all"
                 style={{ fontFamily: "var(--font-body)", borderColor: "var(--color-border)", color: "var(--color-text-dark)" }}
               >
@@ -368,7 +431,7 @@ const ProviderOnboarding = () => {
             {step < STEPS.length - 1 ? (
               <button 
                 type="button" 
-                onClick={() => setStep(p => p + 1)} 
+                onClick={handleNext}
                 className="px-7 py-3 rounded-full text-xs font-semibold border-0 cursor-pointer text-white"
                 style={{ fontFamily: "var(--font-body)", backgroundColor: "var(--color-text-dark)" }}
               >

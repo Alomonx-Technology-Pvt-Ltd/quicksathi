@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { Outlet, Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Outlet, Link, NavLink, useLocation as useRouterLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useLocation as useCityLocation, CITY_OPTIONS } from "../../context/LocationContext";
 import Footer from "../common/Footer";
 import BottomNav from "./BottomNav";
 import ChatBot from "../chatbot/ChatBot";
 import api from "../../config/api";
-import { Bell, Trash2, Check, X, ShieldAlert } from "lucide-react";
+import { Bell, Trash2, MapPin } from "lucide-react";
 
 const LogoImg = ({ size = 28, style = {} }) => {
   const pad = -Math.round(size * 0.25);
@@ -29,8 +30,146 @@ const LogoImg = ({ size = 28, style = {} }) => {
   );
 };
 
+/* ── Compact City Picker (used inside navbar) ── */
+const CityPicker = ({ isFullBleed }) => {
+  const { city, setCity, detecting } = useCityLocation();
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false);
+        setSearch("");
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const filtered = CITY_OPTIONS.filter((c) =>
+    c.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handleSelect = (c) => {
+    setCity(c);
+    setOpen(false);
+    setSearch("");
+  };
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border-0 cursor-pointer transition-all duration-200 hover:opacity-80"
+        style={{
+          backgroundColor: isFullBleed ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.04)",
+          backdropFilter: "blur(8px)",
+          color: isFullBleed ? "rgba(255,255,255,0.9)" : "var(--color-text-dark)",
+          fontFamily: "var(--font-body)",
+          fontSize: "12px",
+          fontWeight: 600,
+        }}
+      >
+        <MapPin size={13} strokeWidth={2.2} style={{ color: isFullBleed ? "#ff6b00" : "var(--color-primary)", flexShrink: 0 }} />
+        {detecting ? (
+          <span style={{ fontSize: "11px", opacity: 0.7 }}>Detecting…</span>
+        ) : (
+          <span>{city || "All Cities"}</span>
+        )}
+        <svg
+          width="10" height="10" viewBox="0 0 24 24" fill="none"
+          stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
+          style={{ transform: open ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s", opacity: 0.5 }}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </button>
+
+      {open && (
+        <div
+          className="absolute top-full mt-2 rounded-xl overflow-hidden shadow-2xl z-[1000] border"
+          style={{
+            right: 0,
+            minWidth: "200px",
+            backgroundColor: "var(--color-bg-white)",
+            borderColor: "var(--color-border)",
+          }}
+        >
+          {/* Search */}
+          <div style={{ padding: "8px 10px", borderBottom: "1px solid var(--color-border)" }}>
+            <input
+              autoFocus
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search city…"
+              className="w-full outline-none"
+              style={{
+                background: "rgba(0,0,0,0.03)",
+                border: "1px solid var(--color-border)",
+                borderRadius: "8px",
+                padding: "5px 10px",
+                color: "var(--color-text-dark)",
+                fontSize: "12px",
+                fontFamily: "var(--font-body)",
+              }}
+            />
+          </div>
+
+          {/* All Cities */}
+          <button
+            onClick={() => { setCity(null); setOpen(false); setSearch(""); }}
+            className="w-full text-left border-0 cursor-pointer"
+            style={{
+              padding: "8px 14px",
+              background: !city ? "rgba(139,26,26,0.06)" : "transparent",
+              color: !city ? "var(--color-primary)" : "var(--color-text-mid)",
+              fontSize: "12.5px",
+              fontFamily: "var(--font-body)",
+              fontWeight: !city ? 600 : 400,
+              borderBottom: "1px solid var(--color-border)",
+            }}
+          >
+            🌐 All Cities
+          </button>
+
+          {/* City list */}
+          <div style={{ maxHeight: "200px", overflowY: "auto" }}>
+            {filtered.map((c) => (
+              <button
+                key={c}
+                onClick={() => handleSelect(c)}
+                className="w-full text-left border-0 cursor-pointer transition-all"
+                style={{
+                  padding: "8px 14px",
+                  background: city === c ? "rgba(139,26,26,0.06)" : "transparent",
+                  color: city === c ? "var(--color-primary)" : "var(--color-text-mid)",
+                  fontSize: "12.5px",
+                  fontFamily: "var(--font-body)",
+                  fontWeight: city === c ? 600 : 400,
+                }}
+                onMouseEnter={(e) => { if (city !== c) e.currentTarget.style.background = "rgba(0,0,0,0.02)"; }}
+                onMouseLeave={(e) => { if (city !== c) e.currentTarget.style.background = "transparent"; }}
+              >
+                {c}
+                {city === c && <span style={{ float: "right", fontSize: "11px" }}>✓</span>}
+              </button>
+            ))}
+            {filtered.length === 0 && (
+              <p className="text-center" style={{ color: "var(--color-text-muted)", fontSize: "12px", padding: "12px", fontFamily: "var(--font-body)" }}>
+                No cities found
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const Navbar = () => {
-  const { pathname } = useLocation();
+  const { pathname } = useRouterLocation();
   const navigate = useNavigate();
   const isFullBleed = pathname === "/";
   const [menuOpen, setMenuOpen] = useState(false);
@@ -153,7 +292,7 @@ const Navbar = () => {
         </Link>
 
         {/* Desktop Links */}
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-6">
           {navLinks.map(({ to, label, end }) => (
             <NavLink
               key={to}
@@ -189,6 +328,9 @@ const Navbar = () => {
               Bookings
             </NavLink>
           )}
+
+          {/* City Location Picker */}
+          <CityPicker isFullBleed={isFullBleed} />
 
           {/* Auth buttons */}
           {isAuthenticated ? (
@@ -431,6 +573,9 @@ const Navbar = () => {
               My Bookings
             </NavLink>
           )}
+
+          {/* City Picker in mobile drawer */}
+          <CityPicker isFullBleed={false} />
 
           {!isAuthenticated && (
             <button

@@ -112,6 +112,15 @@ router.put("/me", protect, providerOnly, async (req, res) => {
     if (!provider) {
       return res.status(404).json({ message: "Provider profile not found" });
     }
+
+    // When provider toggles online/offline, also update all their services' availability
+    if (req.body.isActive !== undefined) {
+      await Service.updateMany(
+        { provider: provider._id, approvalStatus: "approved" },
+        { available: req.body.isActive }
+      );
+    }
+
     res.json(provider);
   } catch (error) {
     res.status(500).json({ message: error.message });

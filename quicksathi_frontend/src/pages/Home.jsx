@@ -7,7 +7,7 @@ import Hero from "../components/Hero";
 import { Link, useNavigate } from "react-router-dom";
 import { mockCategories } from "../data/mockCategories";
 import { mockServices } from "../data/mockServices";
-import LocationBanner from "../components/common/LocationBanner";
+
 import { useLocation } from "../context/LocationContext";
 
 import QuickServicesSection from "../components/QuickServicesSection";
@@ -146,7 +146,7 @@ const Home = () => {
         style={{ backgroundColor: "var(--color-bg)" }}
       />
       <QuickServicesSection categories={categories} services={services} />
-      <LocationBanner />
+
 
       <section className="px-4 sm:px-8 lg:px-16 py-12" style={{ backgroundColor: "var(--color-bg)" }}>
         {/* Section header — stacks on mobile */}

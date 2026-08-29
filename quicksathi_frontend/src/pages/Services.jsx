@@ -19,7 +19,7 @@ import weddingImgg from "../assets/weddingImgg.avif";
 import carImg from "../assets/carImg.avif";
 import CCTVImg from "../assets/CCTVImg.avif";
 import serviceHeroImg from "../assets/serviceHeroImg.avif";
-import LocationBanner from "../components/common/LocationBanner";
+
 import { useLocation } from "../context/LocationContext";
 import WorkProcess from "../components/servicePage/Workprocess";
 import { mockServices } from "../data/mockServices";
@@ -377,7 +377,7 @@ const Services = () => {
         </div>
       </section>
 
-      <LocationBanner />
+
 
       <section className="px-6 py-16 sm:py-24 max-w-7xl mx-auto">
         <div className="text-center mb-12">

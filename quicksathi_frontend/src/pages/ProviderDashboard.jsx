@@ -122,6 +122,15 @@ const ProviderDashboard = () => {
       const nextActive = !provider.isActive;
       const { data } = await api.put("/providers/me", { isActive: nextActive });
       setProvider(data);
+
+      // Refresh services list to reflect updated availability
+      try {
+        const servicesRes = await api.get("/providers/services");
+        setServices(servicesRes.data);
+      } catch (e) {
+        console.warn("Failed to refresh services after toggle:", e);
+      }
+
       setMessage(`Availability updated: You are now ${nextActive ? "Active & Open for bookings" : "Inactive & Unavailable"}`);
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {

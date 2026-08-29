@@ -6,13 +6,7 @@ import RouteMap from "../carRental/RouteMap";
 
 const BookingCard = ({ service, pkg }) => {
   const navigate = useNavigate();
-  const isRental =
-    service?.serviceMode === "RENTAL" ||
-    service?.categoryName?.toLowerCase().includes("rental") ||
-    service?.categoryName?.toLowerCase().includes("vehicle") ||
-    service?.name?.toLowerCase().includes("rental") ||
-    service?.name?.toLowerCase().includes("car") ||
-    service?.name?.toLowerCase().includes("bike");
+  const isRental = service?.serviceMode === "RENTAL";
 
   const perKmRate = service.perKmRate || 10; // admin-configured, default ₹10/km
 
