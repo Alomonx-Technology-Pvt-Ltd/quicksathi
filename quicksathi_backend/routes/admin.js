@@ -509,6 +509,33 @@ router.patch("/bookings/:id/status", protect, adminOnly, async (req, res) => {
   }
 });
 
+// PATCH /api/admin/services/:id/assign-provider — Assign a provider to a service
+router.patch("/services/:id/assign-provider", protect, adminOnly, async (req, res) => {
+  try {
+    const { providerId } = req.body;
+    const service = await Service.findById(req.params.id);
+    if (!service) {
+      return res.status(404).json({ message: "Service not found" });
+    }
+
+    if (providerId) {
+      const provider = await Provider.findById(providerId);
+      if (!provider) {
+        return res.status(404).json({ message: "Provider not found" });
+      }
+      service.provider = provider._id;
+    } else {
+      service.provider = undefined;
+    }
+
+    await service.save();
+    const updated = await Service.findById(service._id).populate("provider");
+    res.json({ message: "Provider assigned to service successfully", service: updated });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // PATCH /api/admin/bookings/:id/assign — Assign provider to a booking
 router.patch("/bookings/:id/assign", protect, adminOnly, async (req, res) => {
   try {
@@ -568,17 +595,7 @@ router.patch("/bookings/:id/assign", protect, adminOnly, async (req, res) => {
   }
 });
 
-// GET /api/admin/providers/approved — List all approved providers
-router.get("/providers/approved", protect, adminOnly, async (req, res) => {
-  try {
-    const providers = await Provider.find({ approvalStatus: "approved" })
-      .populate("user", "name email")
-      .sort("businessName");
-    res.json(providers);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+
 
 // ─── USERS ─────────────────────────────────────────────
 
@@ -1009,8 +1026,8 @@ router.get("/bookings", protect, adminOnly, async (req, res) => {
 router.get("/providers/approved", protect, adminOnly, async (req, res) => {
   try {
     const providers = await Provider.find({ approvalStatus: "approved", isActive: true })
-      .populate("user", "name email phone")
-      .select("businessName experience location rating isActive");
+      .populate("user", "name email phone role")
+      .select("businessName businessType categoryName experience location rating isActive user");
     res.json(providers);
   } catch (error) {
     res.status(500).json({ message: error.message });

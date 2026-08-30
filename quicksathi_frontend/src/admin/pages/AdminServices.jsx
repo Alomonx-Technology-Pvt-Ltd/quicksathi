@@ -41,6 +41,8 @@ const AdminServices = () => {
   const [saving, setSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [allProviders, setAllProviders] = useState([]);
+  const [assigningId, setAssigningId] = useState(null);
 
   // Temp fields for adding
   const [newTag, setNewTag] = useState("");
@@ -94,12 +96,35 @@ const AdminServices = () => {
     }
   };
 
+  const fetchProviders = async () => {
+    try {
+      const { data } = await api.get("/admin/providers/approved");
+      setAllProviders(data);
+    } catch (err) {
+      console.error("Failed to fetch providers:", err);
+    }
+  };
+
   useEffect(() => {
     Promise.resolve().then(() => {
       fetchServices();
       fetchCategories();
+      fetchProviders();
     });
   }, []);
+
+  const handleAssignProvider = async (serviceId, providerId) => {
+    setAssigningId(serviceId);
+    try {
+      await api.patch(`/admin/services/${serviceId}/assign-provider`, { providerId: providerId || null });
+      showMessage(providerId ? "Provider assigned to service!" : "Provider unassigned from service");
+      fetchServices();
+    } catch (err) {
+      showMessage(err.response?.data?.message || "Failed to assign provider", "error");
+    } finally {
+      setAssigningId(null);
+    }
+  };
 
   const showMessage = (msg, type = "success") => {
     if (type === "success") { setSuccess(msg); setError(""); }
@@ -314,7 +339,7 @@ const AdminServices = () => {
           <table className="w-full" style={{ fontFamily: "var(--font-body)" }}>
             <thead>
               <tr>
-                {["Image", "Name", "Category", "Price", "Rating", "Cities", "Status", "Featured", "Approval", "Actions"].map((h) => (
+                {["Image", "Name", "Category", "Price", "Rating", "Cities", "Provider", "Status", "Featured", "Approval", "Actions"].map((h) => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wider" style={{ color: "rgba(255,255,255,0.25)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>{h}</th>
                 ))}
               </tr>
@@ -351,6 +376,30 @@ const AdminServices = () => {
                     )}
                   </td>
                   <td className="px-4 py-3">
+                    <select
+                      disabled={assigningId === service._id}
+                      value={service.provider?._id || service.provider || ""}
+                      onChange={(e) => handleAssignProvider(service._id, e.target.value)}
+                      className="px-2 py-1.5 rounded-lg text-[10px] border outline-none font-medium text-white/80 transition min-w-[120px]"
+                      style={{
+                        backgroundColor: "rgba(255,255,255,0.04)",
+                        borderColor: "rgba(255,255,255,0.08)",
+                      }}
+                    >
+                      <option value="">None</option>
+                      {allProviders.map((p) => {
+                        const userName = p.user?.name || "Partner";
+                        const biz = p.businessName || p.categoryName || "Provider";
+                        const role = p.businessType || "Provider";
+                        return (
+                          <option key={p._id} value={p._id}>
+                            {userName} — {biz} ({role})
+                          </option>
+                        );
+                      })}
+                    </select>
+                  </td>
+                  <td className="px-4 py-3">
                     <button onClick={() => handleToggle(service._id)} className="px-2.5 py-1 rounded-full text-xs font-semibold border-0 cursor-pointer" style={{ backgroundColor: service.available ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", color: service.available ? "#22c55e" : "#ef4444" }}>
                       {service.available ? "Active" : "Inactive"}
                     </button>
@@ -381,7 +430,7 @@ const AdminServices = () => {
               ))}
               {filteredServices.length === 0 && (
                 <tr>
-                  <td colSpan={10} className="px-4 py-12 text-center text-sm" style={{ color: "rgba(255,255,255,0.3)" }}>No services found</td>
+                  <td colSpan={11} className="px-4 py-12 text-center text-sm" style={{ color: "rgba(255,255,255,0.3)" }}>No services found</td>
                 </tr>
               )}
             </tbody>

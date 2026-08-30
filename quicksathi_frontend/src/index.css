@@ -101,50 +101,36 @@ body {
   --admin-bg-sidebar: #131316;
   --admin-bg-card: #18181c;
   --admin-bg-card-hover: #1e1e24;
-  --admin-border: rgba(255, 255, 255, 0.06);
-  --admin-border-focus: rgba(255, 255, 255, 0.12);
+  --admin-border: rgba(255, 255, 255, 0.08);
+  --admin-border-focus: rgba(255, 255, 255, 0.16);
   --admin-text-primary: #ffffff;
-  --admin-text-secondary: rgba(255, 255, 255, 0.55);
-  --admin-text-muted: rgba(255, 255, 255, 0.35);
+  --admin-text-secondary: rgba(255, 255, 255, 0.7);
+  --admin-text-muted: rgba(255, 255, 255, 0.45);
   --admin-bg-input: rgba(255, 255, 255, 0.04);
-  --admin-bg-hover: rgba(255, 255, 255, 0.05);
+  --admin-bg-hover: rgba(255, 255, 255, 0.06);
 }
 
 [data-admin-theme="light"] {
-  --admin-bg-main: #f4f4f7;
+  --admin-bg-main: #f8fafc;
   --admin-bg-sidebar: #ffffff;
   --admin-bg-card: #ffffff;
-  --admin-bg-card-hover: #f9f9fb;
-  --admin-border: rgba(0, 0, 0, 0.08);
-  --admin-border-focus: rgba(0, 0, 0, 0.15);
-  --admin-text-primary: #121214;
-  --admin-text-secondary: rgba(0, 0, 0, 0.6);
-  --admin-text-muted: rgba(0, 0, 0, 0.4);
-  --admin-bg-input: rgba(0, 0, 0, 0.03);
-  --admin-bg-hover: rgba(0, 0, 0, 0.04);
-}
-
-[data-admin-theme="dark"] {
-  --admin-bg-main: #0c0c0e;
-  --admin-bg-sidebar: #131316;
-  --admin-bg-card: #18181c;
-  --admin-bg-card-hover: #1e1e24;
-  --admin-border: rgba(255, 255, 255, 0.06);
-  --admin-border-focus: rgba(255, 255, 255, 0.12);
-  --admin-text-primary: #ffffff;
-  --admin-text-secondary: rgba(255, 255, 255, 0.55);
-  --admin-text-muted: rgba(255, 255, 255, 0.35);
-  --admin-bg-input: rgba(255, 255, 255, 0.04);
-  --admin-bg-hover: rgba(255, 255, 255, 0.05);
+  --admin-bg-card-hover: #f1f5f9;
+  --admin-border: #e2e8f0;
+  --admin-border-focus: #cbd5e1;
+  --admin-text-primary: #0f172a;
+  --admin-text-secondary: #334155;
+  --admin-text-muted: #64748b;
+  --admin-bg-input: #f1f5f9;
+  --admin-bg-hover: #e2e8f0;
 }
 
 .admin-transition {
-  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, fill 0.3s ease, stroke 0.3s ease;
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, fill 0.25s ease, stroke 0.25s ease;
 }
 
 /* ─────────────────────────────────────────
    ADMIN INTERFACE SPECIFIC STYLE OVERRIDES
-   Intercepts inline styles of old pages and maps them to theme variables
+   Intercepts inline styles and classes to adapt seamlessly to theme
 ───────────────────────────────────────── */
 [data-admin-theme] h1, 
 [data-admin-theme] h2, 
@@ -155,21 +141,34 @@ body {
 
 [data-admin-theme] p, 
 [data-admin-theme] label {
-  color: var(--admin-text-secondary) !important;
+  color: var(--admin-text-secondary);
 }
 
-[data-admin-theme] span[style*="color: rgba(255,255,255"],
-[data-admin-theme] span[style*="color: rgba(255, 255, 255"],
-[data-admin-theme] p[style*="color: rgba(255,255,255"],
-[data-admin-theme] p[style*="color: rgba(255, 255, 255"] {
-  color: var(--admin-text-secondary) !important;
+/* Light mode overrides for hardcoded Tailwind white text */
+[data-admin-theme="light"] .text-white,
+[data-admin-theme="light"] .text-white\/90,
+[data-admin-theme="light"] .text-white\/80 {
+  color: #0f172a !important;
 }
 
-[data-admin-theme] span[style*="color: rgba(255,255,255,0.3)"],
-[data-admin-theme] p[style*="color: rgba(255,255,255,0.3)"],
-[data-admin-theme] span[style*="color: rgba(255,255,255,0.35)"],
-[data-admin-theme] p[style*="color: rgba(255,255,255,0.35)"] {
-  color: var(--admin-text-muted) !important;
+[data-admin-theme="light"] .text-white\/70,
+[data-admin-theme="light"] .text-white\/60,
+[data-admin-theme="light"] .text-white\/50,
+[data-admin-theme="light"] .text-white\/45 {
+  color: #334155 !important;
+}
+
+[data-admin-theme="light"] .text-white\/40,
+[data-admin-theme="light"] .text-white\/35,
+[data-admin-theme="light"] .text-white\/30,
+[data-admin-theme="light"] .text-white\/25,
+[data-admin-theme="light"] .text-white\/20 {
+  color: #64748b !important;
+}
+
+/* Dark mode text colors */
+[data-admin-theme="dark"] .text-white {
+  color: #ffffff !important;
 }
 
 /* Tables, cells and columns */
@@ -178,7 +177,7 @@ body {
 }
 
 [data-admin-theme] table td {
-  color: var(--admin-text-secondary) !important;
+  color: var(--admin-text-secondary);
 }
 
 [data-admin-theme] table tr, 
@@ -188,18 +187,17 @@ body {
 }
 
 /* Containers and cards styled using inline styles */
-[data-admin-theme] div[style*="rgba(255,255,255,0.0"],
-[data-admin-theme] div[style*="rgba(255, 255, 255, 0.0"],
-[data-admin-theme] div[style*="rgba(255,255,255,0.1)"],
-[data-admin-theme] div[style*="rgba(255, 255, 255, 0.1)"] {
+[data-admin-theme="light"] div[style*="rgba(255,255,255,0.0"],
+[data-admin-theme="light"] div[style*="rgba(255, 255, 255, 0.0"],
+[data-admin-theme="light"] div[style*="rgba(255,255,255,0.1)"],
+[data-admin-theme="light"] div[style*="rgba(255, 255, 255, 0.1)"] {
   background-color: var(--admin-bg-card) !important;
   border-color: var(--admin-border) !important;
 }
 
 /* Modal backgrounds */
-[data-admin-theme] div[style*="#1e1e26"],
-[data-admin-theme] div[style*="#1e1e26"] {
-  background-color: var(--admin-bg-sidebar) !important;
+[data-admin-theme="light"] div[style*="#1e1e26"] {
+  background-color: var(--admin-bg-card) !important;
   border-color: var(--admin-border) !important;
 }
 
@@ -218,16 +216,11 @@ body {
 }
 
 /* Button overrides for standard outline-less buttons */
-[data-admin-theme] button[style*="rgba(255,255,255,0.06)"],
-[data-admin-theme] button[style*="rgba(255, 255, 255, 0.06)"] {
+[data-admin-theme="light"] button[style*="rgba(255,255,255,0.02)"],
+[data-admin-theme="light"] button[style*="rgba(255,255,255,0.06)"],
+[data-admin-theme="light"] button[style*="rgba(255, 255, 255, 0.06)"] {
   background-color: var(--admin-bg-input) !important;
   color: var(--admin-text-secondary) !important;
-}
-
-/* Tables scroll wrapper */
-[data-admin-theme] .rounded-3xl,
-[data-admin-theme] .rounded-2xl {
-  background-color: var(--admin-bg-sidebar) !important;
   border-color: var(--admin-border) !important;
 }
 

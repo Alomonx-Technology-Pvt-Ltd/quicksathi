@@ -10,10 +10,10 @@ const userSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: [true, "Email is required"],
-      unique: true,
       lowercase: true,
       trim: true,
+      unique: true,
+      sparse: true,
     },
     password: {
       type: String,
@@ -23,6 +23,7 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
       trim: true,
+      sparse: true,
     },
     avatar: {
       type: String,
@@ -35,7 +36,7 @@ const userSchema = new mongoose.Schema(
     },
     authProvider: {
       type: String,
-      enum: ["local", "google", "firebase"],
+      enum: ["local", "google", "phone", "firebase"],
       default: "local",
     },
     firebaseUid: {
@@ -46,6 +47,11 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // Profile address fields (for booking auto-fill)
+    address: { type: String, trim: true, default: "" },
+    city: { type: String, trim: true, default: "" },
+    state: { type: String, trim: true, default: "" },
+    pincode: { type: String, trim: true, default: "" },
   },
   {
     timestamps: true,

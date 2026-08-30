@@ -20,6 +20,7 @@ const PaymentPage = lazy(() => import("./pages/PaymentPage"));
 const MyBookings = lazy(() => import("./pages/MyBookings"));
 const ProviderOnboarding = lazy(() => import("./pages/ProviderOnboarding"));
 const ProviderDashboard = lazy(() => import("./pages/ProviderDashboard"));
+const Profile = lazy(() => import("./pages/Profile"));
 
 // Service Category Pages
 const WeddingServices = lazy(() => import("./pages/services/WeddingServices"));
@@ -86,6 +87,14 @@ function App() {
               }
             />
             <Route path="provider/onboarding" element={<ProviderOnboarding />} />
+            <Route
+              path="profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              }
+            />
             <Route
               path="*"
               element={

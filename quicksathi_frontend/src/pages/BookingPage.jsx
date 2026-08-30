@@ -55,6 +55,26 @@ const BookingPage = () => {
     notes: searchParams.get("notes") || "",
   });
 
+  // ── Auto-fill from user profile (saved address) ──
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const autoFill = async () => {
+      try {
+        const { data } = await api.get("/auth/me");
+        const u = data.user;
+        setFormData((prev) => ({
+          ...prev,
+          address: prev.address || u.address || "",
+          city: prev.city || u.city || "",
+          pincode: prev.pincode || u.pincode || "",
+        }));
+      } catch {
+        // Profile fetch failed — no auto-fill, that's fine
+      }
+    };
+    autoFill();
+  }, [isAuthenticated]);
+
   // ── Route & Map state (for vehicle rental services) ──
   const [pickup, setPickup] = useState(
     searchParams.get("pickupLat") && searchParams.get("pickupLon")
@@ -101,13 +121,7 @@ const BookingPage = () => {
         const { data } = await api.get(`/services/${serviceId}`);
         if (data) {
           setService(data);
-          const rentalDetected =
-            data.serviceMode === "RENTAL" ||
-            data.categoryName?.toLowerCase().includes("rental") ||
-            data.categoryName?.toLowerCase().includes("vehicle") ||
-            data.name?.toLowerCase().includes("rental") ||
-            data.name?.toLowerCase().includes("car") ||
-            data.name?.toLowerCase().includes("bike");
+          const rentalDetected = data.serviceMode === "RENTAL";
 
           if (rentalDetected) {
             setIsRental(true);

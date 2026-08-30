@@ -101,7 +101,12 @@ const AdminLayout = () => {
 
   useEffect(() => {
     localStorage.setItem("admin-theme", theme);
-    document.documentElement.removeAttribute("data-admin-theme");
+    document.documentElement.setAttribute("data-admin-theme", theme);
+    if (theme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
     return () => {
       document.documentElement.removeAttribute("data-admin-theme");
     };

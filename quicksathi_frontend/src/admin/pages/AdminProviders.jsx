@@ -189,6 +189,49 @@ const AdminProviders = () => {
                     <span className="flex items-center gap-1.5">📅 {provider.createdAt ? new Date(provider.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—"}</span>
                   </div>
 
+                  {/* Documents & Verification Section */}
+                  <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t" style={{ borderColor: "rgba(255,255,255,0.04)" }}>
+                    <span className="text-[10px] uppercase font-bold tracking-wider text-white/30">Verification:</span>
+                    {provider.documents?.selfiePhoto ? (
+                      <a 
+                        href={provider.documents.selfiePhoto} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold no-underline border transition-all hover:opacity-80"
+                        style={{ backgroundColor: "rgba(34,197,94,0.08)", borderColor: "rgba(34,197,94,0.2)", color: "#22c55e" }}
+                      >
+                        <img src={provider.documents.selfiePhoto} alt="Selfie" className="w-4 h-4 rounded-full object-cover" />
+                        📸 View Live Selfie
+                      </a>
+                    ) : (
+                      <span className="text-xs text-white/30">No selfie</span>
+                    )}
+
+                    {provider.documents?.idProof && (
+                      <a 
+                        href={provider.documents.idProof} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold no-underline border transition-all hover:opacity-80"
+                        style={{ backgroundColor: "rgba(59,130,246,0.08)", borderColor: "rgba(59,130,246,0.2)", color: "#60a5fa" }}
+                      >
+                        📄 ID Proof
+                      </a>
+                    )}
+
+                    {provider.documents?.businessRegistration && (
+                      <a 
+                        href={provider.documents.businessRegistration} 
+                        target="_blank" 
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold no-underline border transition-all hover:opacity-80"
+                        style={{ backgroundColor: "rgba(168,85,247,0.08)", borderColor: "rgba(168,85,247,0.2)", color: "#c084fc" }}
+                      >
+                        📑 Business Reg
+                      </a>
+                    )}
+                  </div>
+
                   {/* Documents & Rejection reason */}
                   {provider.approvalStatus === "rejected" && provider.rejectionReason && (
                     <div className="mt-3.5 p-3 rounded-xl text-xs text-red-400 border border-red-500/10" style={{ backgroundColor: "rgba(239,68,68,0.03)" }}>

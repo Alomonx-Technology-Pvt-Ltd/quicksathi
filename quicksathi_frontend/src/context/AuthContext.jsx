@@ -1,7 +1,7 @@
 import { createContext, useContext, useState } from "react";
 
 import { signInWithPopup, signOut as firebaseSignOut } from "firebase/auth";
-import { auth, googleProvider } from "../config/firebase";
+import { auth, googleProvider, RecaptchaVerifier, signInWithPhoneNumber } from "../config/firebase";
 import api from "../config/api";
 
 const AuthContext = createContext(null);
@@ -134,6 +134,78 @@ export const AuthProvider = ({ children }) => {
     return data.user;
   };
 
+  // ── Phone OTP Auth via Firebase ──────────────────────────────────────────────
+
+  // Step 1: Send OTP to phone number
+  const sendOtp = async (phoneNumber) => {
+    if (!auth) {
+      throw new Error("Firebase is not configured. Please add your Firebase credentials.");
+    }
+
+    // Clean up any existing reCAPTCHA
+    if (window.recaptchaVerifier) {
+      try { window.recaptchaVerifier.clear(); } catch { /* ignore */ }
+      window.recaptchaVerifier = null;
+    }
+
+    // Create invisible reCAPTCHA
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+      size: "invisible",
+      callback: () => { /* reCAPTCHA solved — allow signInWithPhoneNumber */ },
+    });
+
+    const confirmationResult = await signInWithPhoneNumber(
+      auth,
+      phoneNumber,
+      window.recaptchaVerifier
+    );
+
+    // Store confirmationResult for step 2
+    window.confirmationResult = confirmationResult;
+    return confirmationResult;
+  };
+
+  // Step 2: Verify OTP and authenticate
+  const verifyOtp = async (otp) => {
+    if (!window.confirmationResult) {
+      throw new Error("Please request OTP first.");
+    }
+
+    const result = await window.confirmationResult.confirm(otp);
+    const firebaseUser = result.user;
+    const idToken = await firebaseUser.getIdToken();
+
+    // Send to our backend for login/registration
+    const { data } = await withRetry(() =>
+      api.post("/auth/phone", {
+        idToken,
+        phone: firebaseUser.phoneNumber,
+      })
+    );
+
+    saveSession(data.token, data.user);
+
+    // Cleanup
+    window.confirmationResult = null;
+    if (window.recaptchaVerifier) {
+      try { window.recaptchaVerifier.clear(); } catch { /* ignore */ }
+      window.recaptchaVerifier = null;
+    }
+
+    return data.user;
+  };
+
+  // ── Profile Update ──────────────────────────────────────────────────────────
+
+  const updateProfile = async (profileData) => {
+    const { data } = await api.put("/auth/profile", profileData);
+    // Update local user state and localStorage
+    const updatedUser = data.user;
+    localStorage.setItem("qs_user", JSON.stringify(updatedUser));
+    setUser(updatedUser);
+    return updatedUser;
+  };
+
   // Provider Login (email/password)
   const providerLogin = async (email, password) => {
     const { data } = await withRetry(() =>
@@ -187,6 +259,9 @@ export const AuthProvider = ({ children }) => {
     register,
     login,
     loginWithGoogle,
+    sendOtp,
+    verifyOtp,
+    updateProfile,
     providerLogin,
     providerLoginWithGoogle,
     logout,
@@ -200,4 +275,3 @@ export const AuthProvider = ({ children }) => {
 };
 
 export default AuthContext;
-

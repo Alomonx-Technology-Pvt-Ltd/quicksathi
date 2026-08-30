@@ -1,5 +1,6 @@
 import { Router } from "express";
 import mongoose from "mongoose";
+import { v2 as cloudinary } from "cloudinary";
 import Provider from "../models/Provider.js";
 import Category from "../models/Category.js";
 import Service from "../models/Service.js";
@@ -8,6 +9,12 @@ import Booking from "../models/Booking.js";
 import Notification from "../models/Notification.js";
 import { protect } from "../middleware/auth.js";
 import { providerOnly } from "../middleware/admin.js";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const router = Router();
 
@@ -30,6 +37,9 @@ router.post("/register", protect, async (req, res) => {
       location,
       phone,
       email,
+      selfiePhoto, // base64 or url
+      idProof,     // base64 or url
+      businessReg, // base64 or url
     } = req.body;
 
     // Look up category name from DB
@@ -41,6 +51,51 @@ router.post("/register", protect, async (req, res) => {
         categoryName = cat.name;
         categoryRef = cat._id;
       }
+    }
+
+    // Upload selfie photo to Cloudinary if provided as base64 data
+    let selfieUrl = "";
+    if (selfiePhoto && selfiePhoto.startsWith("data:image")) {
+      try {
+        const uploadRes = await cloudinary.uploader.upload(selfiePhoto, {
+          folder: "quicksathi/providers/selfies",
+        });
+        selfieUrl = uploadRes.secure_url;
+      } catch (err) {
+        console.error("Selfie Cloudinary upload failed:", err);
+      }
+    } else if (selfiePhoto) {
+      selfieUrl = selfiePhoto;
+    }
+
+    // Upload ID Proof if provided as base64
+    let idProofUrl = "";
+    if (idProof && idProof.startsWith("data:image")) {
+      try {
+        const uploadRes = await cloudinary.uploader.upload(idProof, {
+          folder: "quicksathi/providers/documents",
+        });
+        idProofUrl = uploadRes.secure_url;
+      } catch (err) {
+        console.error("ID Proof upload failed:", err);
+      }
+    } else if (idProof) {
+      idProofUrl = idProof;
+    }
+
+    // Upload Business Reg if provided as base64
+    let businessRegUrl = "";
+    if (businessReg && businessReg.startsWith("data:image")) {
+      try {
+        const uploadRes = await cloudinary.uploader.upload(businessReg, {
+          folder: "quicksathi/providers/documents",
+        });
+        businessRegUrl = uploadRes.secure_url;
+      } catch (err) {
+        console.error("Business Reg upload failed:", err);
+      }
+    } else if (businessReg) {
+      businessRegUrl = businessReg;
     }
 
     const provider = await Provider.create({
@@ -55,6 +110,11 @@ router.post("/register", protect, async (req, res) => {
       location,
       phone: phone || req.user.phone,
       email: email || req.user.email,
+      documents: {
+        idProof: idProofUrl,
+        businessRegistration: businessRegUrl,
+        selfiePhoto: selfieUrl,
+      },
       approvalStatus: "pending", // requires admin approval
     });
 

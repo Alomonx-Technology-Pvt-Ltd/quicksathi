@@ -173,7 +173,7 @@ router.post("/google", async (req, res) => {
   }
 });
 
-// GET /api/auth/me — Get current user
+// GET /api/auth/me — Get current user (full profile)
 router.get("/me", protect, async (req, res) => {
   // Also check if user has a provider profile
   const provider = await Provider.findOne({ user: req.user._id });
@@ -185,10 +185,131 @@ router.get("/me", protect, async (req, res) => {
       role: req.user.role,
       avatar: req.user.avatar,
       phone: req.user.phone,
+      address: req.user.address,
+      city: req.user.city,
+      state: req.user.state,
+      pincode: req.user.pincode,
+      createdAt: req.user.createdAt,
     },
     provider: provider || null,
   });
 });
+
+// PUT /api/auth/profile — Update user profile
+router.put("/profile", protect, async (req, res) => {
+  try {
+    const allowedFields = ["name", "email", "phone", "address", "city", "state", "pincode"];
+    const updates = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
+      }
+    }
+
+    // If updating email, check uniqueness
+    if (updates.email) {
+      const existing = await User.findOne({ email: updates.email, _id: { $ne: req.user._id } });
+      if (existing) {
+        return res.status(400).json({ message: "This email is already in use by another account." });
+      }
+    }
+
+    const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true, runValidators: true });
+    res.json({
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+        phone: user.phone,
+        address: user.address,
+        city: user.city,
+        state: user.state,
+        pincode: user.pincode,
+        createdAt: user.createdAt,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// POST /api/auth/phone — Firebase Phone Auth (login or register)
+router.post("/phone", async (req, res) => {
+  try {
+    const { idToken, phone } = req.body;
+
+    if (!idToken) {
+      return res.status(400).json({ message: "Firebase ID token is required" });
+    }
+
+    let verifiedPhone = phone;
+    let verifiedUid = null;
+
+    // Verify the Firebase ID token
+    if (firebaseAuth) {
+      try {
+        const decodedToken = await firebaseAuth.verifyIdToken(idToken);
+        verifiedPhone = decodedToken.phone_number || phone;
+        verifiedUid = decodedToken.uid;
+      } catch (tokenError) {
+        return res.status(401).json({ message: "Invalid or expired OTP token" });
+      }
+    } else if (!phone) {
+      return res.status(400).json({ message: "Phone number is required" });
+    }
+
+    // Find existing user by firebaseUid or phone
+    let user = verifiedUid
+      ? await User.findOne({ $or: [{ firebaseUid: verifiedUid }, { phone: verifiedPhone }] })
+      : await User.findOne({ phone: verifiedPhone });
+
+    if (!user) {
+      // Create new user from phone sign-in
+      user = await User.create({
+        name: verifiedPhone,
+        phone: verifiedPhone,
+        firebaseUid: verifiedUid,
+        authProvider: "phone",
+        role: isAdminEmail(null) ? "admin" : "user",
+      });
+    } else {
+      // Update firebase UID if not set
+      let changed = false;
+      if (!user.firebaseUid && verifiedUid) {
+        user.firebaseUid = verifiedUid;
+        changed = true;
+      }
+      if (!user.phone && verifiedPhone) {
+        user.phone = verifiedPhone;
+        changed = true;
+      }
+      if (changed) await user.save();
+    }
+
+    const token = generateToken(user._id);
+
+    res.json({
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+        phone: user.phone,
+        address: user.address,
+        city: user.city,
+        state: user.state,
+        pincode: user.pincode,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 
 // POST /api/auth/provider-login — Provider login (email/password)
 router.post("/provider-login", async (req, res) => {

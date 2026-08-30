@@ -460,6 +460,9 @@ const Navbar = () => {
                         📊 Admin Panel
                       </Link>
                     )}
+                    <Link to="/profile" className="block px-4 py-2.5 text-sm no-underline hover:bg-neutral-50 dark:hover:bg-white/[0.02]" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>
+                      👤 My Profile
+                    </Link>
                     <Link to="/my-bookings" className="block px-4 py-2.5 text-sm no-underline hover:bg-neutral-50 dark:hover:bg-white/[0.02]" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>
                       📋 My Bookings
                     </Link>

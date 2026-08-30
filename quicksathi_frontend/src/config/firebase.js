@@ -6,7 +6,7 @@
 // https://console.firebase.google.com → Project Settings → Web App
 
 import { initializeApp } from "firebase/app";
-import { getAuth, GoogleAuthProvider } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
@@ -37,5 +37,5 @@ if (hasValidConfig) {
   console.info("ℹ️ Firebase not configured. Add VITE_FIREBASE_* vars to .env to enable Google login.");
 }
 
-export { auth, googleProvider };
+export { auth, googleProvider, RecaptchaVerifier, signInWithPhoneNumber };
 export default app;
