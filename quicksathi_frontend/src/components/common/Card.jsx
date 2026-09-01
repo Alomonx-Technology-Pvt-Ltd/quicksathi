@@ -10,7 +10,14 @@ const Card = ({
   secondaryAction,
   onSecondaryAction,
   variant = "overlay",
+  comingSoon = false,
 }) => {
+  const comingSoonBadgeStyle = {
+    fontFamily: "var(--font-body)",
+    color: "#b45309",
+    borderColor: "#f59e0b",
+    backgroundColor: "rgba(245,158,11,0.14)",
+  };
   /* ─────────────────────────────────────
      Service Preview Variant
      (Home page horizontal showcase card)
@@ -51,14 +58,18 @@ const Card = ({
         <div className="flex-1 flex flex-col justify-center px-4 sm:px-6 py-4 sm:py-5 gap-2 sm:gap-3">
           <span
             className="text-[9px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] sm:tracking-[0.18em] border rounded px-2.5 py-0.5 sm:py-1 self-start"
-            style={{
-              fontFamily: "var(--font-body)",
-              color: "var(--color-accent)",
-              borderColor: "var(--color-accent)",
-              backgroundColor: "var(--color-accent-soft)",
-            }}
+            style={
+              comingSoon
+                ? comingSoonBadgeStyle
+                : {
+                    fontFamily: "var(--font-body)",
+                    color: "var(--color-accent)",
+                    borderColor: "var(--color-accent)",
+                    backgroundColor: "var(--color-accent-soft)",
+                  }
+            }
           >
-            Featured
+            {comingSoon ? "⏳ Coming Soon" : "Featured"}
           </span>
           <h2
             className="text-lg sm:text-2xl leading-tight m-0 font-semibold"
@@ -97,24 +108,29 @@ const Card = ({
             )}
             {secondaryAction && (
               <button
-                className="text-[10px] sm:text-[12px] uppercase tracking-[0.06em] sm:tracking-[0.08em] px-5 py-2.5 rounded-full border font-semibold transition-all duration-200 cursor-pointer"
+                className="text-[10px] sm:text-[12px] uppercase tracking-[0.06em] sm:tracking-[0.08em] px-5 py-2.5 rounded-full border font-semibold transition-all duration-200"
                 style={{
                   fontFamily: "var(--font-body)",
-                  backgroundColor: "transparent",
-                  color: "var(--color-primary)",
-                  borderColor: "rgba(11,79,216,0.35)",
+                  backgroundColor: comingSoon ? "rgba(0,0,0,0.04)" : "transparent",
+                  color: comingSoon ? "var(--color-text-mid)" : "var(--color-primary)",
+                  borderColor: comingSoon ? "var(--color-border)" : "rgba(11,79,216,0.35)",
+                  cursor: comingSoon ? "not-allowed" : "pointer",
+                  opacity: comingSoon ? 0.7 : 1,
                 }}
                 onMouseEnter={(e) => {
+                  if (comingSoon) return;
                   e.currentTarget.style.backgroundColor = "var(--color-primary-soft)";
                   e.currentTarget.style.borderColor = "var(--color-primary)";
                 }}
                 onMouseLeave={(e) => {
+                  if (comingSoon) return;
                   e.currentTarget.style.backgroundColor = "transparent";
                   e.currentTarget.style.borderColor = "rgba(11,79,216,0.35)";
                 }}
-                onClick={onSecondaryAction}
+                onClick={comingSoon ? undefined : onSecondaryAction}
+                disabled={comingSoon}
               >
-                {secondaryAction}
+                {comingSoon ? "Coming Soon" : secondaryAction}
               </button>
             )}
           </div>
@@ -238,6 +254,7 @@ const Card = ({
         src={image}
         alt={title}
         className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+        style={comingSoon ? { filter: "grayscale(0.65) brightness(0.8)" } : undefined}
       />
 
       {/* Gradient */}
@@ -251,19 +268,34 @@ const Card = ({
 
       {/* Top badge */}
       <div className="absolute top-2 sm:top-3 left-2 sm:left-3 z-10">
-        {primaryAction && (
+        {comingSoon ? (
           <span
             className="text-[9px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] sm:tracking-[0.18em] border rounded px-2 sm:px-2.5 py-0.5 sm:py-1"
             style={{
               fontFamily: "var(--font-body)",
-              color: "var(--color-accent)",
-              borderColor: "var(--color-accent)",
-              backgroundColor: "rgba(15,23,42,0.65)",
+              color: "#fbbf24",
+              borderColor: "#f59e0b",
+              backgroundColor: "rgba(15,23,42,0.75)",
               backdropFilter: "blur(6px)",
             }}
           >
-            {primaryAction}
+            ⏳ Coming Soon
           </span>
+        ) : (
+          primaryAction && (
+            <span
+              className="text-[9px] sm:text-[11px] font-semibold uppercase tracking-[0.14em] sm:tracking-[0.18em] border rounded px-2 sm:px-2.5 py-0.5 sm:py-1"
+              style={{
+                fontFamily: "var(--font-body)",
+                color: "var(--color-accent)",
+                borderColor: "var(--color-accent)",
+                backgroundColor: "rgba(15,23,42,0.65)",
+                backdropFilter: "blur(6px)",
+              }}
+            >
+              {primaryAction}
+            </span>
+          )
         )}
       </div>
 
@@ -317,25 +349,27 @@ const Card = ({
     </>
   );
 
-  if (linkTo) {
+  // Coming Soon — render as a non-interactive div (no navigation, no booking)
+  if (comingSoon || !linkTo) {
     return (
-      <Link
-        to={linkTo}
-        className="group relative rounded-2xl sm:rounded-[18px] overflow-hidden block no-underline border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+      <div
+        className="group relative rounded-2xl sm:rounded-[18px] overflow-hidden border transition-all duration-300"
         style={{
           aspectRatio: "4/3",
           borderColor: "var(--color-border)",
           boxShadow: "0 4px 20px rgba(0,0,0,0.06)",
+          cursor: comingSoon ? "not-allowed" : "default",
         }}
       >
         {content}
-      </Link>
+      </div>
     );
   }
 
   return (
-    <div
-      className="group relative rounded-2xl sm:rounded-[18px] overflow-hidden border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+    <Link
+      to={linkTo}
+      className="group relative rounded-2xl sm:rounded-[18px] overflow-hidden block no-underline border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
       style={{
         aspectRatio: "4/3",
         borderColor: "var(--color-border)",
@@ -343,7 +377,7 @@ const Card = ({
       }}
     >
       {content}
-    </div>
+    </Link>
   );
 };
 

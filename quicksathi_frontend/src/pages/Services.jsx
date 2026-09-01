@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import api from "../config/api";
 import {
   Search,
-  Shield,
+  ShieldCheck,
   Car,
   PartyPopper,
   GraduationCap,
@@ -14,6 +14,11 @@ import {
   BadgeCheck,
   Timer,
   Sparkles,
+  Scissors,
+  Wrench,
+  Hammer,
+  LayoutGrid,
+  AlertTriangle,
 } from "lucide-react";
 import weddingImgg from "../assets/weddingImgg.avif";
 import carImg from "../assets/carImg.avif";
@@ -33,7 +38,7 @@ const CATEGORIES = [
     image: weddingImgg,
     link: "/services/weddings",
     color: "#440101",
-    icon: "💍",
+    icon: Sparkles,
     stats: { providers: "50+", rating: "4.8" },
   },
   {
@@ -44,7 +49,7 @@ const CATEGORIES = [
     image: carImg,
     link: "/services/car-rentals",
     color: "#0c193b",
-    icon: "🚗",
+    icon: Car,
     stats: { providers: "30+", rating: "4.6" },
   },
   {
@@ -55,7 +60,7 @@ const CATEGORIES = [
     image: CCTVImg,
     link: "/services/cctv",
     color: "#1b2c4d",
-    icon: "📹",
+    icon: ShieldCheck,
     stats: { providers: "20+", rating: "4.7" },
   },
 ];
@@ -120,19 +125,22 @@ const Services = () => {
   const getCategoryIcon = (vertical) => {
     switch (vertical) {
       case "CCTV_SECURITY":
-        return Shield;
+        return ShieldCheck;
       case "VEHICLE_RENTAL":
         return Car;
       case "WEDDING":
-        return PartyPopper;
+        return Sparkles;
       case "HOME_TUITION":
         return GraduationCap;
       case "HOUSE_HELP":
-        return Sparkles;
+        return Wrench;
+      case "HOUSE_SERVICES":
+      case "HOUSE_REPAIR":
+        return Hammer;
       case "HOME_SALON":
-        return Sparkles;
+        return Scissors;
       default:
-        return Camera;
+        return Sparkles;
     }
   };
 
@@ -153,6 +161,7 @@ const Services = () => {
           parentName: cat.name,
           parentId: cat._id,
           vertical: cat.vertical,
+          comingSoon: !!cat.comingSoon,
           mongoServiceId: matched?.slug ?? matched?._id ?? null,
           startingPrice: matched?.startingPrice ?? null,
           priceUnit: matched?.priceUnit ?? "per visit",
@@ -183,6 +192,7 @@ const Services = () => {
           parentName: parentCat.name || s.categoryName || "General",
           parentId: parentCat._id || s.category || null,
           vertical: parentCat.vertical || "OTHER",
+          comingSoon: !!parentCat.comingSoon,
           mongoServiceId: s.slug || s._id,
           startingPrice: s.startingPrice || 0,
           priceUnit: s.priceUnit || "per service",
@@ -197,16 +207,23 @@ const Services = () => {
       item.description.toLowerCase().includes(searchQuery.toLowerCase());
 
     if (selectedFilter === "ALL") return matchesSearch;
-    if (selectedFilter === "WEDDING")
-      return item.vertical === "WEDDING" && matchesSearch;
     if (selectedFilter === "RENTAL")
       return item.vertical === "VEHICLE_RENTAL" && matchesSearch;
+    if (selectedFilter === "WEDDING")
+      return item.vertical === "WEDDING" && matchesSearch;
     if (selectedFilter === "SECURITY")
       return item.vertical === "CCTV_SECURITY" && matchesSearch;
     if (selectedFilter === "HOME_TUITION")
       return item.vertical === "HOME_TUITION" && matchesSearch;
     if (selectedFilter === "HOUSE_HELP")
-      return item.vertical === "HOUSE_HELP" && matchesSearch;
+      return (item.vertical === "HOUSE_HELP" || item.parentName?.toLowerCase().includes("house help")) && matchesSearch;
+    if (selectedFilter === "HOUSE_SERVICES")
+      return (
+        item.vertical === "HOUSE_SERVICES" ||
+        item.vertical === "HOUSE_REPAIR" ||
+        item.parentName?.toLowerCase().includes("repair") ||
+        item.parentName?.toLowerCase().includes("house services")
+      ) && matchesSearch;
     if (selectedFilter === "HOME_SALON")
       return item.vertical === "HOME_SALON" && matchesSearch;
 
@@ -252,15 +269,15 @@ const Services = () => {
       image: weddingImgg,
       link: "/services/weddings",
       btn: "Explore Wedding Facility",
-      icon: "💍",
+      icon: Sparkles,
     },
     {
       title: "Premium Vehicle Rentals",
-      desc: "Exotic sedans, luxury wedding cars, SUVs, and commuter motorcycles for self-drive or chauffeur trips.",
+      desc: "Exotic sedans, luxury wedding cars, and SUVs for self-drive or chauffeur trips.",
       image: carImg,
       link: "/services/car-rentals",
       btn: "Explore Rental Fleet",
-      icon: "🚗",
+      icon: Car,
     },
     {
       title: "AI Security Systems",
@@ -268,18 +285,19 @@ const Services = () => {
       image: CCTVImg,
       link: "/services/cctv",
       btn: "Explore Security Plans",
-      icon: "📹",
+      icon: ShieldCheck,
     },
   ];
 
   const filterTabs = [
-    { id: "ALL", label: "All Services" },
-    { id: "WEDDING", label: "💍 Wedding" },
-    { id: "RENTAL", label: "🚗 Rentals" },
-    { id: "SECURITY", label: "📹 Security" },
-    { id: "HOME_TUITION", label: "📚 Home Tuition" },
-    { id: "HOUSE_HELP", label: "🧹 House Help" },
-    { id: "HOME_SALON", label: "💄 Home Salon" },
+    { id: "ALL", title: "All Services", icon: LayoutGrid },
+    { id: "RENTAL", title: "Vehicle Rental", icon: Car },
+    { id: "WEDDING", title: "Wedding & Events", icon: Sparkles },
+    { id: "HOUSE_HELP", title: "House Help", icon: Wrench },
+    { id: "HOUSE_SERVICES", title: "House Services & Repair", icon: Hammer },
+    { id: "HOME_SALON", title: "Home Salon & Beauty", icon: Scissors, comingSoon: true },
+    { id: "HOME_TUITION", title: "Home Tuition", icon: GraduationCap, comingSoon: true },
+    { id: "SECURITY", title: "CCTV Security", icon: ShieldCheck },
   ];
 
   return (
@@ -440,14 +458,20 @@ const Services = () => {
                 />
 
                 <span
-                  className="absolute top-4 left-4 flex items-center justify-center rounded-full text-base sm:text-lg"
+                  className="absolute top-4 left-4 flex items-center justify-center rounded-full"
                   style={{
-                    width: "34px",
-                    height: "34px",
-                    backgroundColor: "rgba(255,255,255,0.9)",
+                    width: "36px",
+                    height: "36px",
+                    backgroundColor: "rgba(255,255,255,0.92)",
+                    color: "var(--color-primary)",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
+                    backdropFilter: "blur(6px)",
                   }}
                 >
-                  {card.icon}
+                  {(() => {
+                    const CardIcon = card.icon;
+                    return <CardIcon size={18} strokeWidth={2} />;
+                  })()}
                 </span>
 
                 <h3
@@ -563,63 +587,62 @@ const Services = () => {
       {/* ============ FILTER BAR ============ */}
       <section
         ref={filterSectionRef}
-        className="px-3 sm:px-6 py-4 sm:py-5 md:py-6 border-b  top-0 z-30"
+        className="px-3 sm:px-6 py-3 sm:py-4 border-b sticky top-0 z-30 backdrop-blur-md"
         style={{
           borderColor: "var(--color-border)",
-          backgroundColor: "var(--color-bg-soft)",
+          backgroundColor: "rgba(248, 250, 252, 0.95)",
         }}
       >
-        <motion.div
-          className="max-w-6xl mx-auto flex flex-wrap justify-center gap-1.5 sm:gap-2 md:gap-3"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={{
-            hidden: {},
-            visible: { transition: { staggerChildren: 0.06 } },
-          }}
+        <div
+          className="max-w-6xl mx-auto flex gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar justify-start md:justify-center py-1.5 px-2"
+          style={{ WebkitOverflowScrolling: "touch" }}
         >
-          {filterTabs.map((tab) => (
-            <motion.button
-              key={tab.id}
-              onClick={() => {
-                setSelectedFilter(tab.id);
-                setSearchQuery("");
-                scrollToResults();
-              }}
-              variants={{
-                hidden: { y: 10, opacity: 0 },
-                visible: {
-                  y: 0,
-                  opacity: 1,
-                  transition: { duration: 0.35, ease: "easeOut" },
-                },
-              }}
-              whileTap={{ scale: 0.95 }}
-              className="relative px-3 sm:px-4 md:px-5 py-1.5 sm:py-2 md:py-2.5 rounded-full text-[10px] sm:text-[11px] md:text-xs font-semibold cursor-pointer overflow-hidden transition-colors duration-300 whitespace-nowrap"
-              style={{
-                fontFamily: "var(--font-body)",
-                border: `1px solid ${selectedFilter === tab.id ? "var(--color-primary)" : "var(--color-border)"}`,
-                color:
-                  selectedFilter === tab.id ? "#fff" : "var(--color-text-dark)",
-                backgroundColor:
-                  selectedFilter === tab.id
-                    ? "transparent"
-                    : "var(--color-bg-white)",
-              }}
-            >
-              {selectedFilter === tab.id && (
-                <motion.span
-                  layoutId="activeFilterPill"
-                  className="absolute inset-0 rounded-full"
-                  style={{ backgroundColor: "var(--color-primary)" }}
-                  transition={{ type: "spring", stiffness: 400, damping: 30 }}
+          {filterTabs.map((tab) => {
+            const Icon = tab.icon;
+            const isActive = selectedFilter === tab.id;
+
+            return (
+              <motion.button
+                key={tab.id}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.96 }}
+                onClick={() => {
+                  setSelectedFilter(tab.id);
+                  setSearchQuery("");
+                  scrollToResults();
+                }}
+                className="flex-shrink-0 flex items-center gap-2 sm:gap-2.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full cursor-pointer transition-all duration-200 outline-none whitespace-nowrap"
+                style={{
+                  backgroundColor: isActive ? "var(--color-primary)" : "var(--color-bg-white)",
+                  border: isActive ? "1.5px solid var(--color-primary)" : "1.5px solid var(--color-border)",
+                  boxShadow: isActive ? "0 4px 16px rgba(11, 79, 216, 0.28)" : "0 1px 3px rgba(0,0,0,0.04)",
+                  fontFamily: "var(--font-body)",
+                }}
+              >
+                <Icon
+                  className="w-4 h-4 flex-shrink-0"
+                  style={{ color: isActive ? "#ffffff" : "var(--color-text-mid)" }}
+                  strokeWidth={1.8}
                 />
-              )}
-              <span className="relative z-10">{tab.label}</span>
-            </motion.button>
-          ))}
-        </motion.div>
+                <span
+                  className="text-xs sm:text-sm font-semibold whitespace-nowrap"
+                  style={{ color: isActive ? "#ffffff" : "var(--color-text-dark)" }}
+                >
+                  {tab.title}
+                </span>
+                {tab.comingSoon && (
+                  <span
+                    className="text-[10px] font-bold"
+                    style={{ color: isActive ? "#fde68a" : "#b45309" }}
+                    title="Coming Soon"
+                  >
+                    ⏳
+                  </span>
+                )}
+              </motion.button>
+            );
+          })}
+        </div>
       </section>
 
       {/* ============ SERVICE RESULTS ============ */}
@@ -694,7 +717,7 @@ const Services = () => {
                 border: "1px solid rgba(139,26,26,0.06)",
               }}
             >
-              <span className="text-4xl">⚠️</span>
+              <AlertTriangle size={38} className="text-amber-500" />
             </div>
             <div>
               <h3
@@ -820,8 +843,22 @@ const Services = () => {
                         src={item.imageUrl}
                         alt={item.name}
                         className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover/card:scale-110"
+                        style={item.comingSoon ? { filter: "grayscale(0.65) brightness(0.8)" } : undefined}
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent" />
+                      {item.comingSoon && (
+                        <span
+                          className="absolute top-4 right-4 z-10 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.1em]"
+                          style={{
+                            color: "#fbbf24",
+                            backgroundColor: "rgba(15,23,42,0.78)",
+                            border: "1px solid rgba(245,158,11,0.6)",
+                            backdropFilter: "blur(6px)",
+                          }}
+                        >
+                          ⏳ Coming Soon
+                        </span>
+                      )}
                     </div>
 
                     {/* ============ CONTENT ============ */}
@@ -909,6 +946,21 @@ const Services = () => {
                         )}
 
                         {/* ============ EXPLORE BUTTON ============ */}
+                        {item.comingSoon ? (
+                          <span
+                            className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-[9px] sm:text-xs font-semibold"
+                            style={{
+                              fontFamily: "var(--font-body)",
+                              backgroundColor: "rgba(0,0,0,0.05)",
+                              color: "var(--color-text-mid)",
+                              border: "1px solid rgba(0,0,0,0.08)",
+                              cursor: "not-allowed",
+                              opacity: 0.75,
+                            }}
+                          >
+                            ⏳ Coming Soon
+                          </span>
+                        ) : (
                         <Link
                           to={getServiceLink(
                             item.name,
@@ -935,6 +987,7 @@ const Services = () => {
                             className="transition-transform duration-300 ease-out group-hover/btn:translate-x-1.5"
                           />
                         </Link>
+                        )}
                       </div>
                     </div>
                   </motion.div>

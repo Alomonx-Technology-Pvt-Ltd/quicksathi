@@ -83,18 +83,34 @@ const Hero = ({ categories }) => {
         }}
       >
         {/* Badge */}
-        <span
-          className="inline-block px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold text-white/80 mb-3 sm:mb-5 border border-white/25 backdrop-blur-sm"
-          style={{
-            fontFamily: "var(--font-body)",
-            backgroundColor: "rgba(255,255,255,0.12)",
-            letterSpacing: "0.08em",
-            textTransform: "uppercase",
-            transition: "all 0.5s ease",
-          }}
-        >
-          {active?.name}
-        </span>
+        <div className="flex items-center gap-2 flex-wrap mb-3 sm:mb-5">
+          <span
+            className="inline-block px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold text-white/80 border border-white/25 backdrop-blur-sm"
+            style={{
+              fontFamily: "var(--font-body)",
+              backgroundColor: "rgba(255,255,255,0.12)",
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              transition: "all 0.5s ease",
+            }}
+          >
+            {active?.name}
+          </span>
+          {active?.comingSoon && (
+            <span
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider"
+              style={{
+                fontFamily: "var(--font-body)",
+                color: "#fbbf24",
+                backgroundColor: "rgba(15,23,42,0.65)",
+                border: "1px solid rgba(245,158,11,0.6)",
+                backdropFilter: "blur(6px)",
+              }}
+            >
+              ⏳ Coming Soon
+            </span>
+          )}
+        </div>
 
         <h1
           className="text-white font-normal leading-[1.05] mb-2 sm:mb-4"
@@ -172,6 +188,18 @@ const Hero = ({ categories }) => {
                     style={{ fontFamily: "var(--font-body)" }}
                   >
                     {cat?.name}
+                    {cat?.comingSoon && (
+                      <span
+                        className="ml-2 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider align-middle"
+                        style={{
+                          color: "#fbbf24",
+                          backgroundColor: "rgba(245,158,11,0.18)",
+                          border: "1px solid rgba(245,158,11,0.5)",
+                        }}
+                      >
+                        ⏳ Soon
+                      </span>
+                    )}
                   </p>
                   <p
                     className="text-xs text-white/55 m-0 leading-snug line-clamp-1"

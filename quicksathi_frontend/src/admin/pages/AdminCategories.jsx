@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "../../config/api";
+import { Pencil, Power, Trash2, Layers, Hash, Hourglass } from "lucide-react";
 
 const VERTICALS = ["WEDDING", "VEHICLE_RENTAL", "CCTV_SECURITY", "HOME_TUITION", "HOUSE_HELP"];
 const TYPES = ["SERVICE_ONLY", "PRODUCT_ONLY", "BOTH"];
@@ -158,6 +159,18 @@ const AdminCategories = () => {
     }
   };
 
+  // Toggle "Coming Soon" mode — when ON, the category's services show as
+  // Coming Soon on the user-facing frontend (non-bookable).
+  const handleComingSoonToggle = async (id) => {
+    try {
+      const { data } = await api.patch(`/admin/categories/${id}/coming-soon`);
+      showMessage(data.message);
+      fetchCategories();
+    } catch (err) {
+      showMessage(err.response?.data?.message || "Failed to toggle Coming Soon mode", "error");
+    }
+  };
+
   // Subcategory helpers
   const addSubCategory = () => {
     if (newSub.name.trim()) {
@@ -205,46 +218,101 @@ const AdminCategories = () => {
       {/* Categories Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {categories.map((cat) => (
-          <div key={cat._id} className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--color-bg-soft)", border: "1px solid var(--color-border)" }}>
-            {/* Image */}
+          <div key={cat._id} className="group rounded-[24px] overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl" style={{ backgroundColor: "var(--color-bg-soft)", border: "1px solid var(--color-border)" }}>
+            {/* Image Header */}
             {cat.imageUrl ? (
-              <div className="relative h-36 overflow-hidden">
-                <img src={cat.imageUrl} alt={cat.name} className="w-full h-full object-cover" />
-                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 60%)" }} />
-                <div className="absolute bottom-3 left-4 right-4">
-                  <h3 className="text-lg font-bold text-white m-0" style={{ fontFamily: "var(--font-display)" }}>{cat.name}</h3>
+              <div className="relative h-40 overflow-hidden flex-shrink-0">
+                <img src={cat.imageUrl} alt={cat.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(8,8,16,0.88) 0%, rgba(8,8,16,0.32) 50%, rgba(8,8,16,0.05) 75%)" }} />
+                {/* Hover shine sweep */}
+                <div className="absolute inset-0 -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-out bg-gradient-to-r from-transparent via-white/15 to-transparent pointer-events-none" />
+                {/* Status pill */}
+                <span className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-wider backdrop-blur-md" style={{ backgroundColor: cat.active ? "rgba(34,197,94,0.22)" : "rgba(239,68,68,0.22)", color: cat.active ? "#4ade80" : "#f87171", border: `1px solid ${cat.active ? "rgba(74,222,128,0.35)" : "rgba(248,113,113,0.35)"}` }}>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: cat.active ? "#4ade80" : "#f87171", boxShadow: `0 0 6px ${cat.active ? "#4ade80" : "#f87171"}` }} />
+                  {cat.active ? "Active" : "Inactive"}
+                </span>
+                {/* Chips + Name */}
+                <div className="absolute bottom-3.5 left-4 right-4">
+                  <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+                    <span className="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider backdrop-blur-md" style={{ backgroundColor: "rgba(255,255,255,0.16)", color: "#fff", border: "1px solid rgba(255,255,255,0.22)" }}>{cat.vertical?.replace("_", " ")}</span>
+                    <span className="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider backdrop-blur-md" style={{ backgroundColor: "rgba(245,158,11,0.28)", color: "#fcd34d", border: "1px solid rgba(252,211,77,0.32)" }}>{cat.type?.replace("_", " ")}</span>
+                  </div>
+                  <h3 className="text-xl font-extrabold text-white qs-on-media m-0 tracking-tight" style={{ fontFamily: "var(--font-display)", textShadow: "0 2px 10px rgba(0,0,0,0.5)" }}>{cat.name}</h3>
                 </div>
               </div>
             ) : (
-              <div className="h-20 flex items-center px-5" style={{ borderBottom: "1px solid var(--color-border)" }}>
-                <h3 className="text-lg font-bold m-0" style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}>{cat.name}</h3>
+              <div className="relative h-28 flex items-center justify-center gap-3 overflow-hidden flex-shrink-0" style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.18) 0%, rgba(168,85,247,0.12) 100%)", borderBottom: "1px solid var(--color-border)" }}>
+                <div className="absolute inset-0 -translate-x-[150%] group-hover:translate-x-[150%] transition-transform duration-1000 ease-out bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" />
+                <span className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-extrabold uppercase tracking-wider" style={{ backgroundColor: cat.active ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", color: cat.active ? "#22c55e" : "#ef4444" }}>
+                  <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: cat.active ? "#22c55e" : "#ef4444" }} />
+                  {cat.active ? "Active" : "Inactive"}
+                </span>
+                <div className="w-11 h-11 rounded-2xl flex items-center justify-center text-lg font-extrabold text-white flex-shrink-0" style={{ background: "linear-gradient(135deg, #6366f1, #8b5cf6)", fontFamily: "var(--font-display)" }}>
+                  {cat.name?.charAt(0).toUpperCase()}
+                </div>
+                <h3 className="text-xl font-extrabold m-0 tracking-tight" style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}>{cat.name}</h3>
               </div>
             )}
 
-            {/* Details */}
-            <div className="p-4">
-              <div className="flex items-center gap-2 mb-3 flex-wrap">
-                <span className="px-2 py-0.5 rounded text-xs font-semibold" style={{ backgroundColor: "rgba(99,102,241,0.15)", color: "#818cf8" }}>{cat.vertical?.replace("_", " ")}</span>
-                <span className="px-2 py-0.5 rounded text-xs font-semibold" style={{ backgroundColor: "rgba(245,158,11,0.15)", color: "#f59e0b" }}>{cat.type?.replace("_", " ")}</span>
-                <span className="px-2 py-0.5 rounded text-xs font-semibold" style={{ backgroundColor: cat.active ? "rgba(34,197,94,0.15)" : "rgba(239,68,68,0.15)", color: cat.active ? "#22c55e" : "#ef4444" }}>
-                  {cat.active ? "Active" : "Inactive"}
-                </span>
-              </div>
-
-              <p className="text-xs m-0 mb-3" style={{ color: "var(--color-text-mid)", fontFamily: "var(--font-body)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+            {/* Body */}
+            <div className="p-5 flex flex-col flex-1">
+              <p className="text-xs m-0 mb-4 leading-relaxed" style={{ color: "var(--color-text-mid)", fontFamily: "var(--font-body)", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                 {cat.description || "No description"}
               </p>
 
-              <p className="text-xs m-0 mb-4" style={{ color: "var(--color-text-mid)", fontFamily: "var(--font-body)" }}>
-                {cat.subCategories?.length || 0} subcategories • Order: {cat.displayOrder}
-              </p>
+              {/* Meta chips */}
+              <div className="flex items-center gap-2 mb-4 flex-wrap">
+                {!cat.imageUrl && (
+                  <>
+                    <span className="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider" style={{ backgroundColor: "rgba(99,102,241,0.15)", color: "#818cf8" }}>{cat.vertical?.replace("_", " ")}</span>
+                    <span className="px-2 py-0.5 rounded-md text-[9px] font-bold uppercase tracking-wider" style={{ backgroundColor: "rgba(245,158,11,0.15)", color: "#f59e0b" }}>{cat.type?.replace("_", " ")}</span>
+                  </>
+                )}
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold" style={{ backgroundColor: "rgba(99,102,241,0.12)", color: "#818cf8", fontFamily: "var(--font-body)" }}>
+                  <Layers size={11} />
+                  {cat.subCategories?.length || 0} Subcategories
+                </span>
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold" style={{ backgroundColor: "rgba(245,158,11,0.12)", color: "#f59e0b", fontFamily: "var(--font-body)" }}>
+                  <Hash size={11} />
+                  Order {cat.displayOrder}
+                </span>
+                {cat.comingSoon && (
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[10px] font-bold" style={{ backgroundColor: "rgba(245,158,11,0.2)", color: "#fbbf24", fontFamily: "var(--font-body)" }}>
+                    <Hourglass size={11} />
+                    Coming Soon
+                  </span>
+                )}
+              </div>
 
-              <div className="flex gap-2">
-                <button onClick={() => openEditForm(cat)} className="flex-1 px-3 py-2 rounded-xl text-xs font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-80" style={{ backgroundColor: "rgba(99,102,241,0.15)", color: "#818cf8", fontFamily: "var(--font-body)" }}>Edit</button>
-                <button onClick={() => handleToggle(cat._id)} className="px-3 py-2 rounded-xl text-xs border-0 cursor-pointer transition-all duration-200 hover:opacity-80" style={{ backgroundColor: "var(--color-border)", color: "var(--color-text-mid)", fontFamily: "var(--font-body)" }}>
+              {/* Actions */}
+              <div className="flex items-center gap-2 mt-auto">
+                <button onClick={() => openEditForm(cat)} className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-85" style={{ backgroundColor: "rgba(99,102,241,0.15)", color: "#818cf8", fontFamily: "var(--font-body)" }}>
+                  <Pencil size={12} />
+                  Edit
+                </button>
+                <button onClick={() => handleToggle(cat._id)} className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs border-0 cursor-pointer transition-all duration-200 hover:opacity-85" style={{ backgroundColor: "var(--color-border)", color: "var(--color-text-mid)", fontFamily: "var(--font-body)" }}>
+                  <Power size={12} />
                   {cat.active ? "Disable" : "Enable"}
                 </button>
-                <button onClick={() => setDeleteConfirm(cat._id)} className="px-3 py-2 rounded-xl text-xs border-0 cursor-pointer transition-all duration-200 hover:opacity-80" style={{ backgroundColor: "rgba(239,68,68,0.15)", color: "#ef4444", fontFamily: "var(--font-body)" }}>Delete</button>
+                {/* Coming Soon toggle */}
+                <button
+                  onClick={() => handleComingSoonToggle(cat._id)}
+                  title={cat.comingSoon ? "Turn off Coming Soon mode — make services bookable" : "Turn on Coming Soon mode — hide services from booking on the frontend"}
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs border-0 cursor-pointer transition-all duration-200 hover:opacity-85"
+                  style={{
+                    backgroundColor: cat.comingSoon ? "rgba(245,158,11,0.22)" : "var(--color-border)",
+                    color: cat.comingSoon ? "#fbbf24" : "var(--color-text-mid)",
+                    fontFamily: "var(--font-body)",
+                    fontWeight: cat.comingSoon ? 700 : 400,
+                  }}
+                >
+                  <Hourglass size={12} />
+                  {cat.comingSoon ? "Coming Soon: ON" : "Coming Soon"}
+                </button>
+                <button onClick={() => setDeleteConfirm(cat._id)} className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs border-0 cursor-pointer transition-all duration-200 hover:opacity-85" style={{ backgroundColor: "rgba(239,68,68,0.12)", color: "#ef4444", fontFamily: "var(--font-body)" }}>
+                  <Trash2 size={12} />
+                  Delete
+                </button>
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 
 // ── Supported Cities (kept for backward compatibility with admin/provider panels) ──
 export const CITY_OPTIONS = [
@@ -23,6 +23,7 @@ export const CITY_OPTIONS = [
 ];
 
 const STORAGE_KEY = "qs_location";
+const CACHE_TTL = 30 * 60 * 1000; // cached location is considered stale after 30 minutes
 const LocationContext = createContext(null);
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -32,11 +33,12 @@ export const useLocation = () => {
   return ctx;
 };
 
-// ── Reverse geocode coordinates → full address via OpenStreetMap (free) ───────
+// ── Reverse geocode coordinates → precise address via OpenStreetMap (free) ─────
+// zoom=18 gives the most precise (building/road-level) address details.
 async function reverseGeocode(lat, lon) {
   try {
     const res = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`,
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`,
       { headers: { "Accept-Language": "en" } }
     );
     if (!res.ok) throw new Error("Nominatim fetch failed");
@@ -44,17 +46,19 @@ async function reverseGeocode(lat, lon) {
     const addr = data?.address || {};
 
     const parts = [];
-    if (addr.neighbourhood) parts.push(addr.neighbourhood);
-    else if (addr.suburb) parts.push(addr.suburb);
+    if (addr.house_number && addr.road) parts.push(`${addr.road} ${addr.house_number}`);
     else if (addr.road) parts.push(addr.road);
-    else if (addr.hamlet) parts.push(addr.hamlet);
-    else if (addr.village) parts.push(addr.village);
+
+    const locality =
+      addr.neighbourhood || addr.suburb || addr.quarter || addr.hamlet || addr.village;
+    if (locality && !parts.includes(locality)) parts.push(locality);
 
     if (addr.city_district && !parts.includes(addr.city_district)) {
       parts.push(addr.city_district);
     }
 
-    const cityName = addr.city || addr.town || addr.municipality || addr.county || addr.state_district || "";
+    const cityName =
+      addr.city || addr.town || addr.municipality || addr.county || addr.state_district || "";
     if (cityName && !parts.includes(cityName)) {
       parts.push(cityName);
     }
@@ -68,36 +72,47 @@ async function reverseGeocode(lat, lon) {
     const fullLocation = parts.join(", ");
     const city = cityName || parts[0];
 
-    return { fullLocation, city, lat, lon };
+    return { fullLocation, city, lat, lon, timestamp: Date.now() };
   } catch {
     return null;
   }
 }
 
-// ── IP-based geolocation fallback (works 100% reliably without GPS hardware/prompts) ──
-async function detectByIP() {
+// ── Live city/area search via OpenStreetMap (used by the search bar) ───────────
+async function searchLocation(query) {
+  if (!query || !query.trim()) return [];
   try {
-    const res = await fetch("https://ipwho.is/", { cache: "no-store" });
-    if (!res.ok) throw new Error("IP Geolocation failed");
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
+        query.trim()
+      )}&format=json&addressdetails=1&limit=6`,
+      { headers: { "Accept-Language": "en" } }
+    );
+    if (!res.ok) throw new Error("Nominatim search failed");
     const data = await res.json();
-    if (!data.success && data.message) throw new Error(data.message);
-
-    const lat = data.latitude;
-    const lon = data.longitude;
-    const city = data.city || data.region || "Delhi";
-    const region = data.region || "";
-
-    // Try reverse geocoding the IP coordinates for sub-locality
-    if (lat && lon) {
-      const detailed = await reverseGeocode(lat, lon);
-      if (detailed) return detailed;
-    }
-
-    const fullLocation = region && region !== city ? `${city}, ${region}` : city;
-    return { fullLocation, city, lat, lon };
-  } catch (err) {
-    console.warn("IP Geolocation fallback failed:", err);
-    return null;
+    return (data || []).map((item) => {
+      const addr = item.address || {};
+      const cityName =
+        addr.city || addr.town || addr.village || addr.county || addr.state_district || "";
+      const label =
+        [
+          addr.neighbourhood || addr.suburb || addr.road,
+          cityName,
+          addr.state,
+        ]
+          .filter(Boolean)
+          .join(", ") || item.display_name;
+      return {
+        id: item.place_id,
+        label,
+        displayName: item.display_name,
+        city: cityName,
+        lat: parseFloat(item.lat),
+        lon: parseFloat(item.lon),
+      };
+    });
+  } catch {
+    return [];
   }
 }
 
@@ -107,8 +122,13 @@ export const LocationProvider = ({ children }) => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // If it's a valid detailed location and not plain "Patna", use it
-        if (parsed?.fullLocation && parsed.fullLocation !== "Patna") {
+        // Use cached location only if it's detailed and still fresh (< 30 min old)
+        if (
+          parsed?.fullLocation &&
+          parsed.fullLocation !== "Patna" &&
+          parsed.timestamp &&
+          Date.now() - parsed.timestamp < CACHE_TTL
+        ) {
           return parsed;
         }
       } catch {
@@ -119,8 +139,10 @@ export const LocationProvider = ({ children }) => {
   });
 
   const [detecting, setDetecting] = useState(false);
+  const [locationError, setLocationError] = useState(null);
   const [permissionDenied, setPermissionDenied] = useState(false);
   const [showBanner, setShowBanner] = useState(false);
+  const autoDetectRan = useRef(false);
 
   // Persist location to localStorage
   const setLocationData = useCallback((newData) => {
@@ -135,62 +157,70 @@ export const LocationProvider = ({ children }) => {
   // Backward-compatible setCity
   const setCity = useCallback((newCity) => {
     if (newCity) {
-      setLocationData({ fullLocation: newCity, city: newCity });
+      setLocationData({ fullLocation: newCity, city: newCity, timestamp: Date.now() });
     } else {
       setLocationData(null);
     }
   }, [setLocationData]);
 
-  // Main detection function (GPS -> IP fallback)
-  const detectExactLocation = useCallback(async (force = false) => {
-    setDetecting(true);
-    setPermissionDenied(false);
+  // Main detection — GPS only. No IP fallback: IP lookups return the ISP's
+  // network location, which is usually the WRONG city. If GPS fails, the user
+  // is shown an error and can search for their city manually instead.
+  const detectExactLocation = useCallback(
+    async (force = false) => {
+      setDetecting(true);
+      setLocationError(null);
+      setPermissionDenied(false);
 
-    const runIPFallback = async () => {
-      const ipResult = await detectByIP();
-      if (ipResult) {
-        setLocationData(ipResult);
+      if (!navigator.geolocation) {
+        setDetecting(false);
+        setLocationError("Geolocation is not supported by this browser. Search your city instead.");
+        return;
       }
-      setDetecting(false);
-      setShowBanner(true);
-    };
 
-    if (!navigator.geolocation) {
-      await runIPFallback();
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        try {
-          const detected = await reverseGeocode(
-            pos.coords.latitude,
-            pos.coords.longitude
-          );
-          if (detected) {
-            setLocationData(detected);
-          } else {
-            await runIPFallback();
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          try {
+            const detected = await reverseGeocode(
+              pos.coords.latitude,
+              pos.coords.longitude
+            );
+            if (detected) {
+              setLocationData(detected);
+            } else {
+              setLocationError("Couldn't read your address. Search your city instead.");
+            }
+          } catch {
+            setLocationError("Couldn't read your address. Search your city instead.");
+          } finally {
+            setDetecting(false);
+            setShowBanner(true);
           }
-        } catch {
-          await runIPFallback();
-        } finally {
+        },
+        (err) => {
           setDetecting(false);
-          setShowBanner(true);
+          if (err.code === err.PERMISSION_DENIED) {
+            setPermissionDenied(true);
+            setLocationError("Location permission denied. Search your city instead.");
+          } else {
+            setLocationError("Couldn't get your exact location. Search your city instead.");
+          }
+        },
+        {
+          timeout: 15000,
+          maximumAge: force ? 0 : 60000, // force => never use cached GPS fix
+          enableHighAccuracy: true,
         }
-      },
-      async () => {
-        // Geolocation denied, unavailable, or timed out -> use IP Geolocation
-        setPermissionDenied(true);
-        await runIPFallback();
-      },
-      { timeout: 6000, maximumAge: force ? 0 : 300000, enableHighAccuracy: true }
-    );
-  }, [setLocationData]);
+      );
+    },
+    [setLocationData]
+  );
 
-  // Auto-detect on first load if no location or if stale "Patna"
+  // Auto-detect once on load — only if there is no fresh cached location.
   useEffect(() => {
-    if (!locationData || locationData.fullLocation === "Patna" || !locationData.fullLocation?.includes(",")) {
+    if (autoDetectRan.current) return;
+    autoDetectRan.current = true;
+    if (!locationData) {
       detectExactLocation();
     }
   }, [locationData, detectExactLocation]);
@@ -200,10 +230,14 @@ export const LocationProvider = ({ children }) => {
       value={{
         fullLocation: locationData?.fullLocation || null,
         city: locationData?.city || null,
+        lat: locationData?.lat || null,
+        lon: locationData?.lon || null,
         setCity,
         setLocationData,
+        searchLocation,
         detectExactLocation,
         detecting,
+        locationError,
         permissionDenied,
         showBanner,
         setShowBanner,

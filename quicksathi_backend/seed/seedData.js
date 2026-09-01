@@ -20,23 +20,13 @@ const categoriesData = [
     vertical: "VEHICLE_RENTAL",
     type: "BOTH",
     imageUrl: "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778413946/VehicleRental_eeacbd.png",
-    secondaryImageUrl: "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475579/Bike_Rental_1_bmaj4c.png",
+    secondaryImageUrl: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=2070&auto=format&fit=crop",
     displayOrder: 1,
     active: true,
     subCategories: [
       {
-        name: "Bike Rental",
-        description: "Scooters and motorcycles available by the hour or week — perfect for city commutes and open-road adventures.",
-        vertical: "VEHICLE_RENTAL",
-        type: "PRODUCT_ONLY",
-        imageUrl: "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475579/Bike_Rental_1_bmaj4c.png",
-        secondaryImageUrl: "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475577/Bike_Rental_2_vh5oua.png",
-        displayOrder: 2,
-        active: true
-      },
-      {
-        name: "Car Rental",
-        description: "Self-drive or chauffeur-driven cars — GPS-enabled, fully insured, and always road-ready.",
+        name: "Standard Car Rental",
+        description: "Everyday AC car booking for city rides, outstation trips & airport transfers — 5 seater and 7 seater options.",
         vertical: "VEHICLE_RENTAL",
         type: "PRODUCT_ONLY",
         imageUrl: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2183&auto=format&fit=crop",
@@ -45,13 +35,13 @@ const categoriesData = [
         active: true
       },
       {
-        name: "Luxury Cars",
-        description: "Premium sedans and SUVs for weddings, corporate events, and airport transfers — always impressive.",
+        name: "Wedding Car Rental",
+        description: "Decorated cars for weddings & special occasions with professional driver — 5 seater and 7 seater options.",
         vertical: "VEHICLE_RENTAL",
         type: "PRODUCT_ONLY",
         imageUrl: "https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=2072&auto=format&fit=crop",
         secondaryImageUrl: "https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=2070&auto=format&fit=crop",
-        displayOrder: 3,
+        displayOrder: 2,
         active: true
       }
     ]
@@ -582,10 +572,10 @@ const servicesData = [
     ]
   },
   {
-    slug: "car-rental",
-    name: "Car Rental",
-    shortDescription: "Affordable self-drive and chauffeur car rentals",
-    fullDescription: "Rent premium hatchbacks, SUVs, and luxury sedans for weddings, corporate trips, airport pickups, and local commutes.",
+    slug: "standard-car-rental",
+    name: "Standard Car Rental",
+    shortDescription: "Everyday AC car booking for city rides, outstation trips & airport transfers",
+    fullDescription: "Book a comfortable, fully insured AC car for city rides, outstation trips, airport pickups, and corporate travel. Choose between our 5-seater and 7-seater variations — a well-maintained car is randomly assigned to you at booking time.",
     categoryGroup: "Vehicle Rental",
     thumbnail: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2183&auto=format&fit=crop",
     bannerImage: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2070&auto=format&fit=crop",
@@ -599,84 +589,52 @@ const servicesData = [
     experience: "8 Years",
     available: true,
     serviceMode: "RENTAL",
-    tags: ["Cars", "Rentals", "Self-Drive", "Wedding Car"],
+    tags: ["Cars", "AC", "City Ride", "Outstation"],
     featured: false,
     packages: [
-      { title: "Daily Rental Package", price: 2499, features: ["24 Hour Usage", "100 KM Included", "Fully Insured Fleet"] },
-      { title: "Wedding Chauffeur Special", price: 7999, features: ["Luxury Car Selection", "Sleek Groom Decor", "Professional Driver Included"] }
+      { title: "5 Seater Car", price: 2499, image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0f2e?q=80&w=600&auto=format&fit=crop", features: ["Swift Dzire / Aura or similar", "4+1 Seats", "Fully AC", "100 KM Included"] },
+      { title: "7 Seater Car", price: 3499, image: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=600&auto=format&fit=crop", features: ["Ertiga / Innova or similar", "6+1 Seats", "Fully AC", "100 KM Included"] }
     ],
     faqs: [
-      { question: "Is fuel included in price?", answer: "Fuel charges are separate unless wedding package is chosen." }
+      { question: "Which car will I get for my booking?", answer: "We maintain a fleet of well-maintained 5-seater and 7-seater cars. Based on the variation you select, any one of the available cars is randomly assigned to you — all cars are AC, sanitized, and fully insured." },
+      { question: "Is fuel included in the price?", answer: "Fuel charges are separate unless specified. The quoted price covers the vehicle, driver allowance, and insurance." },
+      { question: "What documents do I need at pickup?", answer: "For with-driver bookings no documents are needed. For self-drive trips, a valid driving license and a government ID (Aadhaar / Passport) are mandatory." },
+      { question: "Can I extend my trip after booking?", answer: "Yes. Extra hours or kilometres are charged at the per-km rate shown at checkout — just inform the driver or our support team." }
     ],
     reviews: [
       { userName: "Neha Singh", rating: 4, comment: "Car condition was excellent and driver was polite." }
-    ],
-    providers: [
-      { name: "DriveEasy Rentals", rating: 4.6, experience: "8 Years", location: "Patna", startingPrice: 2499, image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1974&auto=format&fit=crop" }
     ]
   },
   {
-    slug: "bike-rental",
-    name: "Bike Rental",
-    shortDescription: "Affordable bike and scooter rentals",
-    fullDescription: "Rent scooters and commuter motorbikes for your daily errands, city rides, or weekend trips.",
+    slug: "wedding-car-rental",
+    name: "Wedding Car Rental",
+    shortDescription: "Decorated cars for weddings & special occasions with professional driver",
+    fullDescription: "Make your big day memorable with our decorated wedding cars. Choose a 5-seater or 7-seater variation — complete with floral décor and a professional chauffeur for full-day coverage.",
     categoryGroup: "Vehicle Rental",
-    thumbnail: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?q=80&w=1974&auto=format&fit=crop",
-    bannerImage: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?q=80&w=1974&auto=format&fit=crop",
-    gallery: [],
-    startingPrice: 499,
-    priceUnit: "per day",
-    rating: 4.3,
-    totalReviews: 134,
-    experience: "5 Years",
-    available: true,
-    serviceMode: "RENTAL",
-    tags: ["Bike", "Scooter", "Rental", "Commute"],
-    featured: false,
-    packages: [
-      { title: "Half Day Commute", price: 299, features: ["4 Hours Ride", "50 KM Included", "Complimentary Helmet"] },
-      { title: "Full Day Explore", price: 499, features: ["12 Hours Ride", "100 KM Included", "Helmet + Locking Gear"] }
-    ],
-    faqs: [
-      { question: "Is a driving license required?", answer: "Yes, a valid driving license is mandatory at pickup." }
-    ],
-    reviews: [
-      { userName: "Rohit Das", rating: 4, comment: "Affordable bike and very convenient for city traffic." }
-    ],
-    providers: [
-      { name: "RideFast Rentals", rating: 4.4, experience: "5 Years", location: "Patna", startingPrice: 499, image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=1974&auto=format&fit=crop" }
-    ]
-  },
-  {
-    slug: "luxury-cars",
-    name: "Luxury Cars",
-    shortDescription: "Premium luxury car rental services",
-    fullDescription: "Arrive in style with our fleet of premium luxury vehicles — perfect for weddings, corporate events, and special occasions.",
-    categoryGroup: "Vehicle Rental",
-    thumbnail: "https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=2072&auto=format&fit=crop",
+    thumbnail: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2070&auto=format&fit=crop",
     bannerImage: "https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=2072&auto=format&fit=crop",
     gallery: [],
-    startingPrice: 8999,
-    priceUnit: "per day",
+    startingPrice: 7999,
+    priceUnit: "per event",
     rating: 4.8,
     totalReviews: 89,
     experience: "10 Years",
     available: true,
     serviceMode: "RENTAL",
-    tags: ["Luxury", "Cars", "Premium"],
+    tags: ["Cars", "Wedding", "Decorated", "Premium"],
     featured: true,
     packages: [
-      { title: "Standard Luxury", price: 8999, features: ["BMW / Audi Selection", "Professional Driver", "8 Hours Usage"] },
-      { title: "Wedding Special Rolls Royce", price: 19999, features: ["Rolls Royce / Mercedes Select", "Full Floral Decor", "Full Day Coverage", "Red Carpet Arrival"] }
+      { title: "5 Seater Wedding Car", price: 7999, image: "https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=600&auto=format&fit=crop", features: ["Sedan or similar", "4+1 Seats", "Floral Décor Included", "Professional Driver"] },
+      { title: "7 Seater Wedding Car", price: 9999, image: "https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=600&auto=format&fit=crop", features: ["Innova or similar", "6+1 Seats", "Floral Décor Included", "Professional Driver"] }
     ],
     faqs: [
-      { question: "Can we decorate the car for a wedding?", answer: "Yes, decoration is included in the wedding special package." }
+      { question: "Which cars are available for wedding rentals?", answer: "Both 5-seater sedans (Dzire / Honda City or similar) and 7-seater MPVs (Innova / Ertiga or similar) are available. Any one of the selected variation is randomly assigned to your booking." },
+      { question: "Is car decoration included?", answer: "Yes, floral decoration of the car is included in every wedding rental package. Premium decoration themes can be arranged on request at extra cost." },
+      { question: "How many hours is the car available for?", answer: "Wedding rentals include full-day coverage of up to 10 hours. Extra hours are charged at the hourly rate mentioned at checkout." },
+      { question: "Can I choose a specific car model?", answer: "Specific models cannot be guaranteed — a car from your selected seating variation is randomly assigned. All cars in our fleet are late-model, AC, and chauffeur-driven." }
     ],
     reviews: [
-      { userName: "Ananya Gupta", rating: 5, comment: "Stunning Mercedes Benz. The driver arrived perfectly on time." }
-    ],
-    providers: [
-      { name: "Elite Drive Luxury", rating: 4.9, experience: "10 Years", location: "Patna", startingPrice: 8999, image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1974&auto=format&fit=crop" }
+      { userName: "Ananya Gupta", rating: 5, comment: "Absolutely stunning car, made our wedding day perfect!" }
     ]
   },
   {

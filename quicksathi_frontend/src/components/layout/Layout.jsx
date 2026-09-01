@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Outlet, Link, NavLink, useLocation as useRouterLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { useLocation as useCityLocation, CITY_OPTIONS } from "../../context/LocationContext";
+import { useLocation as useCityLocation } from "../../context/LocationContext";
 import Footer from "../common/Footer";
 import BottomNav from "./BottomNav";
 import ChatBot from "../chatbot/ChatBot";
@@ -32,9 +32,18 @@ const LogoImg = ({ size = 28, style = {} }) => {
 
 /* ── Compact City Picker (used inside navbar) ── */
 const CityPicker = ({ isFullBleed }) => {
-  const { city, fullLocation, setCity, detecting, detectExactLocation } = useCityLocation();
+  const {
+    fullLocation,
+    setLocationData,
+    searchLocation,
+    detecting,
+    locationError,
+    detectExactLocation,
+  } = useCityLocation();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
   const ref = useRef(null);
 
   useEffect(() => {
@@ -42,20 +51,40 @@ const CityPicker = ({ isFullBleed }) => {
       if (ref.current && !ref.current.contains(e.target)) {
         setOpen(false);
         setSearch("");
+        setResults([]);
       }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  const filtered = CITY_OPTIONS.filter((c) =>
-    c.toLowerCase().includes(search.toLowerCase())
-  );
+  // Live search (debounced) — searches any city/area via OpenStreetMap
+  useEffect(() => {
+    if (!search.trim()) {
+      setResults([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    const t = setTimeout(async () => {
+      const r = await searchLocation(search);
+      setResults(r || []);
+      setSearching(false);
+    }, 400);
+    return () => clearTimeout(t);
+  }, [search, searchLocation]);
 
-  const handleSelect = (c) => {
-    setCity(c);
+  const handleSelectResult = (r) => {
+    setLocationData({
+      fullLocation: r.label,
+      city: r.city || r.label,
+      lat: r.lat,
+      lon: r.lon,
+      timestamp: Date.now(),
+    });
     setOpen(false);
     setSearch("");
+    setResults([]);
   };
 
   const handleDetectClick = () => {
@@ -64,6 +93,7 @@ const CityPicker = ({ isFullBleed }) => {
     }
     setOpen(false);
     setSearch("");
+    setResults([]);
   };
 
   return (
@@ -85,7 +115,7 @@ const CityPicker = ({ isFullBleed }) => {
         {detecting ? (
           <span style={{ fontSize: "11px", opacity: 0.7 }}>Detecting…</span>
         ) : (
-          <span style={{ maxWidth: "160px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block" }}>{fullLocation || "All Cities"}</span>
+          <span style={{ maxWidth: "160px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block" }}>{fullLocation || "Set your location"}</span>
         )}
         <svg
           width="10" height="10" viewBox="0 0 24 24" fill="none"
@@ -112,7 +142,7 @@ const CityPicker = ({ isFullBleed }) => {
               autoFocus
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search city…"
+              placeholder="Search any city or area…"
               className="w-full outline-none"
               style={{
                 background: "rgba(0,0,0,0.03)",
@@ -145,48 +175,57 @@ const CityPicker = ({ isFullBleed }) => {
             <span>{detecting ? "Detecting location..." : "Use Current / Exact Location"}</span>
           </button>
 
-          {/* All Cities */}
-          <button
-            onClick={() => { setCity(null); setOpen(false); setSearch(""); }}
-            className="w-full text-left border-0 cursor-pointer"
-            style={{
-              padding: "8px 14px",
-              background: !city ? "rgba(139,26,26,0.06)" : "transparent",
-              color: !city ? "var(--color-primary)" : "var(--color-text-mid)",
-              fontSize: "12.5px",
-              fontFamily: "var(--font-body)",
-              fontWeight: !city ? 600 : 400,
-              borderBottom: "1px solid var(--color-border)",
-            }}
-          >
-            🌐 All Cities
-          </button>
+          {/* Location error (GPS denied / unavailable) */}
+          {locationError && (
+            <p
+              className="m-0"
+              style={{
+                padding: "7px 14px",
+                color: "var(--color-text-muted)",
+                fontSize: "11px",
+                fontFamily: "var(--font-body)",
+                borderBottom: "1px solid var(--color-border)",
+              }}
+            >
+              ⚠️ {locationError}
+            </p>
+          )}
 
-          {/* City list */}
+          {/* Live search results */}
           <div style={{ maxHeight: "200px", overflowY: "auto" }}>
-            {filtered.map((c) => (
-              <button
-                key={c}
-                onClick={() => handleSelect(c)}
-                className="w-full text-left border-0 cursor-pointer transition-all"
-                style={{
-                  padding: "8px 14px",
-                  background: city === c ? "rgba(139,26,26,0.06)" : "transparent",
-                  color: city === c ? "var(--color-primary)" : "var(--color-text-mid)",
-                  fontSize: "12.5px",
-                  fontFamily: "var(--font-body)",
-                  fontWeight: city === c ? 600 : 400,
-                }}
-                onMouseEnter={(e) => { if (city !== c) e.currentTarget.style.background = "rgba(0,0,0,0.02)"; }}
-                onMouseLeave={(e) => { if (city !== c) e.currentTarget.style.background = "transparent"; }}
-              >
-                {c}
-                {city === c && <span style={{ float: "right", fontSize: "11px" }}>✓</span>}
-              </button>
-            ))}
-            {filtered.length === 0 && (
+            {searching && (
               <p className="text-center" style={{ color: "var(--color-text-muted)", fontSize: "12px", padding: "12px", fontFamily: "var(--font-body)" }}>
-                No cities found
+                Searching…
+              </p>
+            )}
+            {!searching &&
+              results.map((r) => (
+                <button
+                  key={r.id}
+                  onClick={() => handleSelectResult(r)}
+                  className="w-full text-left border-0 cursor-pointer transition-all"
+                  style={{
+                    padding: "8px 14px",
+                    background: "transparent",
+                    color: "var(--color-text-mid)",
+                    fontSize: "12.5px",
+                    fontFamily: "var(--font-body)",
+                    borderBottom: "1px solid var(--color-border)",
+                  }}
+                  onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(0,0,0,0.03)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
+                >
+                  📍 {r.label}
+                </button>
+              ))}
+            {!searching && search.trim() && results.length === 0 && (
+              <p className="text-center" style={{ color: "var(--color-text-muted)", fontSize: "12px", padding: "12px", fontFamily: "var(--font-body)" }}>
+                No matches found
+              </p>
+            )}
+            {!searching && !search.trim() && (
+              <p className="text-center" style={{ color: "var(--color-text-muted)", fontSize: "12px", padding: "12px", fontFamily: "var(--font-body)" }}>
+                Type to search your city or area
               </p>
             )}
           </div>

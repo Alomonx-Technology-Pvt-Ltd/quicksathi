@@ -20,6 +20,7 @@ const ServiceDetail = () => {
   const [activeImg, setActiveImg] = useState(0);
   const [openFaq, setOpenFaq] = useState(null);
   const [selectedPkg, setSelectedPkg] = useState(0);
+  const [categoryComingSoon, setCategoryComingSoon] = useState(false);
 
   const isNumericId = !isNaN(id) && !isNaN(parseInt(id));
 
@@ -32,6 +33,18 @@ const ServiceDetail = () => {
         const { data } = await api.get(`/services/${id}`);
 
         setService(data);
+
+        // Check if the service's category is in "Coming Soon" mode —
+        // if so, booking is blocked on this page.
+        setCategoryComingSoon(false);
+        if (data?.category) {
+          try {
+            const { data: cat } = await api.get(`/categories/${data.category}`);
+            setCategoryComingSoon(!!cat?.comingSoon);
+          } catch {
+            // category lookup failure shouldn't break the page
+          }
+        }
 
       } catch (err) {
         console.warn("Backend failed, checking mock data");
@@ -79,8 +92,49 @@ const ServiceDetail = () => {
       </div>
     );
 
+  // ── Coming Soon mode: category is toggled off from booking ──
+  if (categoryComingSoon)
+    return (
+      <div
+        className="min-h-screen flex flex-col items-center justify-center text-center px-6"
+        style={{ backgroundColor: "var(--color-bg)" }}
+      >
+        <span style={{ fontSize: "56px", marginBottom: "12px" }}>⏳</span>
+        <h1
+          className="m-0 mb-3 font-normal"
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: "clamp(26px, 4vw, 44px)",
+            color: "var(--color-text-dark)",
+          }}
+        >
+          Coming Soon
+        </h1>
+        <p
+          className="m-0 mb-8 text-sm sm:text-base max-w-md"
+          style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
+        >
+          {service.name} is launching soon on QuickSathi. Booking will open
+          shortly — check back soon!
+        </p>
+        <Link
+          to="/"
+          className="no-underline px-7 py-3 rounded-full text-sm font-semibold transition-all duration-200 hover:opacity-90"
+          style={{
+            fontFamily: "var(--font-body)",
+            backgroundColor: "var(--color-primary)",
+            color: "#fff",
+            boxShadow: "0 2px 12px rgba(11,79,216,0.25)",
+          }}
+        >
+          ← Back to Home
+        </Link>
+      </div>
+    );
+
   const allImages = [service.bannerImage, ...(service.gallery ?? [])].filter(Boolean);
   const pkg = service.packages?.[selectedPkg];
+  const isRental = service.serviceMode === "RENTAL";
 
   return (
     <motion.div
@@ -108,19 +162,23 @@ const ServiceDetail = () => {
               <AboutSection service={service} />
             </AnimatedSection>
 
-            {/* Packages */}
+            {/* Packages / Car Variations */}
             <AnimatedSection delay={0.1}>
               <PackagesSection
                 packages={service.packages}
                 selectedPkg={selectedPkg}
                 setSelectedPkg={setSelectedPkg}
+                isRental={isRental}
               />
             </AnimatedSection>
 
-            {/* Providers */}
-            <AnimatedSection delay={0.2}>
-              <ProvidersSection providers={service.providers} />
-            </AnimatedSection>
+            {/* Providers — hidden for rental services (cars are randomly
+                assigned from the fleet, so individual providers aren't shown) */}
+            {!isRental && (
+              <AnimatedSection delay={0.2}>
+                <ProvidersSection providers={service.providers} />
+              </AnimatedSection>
+            )}
 
             {/* Reviews */}
             <AnimatedSection delay={0.3}>

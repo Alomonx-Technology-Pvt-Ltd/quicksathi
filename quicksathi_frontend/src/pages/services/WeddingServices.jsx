@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { Heart, Palmtree, Home, Sparkles, Landmark, Leaf } from "lucide-react";
 import weddingImg from "../../assets/weddingImg.avif";
 import venueImg from "../../assets/venueImg.avif";
 import photographyImg from "../../assets/photographyImg.avif";
@@ -59,12 +60,12 @@ const EXPERTS = [
 ];
 
 const WEDDING_TYPES = [
-  { icon: "💒", label: "Traditional" },
-  { icon: "🏖️", label: "Destination" },
-  { icon: "🏡", label: "Intimate" },
-  { icon: "🎭", label: "Themed" },
-  { icon: "🕌", label: "Religious" },
-  { icon: "🌿", label: "Eco" },
+  { icon: Heart, label: "Traditional" },
+  { icon: Palmtree, label: "Destination" },
+  { icon: Home, label: "Intimate" },
+  { icon: Sparkles, label: "Themed" },
+  { icon: Landmark, label: "Religious" },
+  { icon: Leaf, label: "Eco" },
 ];
 
 const WeddingServices = () => {
@@ -350,28 +351,33 @@ const WeddingServices = () => {
               Wedding Type
             </label>
             <div className="flex flex-wrap gap-3">
-              {WEDDING_TYPES.map((type, i) => (
-                <button
-                  key={i}
-                  onClick={() => setSelectedType(i)}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm border cursor-pointer transition-all duration-200"
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    backgroundColor:
-                      i === selectedType
-                        ? "var(--color-primary)"
-                        : "var(--color-bg)",
-                    color:
-                      i === selectedType ? "#fff" : "var(--color-text-dark)",
-                    borderColor:
-                      i === selectedType
-                        ? "var(--color-primary)"
-                        : "var(--color-border)",
-                  }}
-                >
-                  <span>{type.icon}</span> {type.label}
-                </button>
-              ))}
+              {WEDDING_TYPES.map((type, i) => {
+                const TypeIcon = type.icon;
+                const isSelected = i === selectedType;
+                return (
+                  <button
+                    key={i}
+                    onClick={() => setSelectedType(i)}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm border cursor-pointer transition-all duration-200"
+                    style={{
+                      fontFamily: "var(--font-body)",
+                      backgroundColor:
+                        isSelected
+                          ? "var(--color-primary)"
+                          : "var(--color-bg)",
+                      color:
+                        isSelected ? "#fff" : "var(--color-text-dark)",
+                      borderColor:
+                        isSelected
+                          ? "var(--color-primary)"
+                          : "var(--color-border)",
+                    }}
+                  >
+                    <TypeIcon size={16} className={isSelected ? "text-white" : "text-[var(--color-primary)]"} />
+                    <span>{type.label}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

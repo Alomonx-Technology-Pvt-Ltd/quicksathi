@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useOutletContext } from "react-router-dom";
 import api from "../../config/api";
 import { useAuth } from "../../context/AuthContext";
@@ -25,6 +25,125 @@ const STATUS_COLORS = {
   completed: "#3b82f6",
   cancelled: "#ef4444",
   in_progress: "#8b5cf6",
+};
+
+/* ─────────────────────────────────────────
+   PREMIUM CHART HELPERS
+   ───────────────────────────────────────── */
+
+// Compact INR formatter for axis labels: ₹1.2k / ₹3.4L / ₹1.1Cr
+const fmtINR = (v) => {
+  if (v >= 10000000) return `₹${(v / 10000000).toFixed(1)}Cr`;
+  if (v >= 100000) return `₹${(v / 100000).toFixed(1)}L`;
+  if (v >= 1000) return `₹${(v / 1000).toFixed(1)}k`;
+  return `₹${Math.round(v)}`;
+};
+
+// Catmull-Rom → cubic bezier: converts raw points into a silky-smooth SVG path
+const smoothPath = (pts) => {
+  if (!pts || pts.length < 2) return "";
+  let d = `M ${pts[0].x} ${pts[0].y}`;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const p0 = pts[i - 1] || pts[i];
+    const p1 = pts[i];
+    const p2 = pts[i + 1];
+    const p3 = pts[i + 2] || p2;
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+    d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+  }
+  return d;
+};
+
+// Animated number that counts up from its previous value (eased, RAF-driven)
+const CountUp = ({ value, prefix = "", duration = 1.1 }) => {
+  const target = Number(value) || 0;
+  const [display, setDisplay] = useState(target);
+  const prevRef = useRef(target);
+
+  useEffect(() => {
+    const from = prevRef.current;
+    const to = target;
+    if (from === to) return;
+    const start = performance.now();
+    let raf;
+    const tick = (now) => {
+      const t = Math.min((now - start) / (duration * 1000), 1);
+      const eased = 1 - Math.pow(1 - t, 3); // ease-out cubic
+      setDisplay(Math.round(from + (to - from) * eased));
+      if (t < 1) {
+        raf = requestAnimationFrame(tick);
+      } else {
+        prevRef.current = to;
+      }
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+
+  return (
+    <>
+      {prefix}
+      {display.toLocaleString()}
+    </>
+  );
+};
+
+// Mini gradient sparkline with draw-on animation
+const Sparkline = ({ data, color = "#3b82f6", id }) => {
+  const w = 160;
+  const h = 44;
+  const safe = data && data.length >= 2 ? data : [0, 0, 0];
+  const max = Math.max(...safe, 1);
+  const min = Math.min(...safe);
+  const range = max - min || 1;
+  const pts = safe.map((v, i) => ({
+    x: (i / (safe.length - 1)) * (w - 10) + 5,
+    y: h - 7 - ((v - min) / range) * (h - 15),
+  }));
+  const line = smoothPath(pts);
+  const last = pts[pts.length - 1];
+
+  return (
+    <svg viewBox={`0 0 ${w} ${h}`} className="w-full h-11" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id={id} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.35" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <motion.path
+        d={`${line} L ${last.x},${h} L ${pts[0].x},${h} Z`}
+        fill={`url(#${id})`}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1, delay: 0.8 }}
+      />
+      <motion.path
+        d={line}
+        fill="none"
+        stroke={color}
+        strokeWidth="2"
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{ duration: 1.4, ease: "easeInOut", delay: 0.35 }}
+      />
+      <motion.circle
+        cx={last.x}
+        cy={last.y}
+        r="3"
+        fill={color}
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ delay: 1.5, type: "spring", stiffness: 300, damping: 12 }}
+        style={{ transformBox: "fill-box", transformOrigin: "center" }}
+      />
+    </svg>
+  );
 };
 
 const AdminDashboard = () => {
@@ -116,7 +235,13 @@ const AdminDashboard = () => {
     const y = 120 - (b.count / maxBookingsCount) * 90;
     return { x, y, count: b.count, label: b.day };
   });
-  const polylinePoints = linePoints.map((p) => `${p.x},${p.y}`).join(" ");
+  // Smooth bezier version of the weekly curve
+  const linePath = smoothPath(linePoints.map(({ x, y }) => ({ x, y })));
+
+  // Trend samples for card sparklines (partners/users have no time-series in DB)
+  const commissionTrend = monthlyRevenue.map((r) => Math.round(r.revenue * 0.15));
+  const providerTrend = [2, 3, 3, 4, 5, 6, 7];
+  const userTrend = [5, 8, 7, 10, 13, 12, 16];
 
   // Derive counts for awaiting confirmation
   const pendingBookingsCount = bookings.filter(b => b.status === "pending").length;
@@ -242,18 +367,20 @@ const AdminDashboard = () => {
         
         {/* CARD 1: Gross Volume */}
         <div 
-          className="rounded-[32px] p-5 flex flex-col justify-between h-[180px] border transition-transform duration-300 hover:scale-[1.02]"
+          className="rounded-[32px] p-5 flex flex-col justify-between h-[180px] border transition-transform duration-300 hover:scale-[1.02] relative overflow-hidden"
           style={{ backgroundColor: "var(--admin-bg-sidebar)", borderColor: "var(--admin-border)" }}
         >
+          <span className="qs-shine absolute top-0 h-full w-1/3 -rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" style={{ left: "-60%" }} />
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--admin-text-secondary)" }}>Gross Volume</span>
             <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: "var(--admin-bg-input)", color: "#3b82f6" }}>
               <ArrowUpRight size={14} strokeWidth={2.5} />
             </div>
           </div>
+          <Sparkline data={monthlyRevenue.map((r) => r.revenue)} color="#3b82f6" id="spark-rev" />
           <div>
             <h2 className="text-2xl font-bold tracking-tight m-0 mb-1" style={{ color: "var(--admin-text-primary)" }}>
-              ₹{currentStats.revenue.toLocaleString()}
+              <CountUp value={currentStats.revenue} prefix="₹" />
             </h2>
             <div className="flex items-center gap-2">
               <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">+2.6%</span>
@@ -264,18 +391,20 @@ const AdminDashboard = () => {
 
         {/* CARD 2: Platform Commission (15% platform earnings) */}
         <div 
-          className="rounded-[32px] p-5 flex flex-col justify-between h-[180px] border transition-transform duration-300 hover:scale-[1.02]"
+          className="rounded-[32px] p-5 flex flex-col justify-between h-[180px] border transition-transform duration-300 hover:scale-[1.02] relative overflow-hidden"
           style={{ backgroundColor: "var(--admin-bg-sidebar)", borderColor: "var(--admin-border)" }}
         >
+          <span className="qs-shine absolute top-0 h-full w-1/3 -rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" style={{ left: "-60%" }} />
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--admin-text-secondary)" }}>Commission (15%)</span>
             <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: "var(--admin-bg-input)", color: "#f59e0b" }}>
               <TrendingUp size={14} />
             </div>
           </div>
+          <Sparkline data={commissionTrend} color="#f59e0b" id="spark-com" />
           <div>
             <h2 className="text-2xl font-bold tracking-tight m-0 mb-1" style={{ color: "var(--admin-text-primary)" }}>
-              ₹{currentStats.commission.toLocaleString()}
+              <CountUp value={currentStats.commission} prefix="₹" />
             </h2>
             <div className="flex items-center gap-2">
               <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">+2.6%</span>
@@ -286,18 +415,20 @@ const AdminDashboard = () => {
 
         {/* CARD 3: Total Bookings */}
         <div 
-          className="rounded-[32px] p-5 flex flex-col justify-between h-[180px] border transition-transform duration-300 hover:scale-[1.02]"
+          className="rounded-[32px] p-5 flex flex-col justify-between h-[180px] border transition-transform duration-300 hover:scale-[1.02] relative overflow-hidden"
           style={{ backgroundColor: "var(--admin-bg-sidebar)", borderColor: "var(--admin-border)" }}
         >
+          <span className="qs-shine absolute top-0 h-full w-1/3 -rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" style={{ left: "-60%" }} />
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--admin-text-secondary)" }}>Total Bookings</span>
             <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: "var(--admin-bg-input)", color: "var(--admin-text-secondary)" }}>
               <ArrowUpRight size={14} />
             </div>
           </div>
+          <Sparkline data={weeklyBookings.map((b) => b.count)} color="#f43f5e" id="spark-book" />
           <div>
             <h2 className="text-2xl font-bold tracking-tight m-0 mb-1" style={{ color: "var(--admin-text-primary)" }}>
-              {currentStats.bookings}
+              <CountUp value={currentStats.bookings} />
             </h2>
             <div className="flex items-center gap-2">
               <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-rose-500/10 text-rose-500 border border-rose-500/20">-0.4%</span>
@@ -308,18 +439,20 @@ const AdminDashboard = () => {
 
         {/* CARD 4: Active Partners */}
         <div 
-          className="rounded-[32px] p-5 flex flex-col justify-between h-[180px] border transition-transform duration-300 hover:scale-[1.02]"
+          className="rounded-[32px] p-5 flex flex-col justify-between h-[180px] border transition-transform duration-300 hover:scale-[1.02] relative overflow-hidden"
           style={{ backgroundColor: "var(--admin-bg-sidebar)", borderColor: "var(--admin-border)" }}
         >
+          <span className="qs-shine absolute top-0 h-full w-1/3 -rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" style={{ left: "-60%" }} />
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--admin-text-secondary)" }}>Active Partners</span>
             <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: "var(--admin-bg-input)", color: "var(--admin-text-secondary)" }}>
               <ArrowUpRight size={14} />
             </div>
           </div>
+          <Sparkline data={providerTrend} color="#10b981" id="spark-part" />
           <div>
             <h2 className="text-2xl font-bold tracking-tight m-0 mb-1" style={{ color: "var(--admin-text-primary)" }}>
-              {currentStats.providers}
+              <CountUp value={currentStats.providers} />
             </h2>
             <div className="flex items-center gap-2">
               <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">+4.1%</span>
@@ -330,18 +463,20 @@ const AdminDashboard = () => {
 
         {/* CARD 5: Total Users */}
         <div 
-          className="rounded-[32px] p-5 flex flex-col justify-between h-[180px] border transition-transform duration-300 hover:scale-[1.02]"
+          className="rounded-[32px] p-5 flex flex-col justify-between h-[180px] border transition-transform duration-300 hover:scale-[1.02] relative overflow-hidden"
           style={{ backgroundColor: "var(--admin-bg-sidebar)", borderColor: "var(--admin-border)" }}
         >
+          <span className="qs-shine absolute top-0 h-full w-1/3 -rotate-12 bg-gradient-to-r from-transparent via-white/10 to-transparent pointer-events-none" style={{ left: "-60%" }} />
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--admin-text-secondary)" }}>Total Users</span>
             <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: "var(--admin-bg-input)", color: "var(--admin-text-secondary)" }}>
               <ArrowUpRight size={14} />
             </div>
           </div>
+          <Sparkline data={userTrend} color="#8b5cf6" id="spark-user" />
           <div>
             <h2 className="text-2xl font-bold tracking-tight m-0 mb-1" style={{ color: "var(--admin-text-primary)" }}>
-              {currentStats.users}
+              <CountUp value={currentStats.users} />
             </h2>
             <div className="flex items-center gap-2">
               <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">+5.8%</span>
@@ -384,7 +519,7 @@ const AdminDashboard = () => {
                   <div key={i} className="flex flex-col items-center gap-3 z-10 group flex-1">
                     {/* Tooltip value */}
                     <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-600 text-white opacity-0 group-hover:opacity-100 transition-opacity duration-250 absolute bottom-[225px]">
-                      ₹{r.revenue.toLocaleString()}
+                      {fmtINR(r.revenue)}
                     </span>
                     {/* Rounded Bar */}
                     <div 
@@ -425,10 +560,26 @@ const AdminDashboard = () => {
                     <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.0" />
                   </linearGradient>
                 </defs>
-                <polygon points={`30,130 ${polylinePoints} ${linePoints[linePoints.length - 1]?.x || 300},130`} fill="url(#lineGrad)" />
-                <polyline points={polylinePoints} fill="none" stroke="#3b82f6" strokeWidth="3" strokeLinecap="round" />
+                <motion.path
+                  d={`${linePath} L ${linePoints[linePoints.length - 1]?.x || 300},130 L 30,130 Z`}
+                  fill="url(#lineGrad)"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 1, delay: 0.8 }}
+                />
+                <motion.path
+                  d={linePath}
+                  fill="none"
+                  stroke="#3b82f6"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0 }}
+                  animate={{ pathLength: 1 }}
+                  transition={{ duration: 1.4, ease: "easeInOut" }}
+                />
                 {linePoints.map((pt, idx) => (
                   <g key={idx} className="group">
+                    <circle cx={pt.x} cy={pt.y} r="5" fill="#3b82f6" opacity="0.35" className="qs-pulse" />
                     <circle cx={pt.x} cy={pt.y} r="5" fill="#3b82f6" stroke="var(--admin-bg-sidebar)" strokeWidth="2" />
                     <title>{`${pt.label}: ${pt.count} bookings`}</title>
                   </g>
@@ -455,6 +606,7 @@ const AdminDashboard = () => {
           className="rounded-[32px] border p-7 flex flex-col justify-between h-[230px] relative overflow-hidden transition-transform duration-300 hover:scale-[1.01]"
           style={{ backgroundColor: "var(--admin-bg-sidebar)", borderColor: "var(--admin-border)" }}
         >
+          <span className="qs-glow-blob absolute -top-12 -right-12 w-44 h-44 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(16,185,131,0.18), transparent 70%)" }} />
           <div className="flex items-center justify-between">
             <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: "var(--admin-bg-input)", color: "#10b981" }}>
               <Check size={20} strokeWidth={2.5} />
@@ -465,7 +617,7 @@ const AdminDashboard = () => {
           </div>
           <div>
             <h2 className="text-4xl font-bold tracking-tight m-0 mb-1" style={{ color: "var(--admin-text-primary)" }}>
-              {stats?.totalBookings || "0"}
+              <CountUp value={stats?.totalBookings || 0} />
             </h2>
             <p className="text-xs font-semibold m-0 leading-normal" style={{ color: "var(--admin-text-secondary)" }}>
               <span className="text-emerald-500 font-bold">{pendingBookingsCount} bookings</span> are awaiting admin confirmation.
@@ -478,6 +630,7 @@ const AdminDashboard = () => {
           className="rounded-[32px] border p-7 flex flex-col justify-between h-[230px] relative overflow-hidden transition-transform duration-300 hover:scale-[1.01]"
           style={{ backgroundColor: "var(--admin-bg-sidebar)", borderColor: "var(--admin-border)" }}
         >
+          <span className="qs-glow-blob absolute -top-12 -right-12 w-44 h-44 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(139,92,246,0.18), transparent 70%)" }} />
           <div className="flex items-center justify-between">
             <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: "var(--admin-bg-input)", color: "#8b5cf6" }}>
               <User size={20} />
@@ -488,7 +641,7 @@ const AdminDashboard = () => {
           </div>
           <div>
             <h2 className="text-4xl font-bold tracking-tight m-0 mb-1" style={{ color: "var(--admin-text-primary)" }}>
-              {stats?.totalProviders || "0"}
+              <CountUp value={stats?.totalProviders || 0} />
             </h2>
             <p className="text-xs font-semibold m-0 leading-normal" style={{ color: "var(--admin-text-secondary)" }}>
               <span className="text-violet-500 font-bold">{pendingProvidersCount} providers</span> are waiting for onboarding response.
@@ -498,9 +651,10 @@ const AdminDashboard = () => {
 
         {/* WIDGET 3: Bookings by Category Donut Chart */}
         <div 
-          className="rounded-[32px] border p-7 flex flex-col justify-between h-[230px]"
+          className="rounded-[32px] border p-7 flex flex-col justify-between h-[230px] relative overflow-hidden"
           style={{ backgroundColor: "var(--admin-bg-sidebar)", borderColor: "var(--admin-border)" }}
         >
+          <span className="qs-glow-blob absolute -bottom-14 -left-14 w-48 h-48 rounded-full pointer-events-none" style={{ background: "radial-gradient(circle, rgba(236,72,153,0.15), transparent 70%)" }} />
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--admin-text-secondary)" }}>Bookings by Category</h3>
             <div className="w-8 h-8 rounded-full flex items-center justify-center border hover:bg-neutral-800/10 dark:hover:bg-white/5 cursor-pointer" style={{ borderColor: "var(--admin-border)" }}>

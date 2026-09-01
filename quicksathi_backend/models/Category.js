@@ -48,6 +48,12 @@ const categorySchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // When true, this category's services show "Coming Soon" on the frontend
+    // (cards are non-bookable and a coming-soon notice is displayed).
+    comingSoon: {
+      type: Boolean,
+      default: false,
+    },
     subCategories: [subCategorySchema],
   },
   {

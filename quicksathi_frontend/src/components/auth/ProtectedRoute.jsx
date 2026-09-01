@@ -1,8 +1,10 @@
-import { Navigate } from "react-router-dom";
+import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import AdminLogin from "../../admin/pages/AdminLogin";
 
 const ProtectedRoute = ({ children, requiredRole }) => {
   const { user, loading, isAuthenticated } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -15,21 +17,37 @@ const ProtectedRoute = ({ children, requiredRole }) => {
     );
   }
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+  // If this is an admin route and the user is not authenticated as admin,
+  // render the dedicated Admin Login portal directly at this URL (/admin)
+  if (requiredRole === "admin") {
+    if (!isAuthenticated || user?.role !== "admin") {
+      return <AdminLogin />;
+    }
   }
 
-  // Role check: admin can access everything, provider can access provider routes
-  if (requiredRole) {
-    if (requiredRole === "admin" && user.role !== "admin") {
+  // Provider routes
+  if (requiredRole === "provider") {
+    if (!isAuthenticated) {
+      return <Navigate to="/login?mode=provider" state={{ from: location }} replace />;
+    }
+    if (user?.role !== "provider" && user?.role !== "admin") {
       return <Navigate to="/" replace />;
     }
-    if (requiredRole === "provider" && user.role !== "provider" && user.role !== "admin") {
-      return <Navigate to="/" replace />;
-    }
+  }
+
+  // General authenticated routes
+  if (!isAuthenticated) {
+    return (
+      <Navigate
+        to={`/login?redirect=${encodeURIComponent(location.pathname)}`}
+        state={{ from: location }}
+        replace
+      />
+    );
   }
 
   return children;
 };
 
 export default ProtectedRoute;
+

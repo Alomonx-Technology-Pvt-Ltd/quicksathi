@@ -131,10 +131,8 @@ QuickSathi connects customers with verified, top-rated service providers across 
 - **Security Maintenance & Repair** — Inspection, line repair, power supply replacement & lens alignment (from ₹599).
 
 ### 2. Vehicle Rental
-- **Car Rental (Self-Drive)** — From ₹1,499/day. Hatchbacks, Sedans & SUVs for city commutes or outstation trips. GPS-enabled & insured.
-- **Bike & Scooter Rental** — From ₹399/day. Scooters and commuter bikes with helmets included.
-- **Luxury Cars** — Mercedes, Audi, Range Rover, BMW for weddings, corporate events & VIP transfers (from ₹7,999/day).
-- **Chauffeur Outstation Cabs** — Verified drivers for one-way or round-trip journeys (from ₹2,499).
+- **Standard Car Rental** — From ₹2,499/day. Everyday AC cars for city rides, outstation trips & airport transfers (5 seater & 7 seater).
+- **Wedding Car Rental** — From ₹7,999/event. Decorated wedding cars with professional chauffeur (5 seater & 7 seater).
 
 ### 3. Wedding & Event Services
 - **Wedding Photography & Films** — Candid photography, cinematic wedding films, drone shoots, pre-wedding & albums (from ₹15,000).

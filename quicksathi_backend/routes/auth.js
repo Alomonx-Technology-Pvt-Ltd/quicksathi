@@ -432,4 +432,180 @@ router.post("/provider-google", async (req, res) => {
   }
 });
 
+// POST /api/auth/admin-login — Admin Email & Password login
+router.post("/admin-login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const envAdminPassword = process.env.ADMIN_PASSWORD?.trim();
+    const isEnvPasswordMatch = envAdminPassword && password === envAdminPassword;
+
+    let user = await User.findOne({ email: normalizedEmail }).select("+password");
+
+    // Case 1: Existing user in database
+    if (user) {
+      // Auto-promote if in ADMIN_EMAILS list
+      if (isAdminEmail(user.email) && user.role !== "admin") {
+        user.role = "admin";
+        await user.save();
+      }
+
+      if (user.role !== "admin") {
+        return res.status(403).json({
+          message: "Access denied. This account does not have administrator privileges.",
+        });
+      }
+
+      let passwordValid = false;
+
+      // Match against .env ADMIN_PASSWORD if this is an authorized admin email
+      if (isEnvPasswordMatch && isAdminEmail(user.email)) {
+        passwordValid = true;
+        // Update user's DB password so it stays synchronized
+        user.password = password;
+        if (user.authProvider === "google") {
+          user.authProvider = "local";
+        }
+        await user.save();
+      } else if (user.password) {
+        // Verify against MongoDB hashed password
+        passwordValid = await user.comparePassword(password);
+      }
+
+      if (!passwordValid) {
+        return res.status(401).json({ message: "Invalid email or password" });
+      }
+
+      const token = generateToken(user._id);
+      return res.json({
+        token,
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          avatar: user.avatar,
+        },
+      });
+    }
+
+    // Case 2: User not found in DB, but email matches ADMIN_EMAILS and password matches ADMIN_PASSWORD
+    if (isAdminEmail(normalizedEmail) && isEnvPasswordMatch) {
+      user = await User.create({
+        name: "QuickSathi Admin",
+        email: normalizedEmail,
+        password,
+        role: "admin",
+        authProvider: "local",
+      });
+
+      const token = generateToken(user._id);
+      return res.json({
+        token,
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          avatar: user.avatar,
+        },
+      });
+    }
+
+    return res.status(401).json({ message: "Invalid email or password" });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// POST /api/auth/admin-google — Admin Google login with role verification
+router.post("/admin-google", async (req, res) => {
+  try {
+    const { idToken, email, name, avatar, firebaseUid } = req.body;
+
+    let verifiedEmail = email;
+    let verifiedName = name;
+    let verifiedAvatar = avatar;
+    let verifiedUid = firebaseUid;
+
+    if (idToken && firebaseAuth) {
+      try {
+        const decodedToken = await firebaseAuth.verifyIdToken(idToken);
+        verifiedEmail = decodedToken.email;
+        verifiedName = decodedToken.name || name;
+        verifiedAvatar = decodedToken.picture || avatar;
+        verifiedUid = decodedToken.uid;
+      } catch (tokenError) {
+        return res.status(401).json({ message: "Invalid Firebase token" });
+      }
+    } else if (!email) {
+      return res.status(400).json({ message: "Email or Firebase ID token is required" });
+    }
+
+    const normalizedEmail = verifiedEmail?.trim().toLowerCase();
+    let user = await User.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      // First-time sign in via Google for an admin email
+      if (!isAdminEmail(normalizedEmail)) {
+        return res.status(403).json({
+          message: `Access denied. The Google account (${normalizedEmail}) is not authorized as an administrator.`,
+        });
+      }
+
+      user = await User.create({
+        name: verifiedName || "QuickSathi Admin",
+        email: normalizedEmail,
+        avatar: verifiedAvatar || "",
+        firebaseUid: verifiedUid,
+        authProvider: "google",
+        role: "admin",
+      });
+    } else {
+      let changed = false;
+      if (!user.firebaseUid && verifiedUid) {
+        user.firebaseUid = verifiedUid;
+        changed = true;
+      }
+      if (!user.avatar && verifiedAvatar) {
+        user.avatar = verifiedAvatar;
+        changed = true;
+      }
+      if (isAdminEmail(user.email) && user.role !== "admin") {
+        user.role = "admin";
+        changed = true;
+      }
+      if (changed) {
+        await user.save();
+      }
+
+      if (user.role !== "admin") {
+        return res.status(403).json({
+          message: `Access denied. The Google account (${user.email}) is not authorized as an administrator.`,
+        });
+      }
+    }
+
+    const token = generateToken(user._id);
+
+    res.json({
+      token,
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        avatar: user.avatar,
+      },
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 export default router;
+

@@ -239,6 +239,77 @@ export const AuthProvider = ({ children }) => {
     return data;
   };
 
+  // Admin Login (Email/Password)
+  const adminLogin = async (email, password) => {
+    try {
+      const { data } = await withRetry(() =>
+        api.post("/auth/admin-login", { email, password })
+      );
+      saveSession(data.token, data.user);
+      return data.user;
+    } catch (err) {
+      // Fallback in case remote backend has not deployed /admin-login yet
+      if (err.response?.status === 404) {
+        const { data } = await withRetry(() =>
+          api.post("/auth/login", { email, password })
+        );
+        if (data.user?.role !== "admin") {
+          clearSession();
+          throw new Error("Access denied. This account does not have administrator privileges.");
+        }
+        saveSession(data.token, data.user);
+        return data.user;
+      }
+      throw err;
+    }
+  };
+
+  // Admin Login with Google
+  const adminLoginWithGoogle = async () => {
+    if (!auth || !googleProvider) {
+      throw new Error("Firebase is not configured. Please add your Firebase credentials.");
+    }
+    // Always prompt account selection so admins can select their admin email
+    googleProvider.setCustomParameters({ prompt: "select_account" });
+    const result = await signInWithPopup(auth, googleProvider);
+    const firebaseUser = result.user;
+    const idToken = await firebaseUser.getIdToken();
+
+    try {
+      const { data } = await withRetry(() =>
+        api.post("/auth/admin-google", {
+          idToken,
+          email: firebaseUser.email,
+          name: firebaseUser.displayName,
+          avatar: firebaseUser.photoURL,
+          firebaseUid: firebaseUser.uid,
+        })
+      );
+      saveSession(data.token, data.user);
+      return data.user;
+    } catch (err) {
+      // Fallback in case remote backend has not deployed /admin-google yet
+      if (err.response?.status === 404) {
+        const { data } = await withRetry(() =>
+          api.post("/auth/google", {
+            idToken,
+            email: firebaseUser.email,
+            name: firebaseUser.displayName,
+            avatar: firebaseUser.photoURL,
+            firebaseUid: firebaseUser.uid,
+          })
+        );
+        if (data.user?.role !== "admin") {
+          clearSession();
+          throw new Error(`Access denied. The Google account (${firebaseUser.email}) is not authorized as an administrator.`);
+        }
+        saveSession(data.token, data.user);
+        return data.user;
+      }
+      throw err;
+    }
+  };
+
   // Logout
   const logout = async () => {
     try {
@@ -264,6 +335,8 @@ export const AuthProvider = ({ children }) => {
     updateProfile,
     providerLogin,
     providerLoginWithGoogle,
+    adminLogin,
+    adminLoginWithGoogle,
     logout,
   };
 

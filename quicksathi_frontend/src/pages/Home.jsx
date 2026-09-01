@@ -11,6 +11,7 @@ import { mockServices } from "../data/mockServices";
 import { useLocation } from "../context/LocationContext";
 
 import QuickServicesSection from "../components/QuickServicesSection";
+import WhyChooseUs from "../components/WhyChooseUs";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -147,6 +148,9 @@ const Home = () => {
       />
       <QuickServicesSection categories={categories} services={services} />
 
+      {/* ── What We Do / Why Choose Us ── */}
+      <WhyChooseUs />
+
 
       <section className="px-4 sm:px-8 lg:px-16 py-12" style={{ backgroundColor: "var(--color-bg)" }}>
         {/* Section header — stacks on mobile */}
@@ -250,6 +254,7 @@ const Home = () => {
         secondaryAction="Book Now"
         variant="servicePreview"
         linkTo={getServiceLink(service.name, service._id || service.id)}
+        comingSoon={!!parent.comingSoon}
         onSecondaryAction={() =>
           handleBookNow(service.name, service._id || service.id)
         }

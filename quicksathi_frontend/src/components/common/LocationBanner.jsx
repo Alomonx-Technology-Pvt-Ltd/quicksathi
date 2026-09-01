@@ -1,15 +1,25 @@
 import { useState, useRef, useEffect } from "react";
-import { useLocation, CITY_OPTIONS } from "../../context/LocationContext";
+import { useLocation } from "../../context/LocationContext";
 
 /**
  * LocationBanner — a slim, elegant bar shown at the top of service pages.
- * Displays the detected/selected city, lets users change it via a dropdown.
+ * Displays the detected/selected location, lets users change it via a dropdown.
+ * Dropdown contains only: search bar (live search) + "Use Current / Exact Location".
  * Styled using QuickSathi brand colours (deep blue, orange accent).
  */
 export default function LocationBanner() {
-  const { city, fullLocation, setCity, detecting, showBanner, detectExactLocation } = useLocation();
+  const {
+    fullLocation,
+    setLocationData,
+    searchLocation,
+    detecting,
+    locationError,
+    detectExactLocation,
+  } = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchCity, setSearchCity] = useState("");
+  const [results, setResults] = useState([]);
+  const [searching, setSearching] = useState(false);
   const dropRef = useRef(null);
 
   // Close dropdown on outside click
@@ -18,28 +28,42 @@ export default function LocationBanner() {
       if (dropRef.current && !dropRef.current.contains(e.target)) {
         setDropdownOpen(false);
         setSearchCity("");
+        setResults([]);
       }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  // Live search (debounced) — searches any city/area via OpenStreetMap
+  useEffect(() => {
+    if (!searchCity.trim()) {
+      setResults([]);
+      setSearching(false);
+      return;
+    }
+    setSearching(true);
+    const t = setTimeout(async () => {
+      const r = await searchLocation(searchCity);
+      setResults(r || []);
+      setSearching(false);
+    }, 400);
+    return () => clearTimeout(t);
+  }, [searchCity, searchLocation]);
+
   if (!showBanner) return null;
 
-  const filtered = CITY_OPTIONS.filter((c) =>
-    c.toLowerCase().includes(searchCity.toLowerCase())
-  );
-
-  const handleSelect = (c) => {
-    setCity(c);
+  const handleSelectResult = (r) => {
+    setLocationData({
+      fullLocation: r.label,
+      city: r.city || r.label,
+      lat: r.lat,
+      lon: r.lon,
+      timestamp: Date.now(),
+    });
     setDropdownOpen(false);
     setSearchCity("");
-  };
-
-  const handleShowAll = () => {
-    setCity(null);
-    setDropdownOpen(false);
-    setSearchCity("");
+    setResults([]);
   };
 
   const handleDetectClick = () => {
@@ -48,6 +72,7 @@ export default function LocationBanner() {
     }
     setDropdownOpen(false);
     setSearchCity("");
+    setResults([]);
   };
 
   return (
@@ -124,7 +149,7 @@ export default function LocationBanner() {
             </>
           ) : (
             <>
-              {fullLocation || "All Cities"}
+              {fullLocation || "Set your location"}
               <svg
                 width="11"
                 height="11"
@@ -168,7 +193,7 @@ export default function LocationBanner() {
                 autoFocus
                 value={searchCity}
                 onChange={(e) => setSearchCity(e.target.value)}
-                placeholder="Search city…"
+                placeholder="Search any city or area…"
                 style={{
                   width: "100%",
                   background: "rgba(255,255,255,0.06)",
@@ -208,61 +233,67 @@ export default function LocationBanner() {
               <span>{detecting ? "Detecting location..." : "Use Current / Exact Location"}</span>
             </button>
 
-            {/* All Cities option */}
-            <button
-              onClick={handleShowAll}
-              style={{
-                display: "block",
-                width: "100%",
-                padding: "8px 14px",
-                textAlign: "left",
-                background: !city ? "rgba(232,92,42,0.15)" : "transparent",
-                border: "none",
-                borderBottom: "1px solid rgba(255,255,255,0.05)",
-                color: !city ? "#e85c2a" : "rgba(255,255,255,0.7)",
-                fontSize: "12.5px",
-                fontFamily: "Inter, sans-serif",
-                cursor: "pointer",
-                fontWeight: !city ? "600" : "400",
-              }}
-            >
-              🌐 All Cities
-            </button>
+            {/* Location error (GPS denied / unavailable) */}
+            {locationError && (
+              <p
+                style={{
+                  margin: 0,
+                  padding: "7px 14px",
+                  color: "rgba(255,255,255,0.55)",
+                  fontSize: "11px",
+                  fontFamily: "Inter, sans-serif",
+                  borderBottom: "1px solid rgba(255,255,255,0.05)",
+                }}
+              >
+                ⚠️ {locationError}
+              </p>
+            )}
 
-            {/* City list */}
+            {/* Live search results */}
             <div style={{ maxHeight: "200px", overflowY: "auto" }}>
-              {filtered.map((c) => (
-                <button
-                  key={c}
-                  onClick={() => handleSelect(c)}
+              {searching && (
+                <p
                   style={{
-                    display: "block",
-                    width: "100%",
-                    padding: "8px 14px",
-                    textAlign: "left",
-                    background: city === c ? "rgba(232,92,42,0.15)" : "transparent",
-                    border: "none",
-                    color: city === c ? "#e85c2a" : "rgba(255,255,255,0.75)",
-                    fontSize: "12.5px",
+                    color: "rgba(255,255,255,0.4)",
+                    fontSize: "12px",
+                    textAlign: "center",
+                    padding: "12px",
                     fontFamily: "Inter, sans-serif",
-                    cursor: "pointer",
-                    fontWeight: city === c ? "600" : "400",
-                    transition: "background 0.15s",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (city !== c) e.currentTarget.style.background = "rgba(255,255,255,0.05)";
-                  }}
-                  onMouseLeave={(e) => {
-                    if (city !== c) e.currentTarget.style.background = "transparent";
                   }}
                 >
-                  {c}
-                  {city === c && (
-                    <span style={{ float: "right", fontSize: "11px" }}>✓</span>
-                  )}
-                </button>
-              ))}
-              {filtered.length === 0 && (
+                  Searching…
+                </p>
+              )}
+              {!searching &&
+                results.map((r) => (
+                  <button
+                    key={r.id}
+                    onClick={() => handleSelectResult(r)}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      padding: "8px 14px",
+                      textAlign: "left",
+                      background: "transparent",
+                      border: "none",
+                      borderBottom: "1px solid rgba(255,255,255,0.04)",
+                      color: "rgba(255,255,255,0.75)",
+                      fontSize: "12.5px",
+                      fontFamily: "Inter, sans-serif",
+                      cursor: "pointer",
+                      transition: "background 0.15s",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "rgba(255,255,255,0.05)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "transparent";
+                    }}
+                  >
+                    📍 {r.label}
+                  </button>
+                ))}
+              {!searching && searchCity.trim() && results.length === 0 && (
                 <p
                   style={{
                     color: "rgba(255,255,255,0.3)",
@@ -272,7 +303,20 @@ export default function LocationBanner() {
                     fontFamily: "Inter, sans-serif",
                   }}
                 >
-                  No cities found
+                  No matches found
+                </p>
+              )}
+              {!searching && !searchCity.trim() && (
+                <p
+                  style={{
+                    color: "rgba(255,255,255,0.3)",
+                    fontSize: "12px",
+                    textAlign: "center",
+                    padding: "12px",
+                    fontFamily: "Inter, sans-serif",
+                  }}
+                >
+                  Type to search your city or area
                 </p>
               )}
             </div>
@@ -281,7 +325,7 @@ export default function LocationBanner() {
       </div>
 
       {/* Info text */}
-      {!city && !detecting && (
+      {!fullLocation && !detecting && (
         <span
           style={{
             color: "rgba(255,255,255,0.35)",
@@ -290,11 +334,11 @@ export default function LocationBanner() {
             fontStyle: "italic",
           }}
         >
-          Select your city for local services
+          Set your location for local services
         </span>
       )}
 
-      {city && (
+      {fullLocation && (
         <span
           style={{
             color: "rgba(255,255,255,0.35)",

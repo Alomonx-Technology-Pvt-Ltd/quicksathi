@@ -322,7 +322,7 @@ router.post("/categories", protect, adminOnly, async (req, res) => {
   try {
     const {
       name, description, vertical, type,
-      imageUrl, secondaryImageUrl, displayOrder, active, subCategories,
+      imageUrl, secondaryImageUrl, displayOrder, active, comingSoon, subCategories,
     } = req.body;
 
     const category = await Category.create({
@@ -334,6 +334,7 @@ router.post("/categories", protect, adminOnly, async (req, res) => {
       secondaryImageUrl: secondaryImageUrl || "",
       displayOrder: displayOrder || 0,
       active: active !== undefined ? active : true,
+      comingSoon: comingSoon !== undefined ? comingSoon : false,
       subCategories: subCategories || [],
     });
 
@@ -396,6 +397,30 @@ router.patch("/categories/:id/toggle", protect, adminOnly, async (req, res) => {
     await category.save();
 
     res.json({ message: `Category ${category.active ? "activated" : "deactivated"}`, category });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// PATCH /api/admin/categories/:id/coming-soon — Toggle category "Coming Soon" mode.
+// When ON, the frontend shows this category's services in Coming Soon mode
+// (badges shown, booking/navigation disabled).
+router.patch("/categories/:id/coming-soon", protect, adminOnly, async (req, res) => {
+  try {
+    const category = await Category.findById(req.params.id);
+    if (!category) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
+    category.comingSoon = !category.comingSoon;
+    await category.save();
+
+    res.json({
+      message: category.comingSoon
+        ? `"${category.name}" is now in Coming Soon mode — its services are hidden from booking on the frontend.`
+        : `"${category.name}" is now live — its services are bookable again.`,
+      category,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

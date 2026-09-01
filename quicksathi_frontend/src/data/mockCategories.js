@@ -3,7 +3,6 @@ import homeCCTV2 from "../assets/cctv/cctvImg1.avif";
 import commercialCCTV1 from "../assets/cctv/commercialCCTV1.avif";
 import smartLock from "../assets/cctv/smartLock.avif";
 import maintenance from "../assets/cctv/maintenance.avif";
-import bikeRental from "../assets/Bike/bikeRental.avif";
 import hondaImg from "../assets/hondaImg.avif";
 import carRental from "../assets/Bike/carRental.avif";
 import photographyImg from "../assets/photographyImg.avif";
@@ -107,24 +106,10 @@ export const mockCategories = [
     parent: null,
     subCategories: [
       {
-        id: 8,
-        name: "Bike Rental",
-        description:
-          "Scooters and motorcycles available by the hour or week — perfect for city commutes and open-road adventures.",
-        vertical: "VEHICLE_RENTAL",
-        type: "PRODUCT_ONLY",
-        imageUrl: bikeRental,
-        secondaryImageUrl: carRental,
-        displayOrder: 2,
-        active: true,
-        parent: 6,
-        subCategories: [],
-      },
-      {
         id: 7,
-        name: "Car Rental",
+        name: "Standard Car Rental",
         description:
-          "Self-drive or chauffeur-driven cars — GPS-enabled, fully insured, and always road-ready.",
+          "Everyday AC car booking for city rides, outstation trips & airport transfers — 5 seater and 7 seater options.",
         vertical: "VEHICLE_RENTAL",
         type: "PRODUCT_ONLY",
         imageUrl: hondaImg,
@@ -136,14 +121,14 @@ export const mockCategories = [
       },
       {
         id: 9,
-        name: "Luxury Cars",
+        name: "Wedding Car Rental",
         description:
-          "Premium sedans and SUVs for weddings, corporate events, and airport transfers — always impressive.",
+          "Decorated cars for weddings & special occasions with professional driver — 5 seater and 7 seater options.",
         vertical: "VEHICLE_RENTAL",
         type: "PRODUCT_ONLY",
         imageUrl: carRental,
         secondaryImageUrl: rangeRover,
-        displayOrder: 3,
+        displayOrder: 2,
         active: true,
         parent: 6,
         subCategories: [],

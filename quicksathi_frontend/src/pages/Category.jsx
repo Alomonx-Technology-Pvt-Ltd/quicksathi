@@ -294,6 +294,37 @@ const Category = () => {
         setActiveIndex={setActiveIndex}
       />
 
+      {/* ── Coming Soon notice ── */}
+      {category?.comingSoon && (
+        <div
+          className="px-4 sm:px-8 lg:px-10 mt-6"
+        >
+          <div
+            className="flex items-center gap-3 rounded-2xl px-5 py-4 border"
+            style={{
+              backgroundColor: "rgba(245,158,11,0.1)",
+              borderColor: "rgba(245,158,11,0.45)",
+            }}
+          >
+            <span style={{ fontSize: "20px" }}>⏳</span>
+            <div>
+              <p
+                className="m-0 text-sm font-semibold"
+                style={{ fontFamily: "var(--font-body)", color: "#b45309" }}
+              >
+                {category.name} is coming soon!
+              </p>
+              <p
+                className="m-0 text-xs"
+                style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
+              >
+                We're preparing these services for launch. Booking will open shortly — check back soon.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Services grid ── */}
       <div id="services" className="px-4 sm:px-8 lg:px-10 mt-10 sm:mt-14">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
@@ -305,7 +336,7 @@ const Category = () => {
                 color: "var(--color-text-dark)",
               }}
             >
-              Available Services
+              {category?.comingSoon ? "Upcoming Services" : "Available Services"}
             </h2>
             <div
               className="flex-1 h-px hidden sm:block"
@@ -369,6 +400,7 @@ const Category = () => {
                     primaryAction="Book Service"
                     variant="overlay"
                     linkTo={getServiceLink(service.name, service._id)}
+                    comingSoon={!!category?.comingSoon}
                   />
 
                   {matched?.startingPrice != null && (

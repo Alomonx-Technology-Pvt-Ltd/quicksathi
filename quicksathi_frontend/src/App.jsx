@@ -27,6 +27,8 @@ const WeddingServices = lazy(() => import("./pages/services/WeddingServices"));
 const CarRentals = lazy(() => import("./pages/services/CarRentals"));
 const CCTVServices = lazy(() => import("./pages/services/CCTVServices"));
 
+import AdminLogin from "./admin/pages/AdminLogin";
+
 // Admin (separate chunk — only loaded for admin users)
 const AdminLayout = lazy(() => import("./admin/components/AdminLayout"));
 const AdminDashboard = lazy(() => import("./admin/pages/AdminDashboard"));
@@ -117,6 +119,9 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Admin Login Route */}
+          <Route path="/admin/login" element={<AdminLogin />} />
 
           {/* Admin Routes (separate layout — easy to extract) */}
           <Route

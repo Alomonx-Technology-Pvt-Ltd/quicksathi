@@ -25,43 +25,44 @@ import {
   Clock,
   Route,
   Car,
+  UserCheck,
 } from "lucide-react";
 
 // ── Fallback car data (used when backend is offline) ─────────────────────────
 const FALLBACK_VEHICLES = [
   {
     _id: "fallback-car-1",
-    name: "Car Rental",
-    shortDescription: "Self-drive & chauffeur-driven car rental service",
+    name: "Standard Car Rental",
+    shortDescription: "Everyday AC car booking for city rides, outstation trips & airport transfers",
     thumbnail: "https://images.unsplash.com/photo-1549317661-bd32c8ce0f2e?q=80&w=600&auto=format&fit=crop",
     startingPrice: 2499,
     priceUnit: "per day",
     rating: 4.5,
-    tags: ["Cars", "Self-Drive", "Wedding Car"],
+    tags: ["Cars", "AC", "City Ride", "Outstation"],
     serviceMode: "RENTAL",
     packages: [
-      { title: "Daily Rental", price: 2499, features: "24 Hour Usage, 100 KM Included" },
-      { title: "Wedding Special", price: 7999, features: "Luxury Car, Décor, Driver" },
+      { title: "5 Seater Car", price: 2499, image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0f2e?q=80&w=600&auto=format&fit=crop", features: "Swift Dzire / Aura or similar, 4+1 Seats, AC, 100 KM Included" },
+      { title: "7 Seater Car", price: 3499, image: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=600&auto=format&fit=crop", features: "Ertiga / Innova or similar, 6+1 Seats, AC, 100 KM Included" },
     ],
   },
   {
-    _id: "fallback-bike-1",
-    name: "Bike Rental",
-    shortDescription: "Affordable bike and scooter rentals",
-    thumbnail: "https://images.unsplash.com/photo-1558981806-ec527fa84c39?q=80&w=600&auto=format&fit=crop",
-    startingPrice: 499,
-    priceUnit: "per day",
-    rating: 4.3,
-    tags: ["Bike", "Scooter", "Commute"],
+    _id: "fallback-car-2",
+    name: "Wedding Car Rental",
+    shortDescription: "Decorated cars for weddings & special occasions with professional driver",
+    thumbnail: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=600&auto=format&fit=crop",
+    startingPrice: 7999,
+    priceUnit: "per event",
+    rating: 4.8,
+    tags: ["Cars", "Wedding", "Decorated", "Premium"],
     serviceMode: "RENTAL",
     packages: [
-      { title: "Half Day", price: 299, features: "4 Hours, 50 KM" },
-      { title: "Full Day", price: 499, features: "12 Hours, 100 KM" },
+      { title: "5 Seater Wedding Car", price: 7999, image: "https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=600&auto=format&fit=crop", features: "Sedan or similar, Floral Décor, Professional Driver, Full Day" },
+      { title: "7 Seater Wedding Car", price: 9999, image: "https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=600&auto=format&fit=crop", features: "Innova or similar, Floral Décor, Professional Driver, Full Day" },
     ],
   },
 ];
 
-const FILTERS = ["All Vehicles", "Cars", "Bike", "Bus"];
+const FILTERS = ["All Vehicles", "Cars", "Wedding"];
 
 const CarRentals = () => {
   const navigate = useNavigate();
@@ -142,14 +143,18 @@ const CarRentals = () => {
     return h > 0 ? `${h}h ${m}m` : `${m}m`;
   };
 
-  // Filter vehicles by tag
+  // Filter vehicles by tag — bikes/scooters are removed everywhere by design
   const filteredVehicles =
-    activeFilter === "All Vehicles"
+    (activeFilter === "All Vehicles"
       ? vehicles
       : vehicles.filter((v) =>
           v.tags?.some((t) => t.toLowerCase().includes(activeFilter.toLowerCase())) ||
           v.name?.toLowerCase().includes(activeFilter.toLowerCase())
-        );
+        )
+    ).filter((v) => {
+      const hay = `${v.name || ""} ${v.slug || ""} ${(v.tags || []).join(" ")}`.toLowerCase();
+      return !/bike|scooter|motorcycle/.test(hay);
+    });
 
   // Book handler
   const handleBook = (vehicle) => {
@@ -236,7 +241,15 @@ const CarRentals = () => {
                     color: serviceType === type ? "#fff" : "var(--color-text-mid)",
                   }}
                 >
-                  {type === "self-drive" ? "🚗 Self Drive" : "👨‍✈️ With Driver"}
+                  {type === "self-drive" ? (
+                    <span className="inline-flex items-center gap-1.5">
+                      <Car size={14} /> Self Drive
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5">
+                      <UserCheck size={14} /> With Driver
+                    </span>
+                  )}
                 </button>
               ))}
             </div>
@@ -411,8 +424,16 @@ const CarRentals = () => {
                     <Car size={18} strokeWidth={1.8} className="mt-0.5 flex-shrink-0" style={{ color: "#8b5cf6" }} />
                     <div>
                       <p className="text-xs font-semibold m-0 uppercase tracking-wider" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-muted)" }}>Service Type</p>
-                      <p className="text-sm font-medium m-0 mt-0.5" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>
-                        {serviceType === "self-drive" ? "🚗 Self Drive" : "👨‍✈️ With Driver"}
+                      <p className="text-sm font-medium m-0 mt-0.5 flex items-center gap-1.5" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>
+                        {serviceType === "self-drive" ? (
+                          <>
+                            <Car size={14} /> Self Drive
+                          </>
+                        ) : (
+                          <>
+                            <UserCheck size={14} /> With Driver
+                          </>
+                        )}
                       </p>
                     </div>
                   </div>

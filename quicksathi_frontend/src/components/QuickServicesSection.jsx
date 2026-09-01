@@ -28,40 +28,22 @@ const REAL_CATEGORIES = [
     route: "/services/car-rentals",
     fallbackServices: [
       {
-        id: 7,
-        name: "Car Rental (Self Drive)",
-        description: "Hatchbacks, Sedans & SUVs for daily or long distance trips.",
-        startingPrice: 1499,
-        rating: 4.8,
-        imageUrl: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=600&auto=format&fit=crop",
-        badge: "Self Drive"
-      },
-      {
-        id: 8,
-        name: "Bike & Scooter Rental",
-        description: "Commuter bikes and scooters for flexible city travel & open roads.",
-        startingPrice: 399,
-        rating: 4.7,
-        imageUrl: "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=600&auto=format&fit=crop",
-        badge: "Budget"
-      },
-      {
-        id: 9,
-        name: "Luxury Car Rental",
-        description: "Mercedes, Audi & Range Rover for weddings & VIP corporate events.",
-        startingPrice: 7999,
-        rating: 4.9,
-        imageUrl: "https://images.unsplash.com/photo-1563720223185-11003d516935?q=80&w=600&auto=format&fit=crop",
-        badge: "Premium"
-      },
-      {
-        id: 77,
-        name: "Chauffeur Outstation Cab",
-        description: "Reliable one-way or round-trip outstation cabs with verified drivers.",
+        id: 109,
+        name: "Standard Car Rental",
+        description: "Everyday AC car booking for city rides, outstation trips & airport transfers.",
         startingPrice: 2499,
+        rating: 4.5,
+        imageUrl: "https://images.unsplash.com/photo-1549317661-bd32c8ce0f2e?q=80&w=600&auto=format&fit=crop",
+        badge: "5 / 7 Seater"
+      },
+      {
+        id: 110,
+        name: "Wedding Car Rental",
+        description: "Decorated cars for weddings & special occasions with professional driver.",
+        startingPrice: 7999,
         rating: 4.8,
-        imageUrl: "https://images.unsplash.com/photo-1506015391300-4802dc74de2e?q=80&w=600&auto=format&fit=crop",
-        badge: "With Driver"
+        imageUrl: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=600&auto=format&fit=crop",
+        badge: "Wedding Special"
       }
     ]
   },
@@ -367,20 +349,74 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
 
   const activeCategoryConfig = REAL_CATEGORIES.find((c) => c.id === activeCategoryId) || REAL_CATEGORIES[0];
 
-  // Dynamically match services from backend/categories props if available
+  // Map tab config titles → backend Category.vertical for reliable matching
+  const TAB_VERTICAL_MAP = {
+    "Vehicle Rental": "VEHICLE_RENTAL",
+    "Wedding & Events": "WEDDING",
+    "House Help": "HOUSE_HELP",
+    "House Services & Repair": "HOUSE_SERVICES",
+    "Home Salon & Beauty": "HOME_SALON",
+    "Home Tuition": "HOME_TUITION",
+    "CCTV Security": "CCTV_SECURITY",
+  };
+
+  // Resolve the real backend category for a tab — match by vertical first
+  // (reliable), then by fuzzy name comparison as a fallback.
+  const resolveRealCategory = (config) => {
+    if (!categories || categories.length === 0) return null;
+    const vertical = TAB_VERTICAL_MAP[config.title];
+    const norm = (s) =>
+      (s || "").toLowerCase().replace(/&/g, "and").replace(/[^a-z]/g, "");
+    const target = norm(config.title);
+    return (
+      (vertical && categories.find((c) => c.vertical === vertical)) ||
+      categories.find((c) => {
+        const n = norm(c.name);
+        return n && (n === target || n.includes(target) || target.includes(n));
+      }) ||
+      null
+    );
+  };
+
+  const isTabComingSoon = (config) => !!resolveRealCategory(config)?.comingSoon;
+  const activeRealCategory = resolveRealCategory(activeCategoryConfig);
+  const activeComingSoon = !!activeRealCategory?.comingSoon;
+
+  // Dynamically match REAL backend services for the active tab.
+  // Real services (by Mongo category id or exact categoryName) are preferred;
+  // falls back to real subCategories, then to static fallback services.
   const getDisplayServices = () => {
-    if (services && services.length > 0) {
+    const realCat = activeRealCategory;
+    const catId = realCat?._id || realCat?.id;
+
+    if (services && services.length > 0 && (catId || realCat?.name)) {
       const matched = services.filter((s) => {
-        const catId = activeCategoryConfig.categoryId;
-        return s.categoryId === catId || s.parentCategory === catId;
+        if (catId && String(s.category || "") === String(catId)) return true;
+        const catName = (realCat?.name || "").toLowerCase();
+        const sCat = (s.categoryName || "").toLowerCase();
+        return catName && sCat === catName;
       });
-      if (matched.length > 0) return matched.slice(0, 4);
+      if (matched.length > 0) {
+        return matched.slice(0, 4).map((s) => ({
+          id: s._id || s.id,
+          _id: s._id || s.id,
+          name: s.name,
+          description: s.shortDescription || s.fullDescription || "",
+          startingPrice: s.startingPrice || 0,
+          rating: s.rating || 4.8,
+          imageUrl: s.thumbnail || s.imageUrl || s.bannerImage,
+          badge: s.featured ? "Popular" : s.tags?.[0] || null,
+          slug: s.slug,
+          serviceMode: s.serviceMode,
+          real: true,
+          comingSoon: activeComingSoon,
+        }));
+      }
     }
-    
+
     // Check in category subCategories
-    const categoryInProps = categories.find((c) => c.id === activeCategoryConfig.categoryId || c._id === activeCategoryConfig.categoryId);
-    if (categoryInProps && categoryInProps.subCategories && categoryInProps.subCategories.length > 0) {
-      return categoryInProps.subCategories.slice(0, 4).map((sub) => ({
+    if (realCat?.subCategories?.length > 0) {
+      return realCat.subCategories.slice(0, 4).map((sub) => ({
         id: sub.id || sub._id,
         _id: sub._id || sub.id,
         name: sub.name,
@@ -388,16 +424,23 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
         startingPrice: sub.startingPrice || activeCategoryConfig.fallbackServices[0]?.startingPrice || 1999,
         rating: sub.rating || 4.8,
         imageUrl: sub.imageUrl || activeCategoryConfig.fallbackServices[0]?.imageUrl,
-        badge: "Active Service"
+        badge: "Active Service",
+        comingSoon: activeComingSoon,
       }));
     }
 
-    return activeCategoryConfig.fallbackServices;
+    return activeCategoryConfig.fallbackServices.map((s) => ({
+      ...s,
+      comingSoon: activeComingSoon,
+    }));
   };
 
   const displayServices = getDisplayServices();
 
   const handleBookClick = (service) => {
+    // Coming Soon mode — booking is disabled for this category
+    if (activeComingSoon) return;
+
     // Try to find the real backend service by matching name
     const realService = services?.find(
       (s) =>
@@ -506,6 +549,15 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
                 >
                   {category.title}
                 </span>
+                {isTabComingSoon(category) && (
+                  <span
+                    className="text-[10px] font-bold"
+                    style={{ color: isActive ? "#fde68a" : "#b45309" }}
+                    title="This category is coming soon"
+                  >
+                    ⏳
+                  </span>
+                )}
               </motion.button>
             );
           })}
@@ -529,6 +581,19 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
                 >
                   {activeCategoryConfig.title}
                 </h3>
+                {activeComingSoon && (
+                  <span
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider"
+                    style={{
+                      fontFamily: "var(--font-body)",
+                      color: "#b45309",
+                      backgroundColor: "rgba(245,158,11,0.14)",
+                      border: "1px solid rgba(245,158,11,0.5)",
+                    }}
+                  >
+                    ⏳ Coming Soon
+                  </span>
+                )}
                 <div
                   className="hidden sm:block h-px w-16"
                   style={{ backgroundColor: "var(--color-border)" }}
@@ -560,15 +625,18 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
                 <div
                   key={service._id || service.id}
                   onClick={() => handleBookClick(service)}
-                  className="flex flex-col justify-between overflow-hidden group cursor-pointer"
+                  className="flex flex-col justify-between overflow-hidden group"
                   style={{
                     backgroundColor: "#ffffff",
                     borderRadius: "20px",
                     border: "1px solid rgba(0,0,0,0.06)",
                     boxShadow: "0 2px 12px rgba(0,0,0,0.06)",
                     transition: "transform 0.28s ease, box-shadow 0.28s ease",
+                    cursor: service.comingSoon ? "not-allowed" : "pointer",
+                    opacity: service.comingSoon ? 0.92 : 1,
                   }}
                   onMouseEnter={e => {
+                    if (service.comingSoon) return;
                     e.currentTarget.style.transform = "translateY(-6px)";
                     e.currentTarget.style.boxShadow = "0 16px 40px rgba(0,0,0,0.13)";
                   }}
@@ -591,6 +659,7 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
                       alt={service.name}
                       loading="lazy"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      style={service.comingSoon ? { filter: "grayscale(0.65) brightness(0.85)" } : undefined}
                     />
 
                     {/* Gradient overlay at bottom for text readability */}
@@ -600,19 +669,34 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
                     />
 
                     {/* Badge */}
-                    {service.badge && (
+                    {service.comingSoon ? (
                       <span
-                        className="absolute top-2.5 left-2.5 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider"
+                        className="absolute top-2.5 left-2.5 inline-flex items-center gap-1 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider"
                         style={{
                           borderRadius: "6px",
-                          color: "#ffffff",
-                          backgroundColor: "rgba(0,0,0,0.42)",
+                          color: "#fbbf24",
+                          backgroundColor: "rgba(15,23,42,0.78)",
                           backdropFilter: "blur(6px)",
-                          border: "1px solid rgba(255,255,255,0.2)",
+                          border: "1px solid rgba(245,158,11,0.6)",
                         }}
                       >
-                        {service.badge}
+                        ⏳ Coming Soon
                       </span>
+                    ) : (
+                      service.badge && (
+                        <span
+                          className="absolute top-2.5 left-2.5 px-2 py-0.5 text-[9px] sm:text-[10px] font-bold uppercase tracking-wider"
+                          style={{
+                            borderRadius: "6px",
+                            color: "#ffffff",
+                            backgroundColor: "rgba(0,0,0,0.42)",
+                            backdropFilter: "blur(6px)",
+                            border: "1px solid rgba(255,255,255,0.2)",
+                          }}
+                        >
+                          {service.badge}
+                        </span>
+                      )
                     )}
 
                     {/* Star rating */}
@@ -656,23 +740,41 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
                         </span>
                       </div>
 
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleBookClick(service);
-                        }}
-                        className="flex items-center gap-1.5 text-[11px] font-semibold text-white border-none cursor-pointer active:scale-95 transition-all duration-200 hover:opacity-90 shadow-sm"
-                        style={{
-                          backgroundColor: "var(--color-primary)",
-                          borderRadius: "20px",
-                          padding: "6px 14px",
-                          fontFamily: "var(--font-body)",
-                          letterSpacing: "0.02em",
-                        }}
-                      >
-                        <CalendarCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
-                        <span>Book</span>
-                      </button>
+                      {service.comingSoon ? (
+                        <span
+                          className="flex items-center gap-1.5 text-[11px] font-semibold border"
+                          style={{
+                            backgroundColor: "rgba(0,0,0,0.04)",
+                            color: "var(--color-text-mid)",
+                            borderColor: "rgba(0,0,0,0.08)",
+                            borderRadius: "20px",
+                            padding: "6px 14px",
+                            fontFamily: "var(--font-body)",
+                            cursor: "not-allowed",
+                            opacity: 0.75,
+                          }}
+                        >
+                          ⏳ Soon
+                        </span>
+                      ) : (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleBookClick(service);
+                          }}
+                          className="flex items-center gap-1.5 text-[11px] font-semibold text-white border-none cursor-pointer active:scale-95 transition-all duration-200 hover:opacity-90 shadow-sm"
+                          style={{
+                            backgroundColor: "var(--color-primary)",
+                            borderRadius: "20px",
+                            padding: "6px 14px",
+                            fontFamily: "var(--font-body)",
+                            letterSpacing: "0.02em",
+                          }}
+                        >
+                          <CalendarCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 flex-shrink-0" />
+                          <span>Book</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
