@@ -240,30 +240,24 @@ const AdminDashboard = () => {
       {/* Grid: 5 Top Cards (Recreated exactly from reference layout with Commission) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 animate-fade-in">
         
-        {/* CARD 1: Highlighted Gross Volume (High-Contrast White card in dark theme) */}
+        {/* CARD 1: Gross Volume */}
         <div 
-          className="rounded-[32px] p-5 flex flex-col justify-between h-[180px] shadow-sm relative overflow-hidden transition-transform duration-300 hover:scale-[1.02]"
-          style={{
-            backgroundColor: theme === "light" ? "var(--admin-bg-sidebar)" : "#ffffff",
-            color: theme === "light" ? "var(--admin-text-primary)" : "#121214",
-            borderColor: theme === "light" ? "var(--admin-border)" : "rgba(0,0,0,0.04)",
-            borderStyle: "solid",
-            borderWidth: "1px"
-          }}
+          className="rounded-[32px] p-5 flex flex-col justify-between h-[180px] border transition-transform duration-300 hover:scale-[1.02]"
+          style={{ backgroundColor: "var(--admin-bg-sidebar)", borderColor: "var(--admin-border)" }}
         >
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-neutral-500">Gross Volume</span>
-            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-sm">
+            <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: "var(--admin-text-secondary)" }}>Gross Volume</span>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center" style={{ backgroundColor: "var(--admin-bg-input)", color: "#3b82f6" }}>
               <ArrowUpRight size={14} strokeWidth={2.5} />
             </div>
           </div>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight m-0 mb-1">
+            <h2 className="text-2xl font-bold tracking-tight m-0 mb-1" style={{ color: "var(--admin-text-primary)" }}>
               ₹{currentStats.revenue.toLocaleString()}
             </h2>
             <div className="flex items-center gap-2">
-              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">+2.6%</span>
-              <span className="text-[9px] text-neutral-400 font-medium">Gross Bookings</span>
+              <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">+2.6%</span>
+              <span className="text-[9px] font-medium" style={{ color: "var(--admin-text-muted)" }}>Gross Bookings</span>
             </div>
           </div>
         </div>
