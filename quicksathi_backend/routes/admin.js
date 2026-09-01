@@ -50,13 +50,13 @@ router.get("/stats", protect, adminOnly, async (req, res) => {
       Service.countDocuments(),
       Category.countDocuments(),
       Booking.aggregate([
-        { $match: { paymentStatus: "paid" } },
+        { $match: { $or: [{ paymentStatus: "paid" }, { status: "completed" }] } },
         { $group: { _id: null, total: { $sum: "$amount" } } },
       ]),
       Booking.aggregate([
         { 
           $match: { 
-            paymentStatus: "paid",
+            $or: [{ paymentStatus: "paid" }, { status: "completed" }],
             createdAt: { $gte: sixMonthsAgo }
           } 
         },
@@ -502,6 +502,9 @@ router.patch("/bookings/:id/status", protect, adminOnly, async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
     booking.status = status;
+    if (status === "completed") {
+      booking.paymentStatus = "paid";
+    }
     await booking.save();
     res.json({ message: "Booking status updated successfully", booking });
   } catch (error) {

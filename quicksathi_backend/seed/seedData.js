@@ -5,6 +5,7 @@ import User from "../models/User.js";
 import Category from "../models/Category.js";
 import Service from "../models/Service.js";
 import Booking from "../models/Booking.js";
+import Provider from "../models/Provider.js";
 
 // Parse admin emails from .env (comma-separated)
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
@@ -14,45 +15,13 @@ const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
 
 const categoriesData = [
   {
-    name: "CCTV Security",
-    description: "Enterprise-grade CCTV and monitoring systems with expert installation and 24/7 support.",
-    vertical: "CCTV_SECURITY",
-    type: "BOTH",
-    imageUrl: "/images/cctv-main.png",
-    secondaryImageUrl: "/images/cctv-main.png",
-    displayOrder: 1,
-    active: true,
-    subCategories: [
-      {
-        name: "Home Security",
-        description: "Comprehensive residential security setups with high-res cameras, motion alerts, and mobile monitoring.",
-        vertical: "CCTV_SECURITY",
-        type: "SERVICE_ONLY",
-        imageUrl: "/images/cctv-main.png",
-        secondaryImageUrl: "/images/cctv-main.png",
-        displayOrder: 1,
-        active: true
-      },
-      {
-        name: "Commercial Pro",
-        description: "Scalable security infrastructure for businesses, featuring AI monitoring and central control station access.",
-        vertical: "CCTV_SECURITY",
-        type: "SERVICE_ONLY",
-        imageUrl: "/images/cctv-main.png",
-        secondaryImageUrl: "/images/cctv-main.png",
-        displayOrder: 2,
-        active: true
-      }
-    ]
-  },
-  {
     name: "Vehicle Rental",
     description: "Flexible vehicle rentals for every occasion — transparent pricing, well-maintained fleet, zero hidden charges.",
     vertical: "VEHICLE_RENTAL",
     type: "BOTH",
     imageUrl: "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778413946/VehicleRental_eeacbd.png",
     secondaryImageUrl: "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778475579/Bike_Rental_1_bmaj4c.png",
-    displayOrder: 2,
+    displayOrder: 1,
     active: true,
     subCategories: [
       {
@@ -94,7 +63,7 @@ const categoriesData = [
     type: "BOTH",
     imageUrl: "https://images.unsplash.com/photo-1610173826608-bd1f53a52db1?q=80&w=2070&auto=format&fit=crop",
     secondaryImageUrl: "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778413707/Wedding_Photo_flultf.png",
-    displayOrder: 3,
+    displayOrder: 2,
     active: true,
     subCategories: [
       {
@@ -130,65 +99,13 @@ const categoriesData = [
     ]
   },
   {
-    name: "Home Tuition",
-    description: "Experienced and verified tutors for school academics, competitive exams, languages, and online learning at your convenience.",
-    vertical: "HOME_TUITION",
-    type: "BOTH",
-    imageUrl: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070&auto=format&fit=crop",
-    secondaryImageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop",
-    displayOrder: 4,
-    active: true,
-    subCategories: [
-      {
-        name: "School Tuition",
-        description: "Personalized home tuition for Classes 1–12 across CBSE, ICSE, and State Boards with experienced tutors.",
-        vertical: "HOME_TUITION",
-        type: "SERVICE_ONLY",
-        imageUrl: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=2070&auto=format&fit=crop",
-        secondaryImageUrl: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=2070&auto=format&fit=crop",
-        displayOrder: 1,
-        active: true
-      },
-      {
-        name: "Online Tuition",
-        description: "Interactive online classes with expert tutors, flexible schedules, live doubt solving, and recorded sessions.",
-        vertical: "HOME_TUITION",
-        type: "SERVICE_ONLY",
-        imageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop",
-        secondaryImageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop",
-        displayOrder: 2,
-        active: true
-      },
-      {
-        name: "Competitive Exam Coaching",
-        description: "Expert coaching for JEE, NEET, MHT-CET, UPSC, SSC, Banking, and other competitive examinations.",
-        vertical: "HOME_TUITION",
-        type: "SERVICE_ONLY",
-        imageUrl: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=2068&auto=format&fit=crop",
-        secondaryImageUrl: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=2068&auto=format&fit=crop",
-        displayOrder: 3,
-        active: true
-      },
-      {
-        name: "Language Classes",
-        description: "Learn Spoken English, Hindi, Marathi, French, German, and other languages from certified trainers.",
-        vertical: "HOME_TUITION",
-        type: "SERVICE_ONLY",
-        imageUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=1974&auto=format&fit=crop",
-        secondaryImageUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=1974&auto=format&fit=crop",
-        displayOrder: 4,
-        active: true
-      }
-    ]
-  },
-  {
     name: "House Help",
     description: "Professional and verified home helper services — maid, deep cleaning, cooking, and babysitting at your convenience.",
     vertical: "HOUSE_HELP",
     type: "BOTH",
     imageUrl: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=2070&auto=format&fit=crop",
     secondaryImageUrl: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2070&auto=format&fit=crop",
-    displayOrder: 5,
+    displayOrder: 3,
     active: true,
     subCategories: [
       {
@@ -234,13 +151,65 @@ const categoriesData = [
     ]
   },
   {
+    name: "House Services & Repair",
+    description: "Reliable and affordable home repair professionals — plumbing, electrical, carpentry, and painting services at your doorstep.",
+    vertical: "HOUSE_SERVICES",
+    type: "BOTH",
+    imageUrl: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop",
+    secondaryImageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?q=80&w=2032&auto=format&fit=crop",
+    displayOrder: 4,
+    active: true,
+    subCategories: [
+      {
+        name: "Plumbing",
+        description: "Expert plumbing services for leak repairs, pipe fitting, tap installation, and drainage solutions.",
+        vertical: "HOUSE_SERVICES",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?q=80&w=2070&auto=format&fit=crop",
+        displayOrder: 1,
+        active: true
+      },
+      {
+        name: "Electrician",
+        description: "Certified electricians for wiring, switchboard repair, fan installation, and electrical safety checks.",
+        vertical: "HOUSE_SERVICES",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=2069&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=2069&auto=format&fit=crop",
+        displayOrder: 2,
+        active: true
+      },
+      {
+        name: "Carpentry",
+        description: "Skilled carpenters for furniture repair, door fitting, cabinet work, and custom woodwork.",
+        vertical: "HOUSE_SERVICES",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1504148455328-c376907d081c?q=80&w=2057&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1504148455328-c376907d081c?q=80&w=2057&auto=format&fit=crop",
+        displayOrder: 3,
+        active: true
+      },
+      {
+        name: "Painting",
+        description: "Professional home painting services — interior, exterior, texture, and waterproofing solutions.",
+        vertical: "HOUSE_SERVICES",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
+        displayOrder: 4,
+        active: true
+      }
+    ]
+  },
+  {
     name: "Home Salon & Beauty",
     description: "Professional salon, spa, and beauty grooming services at the comfort of your home.",
     vertical: "HOME_SALON",
     type: "SERVICE_ONLY",
     imageUrl: "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=2070&auto=format&fit=crop",
     secondaryImageUrl: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=2070&auto=format&fit=crop",
-    displayOrder: 6,
+    displayOrder: 5,
     active: true,
     subCategories: [
       {
@@ -291,6 +260,90 @@ const categoriesData = [
         imageUrl: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=2070&auto=format&fit=crop",
         secondaryImageUrl: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=2070&auto=format&fit=crop",
         displayOrder: 5,
+        active: true
+      }
+    ]
+  },
+  {
+    name: "Home Tuition",
+    description: "Experienced and verified tutors for school academics, competitive exams, languages, and online learning at your convenience.",
+    vertical: "HOME_TUITION",
+    type: "BOTH",
+    imageUrl: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070&auto=format&fit=crop",
+    secondaryImageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop",
+    displayOrder: 6,
+    active: true,
+    subCategories: [
+      {
+        name: "School Tuition",
+        description: "Personalized home tuition for Classes 1–12 across CBSE, ICSE, and State Boards with experienced tutors.",
+        vertical: "HOME_TUITION",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=2070&auto=format&fit=crop",
+        displayOrder: 1,
+        active: true
+      },
+      {
+        name: "Online Tuition",
+        description: "Interactive online classes with expert tutors, flexible schedules, live doubt solving, and recorded sessions.",
+        vertical: "HOME_TUITION",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop",
+        displayOrder: 2,
+        active: true
+      },
+      {
+        name: "Competitive Exam Coaching",
+        description: "Expert coaching for JEE, NEET, MHT-CET, UPSC, SSC, Banking, and other competitive examinations.",
+        vertical: "HOME_TUITION",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=2068&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?q=80&w=2068&auto=format&fit=crop",
+        displayOrder: 3,
+        active: true
+      },
+      {
+        name: "Language Classes",
+        description: "Learn Spoken English, Hindi, Marathi, French, German, and other languages from certified trainers.",
+        vertical: "HOME_TUITION",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=1974&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=1974&auto=format&fit=crop",
+        displayOrder: 4,
+        active: true
+      }
+    ]
+  },
+  {
+    name: "CCTV Security",
+    description: "Enterprise-grade CCTV and monitoring systems with expert installation and 24/7 support.",
+    vertical: "CCTV_SECURITY",
+    type: "BOTH",
+    imageUrl: "/images/cctv-main.png",
+    secondaryImageUrl: "/images/cctv-main.png",
+    displayOrder: 7,
+    active: true,
+    subCategories: [
+      {
+        name: "Home Security",
+        description: "Comprehensive residential security setups with high-res cameras, motion alerts, and mobile monitoring.",
+        vertical: "CCTV_SECURITY",
+        type: "SERVICE_ONLY",
+        imageUrl: "/images/cctv-main.png",
+        secondaryImageUrl: "/images/cctv-main.png",
+        displayOrder: 1,
+        active: true
+      },
+      {
+        name: "Commercial Pro",
+        description: "Scalable security infrastructure for businesses, featuring AI monitoring and central control station access.",
+        vertical: "CCTV_SECURITY",
+        type: "SERVICE_ONLY",
+        imageUrl: "/images/cctv-main.png",
+        secondaryImageUrl: "/images/cctv-main.png",
+        displayOrder: 2,
         active: true
       }
     ]
@@ -883,6 +936,138 @@ const servicesData = [
     ]
   },
   {
+    slug: "plumbing",
+    name: "Plumbing",
+    shortDescription: "Expert plumbing repairs, installations, and drainage solutions",
+    fullDescription: "Get reliable plumbing services at your doorstep — from leaky taps and pipe fitting to bathroom installations, water tank repairs, and complete drainage solutions by certified plumbers.",
+    categoryGroup: "House Services & Repair",
+    thumbnail: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?q=80&w=2070&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?q=80&w=2070&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 199,
+    priceUnit: "per visit",
+    rating: 4.6,
+    totalReviews: 178,
+    experience: "6 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["Plumbing", "Leak Repair", "Pipe Fitting", "Drainage"],
+    featured: true,
+    packages: [
+      { title: "Basic Repair Visit", price: 199, features: ["Tap/Faucet Repair", "Minor Leak Fix", "Inspection & Diagnosis"] },
+      { title: "Complete Plumbing Overhaul", price: 1499, features: ["Full Pipe Inspection", "Bathroom Fitting", "Water Tank Repair", "Drainage Cleaning", "1 Month Warranty"] }
+    ],
+    faqs: [
+      { question: "Do plumbers bring their own tools?", answer: "Yes, all tools and basic spare parts are carried by our plumbers." },
+      { question: "Is there a warranty on repairs?", answer: "Yes, all repairs come with a 30-day service warranty." }
+    ],
+    reviews: [
+      { userName: "Rajesh Kumar", rating: 5, comment: "Fixed the bathroom leak in 30 minutes. Very professional." }
+    ],
+    providers: [
+      { name: "AquaFix Plumbers", rating: 4.6, experience: "6 Years", location: "Patna", startingPrice: 199, image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1974&auto=format&fit=crop" }
+    ]
+  },
+  {
+    slug: "electrician",
+    name: "Electrician",
+    shortDescription: "Certified electricians for wiring, repairs, and installations",
+    fullDescription: "Professional electrical services including switchboard repair, fan & light installation, wiring & rewiring, inverter setup, MCB/fuse box repair, and complete home electrical safety audits.",
+    categoryGroup: "House Services & Repair",
+    thumbnail: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=2069&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=2069&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 149,
+    priceUnit: "per visit",
+    rating: 4.7,
+    totalReviews: 215,
+    experience: "5 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["Electrician", "Wiring", "Fan Installation", "Switchboard"],
+    featured: true,
+    packages: [
+      { title: "Quick Fix Visit", price: 149, features: ["Switch/Socket Repair", "Fan Repair", "Light Installation"] },
+      { title: "Full Home Electrical Service", price: 999, features: ["Complete Wiring Check", "MCB Box Inspection", "Fan & Light Install (up to 3)", "Inverter Setup Support", "Safety Audit"] }
+    ],
+    faqs: [
+      { question: "Are your electricians certified?", answer: "Yes, all electricians are licensed and background-verified." },
+      { question: "Do you handle high-voltage work?", answer: "Yes, we handle both domestic and commercial electrical work." }
+    ],
+    reviews: [
+      { userName: "Sunita Devi", rating: 5, comment: "Installed 3 ceiling fans perfectly. Clean and fast work." }
+    ],
+    providers: [
+      { name: "PowerFix Electricians", rating: 4.7, experience: "5 Years", location: "Patna", startingPrice: 149, image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=1974&auto=format&fit=crop" }
+    ]
+  },
+  {
+    slug: "carpentry",
+    name: "Carpentry",
+    shortDescription: "Skilled carpenters for furniture repair and custom woodwork",
+    fullDescription: "Hire expert carpenters for furniture assembly, door & window repair, kitchen cabinet fitting, wardrobe customization, bed repair, and all types of wooden fixture work.",
+    categoryGroup: "House Services & Repair",
+    thumbnail: "https://images.unsplash.com/photo-1504148455328-c376907d081c?q=80&w=2057&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1504148455328-c376907d081c?q=80&w=2057&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 299,
+    priceUnit: "per visit",
+    rating: 4.5,
+    totalReviews: 134,
+    experience: "7 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["Carpentry", "Furniture Repair", "Cabinet", "Woodwork"],
+    featured: false,
+    packages: [
+      { title: "Minor Repair Visit", price: 299, features: ["Door/Window Repair", "Hinge & Lock Fix", "Small Furniture Fix"] },
+      { title: "Custom Furniture Package", price: 2499, features: ["Wardrobe Assembly", "Kitchen Cabinet Fitting", "Custom Shelving", "Bed Frame Repair", "Material Consultation"] }
+    ],
+    faqs: [
+      { question: "Do you provide the wood/material?", answer: "We can source materials at additional cost, or you can provide your own." },
+      { question: "How long does furniture assembly take?", answer: "Most standard assemblies take 2-4 hours depending on complexity." }
+    ],
+    reviews: [
+      { userName: "Manoj Tiwari", rating: 4, comment: "Repaired my old wardrobe and it looks brand new now." }
+    ],
+    providers: [
+      { name: "WoodCraft Masters", rating: 4.5, experience: "7 Years", location: "Patna", startingPrice: 299, image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=2070&auto=format&fit=crop" }
+    ]
+  },
+  {
+    slug: "painting",
+    name: "Painting",
+    shortDescription: "Professional interior and exterior home painting",
+    fullDescription: "Transform your home with professional painting services — interior wall painting, exterior coatings, texture finishes, waterproofing, wood polish, and color consultation by experienced painters.",
+    categoryGroup: "House Services & Repair",
+    thumbnail: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 12,
+    priceUnit: "per sq ft",
+    rating: 4.7,
+    totalReviews: 98,
+    experience: "8 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["Painting", "Interior", "Exterior", "Waterproofing"],
+    featured: false,
+    packages: [
+      { title: "Single Room Painting", price: 2999, features: ["Wall Prep & Putty", "2 Coats Premium Paint", "Ceiling Touch-up", "Clean-up After Work"] },
+      { title: "Full Home Makeover", price: 14999, features: ["Complete Interior Painting (up to 3BHK)", "Texture Wall Feature", "Waterproofing (Bathroom & Balcony)", "Wood Polish Doors", "Color Consultation"] }
+    ],
+    faqs: [
+      { question: "Do you provide the paint?", answer: "Yes, we use premium brands like Asian Paints & Berger. You can also choose your own." },
+      { question: "How many days does a full home take?", answer: "A standard 2BHK takes 4-6 days including drying time." }
+    ],
+    reviews: [
+      { userName: "Priya Singh", rating: 5, comment: "Beautiful texture wall finish. The team was very neat and professional." }
+    ],
+    providers: [
+      { name: "ColorPro Painters", rating: 4.7, experience: "8 Years", location: "Patna", startingPrice: 2999, image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop" }
+    ]
+  },
+  {
     slug: "hair-styling-care",
     name: "Hair Styling & Care",
     shortDescription: "Expert hair styling, haircuts, and nourishing spa treatments at home",
@@ -1088,6 +1273,85 @@ const seedData = async () => {
 
   const seededServices = await Service.insertMany(servicesToInsert);
   console.log(`   Seeded ${seededServices.length} services successfully!`);
+
+  console.log("\n🌱 Seeding sample bookings...\n");
+  const sampleUser = (await User.findOne({ role: "user" })) || (await User.findOne({}));
+  const sampleProvider = await Provider.findOne({ approvalStatus: "approved" });
+
+  if (sampleUser && seededServices.length > 0) {
+    const photoService = seededServices.find((s) => s.slug === "photography") || seededServices[0];
+    const decorService = seededServices.find((s) => s.slug === "decoration") || seededServices[1];
+    const rentalService = seededServices.find((s) => s.slug === "car-rental") || seededServices[2];
+    const plumbingService = seededServices.find((s) => s.slug === "plumbing") || seededServices[3];
+
+    const sampleBookings = [
+      {
+        bookingId: "QS-PHOTO-" + Math.random().toString(36).substring(2, 7).toUpperCase(),
+        user: sampleUser._id,
+        service: photoService._id,
+        provider: sampleProvider?._id,
+        serviceName: photoService.name,
+        packageTitle: photoService.packages?.[0]?.title || "Basic Package",
+        scheduledDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        scheduledTime: "10:00 AM",
+        location: { address: "Boring Road, Near Chauraha", city: "Patna", pincode: "800001" },
+        notes: "Wedding reception shoot",
+        amount: 15000,
+        paymentMethod: "cod",
+        paymentStatus: "paid",
+        status: "completed",
+      },
+      {
+        bookingId: "QS-DECOR-" + Math.random().toString(36).substring(2, 7).toUpperCase(),
+        user: sampleUser._id,
+        service: decorService._id,
+        provider: sampleProvider?._id,
+        serviceName: decorService.name,
+        packageTitle: decorService.packages?.[0]?.title || "Royal Thematic Decor",
+        scheduledDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+        scheduledTime: "02:00 PM",
+        location: { address: "Bailey Road, Saguna More", city: "Patna", pincode: "800014" },
+        notes: "Floral entrance and stage setup",
+        amount: 25000,
+        paymentMethod: "razorpay",
+        paymentStatus: "paid",
+        status: "completed",
+      },
+      {
+        bookingId: "QS-CAR-" + Math.random().toString(36).substring(2, 7).toUpperCase(),
+        user: sampleUser._id,
+        service: rentalService._id,
+        serviceName: rentalService.name,
+        packageTitle: "Daily Rental Package",
+        scheduledDate: new Date(),
+        scheduledTime: "09:00 AM",
+        location: { address: "Patna Airport to Hotel Maurya", city: "Patna", pincode: "800001" },
+        notes: "Airport pickup with driver",
+        amount: 2499,
+        paymentMethod: "razorpay",
+        paymentStatus: "paid",
+        status: "confirmed",
+      },
+      {
+        bookingId: "QS-PLUMB-" + Math.random().toString(36).substring(2, 7).toUpperCase(),
+        user: sampleUser._id,
+        service: plumbingService._id,
+        serviceName: plumbingService.name,
+        packageTitle: "Basic Repair Visit",
+        scheduledDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+        scheduledTime: "11:30 AM",
+        location: { address: "Kankarbagh Main Road", city: "Patna", pincode: "800020" },
+        notes: "Kitchen tap leakage repair",
+        amount: 199,
+        paymentMethod: "cod",
+        paymentStatus: "pending",
+        status: "pending",
+      },
+    ];
+
+    const seededBookings = await Booking.insertMany(sampleBookings);
+    console.log(`   Seeded ${seededBookings.length} sample bookings successfully!`);
+  }
 
   // Promote any existing users with admin emails to admin role
   if (ADMIN_EMAILS.length > 0) {

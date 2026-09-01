@@ -32,7 +32,7 @@ const LogoImg = ({ size = 28, style = {} }) => {
 
 /* ── Compact City Picker (used inside navbar) ── */
 const CityPicker = ({ isFullBleed }) => {
-  const { city, setCity, detecting } = useCityLocation();
+  const { city, fullLocation, setCity, detecting, detectExactLocation } = useCityLocation();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const ref = useRef(null);
@@ -58,10 +58,19 @@ const CityPicker = ({ isFullBleed }) => {
     setSearch("");
   };
 
+  const handleDetectClick = () => {
+    if (detectExactLocation) {
+      detectExactLocation(true);
+    }
+    setOpen(false);
+    setSearch("");
+  };
+
   return (
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
+        title={fullLocation ? `Location: ${fullLocation}` : "Select Location"}
         className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border-0 cursor-pointer transition-all duration-200 hover:opacity-80"
         style={{
           backgroundColor: isFullBleed ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.04)",
@@ -76,7 +85,7 @@ const CityPicker = ({ isFullBleed }) => {
         {detecting ? (
           <span style={{ fontSize: "11px", opacity: 0.7 }}>Detecting…</span>
         ) : (
-          <span>{city || "All Cities"}</span>
+          <span style={{ maxWidth: "160px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block" }}>{fullLocation || "All Cities"}</span>
         )}
         <svg
           width="10" height="10" viewBox="0 0 24 24" fill="none"
@@ -92,7 +101,7 @@ const CityPicker = ({ isFullBleed }) => {
           className="absolute top-full mt-2 rounded-xl overflow-hidden shadow-2xl z-[1000] border"
           style={{
             right: 0,
-            minWidth: "200px",
+            minWidth: "220px",
             backgroundColor: "var(--color-bg-white)",
             borderColor: "var(--color-border)",
           }}
@@ -116,6 +125,25 @@ const CityPicker = ({ isFullBleed }) => {
               }}
             />
           </div>
+
+          {/* Detect Current Location Button */}
+          <button
+            onClick={handleDetectClick}
+            disabled={detecting}
+            className="w-full text-left border-0 cursor-pointer flex items-center gap-2 transition-all hover:bg-orange-50"
+            style={{
+              padding: "10px 14px",
+              background: "rgba(255,107,0,0.08)",
+              color: "#c2410c",
+              fontSize: "12px",
+              fontFamily: "var(--font-body)",
+              fontWeight: 600,
+              borderBottom: "1px solid var(--color-border)",
+            }}
+          >
+            <span style={{ fontSize: "14px" }}>🎯</span>
+            <span>{detecting ? "Detecting location..." : "Use Current / Exact Location"}</span>
+          </button>
 
           {/* All Cities */}
           <button

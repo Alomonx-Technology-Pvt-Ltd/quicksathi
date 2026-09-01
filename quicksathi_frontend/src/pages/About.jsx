@@ -33,26 +33,6 @@ const values = [
   },
 ];
 
-const team = [
-  {
-    name: "Roushan Kumar",
-    role: "Co-Founder & CEO",
-    bio: "Driving tech innovation to digitize and elevate Patna's local service standards.",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop",
-  },
-  {
-    name: "Anjali Sharma",
-    role: "Co-Founder & COO",
-    bio: "Ensuring top-tier service delivery and managing our network of trusted providers.",
-    image: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=600&auto=format&fit=crop",
-  },
-  {
-    name: "Vikram Aditya",
-    role: "Lead Systems Architect",
-    bio: "Crafting the secure, user-friendly, and blazing fast platform you experience.",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=600&auto=format&fit=crop",
-  },
-];
 
 const About = () => {
   return (
@@ -332,85 +312,6 @@ const About = () => {
         </div>
       </section>
 
-      {/* ── Our Team ── */}
-      <section className="px-4 sm:px-8 lg:px-16 py-20 sm:py-28 max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <span
-            className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4 border uppercase tracking-widest"
-            style={{
-              fontFamily: "var(--font-body)",
-              backgroundColor: "rgba(139,26,26,0.06)",
-              color: "var(--color-primary)",
-              borderColor: "rgba(139,26,26,0.15)",
-              letterSpacing: "0.1em",
-            }}
-          >
-            Leadership
-          </span>
-          <h2
-            className="font-normal m-0"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(26px, 3.5vw, 42px)",
-              color: "var(--color-text-dark)",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            The Minds Behind QuickSathi
-          </h2>
-        </div>
-
-        <motion.div 
-          className="grid grid-cols-1 md:grid-cols-3 gap-8"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
-          variants={{
-            hidden: {},
-            visible: { transition: { staggerChildren: 0.15 } }
-          }}
-        >
-          {team.map((t, idx) => (
-            <motion.div
-              key={idx}
-              variants={{
-                hidden: { scale: 0.95, opacity: 0 },
-                visible: { scale: 1, opacity: 1, transition: { duration: 0.6 } }
-              }}
-              className="rounded-3xl border overflow-hidden transition-all duration-300 hover:shadow-xl flex flex-col h-full"
-              style={{ backgroundColor: "var(--color-bg)", borderColor: "var(--color-border)" }}
-            >
-              <div style={{ height: "260px", overflow: "hidden" }}>
-                <img
-                  src={t.image}
-                  alt={t.name}
-                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                />
-              </div>
-              <div className="p-6">
-                <h4
-                  className="m-0 mb-1 font-semibold text-lg"
-                  style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}
-                >
-                  {t.name}
-                </h4>
-                <p
-                  className="m-0 mb-4 text-xs font-medium uppercase tracking-wider"
-                  style={{ fontFamily: "var(--font-body)", color: "var(--color-primary)" }}
-                >
-                  {t.role}
-                </p>
-                <p
-                  className="m-0 text-sm leading-relaxed"
-                  style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
-                >
-                  {t.bio}
-                </p>
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
-      </section>
 
       {/* ── Browse Categories CTA ── */}
       <section

@@ -331,6 +331,9 @@ router.patch("/bookings/:id/status", protect, providerOnly, async (req, res) => 
     }
 
     booking.status = status;
+    if (status === "completed") {
+      booking.paymentStatus = "paid";
+    }
     await booking.save();
 
     // Create Notification for the client user

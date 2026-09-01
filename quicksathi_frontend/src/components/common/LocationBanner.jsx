@@ -7,7 +7,7 @@ import { useLocation, CITY_OPTIONS } from "../../context/LocationContext";
  * Styled using QuickSathi brand colours (deep blue, orange accent).
  */
 export default function LocationBanner() {
-  const { city, setCity, detecting, showBanner } = useLocation();
+  const { city, fullLocation, setCity, detecting, showBanner, detectExactLocation } = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchCity, setSearchCity] = useState("");
   const dropRef = useRef(null);
@@ -38,6 +38,14 @@ export default function LocationBanner() {
 
   const handleShowAll = () => {
     setCity(null);
+    setDropdownOpen(false);
+    setSearchCity("");
+  };
+
+  const handleDetectClick = () => {
+    if (detectExactLocation) {
+      detectExactLocation(true);
+    }
     setDropdownOpen(false);
     setSearchCity("");
   };
@@ -116,7 +124,7 @@ export default function LocationBanner() {
             </>
           ) : (
             <>
-              {city || "All Cities"}
+              {fullLocation || "All Cities"}
               <svg
                 width="11"
                 height="11"
@@ -174,6 +182,31 @@ export default function LocationBanner() {
                 }}
               />
             </div>
+
+            {/* Detect Current Location Button */}
+            <button
+              onClick={handleDetectClick}
+              disabled={detecting}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                width: "100%",
+                padding: "8px 14px",
+                textAlign: "left",
+                background: "rgba(255,107,0,0.18)",
+                border: "none",
+                borderBottom: "1px solid rgba(255,255,255,0.08)",
+                color: "#ff6b00",
+                fontSize: "12px",
+                fontFamily: "Inter, sans-serif",
+                cursor: "pointer",
+                fontWeight: "600",
+              }}
+            >
+              <span>🎯</span>
+              <span>{detecting ? "Detecting location..." : "Use Current / Exact Location"}</span>
+            </button>
 
             {/* All Cities option */}
             <button

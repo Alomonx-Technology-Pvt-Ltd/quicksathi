@@ -203,9 +203,9 @@ const ProviderDashboard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen" style={{ backgroundColor: "#0c0c0e" }}>
+      <div className="flex items-center justify-center min-h-screen" data-admin-theme={theme} style={{ backgroundColor: "var(--admin-bg-main)" }}>
         <div className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin"
-          style={{ borderColor: "rgba(255,255,255,0.06)", borderTopColor: "var(--color-primary)" }} />
+          style={{ borderColor: "var(--admin-border)", borderTopColor: "var(--color-primary)" }} />
       </div>
     );
   }

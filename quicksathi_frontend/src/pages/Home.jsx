@@ -190,7 +190,7 @@ const Home = () => {
             visible: { transition: { staggerChildren: 0.15 } }
           }}
         >
-          {categories?.map((parent) => {
+          {[...(categories || [])].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)).map((parent) => {
             const featuredSub = parent.subCategories?.[0];
             if (!featuredSub) return null;
 

@@ -81,21 +81,23 @@ const AdminDashboard = () => {
     );
   }
 
-  // ── Calculate dynamic statistics based on selected period ──
+  // ── Calculate dynamic statistics based on real database data ──
   const getFilteredStats = () => {
     if (!stats) return { revenue: 0, commission: 0, bookings: 0, users: 0, providers: 0 };
-    let factor = 1;
-    if (period === "Today") factor = 0.08;
-    else if (period === "This week") factor = 0.35;
-    else if (period === "This year") factor = 2.4;
 
     const baseRevenue = stats.totalRevenue || 0;
+    const computedBookingsRevenue = bookings
+      .filter((b) => b.status === "completed" || b.paymentStatus === "paid")
+      .reduce((sum, b) => sum + (Number(b.amount) || 0), 0);
+
+    const finalRevenue = Math.max(baseRevenue, computedBookingsRevenue);
+
     return {
-      revenue: Math.round(baseRevenue * factor),
-      commission: Math.round((baseRevenue * factor) * 0.15), // 15% Platform Commission
-      bookings: Math.round(stats.totalBookings * factor),
-      users: stats.totalUsers,
-      providers: stats.totalProviders
+      revenue: finalRevenue,
+      commission: Math.round(finalRevenue * 0.15), // 15% Platform Commission
+      bookings: stats.totalBookings || bookings.length || 0,
+      users: stats.totalUsers || 0,
+      providers: stats.totalProviders || 0
     };
   };
 

@@ -30,8 +30,8 @@ router.post("/", protect, async (req, res) => {
       notes,
       amount: amount || pkg?.price || service.startingPrice,
       paymentMethod,
-      paymentStatus: paymentMethod === "cod" ? "pending" : "pending",
-      status: "pending",
+      paymentStatus: paymentMethod === "razorpay" ? "paid" : "pending",
+      status: paymentMethod === "razorpay" ? "confirmed" : "pending",
     });
 
     res.status(201).json(booking);
@@ -127,9 +127,14 @@ router.patch("/:id/status", protect, async (req, res) => {
       return res.status(403).json({ message: "Not authorized" });
     }
 
+    const updateFields = { status: req.body.status };
+    if (req.body.status === "completed") {
+      updateFields.paymentStatus = "paid";
+    }
+
     const booking = await Booking.findByIdAndUpdate(
       req.params.id,
-      { status: req.body.status },
+      updateFields,
       { new: true, runValidators: true }
     );
 

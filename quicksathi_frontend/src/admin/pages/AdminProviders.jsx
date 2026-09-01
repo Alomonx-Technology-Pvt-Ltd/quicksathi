@@ -77,8 +77,8 @@ const AdminProviders = () => {
     return (
       <div className="flex flex-col items-center justify-center gap-4 py-20">
         <div className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin"
-          style={{ borderColor: "rgba(255,255,255,0.06)", borderTopColor: "var(--color-primary)" }} />
-        <span className="text-xs text-muted" style={{ color: "rgba(255,255,255,0.3)" }}>Loading providers database...</span>
+          style={{ borderColor: "var(--admin-border)", borderTopColor: "var(--color-primary)" }} />
+        <span className="text-xs" style={{ color: "var(--admin-text-muted)" }}>Loading providers database...</span>
       </div>
     );
   }
@@ -92,16 +92,16 @@ const AdminProviders = () => {
     >
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "var(--font-display)" }}>Provider Approvals</h1>
-          <p className="text-sm m-0" style={{ fontFamily: "var(--font-body)", color: "rgba(255,255,255,0.35)" }}>
+          <h1 className="text-2xl font-bold mb-1" style={{ fontFamily: "var(--font-display)", color: "var(--admin-text-primary)" }}>Provider Approvals</h1>
+          <p className="text-sm m-0" style={{ fontFamily: "var(--font-body)", color: "var(--admin-text-muted)" }}>
             Review business credentials, contact detail logs, and manage partner applications.
           </p>
         </div>
 
         {/* Stats Summary badge */}
         <div className="flex gap-4">
-          <div className="px-5 py-2.5 rounded-2xl border flex flex-col items-center" style={{ backgroundColor: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.06)" }}>
-            <span className="text-[10px] uppercase font-bold" style={{ color: "rgba(255,255,255,0.35)", fontFamily: "var(--font-body)" }}>Pending Applications</span>
+          <div className="px-5 py-2.5 rounded-2xl border flex flex-col items-center" style={{ backgroundColor: "var(--admin-bg-card)", borderColor: "var(--admin-border)" }}>
+            <span className="text-[10px] uppercase font-bold" style={{ color: "var(--admin-text-muted)", fontFamily: "var(--font-body)" }}>Pending Applications</span>
             <span className="text-lg font-bold text-amber-500 mt-0.5">
               {providers.filter((p) => p.approvalStatus === "pending").length}
             </span>
@@ -118,14 +118,15 @@ const AdminProviders = () => {
             placeholder="Search by business, name or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-5 py-3 pr-10 rounded-2xl border outline-none text-white text-sm"
+            className="w-full px-5 py-3 pr-10 rounded-2xl border outline-none text-sm"
             style={{
               fontFamily: "var(--font-body)",
-              backgroundColor: "rgba(255,255,255,0.04)",
-              borderColor: "rgba(255,255,255,0.08)",
+              backgroundColor: "var(--admin-bg-input)",
+              borderColor: "var(--admin-border)",
+              color: "var(--admin-text-primary)",
             }}
           />
-          <Search size={14} className="absolute right-5 top-1/2 -translate-y-1/2 text-white/30" />
+          <Search size={14} className="absolute right-5 top-1/2 -translate-y-1/2" style={{ color: "var(--admin-text-muted)" }} />
         </div>
 
         {/* Filters pills */}
@@ -137,9 +138,9 @@ const AdminProviders = () => {
               className="px-4 py-2 rounded-xl text-xs font-semibold border-0 cursor-pointer capitalize transition-all border"
               style={{
                 fontFamily: "var(--font-body)",
-                backgroundColor: filter === f ? "var(--color-primary)" : "rgba(255,255,255,0.02)",
-                color: filter === f ? "#fff" : "rgba(255,255,255,0.45)",
-                borderColor: filter === f ? "var(--color-primary)" : "rgba(255,255,255,0.06)",
+                backgroundColor: filter === f ? "var(--color-primary)" : "var(--admin-bg-input)",
+                color: filter === f ? "#fff" : "var(--admin-text-secondary)",
+                borderColor: filter === f ? "var(--color-primary)" : "var(--admin-border)",
               }}
             >
               {f}
@@ -160,7 +161,7 @@ const AdminProviders = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 className="rounded-3xl p-6 border flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6 transition-all duration-200 hover:shadow-md"
-                style={{ backgroundColor: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}
+                style={{ backgroundColor: "var(--admin-bg-card)", borderColor: "var(--admin-border)" }}
               >
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-3 mb-2.5">
@@ -169,8 +170,8 @@ const AdminProviders = () => {
                       {provider.businessName ? provider.businessName[0].toUpperCase() : "P"}
                     </div>
                     <div>
-                      <h3 className="text-base font-semibold text-white m-0" style={{ fontFamily: "var(--font-display)" }}>{provider.businessName}</h3>
-                      <p className="text-xs m-0" style={{ fontFamily: "var(--font-body)", color: "rgba(255,255,255,0.3)" }}>
+                      <h3 className="text-base font-semibold m-0" style={{ fontFamily: "var(--font-display)", color: "var(--admin-text-primary)" }}>{provider.businessName}</h3>
+                      <p className="text-xs m-0" style={{ fontFamily: "var(--font-body)", color: "var(--admin-text-muted)" }}>
                         Owned by {provider.user?.name || "Unnamed User"} · {provider.businessType || provider.categoryName || "Provider"}
                       </p>
                     </div>
@@ -181,7 +182,7 @@ const AdminProviders = () => {
                   </div>
 
                   {/* Metadata Row */}
-                  <div className="flex flex-wrap gap-x-5 gap-y-2.5 text-xs mt-4 pt-3.5 border-t" style={{ borderColor: "rgba(255,255,255,0.04)", fontFamily: "var(--font-body)", color: "rgba(255,255,255,0.4)" }}>
+                  <div className="flex flex-wrap gap-x-5 gap-y-2.5 text-xs mt-4 pt-3.5 border-t" style={{ borderColor: "var(--admin-border)", fontFamily: "var(--font-body)", color: "var(--admin-text-secondary)" }}>
                     <span className="flex items-center gap-1.5">📧 {provider.email || provider.user?.email || "—"}</span>
                     <span className="flex items-center gap-1.5">📞 {provider.phone || provider.user?.phone || "—"}</span>
                     <span className="flex items-center gap-1.5">📍 {provider.location?.city || "Unknown City"}</span>
@@ -190,8 +191,8 @@ const AdminProviders = () => {
                   </div>
 
                   {/* Documents & Verification Section */}
-                  <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t" style={{ borderColor: "rgba(255,255,255,0.04)" }}>
-                    <span className="text-[10px] uppercase font-bold tracking-wider text-white/30">Verification:</span>
+                  <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t" style={{ borderColor: "var(--admin-border)" }}>
+                    <span className="text-[10px] uppercase font-bold tracking-wider" style={{ color: "var(--admin-text-muted)" }}>Verification:</span>
                     {provider.documents?.selfiePhoto ? (
                       <a 
                         href={provider.documents.selfiePhoto} 
@@ -204,7 +205,7 @@ const AdminProviders = () => {
                         📸 View Live Selfie
                       </a>
                     ) : (
-                      <span className="text-xs text-white/30">No selfie</span>
+                      <span className="text-xs" style={{ color: "var(--admin-text-muted)" }}>No selfie</span>
                     )}
 
                     {provider.documents?.idProof && (
@@ -267,8 +268,8 @@ const AdminProviders = () => {
         </AnimatePresence>
 
         {filtered.length === 0 && (
-          <div className="text-center py-20 rounded-3xl border" style={{ backgroundColor: "rgba(255,255,255,0.01)", borderColor: "rgba(255,255,255,0.04)" }}>
-            <p className="text-sm m-0" style={{ fontFamily: "var(--font-body)", color: "rgba(255,255,255,0.3)" }}>
+          <div className="text-center py-20 rounded-3xl border" style={{ backgroundColor: "var(--admin-bg-card)", borderColor: "var(--admin-border)" }}>
+            <p className="text-sm m-0" style={{ fontFamily: "var(--font-body)", color: "var(--admin-text-muted)" }}>
               No provider registrations found in this category.
             </p>
           </div>

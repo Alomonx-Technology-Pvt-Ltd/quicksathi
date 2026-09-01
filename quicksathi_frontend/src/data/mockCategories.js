@@ -30,7 +30,7 @@ export const mockCategories = [
     type: "BOTH",
     imageUrl: homeCCTV1,
     secondaryImageUrl: homeCCTV1,
-    displayOrder: 1,
+    displayOrder: 7,
     active: true,
     parent: null,
     subCategories: [
@@ -102,7 +102,7 @@ export const mockCategories = [
     type: "BOTH",
     imageUrl: carRental,
     secondaryImageUrl: carRental,
-    displayOrder: 2,
+    displayOrder: 1,
     active: true,
     parent: null,
     subCategories: [
@@ -160,7 +160,7 @@ export const mockCategories = [
     type: "BOTH",
     imageUrl: "https://images.unsplash.com/photo-1610173826608-bd1f53a52db1?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     secondaryImageUrl: "https://images.unsplash.com/photo-1610173826608-bd1f53a52db1?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
-    displayOrder: 3,
+    displayOrder: 2,
     active: true,
     parent: null,
     subCategories: [
@@ -231,7 +231,7 @@ export const mockCategories = [
     type: "BOTH",
     imageUrl: homeTuitionImg,
     secondaryImageUrl: homeTuitionImg,
-    displayOrder: 4,
+    displayOrder: 6,
     active: true,
     parent: null,
     subCategories: [
@@ -302,7 +302,7 @@ export const mockCategories = [
     type: "BOTH",
     imageUrl: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=2070&auto=format&fit=crop",
     secondaryImageUrl: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2070&auto=format&fit=crop",
-    displayOrder: 5,
+    displayOrder: 3,
     active: true,
     parent: null,
     subCategories: [
@@ -368,7 +368,7 @@ export const mockCategories = [
     type: "SERVICE_ONLY",
     imageUrl: "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=2070&auto=format&fit=crop",
     secondaryImageUrl: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=2070&auto=format&fit=crop",
-    displayOrder: 6,
+    displayOrder: 5,
     active: true,
     parent: null,
     subCategories: [

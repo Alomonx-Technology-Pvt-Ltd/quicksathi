@@ -12,58 +12,10 @@ import {
   Star,
   CalendarCheck
 } from "lucide-react";
+import { Hammer } from "lucide-react";
 
-// Top 6 Real-Time Working Categories
+// Top 7 Real-Time Working Categories (ordered to match backend displayOrder)
 const REAL_CATEGORIES = [
-  {
-    id: "cctv",
-    categoryId: 1,
-    title: "CCTV Security",
-    icon: ShieldCheck,
-    bgColor: "#E8F5E9", // Soft Mint Green
-    iconColor: "#166534",
-    borderColor: "#C8E6C9",
-    activeColor: "#166534",
-    route: "/services/cctv",
-    fallbackServices: [
-      {
-        id: 2,
-        name: "Home CCTV Installation",
-        description: "Comprehensive residential security setup with HD cameras & mobile alerts.",
-        startingPrice: 2999,
-        rating: 4.9,
-        imageUrl: "https://images.unsplash.com/photo-1557597774-9d273605dfa9?q=80&w=600&auto=format&fit=crop",
-        badge: "Popular"
-      },
-      {
-        id: 3,
-        name: "Commercial CCTV Setup",
-        description: "Scalable enterprise security infrastructure & central control station.",
-        startingPrice: 8999,
-        rating: 4.8,
-        imageUrl: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=600&auto=format&fit=crop",
-        badge: "Enterprise"
-      },
-      {
-        id: 5,
-        name: "Smart Lock Installation",
-        description: "Fingerprint, keypad & smart lock installation by certified technicians.",
-        startingPrice: 1999,
-        rating: 4.9,
-        imageUrl: "https://images.unsplash.com/photo-1558002038-1055907df827?q=80&w=600&auto=format&fit=crop",
-        badge: "Smart Home"
-      },
-      {
-        id: 4,
-        name: "Security Maintenance",
-        description: "Camera alignment, wiring repair, power supply replacement & inspection.",
-        startingPrice: 599,
-        rating: 4.7,
-        imageUrl: "https://images.unsplash.com/photo-1581092335397-9583fe92d232?q=80&w=600&auto=format&fit=crop",
-        badge: "Repair"
-      }
-    ]
-  },
   {
     id: "rental",
     categoryId: 6,
@@ -163,6 +115,104 @@ const REAL_CATEGORIES = [
     ]
   },
   {
+    id: "help",
+    categoryId: 20,
+    title: "House Help",
+    icon: Wrench,
+    bgColor: "#E0F2FE", // Soft Sky Blue
+    iconColor: "#0369A1",
+    borderColor: "#BAE6FD",
+    activeColor: "#0369A1",
+    route: "/category/20",
+    fallbackServices: [
+      {
+        id: 21,
+        name: "Maid & Deep Cleaning",
+        description: "Daily or monthly home cleaning services with verified maids.",
+        startingPrice: 1499,
+        rating: 4.8,
+        imageUrl: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop",
+        badge: "Verified"
+      },
+      {
+        id: 22,
+        name: "Home Cook Service",
+        description: "Experienced home cooks offering multi-cuisine healthy meals.",
+        startingPrice: 2999,
+        rating: 4.9,
+        imageUrl: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=600&auto=format&fit=crop",
+        badge: "Healthy Meals"
+      },
+      {
+        id: 23,
+        name: "Babysitting & Nanny",
+        description: "Professional and caring child care services for toddlers and kids.",
+        startingPrice: 3500,
+        rating: 4.9,
+        imageUrl: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=600&auto=format&fit=crop",
+        badge: "Caring Tutors"
+      },
+      {
+        id: 24,
+        name: "Elder & Patient Care",
+        description: "Trained caregivers for assistance & support for elderly family members.",
+        startingPrice: 4000,
+        rating: 4.8,
+        imageUrl: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=600&auto=format&fit=crop",
+        badge: "Trained Staff"
+      }
+    ]
+  },
+  {
+    id: "house-services",
+    categoryId: 30,
+    title: "House Services & Repair",
+    icon: Hammer,
+    bgColor: "#FFF7ED", // Soft Warm Orange
+    iconColor: "#C2410C",
+    borderColor: "#FED7AA",
+    activeColor: "#C2410C",
+    route: "/category/30",
+    fallbackServices: [
+      {
+        id: 31,
+        name: "Plumbing",
+        description: "Expert plumbing for leak repairs, pipe fitting, tap & drainage solutions.",
+        startingPrice: 199,
+        rating: 4.6,
+        imageUrl: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?q=80&w=600&auto=format&fit=crop",
+        badge: "Quick Fix"
+      },
+      {
+        id: 32,
+        name: "Electrician",
+        description: "Certified electricians for wiring, fan install, switchboard repair.",
+        startingPrice: 149,
+        rating: 4.7,
+        imageUrl: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=600&auto=format&fit=crop",
+        badge: "Certified"
+      },
+      {
+        id: 33,
+        name: "Carpentry",
+        description: "Skilled carpenters for furniture repair, door fitting & woodwork.",
+        startingPrice: 299,
+        rating: 4.5,
+        imageUrl: "https://images.unsplash.com/photo-1504148455328-c376907d081c?q=80&w=600&auto=format&fit=crop",
+        badge: "Skilled"
+      },
+      {
+        id: 34,
+        name: "Painting",
+        description: "Professional interior & exterior painting, textures & waterproofing.",
+        startingPrice: 2999,
+        rating: 4.7,
+        imageUrl: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=600&auto=format&fit=crop",
+        badge: "Premium"
+      }
+    ]
+  },
+  {
     id: "salon",
     categoryId: 25,
     title: "Home Salon & Beauty",
@@ -208,55 +258,6 @@ const REAL_CATEGORIES = [
         rating: 4.7,
         imageUrl: "https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=600&auto=format&fit=crop",
         badge: "Hygiene Pack"
-      }
-    ]
-  },
-  {
-    id: "help",
-    categoryId: 20,
-    title: "House Help & Repair",
-    icon: Wrench,
-    bgColor: "#E0F2FE", // Soft Sky Blue
-    iconColor: "#0369A1",
-    borderColor: "#BAE6FD",
-    activeColor: "#0369A1",
-    route: "/category/20",
-    fallbackServices: [
-      {
-        id: 21,
-        name: "Maid & Deep Cleaning",
-        description: "Daily or monthly home cleaning services with verified maids.",
-        startingPrice: 1499,
-        rating: 4.8,
-        imageUrl: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop",
-        badge: "Verified"
-      },
-      {
-        id: 22,
-        name: "Home Cook Service",
-        description: "Experienced home cooks offering multi-cuisine healthy meals.",
-        startingPrice: 2999,
-        rating: 4.9,
-        imageUrl: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=600&auto=format&fit=crop",
-        badge: "Healthy Meals"
-      },
-      {
-        id: 23,
-        name: "Babysitting & Nanny",
-        description: "Professional and caring child care services for toddlers and kids.",
-        startingPrice: 3500,
-        rating: 4.9,
-        imageUrl: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=600&auto=format&fit=crop",
-        badge: "Caring Tutors"
-      },
-      {
-        id: 24,
-        name: "Elder & Patient Care",
-        description: "Trained caregivers for assistance & support for elderly family members.",
-        startingPrice: 4000,
-        rating: 4.8,
-        imageUrl: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=600&auto=format&fit=crop",
-        badge: "Trained Staff"
       }
     ]
   },
@@ -308,12 +309,61 @@ const REAL_CATEGORIES = [
         badge: "Languages"
       }
     ]
+  },
+  {
+    id: "cctv",
+    categoryId: 1,
+    title: "CCTV Security",
+    icon: ShieldCheck,
+    bgColor: "#E8F5E9", // Soft Mint Green
+    iconColor: "#166534",
+    borderColor: "#C8E6C9",
+    activeColor: "#166534",
+    route: "/services/cctv",
+    fallbackServices: [
+      {
+        id: 2,
+        name: "Home CCTV Installation",
+        description: "Comprehensive residential security setup with HD cameras & mobile alerts.",
+        startingPrice: 2999,
+        rating: 4.9,
+        imageUrl: "https://images.unsplash.com/photo-1557597774-9d273605dfa9?q=80&w=600&auto=format&fit=crop",
+        badge: "Popular"
+      },
+      {
+        id: 3,
+        name: "Commercial CCTV Setup",
+        description: "Scalable enterprise security infrastructure & central control station.",
+        startingPrice: 8999,
+        rating: 4.8,
+        imageUrl: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=600&auto=format&fit=crop",
+        badge: "Enterprise"
+      },
+      {
+        id: 5,
+        name: "Smart Lock Installation",
+        description: "Fingerprint, keypad & smart lock installation by certified technicians.",
+        startingPrice: 1999,
+        rating: 4.9,
+        imageUrl: "https://images.unsplash.com/photo-1558002038-1055907df827?q=80&w=600&auto=format&fit=crop",
+        badge: "Smart Home"
+      },
+      {
+        id: 4,
+        name: "Security Maintenance",
+        description: "Camera alignment, wiring repair, power supply replacement & inspection.",
+        startingPrice: 599,
+        rating: 4.7,
+        imageUrl: "https://images.unsplash.com/photo-1581092335397-9583fe92d232?q=80&w=600&auto=format&fit=crop",
+        badge: "Repair"
+      }
+    ]
   }
 ];
 
 const QuickServicesSection = ({ categories = [], services = [] }) => {
   const navigate = useNavigate();
-  const [activeCategoryId, setActiveCategoryId] = useState("cctv");
+  const [activeCategoryId, setActiveCategoryId] = useState("rental");
 
   const activeCategoryConfig = REAL_CATEGORIES.find((c) => c.id === activeCategoryId) || REAL_CATEGORIES[0];
 
