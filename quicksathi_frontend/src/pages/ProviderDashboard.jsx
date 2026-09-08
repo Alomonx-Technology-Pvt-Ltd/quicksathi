@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { CITY_OPTIONS } from "../context/LocationContext";
@@ -18,28 +18,7 @@ import {
   Sun,
   Moon
 } from "lucide-react";
-
-const LogoImg = ({ size = 28, style = {} }) => {
-  const pad = -Math.round(size * 0.25);
-  return (
-    <img
-      src="/logo.png"
-      alt="TiptoBook Logo"
-      style={{
-        width: `${size}px`,
-        height: `${size}px`,
-        display: "block",
-        objectFit: "contain",
-        transform: "scale(1.5)",
-        marginLeft: `${pad}px`,
-        marginRight: `${pad}px`,
-        marginTop: `${pad}px`,
-        marginBottom: `${pad}px`,
-        ...style
-      }}
-    />
-  );
-};
+import BrandLogo from "../components/common/BrandLogo";
 
 const STATUS_STYLES = {
   pending: { bg: "rgba(245,158,11,0.1)", color: "#f59e0b", label: "⏳ Pending Review" },
@@ -243,11 +222,8 @@ const ProviderDashboard = () => {
       >
         {/* Top Logo */}
         <div className="flex flex-col w-full px-4 mb-6">
-          <Link to="/" className="no-underline group flex items-center gap-3 mb-4">
-            <LogoImg size={63} />
-            <span className="font-bold text-sm tracking-tight m-0" style={{ fontFamily: "var(--font-display)", color: "var(--admin-text-primary)" }}>
-              TiptoBook Partner
-            </span>
+          <Link to="/" className="no-underline group flex items-center mb-4">
+            <BrandLogo size={32} subtitle="PARTNER" />
           </Link>
           <div className="h-[1px] w-full" style={{ backgroundColor: "var(--admin-border)" }} />
         </div>
@@ -331,9 +307,10 @@ const ProviderDashboard = () => {
           className="h-16 flex items-center justify-between px-6 sm:px-8 border-b flex-shrink-0 admin-transition sticky top-0 z-40"
           style={{ borderColor: "var(--admin-border)", backgroundColor: "var(--admin-bg-sidebar)" }}
         >
-          <div className="md:hidden flex items-center gap-2">
-            <LogoImg size={24} />
-            <span className="font-bold text-xs">TiptoBook Partner</span>
+          <div className="md:hidden flex items-center">
+            <Link to="/" className="no-underline flex items-center">
+              <BrandLogo size={24} subtitle="PARTNER" />
+            </Link>
           </div>
 
           <div className="hidden md:block">

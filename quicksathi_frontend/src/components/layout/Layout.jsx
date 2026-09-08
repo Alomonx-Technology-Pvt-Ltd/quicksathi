@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Outlet, Link, NavLink, useLocation as useRouterLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useLocation as useCityLocation } from "../../context/LocationContext";
@@ -7,28 +7,7 @@ import BottomNav from "./BottomNav";
 import ChatBot from "../chatbot/ChatBot";
 import api from "../../config/api";
 import { Bell, Trash2, MapPin } from "lucide-react";
-
-const LogoImg = ({ size = 28, style = {} }) => {
-  const pad = -Math.round(size * 0.25);
-  return (
-    <img
-      src="/logo.png"
-      alt="TiptoBook Logo"
-      style={{
-        width: `${size}px`,
-        height: `${size}px`,
-        display: "block",
-        objectFit: "contain",
-        transform: "scale(1.5)",
-        marginLeft: `${pad}px`,
-        marginRight: `${pad}px`,
-        marginTop: `${pad}px`,
-        marginBottom: `${pad}px`,
-        ...style
-      }}
-    />
-  );
-};
+import BrandLogo from "../common/BrandLogo";
 
 /* ── Compact City Picker (used inside navbar) ── */
 const CityPicker = ({ isFullBleed }) => {
@@ -345,17 +324,13 @@ const Navbar = () => {
               }
         }
       >
-        {/* Brand with logo */}
+        {/* Brand with logo & styled title text */}
         <Link
           to="/"
-          className="px-2 sm:px-6 py-2 text-xl sm:text-2xl font-bold tracking-tight no-underline flex items-center gap-2.5"
-          style={{
-            fontFamily: "var(--font-display)",
-            color: isFullBleed ? "#ffffff" : "var(--color-text-dark)",
-          }}
+          className="px-2 sm:px-6 py-2 no-underline flex items-center group"
+          aria-label="TiptoBook Home"
         >
-          <LogoImg size={63} style={{ marginTop: "4px" }} />
-          <span>TiptoBook</span>
+          <BrandLogo size={36} isDark={isFullBleed} />
         </Link>
 
         {/* Desktop Links */}
@@ -605,13 +580,25 @@ const Navbar = () => {
         />
         {/* Drawer */}
         <div
-          className="absolute top-0 right-0 h-full w-72 flex flex-col pt-20 px-8 pb-10 gap-6"
+          className="absolute top-0 right-0 h-full w-72 flex flex-col pt-6 px-6 pb-10 gap-5 overflow-y-auto"
           style={{
             backgroundColor: "var(--color-bg-soft)",
             transform: menuOpen ? "translateX(0)" : "translateX(100%)",
             transition: "transform 0.3s ease",
           }}
         >
+          <div className="flex items-center justify-between pb-3 border-b border-gray-200/70">
+            <Link to="/" onClick={() => setMenuOpen(false)} className="no-underline">
+              <BrandLogo size={30} isDark={false} />
+            </Link>
+            <button
+              onClick={() => setMenuOpen(false)}
+              className="p-1.5 rounded-md text-gray-500 hover:bg-gray-200/50 border-0 bg-transparent cursor-pointer text-lg leading-none"
+              aria-label="Close menu"
+            >
+              ✕
+            </button>
+          </div>
           {navLinks.map(({ to, label, end }) => (
             <NavLink
               key={to}

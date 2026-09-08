@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../config/api";
@@ -23,28 +23,7 @@ import {
   Search,
   MessageSquare
 } from "lucide-react";
-
-const LogoImg = ({ size = 28, style = {} }) => {
-  const pad = -Math.round(size * 0.25);
-  return (
-    <img
-      src="/logo.png"
-      alt="TiptoBook Logo"
-      style={{
-        width: `${size}px`,
-        height: `${size}px`,
-        display: "block",
-        objectFit: "contain",
-        transform: "scale(1.5)",
-        marginLeft: `${pad}px`,
-        marginRight: `${pad}px`,
-        marginTop: `${pad}px`,
-        marginBottom: `${pad}px`,
-        ...style
-      }}
-    />
-  );
-};
+import BrandLogo from "../../components/common/BrandLogo";
 
 const MENU = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -162,11 +141,8 @@ const AdminLayout = () => {
       >
         {/* Top Logo */}
         <div className="flex flex-col w-full px-4 mb-6">
-          <Link to="/" className="no-underline group flex items-center gap-3 mb-4">
-            <LogoImg size={63} />
-            <span className="font-bold text-sm tracking-tight text-white m-0" style={{ fontFamily: "var(--font-display)" }}>
-              TiptoBook Admin
-            </span>
+          <Link to="/" className="no-underline group flex items-center mb-4">
+            <BrandLogo size={32} subtitle="ADMIN" isDark={theme === "dark"} />
           </Link>
           <div className="h-[1px] w-full" style={{ backgroundColor: "var(--admin-border)" }} />
         </div>
@@ -431,10 +407,7 @@ const AdminLayout = () => {
             <div>
               {/* Header inside drawer */}
               <div className="flex items-center justify-between mb-8 pb-4 border-b" style={{ borderColor: "var(--admin-border)" }}>
-                <span className="font-bold text-base flex items-center gap-2">
-                  <Compass size={20} className="text-blue-500" />
-                  TiptoBook Admin
-                </span>
+                <BrandLogo size={26} subtitle="ADMIN" isDark={theme === "dark"} />
                 <button
                   onClick={() => setMobileMenuOpen(false)}
                   className="p-1 rounded-lg border-0 cursor-pointer bg-transparent hover:bg-neutral-800/10 dark:hover:bg-white/5"

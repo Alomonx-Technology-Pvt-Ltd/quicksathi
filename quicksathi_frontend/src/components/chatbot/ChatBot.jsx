@@ -1,4 +1,5 @@
-﻿import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
+import api from "../../config/api";
 
 // ─── Lightweight Markdown Renderer ──────────────────────────────────────────
 // Converts **bold**, *italic*, numbered lists, bullet lists, and line breaks
@@ -98,26 +99,23 @@ function inlineFormat(text) {
 }
 
 // ─── Logo Component ─────────────────────────────────────────────────────────
-// Uses branded inline SVG matching TiptoBook colors (blue pin, handshake, orange S)
 const LogoImg = ({ size = 36, style = {} }) => (
   <img
-    src="/logo.png"
+    src="/logo-icon.png"
     alt="TiptoBook Logo"
     style={{
       width: `${size}px`,
       height: `${size}px`,
       display: "block",
       objectFit: "contain",
-      transform: "scale(1.6)",
       ...style
     }}
   />
 );
 
 // ─── TiptoBook Knowledge Base ──────────────────────────────────────────────
-// ─── TiptoBook Knowledge Base ──────────────────────────────────────────────
 const TiptoBook_CONTEXT = `
-You are TiptoBook's AI assistant — a friendly, professional, and knowledgeable chatbot for TiptoBook, a premium service marketplace platform based in India.
+You are TiptoBook's AI assistant — a friendly, professional, and knowledgeable chatbot for TiptoBook, a trusted local services marketplace platform based in India (NOTE: "Book" in TiptoBook refers to booking appointments with service professionals, NOT books or literature!).
 
 ## About TiptoBook
 TiptoBook connects customers with verified, top-rated service providers across 6 core service verticals. We serve cities like Patna, Delhi, Mumbai, and expanding across India. All bookings are fast, transparent, and managed securely online.
@@ -199,26 +197,19 @@ const GROQ_MODELS = [
 
 // ─── AI Proxy Caller ──────────────────────────────────────────────────────────
 // Calls our backend /api/ai/chat endpoint instead of Groq directly.
-// This keeps the GROQ_API_KEY safely on the server — never in the browser.
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
-
 async function callAIProxy(messages) {
-  const response = await fetch(`${API_BASE}/ai/chat`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
+  try {
+    const { data } = await api.post("/ai/chat", {
       messages,
       systemPrompt: TiptoBook_CONTEXT,
-    }),
-  });
-
-  if (!response.ok) {
-    const errData = await response.json().catch(() => ({}));
-    throw new Error(errData.message || `AI service error: HTTP ${response.status}`);
+    });
+    return { content: data.content, model: data.model };
+  } catch (err) {
+    console.error("AI Proxy Error:", err.response?.data || err.message);
+    const errMessage =
+      err.response?.data?.message || err.message || "AI service error";
+    throw new Error(errMessage);
   }
-
-  const data = await response.json();
-  return { content: data.content, model: data.model };
 }
 
 // ─── Quick Reply Suggestions ─────────────────────────────────────────────────
@@ -299,7 +290,8 @@ export default function ChatBot() {
         ]);
 
         if (!isOpen) setHasUnread(true);
-      } catch {
+      } catch (err) {
+        console.error("ChatBot error:", err);
         setMessages((prev) => [
           ...prev,
           {
@@ -555,13 +547,26 @@ export default function ChatBot() {
           <div style={{ flex: 1, minWidth: 0 }}>
             <div
               style={{
-                color: "white",
-                fontWeight: "700",
-                fontSize: "13.5px",
-                fontFamily: "Inter, system-ui, sans-serif",
+                display: "flex",
+                alignItems: "center",
+                gap: "7px",
               }}
             >
-              TiptoBook Assistant
+              <img
+                src="/logo-text-light.png"
+                alt="TiptoBook"
+                style={{ height: "14px", width: "auto", display: "block" }}
+              />
+              <span
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 600,
+                  color: "rgba(255, 255, 255, 0.8)",
+                  letterSpacing: "0.03em",
+                }}
+              >
+                AI Assistant
+              </span>
             </div>
             <div
               style={{

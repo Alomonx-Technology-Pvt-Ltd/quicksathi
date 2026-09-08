@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ShieldCheck, Gem, CreditCard } from "lucide-react";
 import api, { getCached } from "../config/api";
@@ -13,6 +13,7 @@ import { useLocation } from "../context/LocationContext";
 import QuickServicesSection from "../components/QuickServicesSection";
 import WhyChooseUs from "../components/WhyChooseUs";
 import DownloadAppSection from "../components/DownloadAppSection";
+import SEO from "../components/SEO";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -143,6 +144,11 @@ const Home = () => {
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
     >
+      <SEO
+        title="TiptoBook — Trusted Local Services at Your Doorstep"
+        description="Find trusted local professionals for home services, repairs, cleaning, weddings, car rentals, CCTV installation and more."
+        canonical="https://www.tiptobook.com/"
+      />
       <Hero
         categories={categories}
         style={{ backgroundColor: "var(--color-bg)" }}

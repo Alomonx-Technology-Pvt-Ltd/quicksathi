@@ -1,7 +1,8 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Smartphone } from "lucide-react";
+import BrandLogo from "../components/common/BrandLogo";
 
 const Login = () => {
   const [isSignup, setIsSignup] = useState(false);
@@ -189,13 +190,8 @@ const Login = () => {
       <div className="flex-1 flex items-center justify-center px-6 py-12 pt-24">
         <div className="w-full max-w-md">
           {/* Brand */}
-          <Link to="/" className="no-underline flex items-center gap-2 mb-2">
-            <h1
-              className="text-3xl font-bold m-0"
-              style={{ fontFamily: "var(--font-display)", color: "var(--color-primary)" }}
-            >
-              TiptoBook
-            </h1>
+          <Link to="/" className="no-underline flex items-center mb-4">
+            <BrandLogo size={42} />
           </Link>
 
           {/* Provider mode badge */}

@@ -1,4 +1,4 @@
-﻿import "dotenv/config";
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import connectDB from "./config/db.js";
@@ -42,16 +42,25 @@ const corsOptions = {
     // Allow requests with no origin (Postman, curl, mobile apps, server-to-server)
     if (!origin) return callback(null, true);
 
+    // Allow any localhost / 127.0.0.1 port (e.g. 5173, 5174, 5175, 3000, 4173)
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
+      return callback(null, true);
+    }
+
     // Check exact match against allowed list
     if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
 
     // Allow any Vercel preview deployment URL for this project
-    // Pattern: https://TiptoBook[anything].vercel.app
-    if (/^https:\/\/TiptoBook[a-z0-9-]*\.vercel\.app$/.test(origin)) {
+    if (/^https:\/\/(tiptobook|quicksathi)[a-z0-9-]*\.vercel\.app$/i.test(origin)) {
       return callback(null, true);
     }
 
-    // Block everything else
+    // Allow in non-production environments
+    if (process.env.NODE_ENV !== "production") {
+      return callback(null, true);
+    }
+
+    // Block everything else in production
     callback(new Error(`CORS: Origin '${origin}' is not allowed.`));
   },
   credentials: true,

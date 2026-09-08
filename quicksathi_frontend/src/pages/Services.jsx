@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../config/api";
@@ -202,9 +202,12 @@ const Services = () => {
   ];
 
   const filteredServices = allSubCategories.filter((item) => {
-    const matchesSearch =
-      item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const q = searchQuery.trim().toLowerCase();
+    const nameMatch = (item.name || "").toLowerCase().includes(q);
+    const descMatch = (item.description || "").toLowerCase().includes(q);
+    const parentMatch = (item.parentName || "").toLowerCase().includes(q);
+    const verticalMatch = (item.vertical || "").toLowerCase().replace(/_/g, " ").includes(q);
+    const matchesSearch = !q || nameMatch || descMatch || parentMatch || verticalMatch;
 
     if (selectedFilter === "ALL") return matchesSearch;
     if (selectedFilter === "RENTAL")
@@ -216,13 +219,13 @@ const Services = () => {
     if (selectedFilter === "HOME_TUITION")
       return item.vertical === "HOME_TUITION" && matchesSearch;
     if (selectedFilter === "HOUSE_HELP")
-      return (item.vertical === "HOUSE_HELP" || item.parentName?.toLowerCase().includes("house help")) && matchesSearch;
+      return (item.vertical === "HOUSE_HELP" || (item.parentName || "").toLowerCase().includes("house help")) && matchesSearch;
     if (selectedFilter === "HOUSE_SERVICES")
       return (
         item.vertical === "HOUSE_SERVICES" ||
         item.vertical === "HOUSE_REPAIR" ||
-        item.parentName?.toLowerCase().includes("repair") ||
-        item.parentName?.toLowerCase().includes("house services")
+        (item.parentName || "").toLowerCase().includes("repair") ||
+        (item.parentName || "").toLowerCase().includes("house services")
       ) && matchesSearch;
     if (selectedFilter === "HOME_SALON")
       return item.vertical === "HOME_SALON" && matchesSearch;
@@ -237,28 +240,21 @@ const Services = () => {
     });
   };
 
-  const handleSearchKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault();
-      setSearchQuery(searchInput);
-      setSearchInput("");
-      setIsMobileSearchOpen(false);
-      scrollToResults();
-    }
+  const handleSearchSubmit = (e) => {
+    if (e) e.preventDefault();
+    setSearchQuery(searchInput.trim());
+    scrollToResults();
   };
 
   const handleClearSearch = () => {
     setSearchQuery("");
     setSearchInput("");
     setSelectedFilter("ALL");
-    setIsMobileSearchOpen(false);
-    scrollToResults();
   };
 
-  const handleSearch = () => {
-    setSearchQuery(searchInput);
-    setSearchInput("");
-    setIsMobileSearchOpen(false);
+  const handleQuickTagClick = (tag) => {
+    setSearchInput(tag);
+    setSearchQuery(tag);
     scrollToResults();
   };
 
@@ -308,91 +304,234 @@ const Services = () => {
       className="min-h-screen pb-12 sm:pb-20"
       style={{ backgroundColor: "var(--color-bg)" }}
     >
-      {/* ============ HERO ============ */}
-
-      <section
-        className="relative w-full overflow-hidden flex items-center justify-center text-center"
-        style={{ minHeight: "62vh" }}
-      >
-        <img
-          src={serviceHeroImg}
-          alt="Services Hero"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(135deg, rgba(26,10,46,0.92) 0%, rgba(10,15,26,0.88) 100%)",
-          }}
-        />
-
-        <div className="relative z-10 px-4 sm:px-6 py-16 sm:py-20 md:py-24 max-w-3xl mx-auto flex flex-col items-center">
-          <motion.span
-            initial={{ y: 14, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            className="inline-block px-4 py-1.5 rounded-full text-[10px] sm:text-xs font-semibold text-white/85 mb-5 sm:mb-7 border border-white/15 uppercase tracking-widest"
+      {/* ============ HERO SECTION ============ */}
+      <section className="relative w-full overflow-hidden text-center">
+        {/* Background Layer with Dark Scrim & Ambient Glows */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src={serviceHeroImg}
+            alt="TiptoBook Services"
+            className="w-full h-full object-cover object-center scale-105 filter brightness-[0.38] contrast-[1.1]"
+          />
+          <div
+            className="absolute inset-0"
             style={{
-              fontFamily: "var(--font-body)",
-              backgroundColor: "rgba(255,255,255,0.06)",
+              background:
+                "radial-gradient(ellipse at 50% 15%, rgba(11, 79, 216, 0.45) 0%, rgba(10, 15, 30, 0.90) 55%, rgba(7, 10, 22, 0.98) 100%)",
             }}
-          >
-            Trusted Service Marketplace
-          </motion.span>
-
-          <motion.h1
-            initial={{ y: 14, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut", delay: 0.08 }}
-            className="text-white font-normal leading-tight mb-3 sm:mb-4"
+          />
+          {/* Ambient Lighting Orbs */}
+          <div
+            className="absolute -top-20 left-1/4 w-[420px] h-[420px] rounded-full opacity-25 blur-3xl pointer-events-none"
+            style={{ background: "#0b4fd8" }}
+          />
+          <div
+            className="absolute top-1/3 right-10 w-[360px] h-[360px] rounded-full opacity-20 blur-3xl pointer-events-none"
+            style={{ background: "#ff6b00" }}
+          />
+          {/* Subtle Grid Texture */}
+          <div
+            className="absolute inset-0 opacity-[0.06] pointer-events-none"
             style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(28px, 6vw, 58px)",
-              letterSpacing: "-0.02em",
+              backgroundImage:
+                "radial-gradient(rgba(255, 255, 255, 0.9) 1px, transparent 1px)",
+              backgroundSize: "28px 28px",
             }}
-          >
-            Everything You Need, <br />
-            <span style={{ opacity: 0.55 }}>All in One Place.</span>
-          </motion.h1>
+          />
+        </div>
 
-          <motion.p
-            initial={{ y: 12, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut", delay: 0.15 }}
-            className="text-white/65 text-xs sm:text-sm mb-7 sm:mb-9 max-w-md px-2"
-            style={{ fontFamily: "var(--font-body)" }}
-          >
-            Book vetted, background-checked professionals for weddings, rentals,
-            and home security — all in a few taps.
-          </motion.p>
-
-          {/* Desktop Search */}
+        {/* Hero Content Container */}
+        <div className="relative z-10 px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 md:pt-24 pb-14 sm:pb-20 max-w-5xl mx-auto flex flex-col items-center">
+          {/* Trust Eyebrow Badge */}
           <motion.div
             initial={{ y: 14, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="w-full max-w-lg mt-4 relative"
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium text-white/90 mb-5 sm:mb-6 border border-white/20 shadow-lg backdrop-blur-md"
+            style={{
+              fontFamily: "var(--font-body)",
+              backgroundColor: "rgba(255, 255, 255, 0.08)",
+            }}
           >
-            <input
-              type="text"
-              placeholder="Search for photography, car rentals, smart locks..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-6 py-4 pr-12 rounded-full text-sm outline-none transition-all duration-300 shadow-lg text-white"
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            </span>
+            <span className="text-white/80 font-normal">
+              {city ? `Verified Pros Active in ${city}` : "Trusted Service Marketplace"}
+            </span>
+            <span className="text-amber-300 font-semibold flex items-center gap-1 ml-1 pl-2 border-l border-white/20">
+              <Sparkles size={12} /> Top Rated
+            </span>
+          </motion.div>
+
+          {/* Main Headline */}
+          <motion.h1
+            initial={{ y: 16, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.08 }}
+            className="text-white font-normal leading-[1.1] mb-3 sm:mb-4 max-w-3xl"
+            style={{
+              fontFamily: "var(--font-display)",
+              fontSize: "clamp(30px, 5.2vw, 60px)",
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Everything You Need, <br className="hidden sm:inline" />
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 via-indigo-200 to-amber-200 font-medium">
+              All in One Place.
+            </span>
+          </motion.h1>
+
+          {/* Subtitle Description */}
+          <motion.p
+            initial={{ y: 14, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.15 }}
+            className="text-white/75 text-xs sm:text-sm md:text-base mb-8 max-w-xl px-2 leading-relaxed"
+            style={{ fontFamily: "var(--font-body)" }}
+          >
+            Discover and book verified experts for luxury weddings, premium car rentals, advanced CCTV systems, and home services — on demand.
+          </motion.p>
+
+          {/* Hero Search Box Card */}
+          <motion.div
+            initial={{ y: 16, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.22 }}
+            className="w-full max-w-2xl"
+          >
+            <form
+              onSubmit={handleSearchSubmit}
+              className="relative flex items-center p-1.5 sm:p-2 rounded-2xl sm:rounded-full transition-all duration-300 shadow-2xl"
               style={{
-                fontFamily: "var(--font-body)",
-                backgroundColor: "rgba(255,255,255,0.08)",
-                border: "1px solid rgba(255,255,255,0.25)",
-                backdropFilter: "blur(12px)",
+                backgroundColor: "rgba(255, 255, 255, 0.12)",
+                border: "1px solid rgba(255, 255, 255, 0.25)",
+                backdropFilter: "blur(20px)",
+                boxShadow: "0 20px 50px rgba(0, 0, 0, 0.4)",
               }}
-            />
-            <Search
-              size={16}
-              className="absolute right-6 top-1/2 -translate-y-1/2 text-white/50"
-            />
+            >
+              <div className="flex items-center pl-3 sm:pl-4 text-blue-400 pointer-events-none">
+                <Search size={20} />
+              </div>
+              <input
+                type="text"
+                placeholder="Search photography, car rentals, CCTV, salon, repair..."
+                value={searchInput}
+                onChange={(e) => {
+                  setSearchInput(e.target.value);
+                  setSearchQuery(e.target.value);
+                }}
+                className="w-full bg-transparent px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base outline-none text-white placeholder:text-white/50"
+                style={{ fontFamily: "var(--font-body)" }}
+              />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchInput("");
+                    setSearchQuery("");
+                  }}
+                  className="mr-2 text-white/60 hover:text-white border-0 bg-white/10 hover:bg-white/20 rounded-full w-6 h-6 flex items-center justify-center cursor-pointer transition-all text-xs"
+                  title="Clear search"
+                >
+                  ✕
+                </button>
+              )}
+              <button
+                type="submit"
+                className="shrink-0 flex items-center gap-1.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-full text-xs sm:text-sm font-semibold text-white transition-all duration-300 cursor-pointer shadow-lg hover:brightness-110 active:scale-95 border-0"
+                style={{
+                  background: "linear-gradient(135deg, #0b4fd8 0%, #2563eb 100%)",
+                  boxShadow: "0 4px 16px rgba(11, 79, 216, 0.4)",
+                }}
+              >
+                <span>Search</span>
+                <ArrowRight size={15} />
+              </button>
+            </form>
+
+            {/* Quick Trending / Popular Keyword Chips */}
+            <div className="flex items-center justify-center flex-wrap gap-2 mt-4 text-xs text-white/70">
+              <span className="text-white/40 flex items-center gap-1 text-[11px] uppercase tracking-wider font-semibold">
+                Popular:
+              </span>
+              {[
+                { label: "Wedding Decor", query: "wedding" },
+                { label: "Car Rental", query: "car" },
+                { label: "CCTV Security", query: "cctv" },
+                { label: "Photography", query: "photography" },
+                { label: "House Repair", query: "repair" },
+              ].map((chip, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleQuickTagClick(chip.query)}
+                  className="px-3 py-1 rounded-full text-[11px] font-medium text-white/80 hover:text-white border border-white/15 hover:border-white/40 bg-white/5 hover:bg-white/15 transition-all cursor-pointer backdrop-blur-sm"
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Trust Highlights Badges Ribbon */}
+          <motion.div
+            initial={{ y: 16, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
+            className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 w-full max-w-4xl mt-10 sm:mt-12 pt-8 border-t border-white/10"
+          >
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-sm text-left hover:bg-white/[0.07] transition-all">
+              <div className="w-9 h-9 rounded-lg bg-blue-500/20 text-blue-300 flex items-center justify-center shrink-0">
+                <BadgeCheck size={18} />
+              </div>
+              <div>
+                <p className="text-white text-xs sm:text-sm font-semibold m-0 leading-tight">500+ Pros</p>
+                <p className="text-white/50 text-[10px] sm:text-[11px] m-0">Vetted & Verified</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-sm text-left hover:bg-white/[0.07] transition-all">
+              <div className="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0">
+                <Star size={18} fill="#f59e0b" color="#f59e0b" />
+              </div>
+              <div>
+                <p className="text-white text-xs sm:text-sm font-semibold m-0 leading-tight">4.9 / 5 Rating</p>
+                <p className="text-white/50 text-[10px] sm:text-[11px] m-0">15,000+ Reviews</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-sm text-left hover:bg-white/[0.07] transition-all">
+              <div className="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0">
+                <Timer size={18} />
+              </div>
+              <div>
+                <p className="text-white text-xs sm:text-sm font-semibold m-0 leading-tight">Instant Booking</p>
+                <p className="text-white/50 text-[10px] sm:text-[11px] m-0">Confirmed Fast</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-sm text-left hover:bg-white/[0.07] transition-all">
+              <div className="w-9 h-9 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center shrink-0">
+                <ShieldCheck size={18} />
+              </div>
+              <div>
+                <p className="text-white text-xs sm:text-sm font-semibold m-0 leading-tight">Safe & Secure</p>
+                <p className="text-white/50 text-[10px] sm:text-[11px] m-0">100% Guaranteed</p>
+              </div>
+            </div>
           </motion.div>
         </div>
+
+        {/* Soft bottom edge transition to main content */}
+        <div
+          className="absolute bottom-0 inset-x-0 h-8 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(to top, var(--color-bg), transparent)",
+          }}
+        />
       </section>
 
 
@@ -584,7 +723,7 @@ const Services = () => {
         </div>
       </section>
 
-      {/* ============ FILTER BAR ============ */}
+      {/* ============ FILTER BAR & IN-PAGE SEARCH ============ */}
       <section
         ref={filterSectionRef}
         className="px-3 sm:px-6 py-3 sm:py-4 border-b sticky top-0 z-30 backdrop-blur-md"
@@ -593,6 +732,60 @@ const Services = () => {
           backgroundColor: "rgba(248, 250, 252, 0.95)",
         }}
       >
+        {/* Compact in-bar search & counter */}
+        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3 mb-2.5 px-2">
+          <div className="relative flex-1 max-w-sm sm:max-w-md">
+            <Search
+              size={15}
+              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
+            />
+            <input
+              type="text"
+              placeholder="Search services, packages, cameras, cars..."
+              value={searchInput}
+              onChange={(e) => {
+                setSearchInput(e.target.value);
+                setSearchQuery(e.target.value);
+              }}
+              className="w-full pl-9 pr-8 py-2 rounded-full text-xs sm:text-sm bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/30 transition-all text-gray-800 dark:text-gray-100 shadow-sm"
+            />
+            {searchInput && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchInput("");
+                  setSearchQuery("");
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 border-0 bg-transparent cursor-pointer text-xs"
+                title="Clear search"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            {searchQuery ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-500 font-medium whitespace-nowrap">
+                  <strong>{filteredServices.length}</strong> {filteredServices.length === 1 ? "result" : "results"}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="text-xs text-blue-600 font-semibold hover:underline border-0 bg-transparent cursor-pointer"
+                >
+                  Reset
+                </button>
+              </div>
+            ) : (
+              <span className="text-xs text-gray-400 hidden sm:inline-block">
+                {allSubCategories.length} services available
+              </span>
+            )}
+          </div>
+        </div>
+
         <div
           className="max-w-6xl mx-auto flex gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar justify-start md:justify-center py-1.5 px-2"
           style={{ WebkitOverflowScrolling: "touch" }}
@@ -754,43 +947,98 @@ const Services = () => {
           </div>
         ) : (
           /* ============ SERVICE GRID ============ */
-          <AnimatePresence mode="wait">
-            {filteredServices.length === 0 ? (
-              /* ============ EMPTY STATE ============ */
-              <motion.div
-                key="empty"
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className="text-center py-12"
-              >
-                <Search
-                  size={36}
-                  className="mx-auto text-neutral-400 mb-4 opacity-50"
-                />
-                <p
-                  className="text-lg m-0"
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    color: "var(--color-text-mid)",
-                  }}
+          <div>
+            {searchQuery && filteredServices.length > 0 && (
+              <div className="mb-6 flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40">
+                <div className="flex items-center gap-2 text-xs sm:text-sm text-blue-900 dark:text-blue-200">
+                  <Search size={15} className="text-blue-500 shrink-0" />
+                  <span>
+                    Found <strong>{filteredServices.length}</strong> {filteredServices.length === 1 ? "service" : "services"} matching <strong>"{searchQuery}"</strong>
+                  </span>
+                  {selectedFilter !== "ALL" && (
+                    <span className="text-xs text-blue-600 dark:text-blue-300 font-medium">
+                      in {filterTabs.find((t) => t.id === selectedFilter)?.title}
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline border-0 bg-transparent cursor-pointer"
                 >
-                  No services found matching your query.
-                </p>
-              </motion.div>
-            ) : (
-              /* ============ SERVICE CARDS ============ */
-              <motion.div
-                key="grid"
-                initial="hidden"
-                animate="visible"
-                exit="hidden"
-                variants={{
-                  hidden: {},
-                  visible: { transition: { staggerChildren: 0.06 } },
-                }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6"
-              >
+                  Clear search ✕
+                </button>
+              </div>
+            )}
+
+            <AnimatePresence mode="wait">
+              {filteredServices.length === 0 ? (
+                /* ============ EMPTY STATE ============ */
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className="text-center py-16 px-4 rounded-3xl border border-dashed border-gray-200 dark:border-neutral-800 my-4"
+                >
+                  <div
+                    className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center text-blue-600"
+                    style={{ backgroundColor: "var(--color-primary-soft)" }}
+                  >
+                    <Search size={28} />
+                  </div>
+                  <h3
+                    className="text-xl font-normal mb-2"
+                    style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}
+                  >
+                    No services found
+                  </h3>
+                  <p
+                    className="text-sm max-w-md mx-auto mb-6"
+                    style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
+                  >
+                    {searchQuery ? (
+                      <>
+                        We couldn't find any services matching <strong>"{searchQuery}"</strong>
+                        {selectedFilter !== "ALL" ? ` in ${filterTabs.find((t) => t.id === selectedFilter)?.title}` : ""}.
+                      </>
+                    ) : (
+                      "No services currently available in this category."
+                    )}
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    {selectedFilter !== "ALL" && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedFilter("ALL")}
+                        className="px-5 py-2.5 rounded-full text-xs font-semibold text-white border-0 cursor-pointer transition hover:opacity-90"
+                        style={{ backgroundColor: "var(--color-primary)" }}
+                      >
+                        Search Across All Categories
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleClearSearch}
+                      className="px-5 py-2.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 cursor-pointer transition"
+                    >
+                      Clear Filters & Show All
+                    </button>
+                  </div>
+                </motion.div>
+              ) : (
+                /* ============ SERVICE CARDS ============ */
+                <motion.div
+                  key="grid"
+                  initial="hidden"
+                  animate="visible"
+                  exit="hidden"
+                  variants={{
+                    hidden: {},
+                    visible: { transition: { staggerChildren: 0.06 } },
+                  }}
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6"
+                >
                 {filteredServices.map((item) => (
                   <motion.div
                     key={item._id || item.id}
@@ -995,6 +1243,7 @@ const Services = () => {
               </motion.div>
             )}
           </AnimatePresence>
+          </div>
         )}
       </section>
 

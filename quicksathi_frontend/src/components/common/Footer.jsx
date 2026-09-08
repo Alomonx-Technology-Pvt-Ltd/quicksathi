@@ -1,26 +1,6 @@
-﻿import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 
-const LogoImg = ({ size = 32, style = {} }) => {
-  const pad = -Math.round(size * 0.25);
-  return (
-    <img
-      src="/logo.png"
-      alt="TiptoBook Logo"
-      style={{
-        width: `${size}px`,
-        height: `${size}px`,
-        display: "block",
-        objectFit: "contain",
-        transform: "scale(1.5)",
-        marginLeft: `${pad}px`,
-        marginRight: `${pad}px`,
-        marginTop: `${pad}px`,
-        marginBottom: `${pad}px`,
-        ...style
-      }}
-    />
-  );
-};
+import BrandLogo from "./BrandLogo";
 
 const Instagram = ({ size = 20 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -204,31 +184,36 @@ const Footer = () => (
       ))}
     </div>
 
-    {/* Giant Brand Mark with Logo */}
+    {/* Giant Brand Mark with Logo & Styled Title Text */}
     <div
       className="pb-24 md:pb-6"
       style={{
         display: "flex",
         alignItems: "center",
-        gap: "16px",
+        gap: "clamp(12px, 2.5vw, 24px)",
         paddingLeft: "clamp(12px, 3vw, 36px)",
       }}
     >
-      <LogoImg size={144} />
-      <p
+      <img
+        src="/logo-icon.png"
+        alt="TiptoBook Emblem"
         style={{
-          fontFamily: "'Bebas Neue', sans-serif",
-          fontSize: "clamp(60px, 14vw, 120px)",
-          lineHeight: 0.88,
-          color: "#1a1a18",
-          margin: 0,
-          letterSpacing: "0.01em",
+          height: "clamp(50px, 9vw, 96px)",
+          width: "auto",
+          objectFit: "contain",
           userSelect: "none",
-          pointerEvents: "none",
         }}
-      >
-        TiptoBook
-      </p>
+      />
+      <img
+        src="/logo-text.png"
+        alt="TiptoBook"
+        style={{
+          height: "clamp(24px, 4.2vw, 44px)",
+          width: "auto",
+          objectFit: "contain",
+          userSelect: "none",
+        }}
+      />
     </div>
   </footer>
 );

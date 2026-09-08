@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Heart, Palmtree, Home, Sparkles, Landmark, Leaf } from "lucide-react";
 import weddingImg from "../../assets/weddingImg.avif";
@@ -32,30 +32,6 @@ const SERVICES = [
     desc: "Transform your venue with stunning floral arrangements and thematic setups.",
     image: floralImg,
     link: "/service/decoration",
-  },
-];
-
-const EXPERTS = [
-  {
-    name: "Meera Sahoo",
-    role: "Lead Planner",
-    desc: "7+ years creating magical wedding experiences with meticulous attention to detail.",
-    image:
-      "https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=1974&auto=format&fit=crop",
-  },
-  {
-    name: "Marcus Thorne",
-    role: "Chef, Caterer",
-    desc: "International chef bringing world cuisines to your celebration with flair and grace.",
-    image:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1974&auto=format&fit=crop",
-  },
-  {
-    name: "Chef Jahan",
-    role: "Floral Designer",
-    desc: "Award-winning floral art for memorable and visually stunning event experiences.",
-    image:
-      "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=2070&auto=format&fit=crop",
   },
 ];
 
@@ -438,76 +414,6 @@ const WeddingServices = () => {
         </div>
       </section>
 
-      {/* Meet the Experts */}
-      <section className="px-4 sm:px-8 lg:px-16 py-16 sm:py-20">
-        <div className="text-center mb-12">
-          <h2
-            className="font-normal mb-3"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(28px, 3vw, 40px)",
-              color: "var(--color-text-dark)",
-            }}
-          >
-            Meet the Experts
-          </h2>
-          <p
-            className="text-sm"
-            style={{
-              fontFamily: "var(--font-body)",
-              color: "var(--color-text-mid)",
-            }}
-          >
-            A treasure-trove of talented wedding and event professionals.
-          </p>
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
-          {EXPERTS.map((expert, i) => (
-            <div
-              key={i}
-              className="text-center rounded-2xl p-6 transition-all duration-300 hover:shadow-lg"
-              style={{
-                backgroundColor: "var(--color-bg-white)",
-                border: "1px solid var(--color-border)",
-              }}
-            >
-              <img
-                src={expert.image}
-                alt={expert.name}
-                className="w-24 h-24 rounded-full object-cover mx-auto mb-4"
-                style={{ border: "4px solid var(--color-border)" }}
-              />
-              <h3
-                className="text-base font-semibold mb-1"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  color: "var(--color-text-dark)",
-                }}
-              >
-                {expert.name}
-              </h3>
-              <p
-                className="text-xs font-semibold uppercase tracking-wider mb-3"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  color: "var(--color-primary)",
-                }}
-              >
-                {expert.role}
-              </p>
-              <p
-                className="text-xs leading-relaxed"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  color: "var(--color-text-mid)",
-                }}
-              >
-                {expert.desc}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* CTA */}
       <section

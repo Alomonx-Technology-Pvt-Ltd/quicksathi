@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
+import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "./context/AuthContext";
 import { LocationProvider } from "./context/LocationContext";
 import Layout from "./components/layout/Layout";
@@ -59,6 +60,7 @@ const PageLoader = () => (
 
 function App() {
   return (
+    <HelmetProvider>
     <AuthProvider>
       <LocationProvider>
         <BrowserRouter>
@@ -147,6 +149,7 @@ function App() {
       </BrowserRouter>
       </LocationProvider>
     </AuthProvider>
+    </HelmetProvider>
   );
 }
 
