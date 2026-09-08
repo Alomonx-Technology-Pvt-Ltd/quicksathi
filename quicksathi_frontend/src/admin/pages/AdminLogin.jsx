@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import {
@@ -147,14 +147,14 @@ const AdminLogin = () => {
             className="w-10 h-10 rounded-2xl bg-white/10 flex items-center justify-center overflow-hidden border"
             style={{ borderColor: "var(--admin-border)" }}
           >
-            <img src="/logo.png" alt="QuickSathi" className="w-8 h-8 object-contain" />
+            <img src="/logo.png" alt="TiptoBook" className="w-8 h-8 object-contain" />
           </div>
           <div>
             <span
               className="text-base font-bold tracking-tight block leading-tight"
               style={{ fontFamily: "var(--font-display)", color: "var(--admin-text-primary)" }}
             >
-              QuickSathi
+              TiptoBook
             </span>
             <span className="text-[10px] tracking-wider uppercase font-semibold text-blue-500 block">
               Admin Portal
@@ -192,7 +192,7 @@ const AdminLogin = () => {
             }}
           >
             <ArrowLeft size={14} />
-            <span>QuickSathi Home</span>
+            <span>TiptoBook Home</span>
           </Link>
         </div>
       </header>
@@ -348,7 +348,7 @@ const AdminLogin = () => {
                     setEmail(e.target.value);
                     setError("");
                   }}
-                  placeholder="admin@quicksathi.com"
+                  placeholder="admin@tiptobook.com"
                   required
                   autoFocus
                   className="w-full pl-10 pr-4 py-3 rounded-2xl text-xs sm:text-sm border outline-none admin-transition transition-all duration-200 focus:ring-2 focus:ring-blue-500/20"
@@ -438,7 +438,7 @@ const AdminLogin = () => {
       {/* Footer */}
       <footer className="w-full py-4 text-center text-xs z-10" style={{ color: "var(--admin-text-muted)" }}>
         <p className="m-0">
-          &copy; {new Date().getFullYear()} QuickSathi Management Platform. All rights reserved.
+          &copy; {new Date().getFullYear()} TiptoBook Management Platform. All rights reserved.
         </p>
       </footer>
     </div>

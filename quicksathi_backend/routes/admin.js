@@ -1,4 +1,4 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import nodemailer from "nodemailer";
 import User from "../models/User.js";
 import Provider from "../models/Provider.js";
@@ -664,7 +664,7 @@ router.patch("/users/:id/role", protect, adminOnly, async (req, res) => {
           user: user._id,
           businessName: `${user.name} Services`,
           businessType: "Individual / Freelancer",
-          description: "Professional services provided on QuickSathi.",
+          description: "Professional services provided on TiptoBook.",
           category: defaultCat ? defaultCat._id : undefined,
           categoryName: defaultCat ? defaultCat.name : "Uncategorized",
           servicesOffered: [],
@@ -784,7 +784,7 @@ router.post("/upload", protect, adminOnly, async (req, res) => {
       return res.status(400).json({ message: "No image data provided" });
     }
     const uploadResponse = await cloudinary.uploader.upload(image, {
-      folder: "quicksathi",
+      folder: "TiptoBook",
     });
     res.json({
       url: uploadResponse.secure_url,
@@ -837,7 +837,7 @@ router.post("/send-email", protect, adminOnly, async (req, res) => {
       const smtpPort = process.env.SMTP_PORT || 587;
       const smtpUser = process.env.SMTP_USER;
       const smtpPass = process.env.SMTP_PASS;
-      const smtpSender = process.env.SMTP_SENDER || `"QuickSathi Notifications" <no-reply@quicksathi.com>`;
+      const smtpSender = process.env.SMTP_SENDER || `"TiptoBook Notifications" <no-reply@tiptobook.com>`;
 
       if (smtpHost && smtpUser && smtpPass) {
         const transporter = nodemailer.createTransport({
@@ -857,7 +857,7 @@ router.post("/send-email", protect, adminOnly, async (req, res) => {
                    <h2 style="color: #3b82f6;">Platform Notification</h2>
                    <p style="white-space: pre-line;">${body}</p>
                    <hr style="border: 0; border-top: 1px solid #eee; margin-top: 20px;" />
-                   <p style="font-size: 11px; color: #888;">You received this service announcement from the QuickSathi Administrator.</p>
+                   <p style="font-size: 11px; color: #888;">You received this service announcement from the TiptoBook Administrator.</p>
                  </div>`
         });
         isMock = false;
@@ -984,7 +984,7 @@ router.patch("/service-requests/:id/approve", protect, adminOnly, async (req, re
         await Notification.create({
           recipient: service.provider.user,
           title: "🎉 Service Listing Approved!",
-          message: `Your service "${service.name}" has been approved and is now live on QuickSathi!`,
+          message: `Your service "${service.name}" has been approved and is now live on TiptoBook!`,
           type: "system",
         });
       } catch (notifErr) {

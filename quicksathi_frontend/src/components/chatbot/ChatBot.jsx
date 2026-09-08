@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+﻿import { useState, useRef, useEffect, useCallback } from "react";
 
 // ─── Lightweight Markdown Renderer ──────────────────────────────────────────
 // Converts **bold**, *italic*, numbered lists, bullet lists, and line breaks
@@ -98,11 +98,11 @@ function inlineFormat(text) {
 }
 
 // ─── Logo Component ─────────────────────────────────────────────────────────
-// Uses branded inline SVG matching QuickSathi colors (blue pin, handshake, orange S)
+// Uses branded inline SVG matching TiptoBook colors (blue pin, handshake, orange S)
 const LogoImg = ({ size = 36, style = {} }) => (
   <img
     src="/logo.png"
-    alt="QuickSathi Logo"
+    alt="TiptoBook Logo"
     style={{
       width: `${size}px`,
       height: `${size}px`,
@@ -114,13 +114,13 @@ const LogoImg = ({ size = 36, style = {} }) => (
   />
 );
 
-// ─── QuickSathi Knowledge Base ──────────────────────────────────────────────
-// ─── QuickSathi Knowledge Base ──────────────────────────────────────────────
-const QUICKSATHI_CONTEXT = `
-You are QuickSathi's AI assistant — a friendly, professional, and knowledgeable chatbot for QuickSathi, a premium service marketplace platform based in India.
+// ─── TiptoBook Knowledge Base ──────────────────────────────────────────────
+// ─── TiptoBook Knowledge Base ──────────────────────────────────────────────
+const TiptoBook_CONTEXT = `
+You are TiptoBook's AI assistant — a friendly, professional, and knowledgeable chatbot for TiptoBook, a premium service marketplace platform based in India.
 
-## About QuickSathi
-QuickSathi connects customers with verified, top-rated service providers across 6 core service verticals. We serve cities like Patna, Delhi, Mumbai, and expanding across India. All bookings are fast, transparent, and managed securely online.
+## About TiptoBook
+TiptoBook connects customers with verified, top-rated service providers across 6 core service verticals. We serve cities like Patna, Delhi, Mumbai, and expanding across India. All bookings are fast, transparent, and managed securely online.
 
 ## Our 6 Core Services
 
@@ -161,20 +161,20 @@ QuickSathi connects customers with verified, top-rated service providers across 
 - **Language & Spoken English** — Spoken English fluency, Hindi, German & French classes (from ₹1,499).
 
 ## Booking Steps
-1. Browse services on the QuickSathi homepage or category pages
+1. Browse services on the TiptoBook homepage or category pages
 2. Select your desired service and preferred package
 3. Click "Book Now" and select date, time, and address
 4. Pay securely via Razorpay
 5. Receive instant confirmation & provider contact details
 
 ## Partner / Provider Program
-- Service providers can list services on QuickSathi to gain verified client bookings
+- Service providers can list services on TiptoBook to gain verified client bookings
 - Transparent 8% commission per booking
 - Automated weekly/daily payouts & 24/7 support
 - Apply via "Become a Partner" on the website footer/header
 
 ## Contact & Support
-- Email: quicksathi9@gmail.com
+- Email: TiptoBook9@gmail.com
 - Customer Support: Available 24/7 via website contact form and live chatbot
 
 ## Response Style Rules (VERY IMPORTANT)
@@ -208,7 +208,7 @@ async function callAIProxy(messages) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       messages,
-      systemPrompt: QUICKSATHI_CONTEXT,
+      systemPrompt: TiptoBook_CONTEXT,
     }),
   });
 
@@ -238,7 +238,7 @@ export default function ChatBot() {
     {
       role: "assistant",
       content:
-        "Namaste! 🙏 I'm QuickSathi's AI assistant. I can help you explore and book our 6 core services — CCTV Security, Vehicle Rentals, Wedding Services, Home Salon & Beauty, House Help & Repairs, and Home Tuition. How can I assist you today?",
+        "Namaste! 🙏 I'm TiptoBook's AI assistant. I can help you explore and book our 6 core services — CCTV Security, Vehicle Rentals, Wedding Services, Home Salon & Beauty, House Help & Repairs, and Home Tuition. How can I assist you today?",
     },
   ]);
   const [input, setInput] = useState("");
@@ -305,7 +305,7 @@ export default function ChatBot() {
           {
             role: "assistant",
             content:
-              "I'm experiencing some difficulties right now. Please try again shortly, or contact us directly at quicksathi9@gmail.com 😊",
+              "I'm experiencing some difficulties right now. Please try again shortly, or contact us directly at TiptoBook9@gmail.com 😊",
             error: true,
           },
         ]);
@@ -382,7 +382,7 @@ export default function ChatBot() {
           from { opacity: 0; transform: translateY(7px); }
           to   { opacity: 1; transform: translateY(0);   }
         }
-        #quicksathi-chatbot-toggle:hover {
+        #TiptoBook-chatbot-toggle:hover {
           transform: scale(1.07) !important;
           box-shadow: 0 6px 28px rgba(11,79,216,0.6), 0 2px 10px rgba(0,0,0,0.3) !important;
         }
@@ -392,8 +392,8 @@ export default function ChatBot() {
       <div className="qs-chat-btn-wrap">
         <button
           onClick={handleToggle}
-          aria-label="Open QuickSathi chat assistant"
-          id="quicksathi-chatbot-toggle"
+          aria-label="Open TiptoBook chat assistant"
+          id="TiptoBook-chatbot-toggle"
           style={{
             width: "58px",
             height: "58px",
@@ -519,7 +519,7 @@ export default function ChatBot() {
           transformOrigin: "bottom right",
         }}
         role="dialog"
-        aria-label="QuickSathi AI Chat Assistant"
+        aria-label="TiptoBook AI Chat Assistant"
       >
         {/* ── Header ── */}
         <div
@@ -561,7 +561,7 @@ export default function ChatBot() {
                 fontFamily: "Inter, system-ui, sans-serif",
               }}
             >
-              QuickSathi Assistant
+              TiptoBook Assistant
             </div>
             <div
               style={{
@@ -919,7 +919,7 @@ export default function ChatBot() {
             letterSpacing: "0.02em",
           }}
         >
-          Powered by QuickSathi AI
+          Powered by TiptoBook AI
         </div>
       </div>
 

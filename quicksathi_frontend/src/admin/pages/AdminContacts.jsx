@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import api from "../../config/api";
 import {
   Mail,
@@ -352,7 +352,7 @@ export default function AdminContacts() {
               </div>
 
               <a
-                href={`mailto:${selectedMessage.email}?subject=Reply from QuickSathi&body=Hello ${selectedMessage.firstName},%0D%0A%0D%0ARegarding your message:%0D%0A"${selectedMessage.message}"%0D%0A%0D%0A`}
+                href={`mailto:${selectedMessage.email}?subject=Reply from TiptoBook&body=Hello ${selectedMessage.firstName},%0D%0A%0D%0ARegarding your message:%0D%0A"${selectedMessage.message}"%0D%0A%0D%0A`}
                 className="px-3.5 py-1.5 rounded-lg text-xs font-bold border-0 bg-blue-500 hover:bg-blue-600 text-white cursor-pointer transition-all flex items-center gap-1.5 no-underline"
               >
                 Reply <ExternalLink size={13} />

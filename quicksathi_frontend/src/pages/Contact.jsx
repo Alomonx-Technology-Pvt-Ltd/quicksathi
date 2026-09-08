@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../config/api";
@@ -17,7 +17,7 @@ const Contact = () => {
 
   const faqs = [
     {
-      question: "How do I book a service on QuickSathi?",
+      question: "How do I book a service on TiptoBook?",
       answer: "It is simple! Browse our catalog on the home page, select a service category (like CCTV Security), choose the package that fits your needs, select your date/time, and complete payment. A vetted provider will be assigned immediately.",
     },
     {
@@ -151,8 +151,8 @@ const Contact = () => {
               },
               {
                 label: "Email Support",
-                value: "support@quicksathi.in",
-                href: "mailto:support@quicksathi.in",
+                value: "support@TiptoBook.in",
+                href: "mailto:support@TiptoBook.in",
                 icon: (
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
@@ -272,7 +272,7 @@ const Contact = () => {
                       className="text-sm text-mid mb-8 max-w-sm"
                       style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)", lineHeight: "1.6" }}
                     >
-                      Thank you for reaching out to QuickSathi. We have received your query and will contact you via email shortly.
+                      Thank you for reaching out to TiptoBook. We have received your query and will contact you via email shortly.
                     </p>
                     <button
                       onClick={() => setSuccess(false)}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useOutletContext } from "react-router-dom";
 import api from "../../config/api";
@@ -316,7 +316,7 @@ const AdminDashboard = () => {
             Hello, {user?.name || "Admin"}! 👋
           </h1>
           <p className="text-sm m-0" style={{ color: "var(--admin-text-secondary)" }}>
-            Here is what's happening on your QuickSathi platform. Managing {stats?.totalServices || "0"} services across {stats?.totalCategories || "0"} categories.
+            Here is what's happening on your TiptoBook platform. Managing {stats?.totalServices || "0"} services across {stats?.totalCategories || "0"} categories.
           </p>
         </div>
 

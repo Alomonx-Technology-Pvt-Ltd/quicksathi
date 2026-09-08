@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Heart, Palmtree, Home, Sparkles, Landmark, Leaf } from "lucide-react";
 import weddingImg from "../../assets/weddingImg.avif";
@@ -126,7 +126,7 @@ const WeddingServices = () => {
             className="text-white/60 text-base sm:text-lg mb-8"
             style={{ fontFamily: "var(--font-body)", maxWidth: "480px" }}
           >
-            From intimate gatherings to grand celebrations, QuickSathi provides
+            From intimate gatherings to grand celebrations, TiptoBook provides
             the exact precision and expert flair your ideal day deserves.
           </p>
           <div className="flex flex-wrap gap-3">

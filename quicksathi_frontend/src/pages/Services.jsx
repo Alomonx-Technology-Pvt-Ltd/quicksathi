@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../config/api";
@@ -1031,7 +1031,7 @@ const Services = () => {
               lineHeight: 1,
             }}
           >
-            QuickSathi
+            TiptoBook
           </motion.h1>
         </div>
 

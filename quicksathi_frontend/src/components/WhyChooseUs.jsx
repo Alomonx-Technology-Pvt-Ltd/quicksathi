@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+﻿import { motion } from "framer-motion";
 import {
   BadgeCheck,
   IndianRupee,
@@ -14,7 +14,7 @@ const FEATURES = [
   {
     icon: BadgeCheck,
     title: "Verified Professionals",
-    desc: "Every provider passes strict identity, skill, and background checks before going live on QuickSathi.",
+    desc: "Every provider passes strict identity, skill, and background checks before going live on TiptoBook.",
     color: "#0284c7",
     bg: "rgba(2,132,199,0.08)",
   },
@@ -63,7 +63,7 @@ const STATS = [
 ];
 
 /**
- * WhyChooseUs — home-page section explaining what QuickSathi does,
+ * WhyChooseUs — home-page section explaining what TiptoBook does,
  * and the key reasons users should choose the platform.
  */
 const WhyChooseUs = () => {
@@ -118,7 +118,7 @@ const WhyChooseUs = () => {
             className="text-sm sm:text-base leading-relaxed m-0"
             style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
           >
-            QuickSathi is your one platform for everything local — wedding
+            TiptoBook is your one platform for everything local — wedding
             services, car rentals, CCTV security, home tuition, house help,
             salon at home, and repairs. We vet every professional, show honest
             prices upfront, and deliver trusted services right to your doorstep.

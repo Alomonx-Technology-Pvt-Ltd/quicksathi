@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { NavLink, Outlet, Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import api from "../../config/api";
@@ -29,7 +29,7 @@ const LogoImg = ({ size = 28, style = {} }) => {
   return (
     <img
       src="/logo.png"
-      alt="QuickSathi Logo"
+      alt="TiptoBook Logo"
       style={{
         width: `${size}px`,
         height: `${size}px`,
@@ -165,7 +165,7 @@ const AdminLayout = () => {
           <Link to="/" className="no-underline group flex items-center gap-3 mb-4">
             <LogoImg size={63} />
             <span className="font-bold text-sm tracking-tight text-white m-0" style={{ fontFamily: "var(--font-display)" }}>
-              QuickSathi Admin
+              TiptoBook Admin
             </span>
           </Link>
           <div className="h-[1px] w-full" style={{ backgroundColor: "var(--admin-border)" }} />
@@ -433,7 +433,7 @@ const AdminLayout = () => {
               <div className="flex items-center justify-between mb-8 pb-4 border-b" style={{ borderColor: "var(--admin-border)" }}>
                 <span className="font-bold text-base flex items-center gap-2">
                   <Compass size={20} className="text-blue-500" />
-                  QuickSathi Admin
+                  TiptoBook Admin
                 </span>
                 <button
                   onClick={() => setMobileMenuOpen(false)}

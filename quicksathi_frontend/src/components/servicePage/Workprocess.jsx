@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+﻿import { motion } from "framer-motion";
 import { Search, MapPinned, ShieldCheck, CheckCircle2 } from "lucide-react";
 
 const steps = [
@@ -94,7 +94,7 @@ const WorkProcess = () => {
                 fontWeight: 600,
               }}
             >
-              QuickSathi
+              TiptoBook
             </span>
             <span style={{ color: "var(--color-text-dark)" }}> Works</span>
           </motion.h2>

@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import weddingImg from "../assets/weddingImg.avif";
 import carImg from "../assets/carImg.avif";
 import smartLock from "../assets/cctv/smartLock.avif";
@@ -192,7 +192,7 @@ const AboutSection = () => {
               letterSpacing: "0.1em",
             }}
           >
-            About QuickSathi
+            About TiptoBook
           </span>
 
           <h2
@@ -216,7 +216,7 @@ const AboutSection = () => {
               maxWidth: "600px",
             }}
           >
-            At QuickSathi, we believe in making local services seamless. Whether
+            At TiptoBook, we believe in making local services seamless. Whether
             securing your property, renting a luxury car, or planning your dream
             wedding, we connect you with vetted specialists dedicated to quality
             and reliability.

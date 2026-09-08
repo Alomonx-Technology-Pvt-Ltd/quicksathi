@@ -1,4 +1,4 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import User from "../models/User.js";
 import Notification from "../models/Notification.js";
 import Contact from "../models/Contact.js";
@@ -49,7 +49,7 @@ router.post("/", async (req, res) => {
     const smtpPort = process.env.SMTP_PORT || 587;
     const smtpUser = process.env.SMTP_USER;
     const smtpPass = process.env.SMTP_PASS;
-    const smtpSender = process.env.SMTP_SENDER || `"QuickSathi Notifications" <no-reply@quicksathi.com>`;
+    const smtpSender = process.env.SMTP_SENDER || `"TiptoBook Notifications" <no-reply@tiptobook.com>`;
 
     const adminEmails = (process.env.ADMIN_EMAILS || "")
       .split(",")
@@ -57,7 +57,7 @@ router.post("/", async (req, res) => {
       .filter(Boolean);
 
     const emailSubject = `Contact Form: ${senderName} has sent a message`;
-    const emailBody = `You have received a new message from the contact form on QuickSathi.\n\n` +
+    const emailBody = `You have received a new message from the contact form on TiptoBook.\n\n` +
                       `Name: ${senderName}\n` +
                       `Email: ${email}\n` +
                       `Date: ${new Date().toLocaleString()}\n\n` +
@@ -84,7 +84,7 @@ router.post("/", async (req, res) => {
                  <hr style="border: 0; border-top: 1px dashed #c4a882; margin: 20px 0;" />
                  <p style="white-space: pre-line; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e8ddd4;">${message}</p>
                  <hr style="border: 0; border-top: 1px solid #e8ddd4; margin: 20px 0;" />
-                 <p style="font-size: 11px; color: #9a8478; text-align: center; margin: 0;">This email was sent automatically from QuickSathi's system dispatcher.</p>
+                 <p style="font-size: 11px; color: #9a8478; text-align: center; margin: 0;">This email was sent automatically from TiptoBook's system dispatcher.</p>
                </div>`
       });
     } else {

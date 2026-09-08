@@ -1,11 +1,11 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 
 const LogoImg = ({ size = 32, style = {} }) => {
   const pad = -Math.round(size * 0.25);
   return (
     <img
       src="/logo.png"
-      alt="QuickSathi Logo"
+      alt="TiptoBook Logo"
       style={{
         width: `${size}px`,
         height: `${size}px`,
@@ -128,8 +128,8 @@ const Footer = () => (
             India — 800001
           </p>
           <p style={valueStyle}>
-            <a href="mailto:hello@quicksathi.in" style={linkStyle}>
-              hello@quicksathi.in
+            <a href="mailto:hello@TiptoBook.in" style={linkStyle}>
+              hello@TiptoBook.in
             </a>
           </p>
           <p style={valueStyle}>+91 98765 43210</p>
@@ -182,7 +182,7 @@ const Footer = () => (
       }}
     >
       {[
-        { label: `© ${new Date().getFullYear()} QuickSathi. All rights reserved.`, to: null },
+        { label: `© ${new Date().getFullYear()} TiptoBook. All rights reserved.`, to: null },
         { label: "Developed by Alomonx", to: null },
         { label: "Privacy Policy", to: "/privacy" },
         { label: "Terms of Use", to: "/terms" },
@@ -227,7 +227,7 @@ const Footer = () => (
           pointerEvents: "none",
         }}
       >
-        QUICKSATHI
+        TiptoBook
       </p>
     </div>
   </footer>

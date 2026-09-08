@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ShieldCheck, Gem, CreditCard } from "lucide-react";
 import api, { getCached } from "../config/api";
@@ -12,6 +12,7 @@ import { useLocation } from "../context/LocationContext";
 
 import QuickServicesSection from "../components/QuickServicesSection";
 import WhyChooseUs from "../components/WhyChooseUs";
+import DownloadAppSection from "../components/DownloadAppSection";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -291,7 +292,7 @@ const Home = () => {
               Expand Your Service Horizons
             </h2>
             <p className="text-sm leading-relaxed mb-6 max-w-lg" style={{ fontFamily: "var(--font-body)", color: "rgba(255,255,255,0.75)" }}>
-              Join the QuickSathi partner network to list your elite facilities, coordinate wedding decoration packages, manage vehicle rentals, or deploy CCTV security setups. Enjoy immediate payouts and high-value client matching.
+              Join the TiptoBook partner network to list your elite facilities, coordinate wedding decoration packages, manage vehicle rentals, or deploy CCTV security setups. Enjoy immediate payouts and high-value client matching.
             </p>
             <div className="flex flex-wrap gap-6 text-xs text-white/70 mb-8" style={{ fontFamily: "var(--font-body)" }}>
               <span className="flex items-center gap-1.5"><ShieldCheck size={14} className="text-[#ff6b00]" /> Vetted Listings</span>
@@ -327,6 +328,9 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* ── Download Our App Section ── */}
+      <DownloadAppSection />
     </motion.div>
   );
 };

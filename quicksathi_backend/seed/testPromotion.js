@@ -1,4 +1,4 @@
-import "dotenv/config";
+﻿import "dotenv/config";
 import mongoose from "mongoose";
 import connectDB from "../config/db.js";
 import User from "../models/User.js";
@@ -42,7 +42,7 @@ const run = async () => {
       user: user._id,
       businessName: `${user.name} Services`,
       businessType: "Individual / Freelancer",
-      description: "Professional services provided on QuickSathi.",
+      description: "Professional services provided on TiptoBook.",
       category: defaultCat ? defaultCat._id : undefined,
       categoryName: defaultCat ? defaultCat.name : "Uncategorized",
       servicesOffered: [],

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Smartphone } from "lucide-react";
@@ -163,7 +163,7 @@ const Login = () => {
       >
         <img
           src="https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2070&auto=format&fit=crop"
-          alt="QuickSathi"
+          alt="TiptoBook"
           className="absolute inset-0 w-full h-full object-cover"
           style={{ opacity: 0.35 }}
         />
@@ -174,13 +174,13 @@ const Login = () => {
             style={{ fontFamily: "var(--font-display)", fontSize: "clamp(32px, 3.5vw, 52px)" }}
           >
             {isProviderMode
-              ? "Grow your business with QuickSathi"
+              ? "Grow your business with TiptoBook"
               : "Your one-stop platform for every service need"}
           </h2>
           <p className="text-white/80 text-lg" style={{ fontFamily: "var(--font-body)", maxWidth: "400px" }}>
             {isProviderMode
               ? "Login to manage your services, track bookings, and reach thousands of customers."
-              : "From weddings to car rentals to security — QuickSathi brings everything together."}
+              : "From weddings to car rentals to security — TiptoBook brings everything together."}
           </p>
         </div>
       </div>
@@ -194,7 +194,7 @@ const Login = () => {
               className="text-3xl font-bold m-0"
               style={{ fontFamily: "var(--font-display)", color: "var(--color-primary)" }}
             >
-              QuickSathi
+              TiptoBook
             </h1>
           </Link>
 

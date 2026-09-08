@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+﻿import { useState, useEffect, useRef } from "react";
 import { Outlet, Link, NavLink, useLocation as useRouterLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useLocation as useCityLocation } from "../../context/LocationContext";
@@ -13,7 +13,7 @@ const LogoImg = ({ size = 28, style = {} }) => {
   return (
     <img
       src="/logo.png"
-      alt="QuickSathi Logo"
+      alt="TiptoBook Logo"
       style={{
         width: `${size}px`,
         height: `${size}px`,
@@ -355,7 +355,7 @@ const Navbar = () => {
           }}
         >
           <LogoImg size={63} style={{ marginTop: "4px" }} />
-          <span>QuickSathi</span>
+          <span>TiptoBook</span>
         </Link>
 
         {/* Desktop Links */}
@@ -696,7 +696,7 @@ const Layout = () => (
     </main>
     <Footer />
     <BottomNav />
-    {/* QuickSathi AI Chatbot — floating bottom-right */}
+    {/* TiptoBook AI Chatbot — floating bottom-right */}
     <ChatBot />
   </div>
 );

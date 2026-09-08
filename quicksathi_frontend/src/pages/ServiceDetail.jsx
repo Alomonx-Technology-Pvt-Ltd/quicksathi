@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../config/api";
@@ -114,7 +114,7 @@ const ServiceDetail = () => {
           className="m-0 mb-8 text-sm sm:text-base max-w-md"
           style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
         >
-          {service.name} is launching soon on QuickSathi. Booking will open
+          {service.name} is launching soon on TiptoBook. Booking will open
           shortly — check back soon!
         </p>
         <Link

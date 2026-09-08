@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../config/api";
 import LocationSearch from "../../components/carRental/LocationSearch";
@@ -725,7 +725,7 @@ const CarRentals = () => {
           {/* Why Choose */}
           <div>
             <h2 className="font-normal mb-8" style={{ fontFamily: "var(--font-display)", fontSize: "clamp(24px, 3vw, 36px)", color: "var(--color-text-dark)" }}>
-              Why choose QuickSathi?
+              Why choose TiptoBook?
             </h2>
             {[
               { Icon: CheckCircle2, title: "No Hidden Fees", desc: "Mandatory insurance and taxes are always included in the initial quote." },

@@ -1,4 +1,4 @@
-import "dotenv/config";
+﻿import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import connectDB from "./config/db.js";
@@ -46,8 +46,8 @@ const corsOptions = {
     if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
 
     // Allow any Vercel preview deployment URL for this project
-    // Pattern: https://quicksathi[anything].vercel.app
-    if (/^https:\/\/quicksathi[a-z0-9-]*\.vercel\.app$/.test(origin)) {
+    // Pattern: https://TiptoBook[anything].vercel.app
+    if (/^https:\/\/TiptoBook[a-z0-9-]*\.vercel\.app$/.test(origin)) {
       return callback(null, true);
     }
 
@@ -82,10 +82,10 @@ app.use("/api/ai", aiRoutes);
 // ── Root route — friendly API info ──
 app.get("/", (req, res) => {
   res.json({
-    name: "QuickSathi API",
+    name: "TiptoBook API",
     status: "🟢 Running",
     version: "1.0.0",
-    message: "Welcome to the QuickSathi backend. Use /api/* endpoints to interact with the API.",
+    message: "Welcome to the TiptoBook backend. Use /api/* endpoints to interact with the API.",
     endpoints: {
       health:     "GET /api/health",
       auth:       "POST /api/auth/login | /api/auth/register",
@@ -128,7 +128,7 @@ app.use((err, req, res, next) => {
 const startServer = async () => {
   await connectDB();
   app.listen(PORT, () => {
-    console.log(`🚀 QuickSathi backend running on port ${PORT}`);
+    console.log(`🚀 TiptoBook backend running on port ${PORT}`);
     console.log(`   Environment : ${process.env.NODE_ENV || "development"}`);
     console.log(`   Allowed origins : ${ALLOWED_ORIGINS.join(", ")} + *.vercel.app previews`);
 

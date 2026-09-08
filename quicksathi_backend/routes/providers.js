@@ -1,4 +1,4 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import mongoose from "mongoose";
 import { v2 as cloudinary } from "cloudinary";
 import Provider from "../models/Provider.js";
@@ -58,7 +58,7 @@ router.post("/register", protect, async (req, res) => {
     if (selfiePhoto && selfiePhoto.startsWith("data:image")) {
       try {
         const uploadRes = await cloudinary.uploader.upload(selfiePhoto, {
-          folder: "quicksathi/providers/selfies",
+          folder: "TiptoBook/providers/selfies",
         });
         selfieUrl = uploadRes.secure_url;
       } catch (err) {
@@ -73,7 +73,7 @@ router.post("/register", protect, async (req, res) => {
     if (idProof && idProof.startsWith("data:image")) {
       try {
         const uploadRes = await cloudinary.uploader.upload(idProof, {
-          folder: "quicksathi/providers/documents",
+          folder: "TiptoBook/providers/documents",
         });
         idProofUrl = uploadRes.secure_url;
       } catch (err) {
@@ -88,7 +88,7 @@ router.post("/register", protect, async (req, res) => {
     if (businessReg && businessReg.startsWith("data:image")) {
       try {
         const uploadRes = await cloudinary.uploader.upload(businessReg, {
-          folder: "quicksathi/providers/documents",
+          folder: "TiptoBook/providers/documents",
         });
         businessRegUrl = uploadRes.secure_url;
       } catch (err) {

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { CITY_OPTIONS } from "../context/LocationContext";
@@ -24,7 +24,7 @@ const LogoImg = ({ size = 28, style = {} }) => {
   return (
     <img
       src="/logo.png"
-      alt="QuickSathi Logo"
+      alt="TiptoBook Logo"
       style={{
         width: `${size}px`,
         height: `${size}px`,
@@ -246,7 +246,7 @@ const ProviderDashboard = () => {
           <Link to="/" className="no-underline group flex items-center gap-3 mb-4">
             <LogoImg size={63} />
             <span className="font-bold text-sm tracking-tight m-0" style={{ fontFamily: "var(--font-display)", color: "var(--admin-text-primary)" }}>
-              QuickSathi Partner
+              TiptoBook Partner
             </span>
           </Link>
           <div className="h-[1px] w-full" style={{ backgroundColor: "var(--admin-border)" }} />
@@ -333,7 +333,7 @@ const ProviderDashboard = () => {
         >
           <div className="md:hidden flex items-center gap-2">
             <LogoImg size={24} />
-            <span className="font-bold text-xs">QuickSathi Partner</span>
+            <span className="font-bold text-xs">TiptoBook Partner</span>
           </div>
 
           <div className="hidden md:block">

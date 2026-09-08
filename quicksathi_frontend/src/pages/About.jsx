@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+﻿import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ShieldCheck, Clock, CreditCard, Handshake } from "lucide-react";
 import AboutSection from "./AboutSection";
@@ -105,7 +105,7 @@ const About = () => {
               lineHeight: 1.7,
             }}
           >
-            QuickSathi is on a mission to simplify local services for Patna and beyond. By combining technology with a rigorous screening process, we deliver elite security, logistics, and celebration services directly to your doorstep.
+            TiptoBook is on a mission to simplify local services for Patna and beyond. By combining technology with a rigorous screening process, we deliver elite security, logistics, and celebration services directly to your doorstep.
           </p>
         </div>
       </div>
@@ -190,7 +190,7 @@ const About = () => {
               style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
             >
               <p>
-                QuickSathi was founded with a clear realization: finding trustworthy local service providers in Patna is far too complicated. Sourcing a high-quality CCTV installer, hiring a reliable car rental, or finding event coordinators often leads to inconsistent service quality, opaque pricing, and delays.
+                TiptoBook was founded with a clear realization: finding trustworthy local service providers in Patna is far too complicated. Sourcing a high-quality CCTV installer, hiring a reliable car rental, or finding event coordinators often leads to inconsistent service quality, opaque pricing, and delays.
               </p>
               <p>
                 We built a platform that puts the client first. We established direct partnerships with vetted professionals, automated the scheduling process, and mandated upfront, flat pricing quotes. The result is a premium marketplace where you can book top-tier professionals in minutes with complete confidence.
@@ -203,7 +203,7 @@ const About = () => {
             <div className="flex-1 rounded-3xl overflow-hidden shadow-lg h-full">
               <img
                 src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=800&auto=format&fit=crop"
-                alt="QuickSathi Team Collaboration"
+                alt="TiptoBook Team Collaboration"
                 className="w-full h-full object-cover"
               />
             </div>
@@ -211,14 +211,14 @@ const About = () => {
               <div className="flex-1 rounded-3xl overflow-hidden shadow-lg">
                 <img
                   src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?q=80&w=800&auto=format&fit=crop"
-                  alt="QuickSathi Corporate Office"
+                  alt="TiptoBook Corporate Office"
                   className="w-full h-full object-cover"
                 />
               </div>
               <div className="flex-1 rounded-3xl overflow-hidden shadow-lg">
                 <img
                   src="https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop"
-                  alt="QuickSathi Event Vibe"
+                  alt="TiptoBook Event Vibe"
                   className="w-full h-full object-cover"
                 />
               </div>

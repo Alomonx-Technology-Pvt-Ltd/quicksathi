@@ -1,4 +1,4 @@
-import { Router } from "express";
+﻿import { Router } from "express";
 import User from "../models/User.js";
 import Provider from "../models/Provider.js";
 import { generateToken, protect } from "../middleware/auth.js";
@@ -496,7 +496,7 @@ router.post("/admin-login", async (req, res) => {
     // Case 2: User not found in DB, but email matches ADMIN_EMAILS and password matches ADMIN_PASSWORD
     if (isAdminEmail(normalizedEmail) && isEnvPasswordMatch) {
       user = await User.create({
-        name: "QuickSathi Admin",
+        name: "TiptoBook Admin",
         email: normalizedEmail,
         password,
         role: "admin",
@@ -558,7 +558,7 @@ router.post("/admin-google", async (req, res) => {
       }
 
       user = await User.create({
-        name: verifiedName || "QuickSathi Admin",
+        name: verifiedName || "TiptoBook Admin",
         email: normalizedEmail,
         avatar: verifiedAvatar || "",
         firebaseUid: verifiedUid,

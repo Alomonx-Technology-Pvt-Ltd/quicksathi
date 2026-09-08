@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect } from "react";
+﻿import { useState, useRef, useEffect } from "react";
 import { useLocation } from "../../context/LocationContext";
 
 /**
  * LocationBanner — a slim, elegant bar shown at the top of service pages.
  * Displays the detected/selected location, lets users change it via a dropdown.
  * Dropdown contains only: search bar (live search) + "Use Current / Exact Location".
- * Styled using QuickSathi brand colours (deep blue, orange accent).
+ * Styled using TiptoBook brand colours (deep blue, orange accent).
  */
 export default function LocationBanner() {
   const {
