@@ -1,7 +1,8 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../config/api";
+import SEO from "../components/SEO";
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -71,6 +72,19 @@ const Contact = () => {
       className="min-h-screen pb-24"
       style={{ backgroundColor: "var(--color-bg)" }}
     >
+      <SEO
+        title="Contact TiptoBook — Customer Support & Inquiries"
+        description="Have questions about TiptoBook services? Contact our support team for help with bookings, provider inquiries, or partnerships."
+        canonical="https://www.tiptobook.com/contact"
+        keywords="contact TiptoBook, customer support, service booking help, local services support, Patna services contact"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "ContactPage",
+          "name": "Contact TiptoBook",
+          "url": "https://www.tiptobook.com/contact",
+          "description": "Get in touch with TiptoBook for help with bookings, provider partnerships, or general inquiries."
+        }}
+      />
       {/* ── Hero banner ── */}
       <div
         className="relative w-full overflow-hidden"

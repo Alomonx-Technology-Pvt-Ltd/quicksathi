@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../config/api";
+import SEO from "../components/SEO";
 import {
   Search,
   ShieldCheck,
@@ -304,6 +305,19 @@ const Services = () => {
       className="min-h-screen pb-12 sm:pb-20"
       style={{ backgroundColor: "var(--color-bg)" }}
     >
+      <SEO
+        title="Local Services Near You — TiptoBook"
+        description="Browse all local services on TiptoBook — home repairs, cleaning, weddings, car rentals, CCTV installation, and more. Book trusted professionals instantly."
+        canonical="https://www.tiptobook.com/services"
+        keywords="local services, book services online, wedding services, car rentals, CCTV security, home repair, Patna services, TiptoBook catalog"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          "name": "Local Services on TiptoBook",
+          "url": "https://www.tiptobook.com/services",
+          "description": "Browse all local services on TiptoBook — home repairs, cleaning, weddings, car rentals, CCTV installation, and more."
+        }}
+      />
       {/* ============ HERO SECTION ============ */}
       <section className="relative w-full overflow-hidden text-center">
         {/* Background Layer with Dark Scrim & Ambient Glows */}

@@ -1,7 +1,8 @@
-﻿import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { ShieldCheck, Clock, CreditCard, Handshake } from "lucide-react";
 import AboutSection from "./AboutSection";
+import SEO from "../components/SEO";
 
 const stats = [
   { value: "10K+", label: "Happy Customers" },
@@ -43,6 +44,19 @@ const About = () => {
       className="min-h-screen pb-20"
       style={{ backgroundColor: "var(--color-bg)" }}
     >
+      <SEO
+        title="About TiptoBook — Our Mission & Story"
+        description="Learn about TiptoBook's mission to connect you with trusted, vetted local service professionals. 100% verified providers, instant booking, and transparent pricing."
+        canonical="https://www.tiptobook.com/about"
+        keywords="about TiptoBook, our mission, trusted service professionals, vetted providers, local services company, Bihar services platform"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "AboutPage",
+          "name": "About TiptoBook",
+          "url": "https://www.tiptobook.com/about",
+          "description": "Learn about TiptoBook's mission to connect you with trusted, vetted local service professionals."
+        }}
+      />
       {/* ── Hero section ── */}
       <div
         className="relative w-full overflow-hidden"

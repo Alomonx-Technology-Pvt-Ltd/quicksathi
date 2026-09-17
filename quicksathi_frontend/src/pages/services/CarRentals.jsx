@@ -1,6 +1,7 @@
-﻿import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../../config/api";
+import SEO from "../../components/SEO";
 import LocationSearch from "../../components/carRental/LocationSearch";
 import RouteMap from "../../components/carRental/RouteMap";
 import Process from "../../components/carRental/Process";
@@ -174,6 +175,25 @@ const CarRentals = () => {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--color-bg)" }}>
+      <SEO
+        title="Car Rental Services — Affordable Car Hire — TiptoBook"
+        description="Rent cars from trusted local providers on TiptoBook. Affordable rates, verified drivers, and hassle-free booking for weddings, travel, and daily commute."
+        canonical="https://www.tiptobook.com/services/car-rentals"
+        keywords="car rental Patna, hire car Bihar, self drive cars, wedding car rental, outstation cab, TiptoBook cars"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Car Rental Services",
+          "provider": {
+            "@type": "Organization",
+            "name": "TiptoBook",
+            "url": "https://www.tiptobook.com"
+          },
+          "serviceType": "Car Rental and Vehicle Hire",
+          "description": "Rent cars from trusted local providers on TiptoBook. Affordable rates, verified drivers, and hassle-free booking.",
+          "areaServed": "India"
+        }}
+      />
 
       {/* ═══════════════════════════════════════════════════════════════════════
           HERO — Route Search

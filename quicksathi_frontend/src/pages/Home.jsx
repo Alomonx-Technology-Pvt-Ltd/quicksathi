@@ -148,6 +148,7 @@ const Home = () => {
         title="TiptoBook — Trusted Local Services at Your Doorstep"
         description="Find trusted local professionals for home services, repairs, cleaning, weddings, car rentals, CCTV installation and more."
         canonical="https://www.tiptobook.com/"
+        keywords="local services, home services, wedding services, car rental, CCTV installation, trusted professionals, TiptoBook, book services online, Bihar services, home repairs"
       />
       <Hero
         categories={categories}

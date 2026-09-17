@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Heart, Palmtree, Home, Sparkles, Landmark, Leaf } from "lucide-react";
+import SEO from "../../components/SEO";
 import weddingImg from "../../assets/weddingImg.avif";
 import venueImg from "../../assets/venueImg.avif";
 import photographyImg from "../../assets/photographyImg.avif";
@@ -53,6 +54,25 @@ const WeddingServices = () => {
       className="min-h-screen"
       style={{ backgroundColor: "var(--color-bg)" }}
     >
+      <SEO
+        title="Wedding Services — Decorators, Venues & Planning — TiptoBook"
+        description="Find trusted wedding service providers — decorators, venues, caterers, photographers, and planners. Book vetted wedding professionals on TiptoBook."
+        canonical="https://www.tiptobook.com/services/weddings"
+        keywords="wedding services, wedding decorator Patna, wedding catering, wedding photography, destination wedding, event planning, TiptoBook weddings"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "Wedding & Event Services",
+          "provider": {
+            "@type": "Organization",
+            "name": "TiptoBook",
+            "url": "https://www.tiptobook.com"
+          },
+          "serviceType": "Wedding Planning and Decor",
+          "description": "Find trusted wedding service providers — decorators, venues, caterers, photographers, and planners.",
+          "areaServed": "India"
+        }}
+      />
       {/* Hero Section */}
       <section
         className="relative w-full overflow-hidden"

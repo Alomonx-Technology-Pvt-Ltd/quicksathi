@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import SEO from "../../components/SEO";
 import {
   ShieldCheck,
   Star,
@@ -91,6 +92,25 @@ const FEATURES = [
 const CCTVServices = () => {
   return (
     <div className="min-h-screen" style={{ backgroundColor: "var(--color-bg)" }}>
+      <SEO
+        title="CCTV Installation & Security Services — TiptoBook"
+        description="Professional CCTV installation and security camera services by verified technicians. Home and business surveillance solutions on TiptoBook."
+        canonical="https://www.tiptobook.com/services/cctv"
+        keywords="CCTV installation Patna, security camera setup, commercial CCTV, home surveillance, smart locks, verified security technicians, TiptoBook CCTV"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": "CCTV Installation & Security Services",
+          "provider": {
+            "@type": "Organization",
+            "name": "TiptoBook",
+            "url": "https://www.tiptobook.com"
+          },
+          "serviceType": "CCTV Installation & Maintenance",
+          "description": "Professional CCTV installation and security camera services by verified technicians.",
+          "areaServed": "India"
+        }}
+      />
       {/* Hero */}
      <section className="relative w-full overflow-hidden" style={{ minHeight: "92vh" }}>
   <img
