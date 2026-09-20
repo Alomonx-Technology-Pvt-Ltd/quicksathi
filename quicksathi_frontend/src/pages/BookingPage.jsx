@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate, useSearchParams, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useLocation } from "../context/LocationContext";
 import api from "../config/api";
 import LocationSearch from "../components/carRental/LocationSearch";
 import RouteMap from "../components/carRental/RouteMap";
@@ -14,6 +15,8 @@ import {
   ShieldCheck,
   CheckCircle2,
   Car,
+  Crosshair,
+  Loader2,
 } from "lucide-react";
 
 const BookingPage = () => {
@@ -34,14 +37,13 @@ const BookingPage = () => {
   const [service, setService] = useState(null);
   const [loadingService, setLoadingService] = useState(false);
 
-  // Rental identification
+  // Rental identification — uses word-boundary regex to avoid false positives (e.g. "Care" ≠ "car")
+  const RENTAL_KEYWORDS = /\b(rental|car|cab|taxi|bike|vehicle)\b/i;
   const isRentalParam =
     searchParams.has("route") ||
     searchParams.has("distance") ||
     searchParams.has("perKmRate") ||
-    serviceName.toLowerCase().includes("rental") ||
-    serviceName.toLowerCase().includes("car") ||
-    serviceName.toLowerCase().includes("bike");
+    RENTAL_KEYWORDS.test(serviceName);
 
   const [isRental, setIsRental] = useState(isRentalParam);
 
@@ -111,6 +113,28 @@ const BookingPage = () => {
 
   const [perKmRate, setPerKmRate] = useState(initialPerKmRate || 10);
   const [error, setError] = useState("");
+  const [gpsCoords, setGpsCoords] = useState(null);
+
+  const { detectExactLocation, detecting } = useLocation();
+
+  // Auto-detect exact street/road/gully address for standard booking
+  const handleAutoDetectAddress = async () => {
+    const loc = await detectExactLocation(true);
+    if (loc) {
+      setFormData((prev) => ({
+        ...prev,
+        address: loc.street || loc.fullLocation,
+        city: loc.city || prev.city,
+        pincode: loc.pincode || prev.pincode,
+      }));
+      setGpsCoords({
+        lat: loc.lat,
+        lon: loc.lon,
+        accuracy: loc.accuracy,
+        road: loc.road,
+      });
+    }
+  };
 
   // Fetch service from backend to confirm rental status & perKmRate
   useEffect(() => {
@@ -187,6 +211,12 @@ const BookingPage = () => {
         address: `${pickupName} to ${dropoffName}`,
         city: pickupName.split(",")[0] || "Patna",
         pincode: formData.pincode || "",
+        pickup: pickupName,
+        dropoff: dropoffName,
+        ...(pickup?.lat ? { pickupLat: pickup.lat.toString(), pickupLon: pickup.lon.toString(), lat: pickup.lat.toString(), lon: pickup.lon.toString() } : {}),
+        ...(dropoff?.lat ? { dropoffLat: dropoff.lat.toString(), dropoffLon: dropoff.lon.toString() } : {}),
+        ...(pickup?.accuracy ? { accuracy: pickup.accuracy.toString() } : {}),
+        ...(pickup?.road ? { road: pickup.road } : {}),
         notes: [
           `Route: ${pickupName} → ${dropoffName}`,
           distanceKm > 0 ? `Distance: ${distanceKm} km` : null,
@@ -202,8 +232,24 @@ const BookingPage = () => {
       navigate(`/payment?${params.toString()}`);
     } else {
       // Standard Non-Rental booking
-      if (!formData.date || !formData.address || !formData.city) {
-        setError("Please fill in date, address and city");
+      if (!formData.date) {
+        setError("Please select a service date.");
+        return;
+      }
+      if (!formData.time) {
+        setError("Please select a preferred time.");
+        return;
+      }
+      if (!formData.address.trim()) {
+        setError("Please enter your service address.");
+        return;
+      }
+      if (!formData.city.trim()) {
+        setError("Please enter your city.");
+        return;
+      }
+      if (formData.pincode && !/^\d{6}$/.test(formData.pincode.trim())) {
+        setError("Pincode must be exactly 6 digits (e.g. 800001).");
         return;
       }
 
@@ -218,6 +264,9 @@ const BookingPage = () => {
         city: formData.city,
         pincode: formData.pincode,
         notes: formData.notes,
+        ...(gpsCoords?.lat ? { lat: gpsCoords.lat.toString(), lon: gpsCoords.lon.toString() } : {}),
+        ...(gpsCoords?.accuracy ? { accuracy: gpsCoords.accuracy.toString() } : {}),
+        ...(gpsCoords?.road ? { road: gpsCoords.road } : {}),
       });
 
       navigate(`/payment?${params.toString()}`);
@@ -419,6 +468,10 @@ const BookingPage = () => {
                       pickup={pickup}
                       dropoff={dropoff}
                       onRouteCalculated={handleRouteCalculated}
+                      onPickupChange={(newLoc) => {
+                        setPickup(newLoc);
+                        setPickupName(newLoc.shortName || newLoc.name);
+                      }}
                     />
                   </div>
 
@@ -572,22 +625,42 @@ const BookingPage = () => {
                   </div>
 
                   <div>
-                    <label
-                      className="block text-xs font-semibold uppercase tracking-wider mb-2"
-                      style={{
-                        fontFamily: "var(--font-body)",
-                        color: "var(--color-text-mid)",
-                      }}
-                    >
-                      Address *
-                    </label>
+                    <div className="flex items-center justify-between mb-2">
+                      <label
+                        className="block text-xs font-semibold uppercase tracking-wider m-0"
+                        style={{
+                          fontFamily: "var(--font-body)",
+                          color: "var(--color-text-mid)",
+                        }}
+                      >
+                        Address (Street / Gully / House) *
+                      </label>
+                      <button
+                        type="button"
+                        onClick={handleAutoDetectAddress}
+                        disabled={detecting}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border-0 cursor-pointer transition-all hover:bg-orange-50 disabled:opacity-50"
+                        style={{
+                          backgroundColor: "rgba(255,107,0,0.12)",
+                          color: "#c2410c",
+                          fontFamily: "var(--font-body)",
+                        }}
+                      >
+                        {detecting ? (
+                          <Loader2 size={12} className="animate-spin" />
+                        ) : (
+                          <Crosshair size={12} strokeWidth={2.2} />
+                        )}
+                        {detecting ? "Locating GPS…" : "📍 Detect Exact GPS Address"}
+                      </button>
+                    </div>
                     <input
                       type="text"
                       name="address"
                       value={formData.address}
                       onChange={handleChange}
                       required
-                      placeholder="Enter your address"
+                      placeholder="e.g. Flat 302, Gali No. 4, Boring Canal Road"
                       className="w-full px-4 py-3 rounded-xl text-sm border outline-none"
                       style={{
                         fontFamily: "var(--font-body)",

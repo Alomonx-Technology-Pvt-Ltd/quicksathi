@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, RefreshCw, CheckCircle2, AlertCircle, Upload, User } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
@@ -9,6 +9,8 @@ const STEPS = ["Business Info", "Location & Services", "Documents & Verification
 
 const ProviderOnboarding = () => {
   const { isAuthenticated, user, register } = useAuth();
+  const [searchParams] = useSearchParams();
+  const categoryQuery = searchParams.get("category");
   const [step, setStep] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -55,12 +57,26 @@ const ProviderOnboarding = () => {
       try {
         const { data } = await api.get("/categories");
         setCategories(data);
+        if (categoryQuery && data?.length > 0) {
+          const matched = data.find(
+            (c) =>
+              String(c._id || c.id) === String(categoryQuery) ||
+              c.name.toLowerCase() === categoryQuery.toLowerCase() ||
+              c.name.toLowerCase().includes(categoryQuery.toLowerCase())
+          );
+          if (matched) {
+            setFormData((prev) => ({
+              ...prev,
+              category: matched._id || matched.id,
+            }));
+          }
+        }
       } catch (err) {
         console.error("Failed to fetch categories:", err);
       }
     };
     fetchCategories();
-  }, []);
+  }, [categoryQuery]);
 
   // ── Camera Handlers ────────────────────────────────────────────────────────
   const startCamera = async () => {
@@ -170,14 +186,22 @@ const ProviderOnboarding = () => {
   const handleChange = (e) => setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
 
   // Per-step validation before advancing
+  const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const PHONE_REGEX = /^(\+91[\s-]?)?[6-9]\d{9}$/;
+  const PINCODE_REGEX = /^\d{6}$/;
+
   const validateStep = (currentStep) => {
     if (currentStep === 0) {
       if (!formData.businessName.trim()) return "Business name is required.";
+      if (formData.businessName.trim().length < 3) return "Business name must be at least 3 characters.";
       if (!formData.businessType) return "Please select an organization type.";
       if (!formData.phone.trim()) return "Mobile phone is required.";
+      if (!PHONE_REGEX.test(formData.phone.trim().replace(/\s/g, ""))) return "Please enter a valid 10-digit Indian phone number (e.g. +91 98765 43210).";
       if (!formData.email.trim()) return "Email is required.";
+      if (!EMAIL_REGEX.test(formData.email.trim())) return "Please enter a valid email address (e.g. name@example.com).";
       if (!isAuthenticated) {
         if (!formData.ownerName.trim()) return "Owner full name is required to create your account.";
+        if (formData.ownerName.trim().length < 2) return "Owner name must be at least 2 characters.";
         if (!formData.password || formData.password.length < 6) return "Password must be at least 6 characters.";
       }
     }
@@ -187,8 +211,10 @@ const ProviderOnboarding = () => {
       if (!formData.experience.trim()) return "Professional experience is required.";
       if (!formData.address.trim()) return "Street address is required.";
       if (!formData.city.trim()) return "City is required.";
+      if (formData.city.trim().length < 2) return "Please enter a valid city name.";
       if (!formData.state.trim()) return "State is required.";
       if (!formData.pincode.trim()) return "Pincode is required.";
+      if (!PINCODE_REGEX.test(formData.pincode.trim())) return "Pincode must be exactly 6 digits (e.g. 800001).";
     }
     if (currentStep === 2) {
       if (!formData.selfiePhoto) return "Live selfie verification photo is required. Please capture your photo.";

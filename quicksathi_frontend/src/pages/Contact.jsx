@@ -41,8 +41,22 @@ const Contact = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.firstName || !formData.email || !formData.message) {
-      setError("Please fill in all required fields (First Name, Email, and Message).");
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!formData.firstName || formData.firstName.trim().length < 2) {
+      setError("First name is required and must be at least 2 characters.");
+      return;
+    }
+    if (!formData.email) {
+      setError("Email address is required.");
+      return;
+    }
+    if (!EMAIL_REGEX.test(formData.email.trim())) {
+      setError("Please enter a valid email address (e.g. name@example.com).");
+      return;
+    }
+    if (!formData.message || formData.message.trim().length < 10) {
+      setError("Message is required and must be at least 10 characters.");
       return;
     }
     setError("");

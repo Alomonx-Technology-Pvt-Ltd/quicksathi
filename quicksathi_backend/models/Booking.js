@@ -38,8 +38,12 @@ const bookingSchema = new mongoose.Schema(
     },
     location: {
       address: { type: String, default: "" },
+      road: { type: String, default: "" },
       city: { type: String, default: "" },
       pincode: { type: String, default: "" },
+      lat: { type: Number },
+      lon: { type: Number },
+      accuracy: { type: Number },
     },
     notes: {
       type: String,

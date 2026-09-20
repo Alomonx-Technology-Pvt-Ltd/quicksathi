@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from "react-leaflet";
+import { useEffect, useRef, useState, useMemo } from "react";
+import { MapContainer, TileLayer, Marker, Polyline, Circle, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
+import { reverseGeocode } from "../../context/LocationContext";
+import { Crosshair } from "lucide-react";
 
 // Fix Leaflet default marker icons (they break with bundlers)
 import markerIcon2x from "leaflet/dist/images/marker-icon-2x.png";
@@ -20,7 +22,7 @@ const createIcon = (color) =>
     html: `<div style="
       width: 28px; height: 28px; border-radius: 50% 50% 50% 0;
       background: ${color}; border: 3px solid #fff;
-      transform: rotate(-45deg); box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      transform: rotate(-45deg); box-shadow: 0 3px 10px rgba(0,0,0,0.35);
     "></div>`,
     className: "",
     iconSize: [28, 28],
@@ -34,34 +36,64 @@ const dropoffIcon = createIcon("#dc2626"); // red
 const OSRM_URL = "https://router.project-osrm.org/route/v1/driving";
 
 /**
- * Auto-fit map bounds when positions change.
+ * Auto-fit map bounds or center on single position at street-level (zoom 17).
  */
 const FitBounds = ({ positions }) => {
   const map = useMap();
   useEffect(() => {
     if (positions && positions.length >= 2) {
       const bounds = L.latLngBounds(positions);
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 13 });
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16 });
+    } else if (positions && positions.length === 1) {
+      map.setView(positions[0], 17, { animate: true });
     }
   }, [map, positions]);
   return null;
 };
 
 /**
+ * Quick button to re-center on exact pickup spot at street level.
+ */
+const RecenterControl = ({ target }) => {
+  const map = useMap();
+  if (!target || !target.lat || !target.lon) return null;
+
+  return (
+    <div className="leaflet-top leaflet-right" style={{ pointerEvents: "auto", margin: "10px" }}>
+      <button
+        type="button"
+        onClick={() => map.setView([target.lat, target.lon], 17, { animate: true })}
+        title="Zoom to exact street / gully pickup spot"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border-0 cursor-pointer shadow-md text-xs font-semibold"
+        style={{
+          backgroundColor: "#ffffff",
+          color: "#16a34a",
+          border: "1px solid rgba(0,0,0,0.12)",
+        }}
+      >
+        <Crosshair size={14} strokeWidth={2.5} />
+        <span>Street View</span>
+      </button>
+    </div>
+  );
+};
+
+/**
  * RouteMap — Displays an interactive Leaflet map with route between two points.
  *
  * Props:
- *   pickup      – { lat, lon, name }
- *   dropoff     – { lat, lon, name }
+ *   pickup            – { lat, lon, name, shortName, accuracy }
+ *   dropoff           – { lat, lon, name, shortName }
  *   onRouteCalculated – callback: ({ distanceKm, durationMin, routeCoords }) => void
+ *   onPickupChange    – optional callback when user drags the pickup pin to exact spot
  */
-const RouteMap = ({ pickup, dropoff, onRouteCalculated }) => {
+const RouteMap = ({ pickup, dropoff, onRouteCalculated, onPickupChange }) => {
   const [routeCoords, setRouteCoords] = useState([]);
   const [loading, setLoading] = useState(false);
   const prevRouteRef = useRef("");
 
   // Default center: India
-  const defaultCenter = [22.5, 82.0];
+  const defaultCenter = useMemo(() => [25.61, 85.14], []); // Patna default
   const hasPickup = pickup?.lat && pickup?.lon;
   const hasDropoff = dropoff?.lat && dropoff?.lon;
   const hasBothPoints = hasPickup && hasDropoff;
@@ -71,6 +103,37 @@ const RouteMap = ({ pickup, dropoff, onRouteCalculated }) => {
     : hasDropoff
     ? [dropoff.lat, dropoff.lon]
     : defaultCenter;
+
+  // Dragging pickup pin to refine exact spot
+  const handlePickupDragEnd = async (e) => {
+    const marker = e.target;
+    const latLng = marker.getLatLng();
+    if (onPickupChange) {
+      try {
+        const res = await reverseGeocode(latLng.lat, latLng.lng);
+        if (res) {
+          onPickupChange({
+            lat: latLng.lat,
+            lon: latLng.lng,
+            name: res.fullLocation,
+            shortName: res.street || res.fullLocation,
+            road: res.road,
+            gully: res.gully,
+            locality: res.locality,
+            city: res.city,
+            isGps: true,
+          });
+        }
+      } catch {
+        onPickupChange({
+          lat: latLng.lat,
+          lon: latLng.lng,
+          name: `Adjusted Pin (${latLng.lat.toFixed(5)}, ${latLng.lng.toFixed(5)})`,
+          shortName: `Adjusted Spot`,
+        });
+      }
+    }
+  };
 
   // Fetch route from OSRM when both points are set
   useEffect(() => {
@@ -140,7 +203,7 @@ const RouteMap = ({ pickup, dropoff, onRouteCalculated }) => {
 
       <MapContainer
         center={center}
-        zoom={hasPickup ? 10 : 5}
+        zoom={hasPickup ? 17 : 6}
         scrollWheelZoom={true}
         style={{ height: "100%", width: "100%", borderRadius: "16px" }}
         zoomControl={true}
@@ -150,12 +213,58 @@ const RouteMap = ({ pickup, dropoff, onRouteCalculated }) => {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         />
 
+        {/* Street-view recenter button */}
+        {hasPickup && <RecenterControl target={pickup} />}
+
+        {/* GPS Accuracy Circle */}
         {hasPickup && (
-          <Marker position={[pickup.lat, pickup.lon]} icon={pickupIcon} />
+          <Circle
+            center={[pickup.lat, pickup.lon]}
+            radius={pickup.accuracy ? Math.min(Math.max(pickup.accuracy, 8), 60) : 15}
+            pathOptions={{
+              color: "#16a34a",
+              fillColor: "#16a34a",
+              fillOpacity: 0.16,
+              weight: 1.5,
+              dashArray: "3, 6",
+            }}
+          />
+        )}
+
+        {hasPickup && (
+          <Marker
+            position={[pickup.lat, pickup.lon]}
+            icon={pickupIcon}
+            draggable={!!onPickupChange}
+            eventHandlers={{
+              dragend: handlePickupDragEnd,
+            }}
+          >
+            <Popup>
+              <div style={{ fontFamily: "sans-serif", fontSize: "12px", minWidth: "160px" }}>
+                <strong style={{ color: "#16a34a" }}>📍 Exact Pickup Spot</strong>
+                <p style={{ margin: "4px 0 2px", color: "#333", fontWeight: 600 }}>
+                  {pickup.shortName || pickup.name}
+                </p>
+                {onPickupChange && (
+                  <span style={{ fontSize: "10px", color: "#888", display: "block" }}>
+                    💡 Drag pin to adjust exact spot
+                  </span>
+                )}
+              </div>
+            </Popup>
+          </Marker>
         )}
 
         {hasDropoff && (
-          <Marker position={[dropoff.lat, dropoff.lon]} icon={dropoffIcon} />
+          <Marker position={[dropoff.lat, dropoff.lon]} icon={dropoffIcon}>
+            <Popup>
+              <div style={{ fontFamily: "sans-serif", fontSize: "12px" }}>
+                <strong style={{ color: "#dc2626" }}>🏁 Destination</strong>
+                <p style={{ margin: "4px 0 0", color: "#333" }}>{dropoff.shortName || dropoff.name}</p>
+              </div>
+            </Popup>
+          </Marker>
         )}
 
         {routeCoords.length > 1 && (
@@ -172,7 +281,7 @@ const RouteMap = ({ pickup, dropoff, onRouteCalculated }) => {
           />
         )}
 
-        {positions.length >= 2 && <FitBounds positions={positions} />}
+        {positions.length > 0 && <FitBounds positions={positions} />}
       </MapContainer>
 
       {/* Empty state */}

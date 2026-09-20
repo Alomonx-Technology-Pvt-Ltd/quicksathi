@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import api from "../../config/api";
 import SEO from "../../components/SEO";
 import LocationSearch from "../../components/carRental/LocationSearch";
 import RouteMap from "../../components/carRental/RouteMap";
 import Process from "../../components/carRental/Process";
 import DocumentRequirement from "../../components/carRental/DocumentsRequirement";
+
+import { useLocation } from "../../context/LocationContext";
 
 import {
   Star,
@@ -67,18 +69,82 @@ const FILTERS = ["All Vehicles", "Cars", "Wedding"];
 
 const CarRentals = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const initialPickup = searchParams.get("pickup") || searchParams.get("start") || "";
+  const initialDropoff = searchParams.get("dropoff") || searchParams.get("destination") || "";
 
   // Route search state
   const [pickup, setPickup] = useState(null);
   const [dropoff, setDropoff] = useState(null);
-  const [pickupName, setPickupName] = useState("");
-  const [dropoffName, setDropoffName] = useState("");
+  const [pickupName, setPickupName] = useState(initialPickup);
+  const [dropoffName, setDropoffName] = useState(initialDropoff);
   const [tripDate, setTripDate] = useState("");
   const [serviceType, setServiceType] = useState("self-drive");
 
   // Route result state
   const [routeInfo, setRouteInfo] = useState(null); // { distanceKm, durationMin }
   const [showResults, setShowResults] = useState(false);
+
+  // Auto-fill & geocode from searchParams if navigated from hero card
+  useEffect(() => {
+    if (!initialPickup && !initialDropoff) return;
+
+    let isMounted = true;
+    const geocodeFromParams = async () => {
+      try {
+        let pObj = null;
+        let dObj = null;
+
+        if (initialPickup) {
+          setPickupName(initialPickup);
+          const resP = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(initialPickup)}&format=json&limit=1&countrycodes=in`
+          );
+          const dataP = await resP.json();
+          if (dataP?.[0] && isMounted) {
+            pObj = {
+              name: dataP[0].display_name,
+              shortName: initialPickup,
+              lat: parseFloat(dataP[0].lat),
+              lon: parseFloat(dataP[0].lon),
+            };
+            setPickup(pObj);
+          }
+        }
+
+        if (initialDropoff) {
+          setDropoffName(initialDropoff);
+          const resD = await fetch(
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(initialDropoff)}&format=json&limit=1&countrycodes=in`
+          );
+          const dataD = await resD.json();
+          if (dataD?.[0] && isMounted) {
+            dObj = {
+              name: dataD[0].display_name,
+              shortName: initialDropoff,
+              lat: parseFloat(dataD[0].lat),
+              lon: parseFloat(dataD[0].lon),
+            };
+            setDropoff(dObj);
+          }
+        }
+
+        if (pObj && dObj && isMounted) {
+          setShowResults(true);
+          setTimeout(() => {
+            document.getElementById("route-results")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }, 600);
+        }
+      } catch (err) {
+        console.warn("Auto-geocoding error from search params:", err);
+      }
+    };
+
+    geocodeFromParams();
+    return () => {
+      isMounted = false;
+    };
+  }, [initialPickup, initialDropoff]);
 
   // Vehicle state
   const [vehicles, setVehicles] = useState([]);
@@ -157,7 +223,7 @@ const CarRentals = () => {
       return !/bike|scooter|motorcycle/.test(hay);
     });
 
-  // Book handler
+  // Book handler — passes exact road & gully coordinates to checkout
   const handleBook = (vehicle) => {
     const serviceId = vehicle._id || vehicle.id;
     const price = getTripPrice(vehicle);
@@ -165,7 +231,11 @@ const CarRentals = () => {
       name: vehicle.name,
       package: vehicle.packages?.[0]?.title || "Standard",
       price: price.toString(),
-      ...(routeInfo?.distanceKm ? { route: `${pickupName} → ${dropoffName}`, distance: `${routeInfo.distanceKm} km` } : {}),
+      pickup: pickupName,
+      dropoff: dropoffName,
+      ...(pickup?.lat ? { pickupLat: pickup.lat.toString(), pickupLon: pickup.lon.toString() } : {}),
+      ...(dropoff?.lat ? { dropoffLat: dropoff.lat.toString(), dropoffLon: dropoff.lon.toString() } : {}),
+      ...(routeInfo?.distanceKm ? { route: `${pickupName} → ${dropoffName}`, distance: `${routeInfo.distanceKm} km`, distanceKm: routeInfo.distanceKm.toString() } : {}),
     });
     navigate(`/booking/${serviceId}?${query.toString()}`);
   };
@@ -389,6 +459,10 @@ const CarRentals = () => {
                   pickup={pickup}
                   dropoff={dropoff}
                   onRouteCalculated={handleRouteCalculated}
+                  onPickupChange={(newPickup) => {
+                    setPickup(newPickup);
+                    setPickupName(newPickup.shortName || newPickup.name);
+                  }}
                 />
               </div>
 

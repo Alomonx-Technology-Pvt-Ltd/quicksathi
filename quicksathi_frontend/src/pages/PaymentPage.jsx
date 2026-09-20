@@ -23,6 +23,10 @@ const PaymentPage = () => {
   const city = searchParams.get("city") || "";
   const pincode = searchParams.get("pincode") || "";
   const notes = searchParams.get("notes") || "";
+  const latParam = searchParams.get("lat") || searchParams.get("pickupLat");
+  const lonParam = searchParams.get("lon") || searchParams.get("pickupLon");
+  const road = searchParams.get("road") || "";
+  const accuracyParam = searchParams.get("accuracy");
 
   const handlePayment = async () => {
     setProcessing(true);
@@ -37,6 +41,10 @@ const PaymentPage = () => {
           address,
           city,
           pincode,
+          ...(latParam ? { lat: parseFloat(latParam) } : {}),
+          ...(lonParam ? { lon: parseFloat(lonParam) } : {}),
+          ...(road ? { road } : {}),
+          ...(accuracyParam ? { accuracy: parseFloat(accuracyParam) } : {}),
         },
         notes,
         paymentMethod,

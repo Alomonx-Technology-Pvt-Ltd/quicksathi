@@ -1,4 +1,4 @@
-﻿import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useLocation } from "../../context/LocationContext";
 
 /**
@@ -10,6 +10,12 @@ import { useLocation } from "../../context/LocationContext";
 export default function LocationBanner() {
   const {
     fullLocation,
+    street,
+    road,
+    locality,
+    city,
+    showBanner,
+    updateExactStreet,
     setLocationData,
     searchLocation,
     detecting,
@@ -18,6 +24,8 @@ export default function LocationBanner() {
   } = useLocation();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [searchCity, setSearchCity] = useState("");
+  const [customStreet, setCustomStreet] = useState("");
+  const [editingStreet, setEditingStreet] = useState(false);
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const dropRef = useRef(null);
@@ -29,6 +37,7 @@ export default function LocationBanner() {
         setDropdownOpen(false);
         setSearchCity("");
         setResults([]);
+        setEditingStreet(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -47,33 +56,83 @@ export default function LocationBanner() {
       const r = await searchLocation(searchCity);
       setResults(r || []);
       setSearching(false);
-    }, 400);
+    }, 350);
     return () => clearTimeout(t);
   }, [searchCity, searchLocation]);
 
   if (!showBanner) return null;
 
+  const displayLabel =
+    street && street !== city && street !== locality
+      ? locality ? `${street}, ${locality}` : `${street}, ${city}`
+      : road && road !== city && road !== locality
+      ? locality ? `${road}, ${locality}` : `${road}, ${city}`
+      : locality && city && locality !== city
+      ? `${locality} • Select Gully`
+      : fullLocation || "Set your location";
+
   const handleSelectResult = (r) => {
     setLocationData({
       fullLocation: r.label,
+      street: r.street || r.road || r.label,
+      road: r.road || "",
+      locality: r.locality || "",
       city: r.city || r.label,
       lat: r.lat,
       lon: r.lon,
+      version: 2,
       timestamp: Date.now(),
     });
     setDropdownOpen(false);
     setSearchCity("");
     setResults([]);
+    setEditingStreet(false);
   };
 
-  const handleDetectClick = () => {
+  const handleDetectClick = async () => {
     if (detectExactLocation) {
-      detectExactLocation(true);
+      await detectExactLocation(true);
     }
     setDropdownOpen(false);
     setSearchCity("");
     setResults([]);
   };
+
+  const handleSaveCustomStreet = (e) => {
+    e?.preventDefault?.();
+    if (!customStreet.trim()) return;
+    updateExactStreet(customStreet.trim());
+    setCustomStreet("");
+    setEditingStreet(false);
+    setDropdownOpen(false);
+  };
+
+  // Popular local streets & gullies for quick 1-click precision (e.g. Digha / Patna)
+  const isDigha =
+    (fullLocation && fullLocation.toLowerCase().includes("digha")) ||
+    (locality && locality.toLowerCase().includes("digha"));
+
+  const localShortcuts = isDigha
+    ? [
+        "Ashiana-Digha Road",
+        "AIIMS - Digha Service Road",
+        "Ashok Rajpath",
+        "Patel Gali",
+        "Tarumitra Road",
+        "Ganga Nagar Lane",
+        "Digha Ghat Road",
+        "Priyadarshi Nagar",
+        "Kurji Digha",
+        "Makhdumpur Digha",
+      ]
+    : [
+        "Boring Road",
+        "Bailey Road",
+        "Kankarbagh Main Rd",
+        "Fraser Road",
+        "Rajendra Nagar",
+        "Ashiana Nagar",
+      ];
 
   return (
     <div
@@ -249,6 +308,80 @@ export default function LocationBanner() {
               </p>
             )}
 
+            {/* Local Road & Gully Shortcuts */}
+            {!searchCity.trim() && (
+              <div
+                style={{
+                  padding: "8px 12px",
+                  borderBottom: "1px solid rgba(255,255,255,0.06)",
+                  background: "rgba(0,0,0,0.15)",
+                }}
+              >
+                <p
+                  style={{
+                    color: "rgba(255,255,255,0.45)",
+                    fontSize: "10px",
+                    fontWeight: "600",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    margin: "0 0 6px 0",
+                  }}
+                >
+                  Popular Roads & Gullies:
+                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                  {localShortcuts.map((sc) => (
+                    <button
+                      key={sc}
+                      type="button"
+                      onClick={() => {
+                        updateExactStreet(sc);
+                        setDropdownOpen(false);
+                      }}
+                      style={{
+                        padding: "3px 8px",
+                        borderRadius: "6px",
+                        fontSize: "11px",
+                        background: "rgba(255,255,255,0.08)",
+                        border: "1px solid rgba(255,255,255,0.12)",
+                        color: "rgba(255,255,255,0.85)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      📍 {sc}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Custom typed street fallback */}
+            {searchCity.trim() && (
+              <button
+                type="button"
+                onClick={() => {
+                  updateExactStreet(searchCity.trim());
+                  setDropdownOpen(false);
+                  setSearchCity("");
+                }}
+                style={{
+                  display: "block",
+                  width: "100%",
+                  padding: "8px 14px",
+                  textAlign: "left",
+                  background: "rgba(255,107,0,0.15)",
+                  border: "none",
+                  borderBottom: "1px solid rgba(255,107,0,0.25)",
+                  color: "#ff6b00",
+                  fontSize: "12px",
+                  fontWeight: "600",
+                  cursor: "pointer",
+                }}
+              >
+                📍 Set as exact road/gully: "{searchCity.trim()}"
+              </button>
+            )}
+
             {/* Live search results */}
             <div style={{ maxHeight: "200px", overflowY: "auto" }}>
               {searching && (
@@ -304,19 +437,6 @@ export default function LocationBanner() {
                   }}
                 >
                   No matches found
-                </p>
-              )}
-              {!searching && !searchCity.trim() && (
-                <p
-                  style={{
-                    color: "rgba(255,255,255,0.3)",
-                    fontSize: "12px",
-                    textAlign: "center",
-                    padding: "12px",
-                    fontFamily: "Inter, sans-serif",
-                  }}
-                >
-                  Type to search your city or area
                 </p>
               )}
             </div>

@@ -37,6 +37,27 @@ const Login = () => {
     setLoading(true);
     setError("");
 
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const PHONE_REGEX = /^(\+91[\s-]?)?[6-9]\d{9}$/;
+
+    // Validate email format
+    if (!formData.email.trim()) {
+      setError("Email address is required.");
+      setLoading(false);
+      return;
+    }
+    if (!EMAIL_REGEX.test(formData.email.trim())) {
+      setError("Please enter a valid email address (e.g. name@example.com).");
+      setLoading(false);
+      return;
+    }
+
+    if (!formData.password || formData.password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      setLoading(false);
+      return;
+    }
+
     try {
       if (isProviderMode) {
         // Provider login
@@ -46,8 +67,12 @@ const Login = () => {
       }
 
       if (isSignup) {
-        if (!formData.name.trim()) throw new Error("Name is required");
-        if (formData.password.length < 6) throw new Error("Password must be at least 6 characters");
+        if (!formData.name.trim() || formData.name.trim().length < 2) {
+          throw new Error("Name is required and must be at least 2 characters.");
+        }
+        if (formData.phone && !PHONE_REGEX.test(formData.phone.trim().replace(/\s/g, ""))) {
+          throw new Error("Please enter a valid 10-digit Indian phone number (e.g. +91 98765 43210).");
+        }
         await register(formData.name, formData.email, formData.password, formData.phone);
       } else {
         await login(formData.email, formData.password);

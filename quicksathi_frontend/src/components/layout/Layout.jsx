@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Outlet, Link, NavLink, useLocation as useRouterLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useLocation as useCityLocation } from "../../context/LocationContext";
@@ -13,6 +13,12 @@ import BrandLogo from "../common/BrandLogo";
 const CityPicker = ({ isFullBleed }) => {
   const {
     fullLocation,
+    street,
+    road,
+    locality,
+    city,
+    locationData,
+    updateExactStreet,
     setLocationData,
     searchLocation,
     detecting,
@@ -21,9 +27,25 @@ const CityPicker = ({ isFullBleed }) => {
   } = useCityLocation();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [customStreet, setCustomStreet] = useState("");
+  const [editingStreet, setEditingStreet] = useState(false);
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
   const ref = useRef(null);
+
+  // Determine concise, high-precision label to show on the navbar button
+  const displayLabel = useMemo(() => {
+    if (street && street !== city && street !== locality) {
+      return locality ? `${street}, ${locality}` : `${street}, ${city}`;
+    }
+    if (road && road !== city && road !== locality) {
+      return locality ? `${road}, ${locality}` : `${road}, ${city}`;
+    }
+    if (locality && city && locality !== city) {
+      return `${locality} • Select Road/Gully`;
+    }
+    return fullLocation || "Set your location";
+  }, [street, road, locality, city, fullLocation]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -31,13 +53,14 @@ const CityPicker = ({ isFullBleed }) => {
         setOpen(false);
         setSearch("");
         setResults([]);
+        setEditingStreet(false);
       }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Live search (debounced) — searches any city/area via OpenStreetMap
+  // Live search (debounced) — searches any street, road, gully, or area
   useEffect(() => {
     if (!search.trim()) {
       setResults([]);
@@ -49,57 +72,121 @@ const CityPicker = ({ isFullBleed }) => {
       const r = await searchLocation(search);
       setResults(r || []);
       setSearching(false);
-    }, 400);
+    }, 350);
     return () => clearTimeout(t);
   }, [search, searchLocation]);
 
   const handleSelectResult = (r) => {
     setLocationData({
       fullLocation: r.label,
+      street: r.street || r.road || r.label,
+      road: r.road || "",
+      locality: r.locality || "",
       city: r.city || r.label,
       lat: r.lat,
       lon: r.lon,
+      version: 2,
       timestamp: Date.now(),
     });
     setOpen(false);
     setSearch("");
     setResults([]);
+    setEditingStreet(false);
   };
 
-  const handleDetectClick = () => {
+  const handleDetectClick = async () => {
     if (detectExactLocation) {
-      detectExactLocation(true);
+      await detectExactLocation(true);
     }
     setOpen(false);
     setSearch("");
     setResults([]);
   };
 
+  const handleSaveCustomStreet = (e) => {
+    e?.preventDefault?.();
+    if (!customStreet.trim()) return;
+    updateExactStreet(customStreet.trim());
+    setCustomStreet("");
+    setEditingStreet(false);
+    setOpen(false);
+  };
+
+  // Popular local streets & gullies for quick 1-click precision (e.g. Digha / Patna)
+  const isDigha =
+    (fullLocation && fullLocation.toLowerCase().includes("digha")) ||
+    (locality && locality.toLowerCase().includes("digha"));
+
+  const localShortcuts = isDigha
+    ? [
+        "Ashiana-Digha Road",
+        "AIIMS - Digha Service Road",
+        "Ashok Rajpath",
+        "Patel Gali",
+        "Tarumitra Road",
+        "Ganga Nagar Lane",
+        "Digha Ghat Road",
+        "Priyadarshi Nagar",
+        "Kurji Digha",
+        "Makhdumpur Digha",
+      ]
+    : [
+        "Boring Road",
+        "Bailey Road",
+        "Kankarbagh Main Rd",
+        "Fraser Road",
+        "Rajendra Nagar",
+        "Ashiana Nagar",
+      ];
+
   return (
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((v) => !v)}
-        title={fullLocation ? `Location: ${fullLocation}` : "Select Location"}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full border-0 cursor-pointer transition-all duration-200 hover:opacity-80"
+        title={fullLocation ? `Exact Location: ${fullLocation}` : "Select Location"}
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border-0 cursor-pointer transition-all duration-200 hover:opacity-80"
         style={{
-          backgroundColor: isFullBleed ? "rgba(255,255,255,0.12)" : "rgba(0,0,0,0.04)",
+          backgroundColor: isFullBleed ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.05)",
           backdropFilter: "blur(8px)",
-          color: isFullBleed ? "rgba(255,255,255,0.9)" : "var(--color-text-dark)",
+          color: isFullBleed ? "rgba(255,255,255,0.95)" : "var(--color-text-dark)",
           fontFamily: "var(--font-body)",
           fontSize: "12px",
           fontWeight: 600,
         }}
       >
-        <MapPin size={13} strokeWidth={2.2} style={{ color: isFullBleed ? "#ff6b00" : "var(--color-primary)", flexShrink: 0 }} />
+        <MapPin
+          size={13}
+          strokeWidth={2.4}
+          style={{ color: isFullBleed ? "#ff6b00" : "#ff6b00", flexShrink: 0 }}
+        />
         {detecting ? (
-          <span style={{ fontSize: "11px", opacity: 0.7 }}>Detecting…</span>
+          <span style={{ fontSize: "11px", opacity: 0.8 }}>Locating GPS…</span>
         ) : (
-          <span style={{ maxWidth: "160px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block" }}>{fullLocation || "Set your location"}</span>
+          <span
+            style={{
+              maxWidth: "230px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              display: "inline-block",
+            }}
+          >
+            {displayLabel}
+          </span>
         )}
         <svg
-          width="10" height="10" viewBox="0 0 24 24" fill="none"
-          stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"
-          style={{ transform: open ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s", opacity: 0.5 }}
+          width="10"
+          height="10"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2.5"
+          strokeLinecap="round"
+          style={{
+            transform: open ? "rotate(180deg)" : "rotate(0)",
+            transition: "transform 0.2s",
+            opacity: 0.6,
+          }}
         >
           <polyline points="6 9 12 15 18 9" />
         </svg>
@@ -107,27 +194,77 @@ const CityPicker = ({ isFullBleed }) => {
 
       {open && (
         <div
-          className="absolute top-full mt-2 rounded-xl overflow-hidden shadow-2xl z-[1000] border"
+          className="absolute top-full mt-2 rounded-2xl overflow-hidden shadow-2xl z-[1000] border"
           style={{
             right: 0,
-            minWidth: "220px",
+            width: "300px",
             backgroundColor: "var(--color-bg-white)",
             borderColor: "var(--color-border)",
           }}
         >
-          {/* Search */}
+          {/* Current Location Header & Refinement */}
+          <div
+            style={{
+              padding: "10px 12px",
+              background: "linear-gradient(135deg, rgba(255,107,0,0.08) 0%, rgba(26,58,107,0.06) 100%)",
+              borderBottom: "1px solid var(--color-border)",
+            }}
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-orange-700">
+                Current Pinpoint
+              </span>
+              <button
+                type="button"
+                onClick={() => setEditingStreet((v) => !v)}
+                className="text-[11px] font-semibold text-blue-600 bg-transparent border-0 cursor-pointer p-0 underline"
+              >
+                {editingStreet ? "Cancel" : "✏️ Refine Gully / House"}
+              </button>
+            </div>
+
+            <p className="text-xs font-semibold m-0 mt-1 text-gray-800 line-clamp-1">
+              📍 {displayLabel}
+            </p>
+
+            {/* Inline Gully / House Number Editor */}
+            {editingStreet && (
+              <form onSubmit={handleSaveCustomStreet} className="mt-2 flex items-center gap-1.5">
+                <input
+                  autoFocus
+                  type="text"
+                  placeholder="e.g. Gali No. 3, Ganga Nagar"
+                  value={customStreet}
+                  onChange={(e) => setCustomStreet(e.target.value)}
+                  className="flex-1 px-2.5 py-1.5 rounded-lg text-xs border outline-none"
+                  style={{
+                    borderColor: "var(--color-border)",
+                    backgroundColor: "var(--color-bg-white)",
+                  }}
+                />
+                <button
+                  type="submit"
+                  className="px-3 py-1.5 rounded-lg text-xs font-bold text-white border-0 cursor-pointer"
+                  style={{ backgroundColor: "#ff6b00" }}
+                >
+                  Save
+                </button>
+              </form>
+            )}
+          </div>
+
+          {/* Search Input */}
           <div style={{ padding: "8px 10px", borderBottom: "1px solid var(--color-border)" }}>
             <input
-              autoFocus
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search any city or area…"
+              placeholder="Search specific road, gully, lane, colony…"
               className="w-full outline-none"
               style={{
                 background: "rgba(0,0,0,0.03)",
                 border: "1px solid var(--color-border)",
                 borderRadius: "8px",
-                padding: "5px 10px",
+                padding: "6px 10px",
                 color: "var(--color-text-dark)",
                 fontSize: "12px",
                 fontFamily: "var(--font-body)",
@@ -135,14 +272,15 @@ const CityPicker = ({ isFullBleed }) => {
             />
           </div>
 
-          {/* Detect Current Location Button */}
+          {/* Detect High Accuracy GPS */}
           <button
+            type="button"
             onClick={handleDetectClick}
             disabled={detecting}
             className="w-full text-left border-0 cursor-pointer flex items-center gap-2 transition-all hover:bg-orange-50"
             style={{
-              padding: "10px 14px",
-              background: "rgba(255,107,0,0.08)",
+              padding: "9px 12px",
+              background: "rgba(255,107,0,0.06)",
               color: "#c2410c",
               fontSize: "12px",
               fontFamily: "var(--font-body)",
@@ -150,8 +288,8 @@ const CityPicker = ({ isFullBleed }) => {
               borderBottom: "1px solid var(--color-border)",
             }}
           >
-            <span style={{ fontSize: "14px" }}>🎯</span>
-            <span>{detecting ? "Detecting location..." : "Use Current / Exact Location"}</span>
+            <span style={{ fontSize: "13px" }}>🎯</span>
+            <span>{detecting ? "Locating exact GPS spot…" : "Detect Exact GPS Location"}</span>
           </button>
 
           {/* Location error (GPS denied / unavailable) */}
@@ -159,8 +297,8 @@ const CityPicker = ({ isFullBleed }) => {
             <p
               className="m-0"
               style={{
-                padding: "7px 14px",
-                color: "var(--color-text-muted)",
+                padding: "7px 12px",
+                color: "#dc2626",
                 fontSize: "11px",
                 fontFamily: "var(--font-body)",
                 borderBottom: "1px solid var(--color-border)",
@@ -170,41 +308,101 @@ const CityPicker = ({ isFullBleed }) => {
             </p>
           )}
 
-          {/* Live search results */}
-          <div style={{ maxHeight: "200px", overflowY: "auto" }}>
+          {/* Quick Road / Gully Suggestions */}
+          {!search.trim() && (
+            <div style={{ padding: "8px 10px", borderBottom: "1px solid var(--color-border)" }}>
+              <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider m-0 mb-1.5">
+                Exact Localities & Roads:
+              </p>
+              <div className="flex flex-wrap gap-1">
+                {localShortcuts.map((sc) => (
+                  <button
+                    key={sc}
+                    type="button"
+                    onClick={() => {
+                      updateExactStreet(sc);
+                      setOpen(false);
+                    }}
+                    className="px-2 py-1 rounded-md text-[11px] font-medium border cursor-pointer transition-all hover:border-orange-400 hover:text-orange-600"
+                    style={{
+                      backgroundColor: "rgba(0,0,0,0.02)",
+                      borderColor: "var(--color-border)",
+                      color: "var(--color-text-mid)",
+                    }}
+                  >
+                    📍 {sc}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Live Search Results */}
+          <div style={{ maxHeight: "180px", overflowY: "auto" }}>
+            {search.trim() && (
+              <button
+                type="button"
+                onClick={() => {
+                  updateExactStreet(search.trim());
+                  setOpen(false);
+                  setSearch("");
+                }}
+                className="w-full text-left border-0 cursor-pointer flex items-center gap-2 px-3 py-2 bg-orange-50 hover:bg-orange-100 text-orange-800 text-xs font-semibold border-b border-orange-100"
+              >
+                <span>📍</span>
+                <span className="truncate">
+                  Set exact road/gully: <strong>"{search.trim()}"</strong>
+                </span>
+              </button>
+            )}
+
             {searching && (
-              <p className="text-center" style={{ color: "var(--color-text-muted)", fontSize: "12px", padding: "12px", fontFamily: "var(--font-body)" }}>
-                Searching…
+              <p
+                className="text-center"
+                style={{
+                  color: "var(--color-text-muted)",
+                  fontSize: "12px",
+                  padding: "12px",
+                  fontFamily: "var(--font-body)",
+                }}
+              >
+                Searching roads & gullies…
               </p>
             )}
             {!searching &&
               results.map((r) => (
                 <button
                   key={r.id}
+                  type="button"
                   onClick={() => handleSelectResult(r)}
-                  className="w-full text-left border-0 cursor-pointer transition-all"
+                  className="w-full text-left border-0 cursor-pointer transition-all hover:bg-gray-50 flex items-start gap-2"
                   style={{
-                    padding: "8px 14px",
+                    padding: "8px 12px",
                     background: "transparent",
-                    color: "var(--color-text-mid)",
-                    fontSize: "12.5px",
+                    color: "var(--color-text-dark)",
+                    fontSize: "12px",
                     fontFamily: "var(--font-body)",
-                    borderBottom: "1px solid var(--color-border)",
+                    borderBottom: "1px solid rgba(0,0,0,0.04)",
                   }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(0,0,0,0.03)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = "transparent"; }}
                 >
-                  📍 {r.label}
+                  <MapPin size={13} className="text-orange-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold m-0 leading-tight truncate">{r.label}</p>
+                    <p className="text-[10px] text-gray-400 m-0 mt-0.5 truncate">{r.displayName}</p>
+                  </div>
                 </button>
               ))}
             {!searching && search.trim() && results.length === 0 && (
-              <p className="text-center" style={{ color: "var(--color-text-muted)", fontSize: "12px", padding: "12px", fontFamily: "var(--font-body)" }}>
-                No matches found
-              </p>
-            )}
-            {!searching && !search.trim() && (
-              <p className="text-center" style={{ color: "var(--color-text-muted)", fontSize: "12px", padding: "12px", fontFamily: "var(--font-body)" }}>
-                Type to search your city or area
+              <p
+                className="text-center"
+                style={{
+                  color: "var(--color-text-muted)",
+                  fontSize: "12px",
+                  padding: "12px",
+                  fontFamily: "var(--font-body)",
+                }}
+              >
+                No matching roads or gullies found
               </p>
             )}
           </div>

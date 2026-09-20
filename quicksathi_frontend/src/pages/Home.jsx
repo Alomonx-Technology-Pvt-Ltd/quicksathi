@@ -152,6 +152,8 @@ const Home = () => {
       />
       <Hero
         categories={categories}
+        services={services}
+        onBookNow={handleBookNow}
         style={{ backgroundColor: "var(--color-bg)" }}
       />
       <QuickServicesSection categories={categories} services={services} />
