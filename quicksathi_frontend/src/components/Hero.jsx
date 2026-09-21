@@ -1,558 +1,982 @@
-import { useState, useEffect, useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
+  Search,
   Star,
   ArrowRight,
-  ChevronLeft,
   ChevronRight,
-  CalendarDays,
-  Navigation,
-  MapPin,
+  ShieldCheck,
+  Sparkles,
+  Wrench,
+  Scissors,
+  GraduationCap,
+  Hammer,
   Car,
+  X,
+  Tag,
 } from "lucide-react";
 import { mockServices } from "../data/mockServices";
 
-const INTERVAL_MS = 4500;
+// ── Service categories for the auto-scrolling right panel ──
+const HERO_CATEGORIES = [
+  {
+    id: "rental",
+    title: "Vehicle Rental",
+    icon: Car,
+    iconColor: "#7E22CE",
+    bgColor: "#F3E8FF",
+    route: "/services/car-rentals",
+    services: [
+      {
+        name: "Standard Car Rental",
+        desc: "AC car for city rides, outstation & airport transfers.",
+        price: 2499,
+        rating: 4.5,
+        badge: "5/7 Seater",
+        img: "https://images.unsplash.com/photo-1549317661-bd32c8ce0f2e?q=80&w=600&auto=format&fit=crop",
+      },
+      {
+        name: "Wedding Car Rental",
+        desc: "Decorated cars for special occasions with driver.",
+        price: 7999,
+        rating: 4.8,
+        badge: "Wedding",
+        img: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=600&auto=format&fit=crop",
+      },
+    ],
+  },
+  {
+    id: "weddings",
+    title: "Wedding & Events",
+    icon: Sparkles,
+    iconColor: "#B45309",
+    bgColor: "#FEF3C7",
+    route: "/services/weddings",
+    services: [
+      {
+        name: "Wedding Photography",
+        desc: "Candid, cinematic films, drone shoots & albums.",
+        price: 15000,
+        rating: 4.9,
+        badge: "Cinematic",
+        img: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=600&auto=format&fit=crop",
+      },
+      {
+        name: "Stage & Venue Decoration",
+        desc: "Floral stage setup, entryway decor & LED lighting.",
+        price: 25000,
+        rating: 4.8,
+        badge: "Themes",
+        img: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=600&auto=format&fit=crop",
+      },
+    ],
+  },
+  {
+    id: "help",
+    title: "House Help",
+    icon: Wrench,
+    iconColor: "#0369A1",
+    bgColor: "#E0F2FE",
+    route: "/category/20",
+    services: [
+      {
+        name: "Maid & Deep Cleaning",
+        desc: "Daily or monthly home cleaning with verified maids.",
+        price: 1499,
+        rating: 4.8,
+        badge: "Verified",
+        img: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop",
+      },
+      {
+        name: "Home Cook Service",
+        desc: "Experienced home cooks offering multi-cuisine meals.",
+        price: 2999,
+        rating: 4.9,
+        badge: "Healthy",
+        img: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=600&auto=format&fit=crop",
+      },
+    ],
+  },
+  {
+    id: "house-services",
+    title: "House Services & Repair",
+    icon: Hammer,
+    iconColor: "#C2410C",
+    bgColor: "#FFF7ED",
+    route: "/category/30",
+    services: [
+      {
+        name: "Plumbing",
+        desc: "Expert plumbing for leaks, fittings & drainage.",
+        price: 199,
+        rating: 4.6,
+        badge: "Quick Fix",
+        img: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?q=80&w=600&auto=format&fit=crop",
+      },
+      {
+        name: "Electrician",
+        desc: "Certified wiring, fan install, switchboard repair.",
+        price: 149,
+        rating: 4.7,
+        badge: "Certified",
+        img: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=600&auto=format&fit=crop",
+      },
+    ],
+  },
+  {
+    id: "salon",
+    title: "Home Salon & Beauty",
+    icon: Scissors,
+    iconColor: "#BE123C",
+    bgColor: "#FFE4E6",
+    route: "/category/25",
+    services: [
+      {
+        name: "Hair Styling & Care",
+        desc: "Professional haircuts, coloring, keratin & scalp care.",
+        price: 799,
+        rating: 4.9,
+        badge: "Best Seller",
+        img: "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=600&auto=format&fit=crop",
+      },
+      {
+        name: "Facial & Skin Cleanup",
+        desc: "Rejuvenating facials, organic cleanups & anti-aging.",
+        price: 999,
+        rating: 4.8,
+        badge: "Glow Care",
+        img: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=600&auto=format&fit=crop",
+      },
+    ],
+  },
+  {
+    id: "tuition",
+    title: "Home Tuition",
+    icon: GraduationCap,
+    iconColor: "#3730A3",
+    bgColor: "#E0E7FF",
+    route: "/category/15",
+    services: [
+      {
+        name: "School Academics",
+        desc: "Maths, Science & English home tuition by verified tutors.",
+        price: 2500,
+        rating: 4.9,
+        badge: "Class 1-10",
+        img: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=600&auto=format&fit=crop",
+      },
+      {
+        name: "Competitive Exam Prep",
+        desc: "Expert coaching for JEE, NEET & Olympiads.",
+        price: 4500,
+        rating: 4.9,
+        badge: "Exam Prep",
+        img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=600&auto=format&fit=crop",
+      },
+    ],
+  },
+  {
+    id: "cctv",
+    title: "CCTV Security",
+    icon: ShieldCheck,
+    iconColor: "#166534",
+    bgColor: "#E8F5E9",
+    route: "/services/cctv",
+    services: [
+      {
+        name: "Home CCTV Installation",
+        desc: "HD cameras with mobile alerts for full home security.",
+        price: 2999,
+        rating: 4.9,
+        badge: "Popular",
+        img: "https://images.unsplash.com/photo-1557597774-9d273605dfa9?q=80&w=600&auto=format&fit=crop",
+      },
+      {
+        name: "Smart Lock Installation",
+        desc: "Fingerprint & keypad smart lock by certified techs.",
+        price: 1999,
+        rating: 4.9,
+        badge: "Smart Home",
+        img: "https://images.unsplash.com/photo-1558002038-1055907df827?q=80&w=600&auto=format&fit=crop",
+      },
+    ],
+  },
+];
 
+// Quick-access shortcuts — Lucide icons with colored circle backgrounds
+const QUICK_CATS = [
+  { label: "Home\nServices", route: "/category/30", icon: Hammer, bg: "#FFF0E6", iconColor: "#EA580C" },
+  { label: "Wedding\nServices", route: "/services/weddings", icon: Sparkles, bg: "#FEF9C3", iconColor: "#CA8A04" },
+  { label: "Car\nRental", route: "/services/car-rentals", icon: Car, bg: "#F3E8FF", iconColor: "#7C3AED" },
+  { label: "Tutors", route: "/category/15", icon: GraduationCap, bg: "#E0E7FF", iconColor: "#4338CA" },
+  { label: "House\nHelp", route: "/category/20", icon: Wrench, bg: "#E0F2FE", iconColor: "#0284C7" },
+  { label: "More", route: "/services", icon: null, bg: "#F1F5F9", iconColor: "#64748B" },
+];
+
+const FONT_HERO = "var(--font-sans, 'Plus Jakarta Sans', 'Inter', sans-serif)";
+
+// ── Single service card for the right panel ──
+const ServiceCard = ({ cat, onNavigate }) => {
+  const Icon = cat.icon;
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 30 }}
+      animate={{ opacity: 1, x: 0 }}
+      exit={{ opacity: 0, x: -30 }}
+      transition={{ duration: 0.38, ease: "easeOut" }}
+      className="w-full"
+      style={{
+        background: "#ffffff",
+        borderRadius: 20,
+        border: "1px solid rgba(0,0,0,0.07)",
+        boxShadow: "0 4px 28px rgba(0,0,0,0.08)",
+        overflow: "hidden",
+      }}
+    >
+      {/* Card header */}
+      <div
+        className="flex items-center justify-between px-5 py-3.5"
+        style={{ backgroundColor: cat.bgColor, borderBottom: "1px solid rgba(0,0,0,0.05)" }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div
+            className="w-8 h-8 rounded-xl flex items-center justify-center"
+            style={{ backgroundColor: "rgba(255,255,255,0.75)" }}
+          >
+            <Icon size={17} style={{ color: cat.iconColor }} />
+          </div>
+          <span
+            className="font-bold text-sm tracking-tight"
+            style={{ fontFamily: FONT_HERO, color: "#1c1c1c" }}
+          >
+            {cat.title}
+          </span>
+        </div>
+        <button
+          onClick={() => onNavigate(cat.route)}
+          className="flex items-center gap-1 text-[11px] font-semibold cursor-pointer border-none bg-transparent hover:opacity-80 transition-opacity"
+          style={{ color: cat.iconColor, fontFamily: FONT_HERO }}
+        >
+          View All <ChevronRight size={13} />
+        </button>
+      </div>
+
+      {/* Services list */}
+      {cat.services.map((svc, idx) => (
+        <div
+          key={idx}
+          className="flex items-center gap-3.5 px-5 py-3.5 hover:bg-slate-50 transition-colors cursor-pointer group"
+          style={{ borderBottom: idx < cat.services.length - 1 ? "1px solid rgba(0,0,0,0.05)" : "none" }}
+          onClick={() => onNavigate(cat.route)}
+        >
+          <div
+            className="relative flex-shrink-0 overflow-hidden"
+            style={{ width: 56, height: 56, borderRadius: 14 }}
+          >
+            <img
+              src={svc.img}
+              alt={svc.name}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-2">
+              <p
+                className="text-sm font-semibold m-0 leading-tight truncate"
+                style={{ fontFamily: FONT_HERO, color: "#1a1a1a" }}
+              >
+                {svc.name}
+              </p>
+              <span
+                className="flex-shrink-0 flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-lg"
+                style={{
+                  backgroundColor: "rgba(255,255,255,0.9)",
+                  color: "#1a1a1a",
+                  border: "1px solid rgba(0,0,0,0.08)",
+                  boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                  fontFamily: FONT_HERO,
+                }}
+              >
+                <Star size={9} className="fill-amber-400 text-amber-400" />
+                {svc.rating}
+              </span>
+            </div>
+            <p
+              className="text-xs mt-0.5 mb-0 line-clamp-1"
+              style={{ color: "#64748b", fontFamily: FONT_HERO }}
+            >
+              {svc.desc}
+            </p>
+            <div className="flex items-center justify-between mt-1.5">
+              <span
+                className="text-xs font-bold"
+                style={{ color: "var(--color-primary)", fontFamily: FONT_HERO }}
+              >
+                &#8377;{svc.price.toLocaleString("en-IN")}
+                <span className="font-normal text-slate-400 text-[10px]"> onwards</span>
+              </span>
+              {svc.badge && (
+                <span
+                  className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md"
+                  style={{ backgroundColor: cat.bgColor, color: cat.iconColor, fontFamily: FONT_HERO }}
+                >
+                  {svc.badge}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+    </motion.div>
+  );
+};
+
+// ── Main Hero Component ──
 const Hero = ({ categories, services, onBookNow }) => {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const [pickupLocation, setPickupLocation] = useState("");
-  const [dropoffLocation, setDropoffLocation] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
+  const [activeCardIdx, setActiveCardIdx] = useState(0);
   const navigate = useNavigate();
+  const intervalRef = useRef(null);
+  const searchContainerRef = useRef(null);
+
+  const startInterval = () => {
+    clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      setActiveCardIdx((prev) => (prev + 1) % HERO_CATEGORIES.length);
+    }, 3500);
+  };
 
   useEffect(() => {
-    if (!categories?.length) return;
-    // Don't auto advance slides while user is typing a route
-    if (pickupLocation || dropoffLocation) return;
-    const timer = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % categories.length);
-    }, INTERVAL_MS);
-    return () => clearInterval(timer);
-  }, [categories, pickupLocation, dropoffLocation]);
+    startInterval();
+    return () => clearInterval(intervalRef.current);
+  }, []);
 
-  const active = categories?.[activeIndex];
-
-  // Resolve matching service for the currently active category
-  const activeService = useMemo(() => {
-    if (!active) return null;
-    const pool = services && services.length > 0 ? services : mockServices;
-
-    const match = pool.find((s) => {
-      const catIdMatch =
-        s.categoryId &&
-        String(s.categoryId) === String(active.id || active._id);
-      const catNameMatch =
-        s.categoryName &&
-        (s.categoryName.toLowerCase() === active.name.toLowerCase() ||
-          active.name.toLowerCase().includes(s.categoryName.toLowerCase()));
-      const sNameMatch =
-        s.name &&
-        (active.name.toLowerCase().includes(s.name.toLowerCase()) ||
-          s.name.toLowerCase().includes(active.name.toLowerCase()));
-      return catIdMatch || catNameMatch || sNameMatch;
-    });
-
-    if (match) return match;
-
-    const firstSub = active.subCategories?.[0];
-    return {
-      _id: firstSub?.id || active.id,
-      id: firstSub?.id || active.id,
-      name: firstSub?.name || active.name,
-      shortDescription: firstSub?.description || active.description,
-      startingPrice: 999,
-      priceUnit: "service",
-      rating: 4.9,
-      totalReviews: 120,
-      bannerImage: firstSub?.imageUrl || active.imageUrl,
-      thumbnail: firstSub?.imageUrl || active.imageUrl,
+  // Listen for clicks outside search bar to close live dropdown
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(e.target)) {
+        setIsFocused(false);
+      }
     };
-  }, [active, services]);
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        setIsFocused(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
-  const truncate = (text, limit = 100) => {
-    if (!text || text.length <= limit) return text;
-    return text.slice(0, limit).replace(/\s+\S*$/, "") + "…";
-  };
+  // Real-time suggestions computation
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return { services: [], categories: [] };
 
-  // Determine if active service is vehicle rental
-  // Uses word-boundary regex to avoid false positives (e.g. "Care" matching "car")
-  const RENTAL_KEYWORDS = /\b(vehicle|rental|car|cab|taxi|bike)\b/i;
-  const isVehicleRental = useMemo(() => {
-    if (!active) return false;
-    const catName = active.name || "";
-    const sName = activeService?.name || "";
-    const vMode = activeService?.serviceMode || "";
-    return vMode === "RENTAL" || RENTAL_KEYWORDS.test(catName) || RENTAL_KEYWORDS.test(sName);
-  }, [active, activeService]);
+    // 1. Gather all unique services
+    const servicePool = [];
+    const seenNames = new Set();
 
-  const handleVehicleSearch = (e) => {
-    e?.stopPropagation?.();
-    const params = new URLSearchParams();
-    if (pickupLocation.trim()) params.set("pickup", pickupLocation.trim());
-    if (dropoffLocation.trim()) params.set("dropoff", dropoffLocation.trim());
-    navigate(`/services/car-rentals?${params.toString()}`);
-  };
+    const addSvc = (s) => {
+      const key = s.name?.toLowerCase().trim();
+      if (key && !seenNames.has(key)) {
+        seenNames.add(key);
+        servicePool.push(s);
+      }
+    };
 
-  const handleDirectBooking = (e) => {
-    e.stopPropagation();
-    if (!active) return;
-    if (active.comingSoon) {
-      navigate(`/category/${active.id || active._id}`);
-      return;
-    }
-
-    if (isVehicleRental) {
-      handleVehicleSearch(e);
-      return;
-    }
-
-    if (onBookNow && activeService?.name) {
-      onBookNow(
-        activeService.name,
-        activeService._id || activeService.id || active.id
-      );
-      return;
-    }
-
-    const serviceId =
-      activeService?._id || activeService?.id || active.id || active._id;
-    const serviceName = activeService?.name || active.name;
-    const packageTitle =
-      activeService?.packages?.[0]?.title || "Standard Package";
-    const price =
-      activeService?.packages?.[0]?.price ||
-      activeService?.startingPrice ||
-      999;
-
-    const params = new URLSearchParams({
-      name: serviceName,
-      package: packageTitle,
-      price: price.toString(),
+    // Add services passed via props (from API / mock)
+    (services || []).forEach(addSvc);
+    // Add mockServices
+    (mockServices || []).forEach(addSvc);
+    // Add services in HERO_CATEGORIES
+    HERO_CATEGORIES.forEach((cat) => {
+      (cat.services || []).forEach((s) => {
+        addSvc({
+          name: s.name,
+          shortDescription: s.desc,
+          startingPrice: s.price,
+          rating: s.rating,
+          thumbnail: s.img,
+          categoryName: cat.title,
+          route: cat.route,
+        });
+      });
     });
-    navigate(`/booking/${serviceId}?${params.toString()}`);
-  };
 
-  const handlePrev = (e) => {
-    e.stopPropagation();
-    if (!categories?.length) return;
-    setActiveIndex((prev) => (prev - 1 + categories.length) % categories.length);
-  };
+    // Filter services matching query
+    const matchedServices = servicePool
+      .filter((s) => {
+        const nameMatch = (s.name || "").toLowerCase().includes(q);
+        const descMatch = (s.shortDescription || s.fullDescription || s.desc || "")
+          .toLowerCase()
+          .includes(q);
+        const catMatch = (s.categoryName || "").toLowerCase().includes(q);
+        const tagMatch =
+          Array.isArray(s.tags) && s.tags.some((t) => t.toLowerCase().includes(q));
+        return nameMatch || descMatch || catMatch || tagMatch;
+      })
+      .slice(0, 6);
 
-  const handleNext = (e) => {
-    e.stopPropagation();
-    if (!categories?.length) return;
-    setActiveIndex((prev) => (prev + 1) % categories.length);
+    // 2. Filter matching categories
+    const catPool = [
+      ...HERO_CATEGORIES.map((c) => ({
+        title: c.title,
+        route: c.route,
+        icon: c.icon,
+        bgColor: c.bgColor,
+        iconColor: c.iconColor,
+      })),
+      ...(categories || []).map((c) => ({
+        title: c.name,
+        route: `/category/${c.id || c._id}`,
+        icon: null,
+        bgColor: "#F1F5F9",
+        iconColor: "#475569",
+      })),
+    ];
+
+    const seenCats = new Set();
+    const matchedCategories = catPool
+      .filter((c) => {
+        const titleLower = (c.title || "").toLowerCase().trim();
+        if (!titleLower || seenCats.has(titleLower)) return false;
+        seenCats.add(titleLower);
+        return titleLower.includes(q);
+      })
+      .slice(0, 4);
+
+    return {
+      services: matchedServices,
+      categories: matchedCategories,
+    };
+  }, [searchQuery, services, categories]);
+
+  const activeCat = HERO_CATEGORIES[activeCardIdx];
+
+  const handleSearch = (e) => {
+    e?.preventDefault();
+    const q = searchQuery.trim();
+    setIsFocused(false);
+    navigate(q ? `/services?q=${encodeURIComponent(q)}` : "/services");
   };
 
   return (
     <section
-      className="relative w-full overflow-hidden"
-      style={{ height: "100svh", minHeight: "480px" }}
+      className="w-full"
+      style={{
+        background: "#ffffff",
+        minHeight: "clamp(480px, 80vh, 760px)",
+        paddingTop: "clamp(48px, 6vh, 72px)",
+        paddingBottom: "clamp(40px, 5vh, 72px)",
+      }}
     >
-      {/* ── Full-bleed background crossfade ── */}
-      <div className="absolute inset-0 z-0">
-        {categories?.map((cat, i) => (
-          <img
-            key={cat.id}
-            src={cat.imageUrl}
-            alt={cat.name}
-            loading={i === 0 ? "eager" : "lazy"}
-            fetchPriority={i === 0 ? "high" : "auto"}
-            className="absolute inset-0 w-full h-full object-cover object-center"
+      <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 flex flex-col lg:flex-row items-center gap-10 lg:gap-0 h-full">
+
+        {/* ══ LEFT SIDE — reference-image style interface ══ */}
+        <div className="flex-1 flex flex-col justify-center pr-0 lg:pr-14 w-full">
+
+          {/* Trust badge — matching user's exact reference */}
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.05 }}
+            className="mb-5 self-start"
+          >
+            <div
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full shadow-xs"
+              style={{
+                background: "#FFF4EC",
+                border: "1px solid #FFE2CF",
+                fontFamily: FONT_HERO,
+              }}
+            >
+              {/* Orange shield with white checkmark */}
+              <span className="flex items-center justify-center flex-shrink-0">
+                <svg viewBox="0 0 24 24" className="w-4 h-4 flex-shrink-0" fill="none">
+                  <path
+                    d="M12 2L4 5.5v6.09c0 5.05 3.41 9.76 8 10.91 4.59-1.15 8-5.86 8-10.91V5.5L12 2z"
+                    fill="#FF6B00"
+                  />
+                  <path
+                    d="M9.5 12l2 2 4.5-4.5"
+                    stroke="#FFFFFF"
+                    strokeWidth="2.2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+
+              <span
+                className="text-xs sm:text-[12.5px] font-semibold text-slate-700 tracking-tight flex items-center flex-wrap gap-y-0.5"
+                style={{ fontFamily: FONT_HERO }}
+              >
+                <span>Trusted Service Providers</span>
+                <span className="mx-2 text-[#FF6B00] font-black text-xs">•</span>
+                <span>Safe</span>
+                <span className="mx-2 text-[#FF6B00] font-black text-xs">•</span>
+                <span>Hassle-Free</span>
+              </span>
+            </div>
+          </motion.div>
+
+          {/* Headline */}
+          <motion.h1
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="m-0 leading-[1.07] mb-3"
             style={{
-              opacity: i === activeIndex ? 1 : 0,
-              transition: "opacity 1s ease-in-out",
-            }}
-          />
-        ))}
-        {/* Dark overlay */}
-        <div
-          className="absolute inset-0 z-10"
-          style={{
-            background:
-              "linear-gradient(to right, rgba(0,0,0,0.78) 35%, rgba(0,0,0,0.45) 70%, rgba(0,0,0,0.62) 100%)",
-          }}
-        />
-      </div>
-
-
-
-      {/* ── Bottom-left: badge + heading + description + CTA ── */}
-      <div
-        className="absolute z-20 max-w-xl"
-        style={{
-          animation: "fadeUp 0.9s ease both",
-          bottom: "clamp(90px, 14vh, 110px)",
-          left: "clamp(16px, 5vw, 64px)",
-          right: "clamp(16px, 5vw, 64px)",
-        }}
-      >
-        {/* Badge */}
-        <div className="flex items-center gap-2 flex-wrap mb-3 sm:mb-5">
-          <span
-            className="inline-block px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold text-white/80 border border-white/25 backdrop-blur-sm"
-            style={{
-              fontFamily: "var(--font-body)",
-              backgroundColor: "rgba(255,255,255,0.12)",
-              letterSpacing: "0.08em",
-              textTransform: "uppercase",
-              transition: "all 0.5s ease",
+              fontFamily: FONT_HERO,
+              fontSize: "clamp(36px, 5.8vw, 74px)",
+              color: "#0f172a",
+              letterSpacing: "-0.035em",
+              fontWeight: 800,
             }}
           >
-            {active?.name}
-          </span>
-          {active?.comingSoon && (
-            <span
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider"
+            One Tap.
+            <br />
+            <span style={{ color: "var(--color-accent)" }}>Everything Sorted.</span>
+          </motion.h1>
+
+          {/* Subheading */}
+          <motion.p
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.18 }}
+            className="mb-7 leading-relaxed m-0"
+            style={{
+              fontFamily: FONT_HERO,
+              fontSize: "clamp(14px, 1.4vw, 16.5px)",
+              color: "#475569",
+              maxWidth: 480,
+              lineHeight: 1.65,
+              fontWeight: 400,
+            }}
+          >
+            From finding a tutor to planning a wedding, booking a car or getting help at home — discover the services you need, compare your options and book them in one place.
+          </motion.p>
+
+          {/* Search bar wrapper with real-time dropdown */}
+          <div ref={searchContainerRef} className="relative w-full mb-7" style={{ maxWidth: 520 }}>
+            <motion.form
+              onSubmit={handleSearch}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.25 }}
+              className="flex items-center w-full transition-all duration-200"
               style={{
-                fontFamily: "var(--font-body)",
-                color: "#fbbf24",
-                backgroundColor: "rgba(15,23,42,0.65)",
-                border: "1px solid rgba(245,158,11,0.6)",
-                backdropFilter: "blur(6px)",
+                background: "#ffffff",
+                borderRadius: 50,
+                border: isFocused ? "1.5px solid var(--color-accent)" : "1.5px solid #e2e8f0",
+                boxShadow: isFocused
+                  ? "0 8px 30px rgba(255,107,0,0.12), 0 0 0 3px rgba(255,107,0,0.08)"
+                  : "0 4px 24px rgba(0,0,0,0.07)",
+                padding: "5px 5px 5px 18px",
               }}
             >
-              ⏳ Coming Soon
-            </span>
-          )}
-        </div>
-
-        <h1
-          className="text-white font-normal leading-[1.05] mb-2 sm:mb-4"
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "clamp(28px, 8vw, 80px)",
-            letterSpacing: "-0.02em",
-            textShadow: "0 2px 24px rgba(0,0,0,0.3)",
-            transition: "all 0.5s ease",
-          }}
-        >
-          {active?.name}.
-        </h1>
-
-        <p
-          className="text-white/80 text-sm sm:text-lg mb-5 sm:mb-8 leading-relaxed"
-          style={{
-            fontFamily: "var(--font-body)",
-            maxWidth: "420px",
-            textShadow: "0 1px 8px rgba(0,0,0,0.3)",
-            transition: "all 0.5s ease",
-          }}
-        >
-          {truncate(active?.description, window.innerWidth < 640 ? 70 : 100)}
-        </p>
-
-        <Link
-          to={`/category/${active?.id}`}
-          className="inline-flex items-center gap-2 px-6 sm:px-8 py-3 sm:py-4 rounded-full text-xs sm:text-base font-bold no-underline transition-all duration-300 hover:scale-105 hover:shadow-2xl"
-          style={{
-            fontFamily: "var(--font-body)",
-            background: "linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%)",
-            color: "#ffffff",
-            boxShadow: "0 6px 28px rgba(255, 107, 0, 0.38)",
-          }}
-        >
-          Explore {active?.name}
-        </Link>
-      </div>
-
-      {/* ── Right: Floating Working Service Card (Direct Onboarding & Booking) ── */}
-      <div className="absolute right-6 sm:right-10 lg:right-12 bottom-16 sm:bottom-20 z-20 hidden md:flex flex-col w-[320px] lg:w-[350px]">
-        <div
-          className="relative rounded-3xl overflow-hidden p-4 sm:p-5 flex flex-col gap-3.5 transition-all duration-300"
-          style={{
-            background: "linear-gradient(135deg, rgba(18, 24, 38, 0.88) 0%, rgba(10, 14, 26, 0.94) 100%)",
-            backdropFilter: "blur(24px)",
-            WebkitBackdropFilter: "blur(24px)",
-            border: "1px solid rgba(255, 255, 255, 0.18)",
-            boxShadow: "0 20px 50px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(255, 255, 255, 0.08)",
-          }}
-        >
-          {/* Ambient Glow Accent */}
-          <div
-            className="absolute -top-16 -right-16 w-36 h-36 rounded-full pointer-events-none filter blur-[50px] opacity-35"
-            style={{ backgroundColor: "var(--color-accent)" }}
-          />
-
-          {/* Top Status & Carousel Mini-Controls */}
-          <div className="flex items-center justify-between relative z-10">
-            <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-              </span>
-              <span
-                className="text-[10px] font-bold uppercase tracking-wider text-emerald-300"
-                style={{ fontFamily: "var(--font-body)" }}
-              >
-                {active?.comingSoon ? "Coming Soon" : "Live Service"}
-              </span>
-            </div>
-
-            {/* Slide switch controls */}
-            <div className="flex items-center gap-1.5 bg-white/10 hover:bg-white/15 transition-colors rounded-full px-2.5 py-0.5 border border-white/10 text-white/80 text-[11px] font-medium">
+              <Search
+                size={18}
+                style={{
+                  color: isFocused ? "var(--color-accent)" : "#94a3b8",
+                  flexShrink: 0,
+                  transition: "color 0.2s",
+                }}
+              />
+              <input
+                type="text"
+                placeholder="What do you need today? (e.g. Wedding, Car, Tutor)"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setIsFocused(true);
+                }}
+                onFocus={() => setIsFocused(true)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch(e)}
+                className="hero-search-input flex-1 min-w-0 bg-transparent text-sm sm:text-[15px] px-3 py-1.5 text-slate-800 placeholder:text-slate-400"
+                style={{
+                  fontFamily: FONT_HERO,
+                  color: "#0f172a",
+                  border: "none",
+                  outline: "none",
+                  boxShadow: "none",
+                  backgroundColor: "transparent",
+                  WebkitAppearance: "none",
+                  MozAppearance: "none",
+                  appearance: "none",
+                }}
+                autoComplete="off"
+                spellCheck={false}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors cursor-pointer border-none bg-transparent mr-1"
+                  title="Clear search"
+                >
+                  <X size={15} />
+                </button>
+              )}
               <button
-                type="button"
-                onClick={handlePrev}
-                className="border-0 bg-transparent text-white/70 hover:text-white cursor-pointer p-0.5 flex items-center justify-center transition-colors"
-                aria-label="Previous service"
+                type="submit"
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-full font-semibold text-sm border-none cursor-pointer transition-all duration-200 hover:brightness-110 hover:scale-[1.02] active:scale-95 flex-shrink-0"
+                style={{
+                  background: "linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%)",
+                  color: "#fff",
+                  fontFamily: FONT_HERO,
+                  boxShadow: "0 4px 14px rgba(255,107,0,0.35)",
+                }}
               >
-                <ChevronLeft size={13} />
+                <span>Search</span>
+                <ArrowRight size={15} />
               </button>
-              <span style={{ fontFamily: "var(--font-display)" }}>
-                {String(activeIndex + 1).padStart(2, "0")} / {String(categories?.length || 1).padStart(2, "0")}
-              </span>
-              <button
-                type="button"
-                onClick={handleNext}
-                className="border-0 bg-transparent text-white/70 hover:text-white cursor-pointer p-0.5 flex items-center justify-center transition-colors"
-                aria-label="Next service"
-              >
-                <ChevronRight size={13} />
-              </button>
-            </div>
+            </motion.form>
+
+            {/* Real-time Search Dropdown */}
+            <AnimatePresence>
+              {isFocused && searchQuery.trim().length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6, scale: 0.99 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -6, scale: 0.99 }}
+                  transition={{ duration: 0.18, ease: "easeOut" }}
+                  className="absolute top-[calc(100%+8px)] left-0 right-0 z-50 overflow-hidden bg-white shadow-2xl"
+                  style={{
+                    borderRadius: 20,
+                    border: "1px solid rgba(0,0,0,0.08)",
+                    boxShadow: "0 20px 48px -10px rgba(15, 23, 42, 0.18), 0 0 0 1px rgba(0,0,0,0.04)",
+                  }}
+                >
+                  {/* Category Chips if matched */}
+                  {searchResults.categories.length > 0 && (
+                    <div className="p-3 bg-slate-50/80 border-b border-slate-100">
+                      <p
+                        className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-1 mb-1.5"
+                        style={{ fontFamily: FONT_HERO }}
+                      >
+                        Matched Categories
+                      </p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {searchResults.categories.map((cat, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => {
+                              setIsFocused(false);
+                              navigate(cat.route);
+                            }}
+                            className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold cursor-pointer border border-slate-200 bg-white hover:border-orange-500 hover:text-orange-600 transition-all shadow-sm"
+                            style={{ fontFamily: FONT_HERO }}
+                          >
+                            {cat.icon && <cat.icon size={13} style={{ color: cat.iconColor }} />}
+                            <span>{cat.title}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Matching Services List */}
+                  {searchResults.services.length > 0 ? (
+                    <div className="max-h-72 overflow-y-auto divide-y divide-slate-100">
+                      <div className="px-4 py-2 bg-slate-50/40 text-[10px] font-bold text-slate-400 uppercase tracking-wider sticky top-0 bg-white">
+                        Matched Services ({searchResults.services.length})
+                      </div>
+                      {searchResults.services.map((svc, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => {
+                            setIsFocused(false);
+                            if (svc.route) {
+                              navigate(svc.route);
+                            } else if (svc.slug || svc.id || svc._id) {
+                              navigate(`/service/${svc.slug || svc._id || svc.id}`);
+                            } else {
+                              navigate(`/services?q=${encodeURIComponent(svc.name)}`);
+                            }
+                          }}
+                          className="flex items-center justify-between px-4 py-2.5 hover:bg-orange-50/50 cursor-pointer transition-colors group"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-100">
+                              {svc.thumbnail ? (
+                                <img
+                                  src={svc.thumbnail}
+                                  alt={svc.name}
+                                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-orange-600 bg-orange-50 font-bold text-xs">
+                                  {svc.name.slice(0, 2).toUpperCase()}
+                                </div>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-slate-800 truncate m-0 group-hover:text-orange-600 transition-colors">
+                                {svc.name}
+                              </p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                {svc.categoryName && (
+                                  <span className="text-[10px] text-slate-500 font-medium bg-slate-100 px-1.5 py-0.5 rounded">
+                                    {svc.categoryName}
+                                  </span>
+                                )}
+                                {svc.rating && (
+                                  <span className="flex items-center gap-0.5 text-[10px] font-bold text-amber-600">
+                                    <Star size={10} className="fill-amber-400 text-amber-400" />
+                                    {svc.rating}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 flex-shrink-0 pl-3">
+                            {svc.startingPrice ? (
+                              <div className="text-right">
+                                <span className="text-xs font-bold text-slate-900 block">
+                                  &#8377;{Number(svc.startingPrice).toLocaleString("en-IN")}
+                                </span>
+                                <span className="text-[9px] text-slate-400 font-normal">onwards</span>
+                              </div>
+                            ) : null}
+                            <ChevronRight size={15} className="text-slate-300 group-hover:text-orange-600 group-hover:translate-x-0.5 transition-all" />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : searchResults.categories.length === 0 ? (
+                    <div className="p-5 text-center">
+                      <p className="text-sm font-semibold text-slate-800 m-0">
+                        No direct matches found for "{searchQuery}"
+                      </p>
+                      <p className="text-xs text-slate-500 mt-1 mb-3">
+                        Try one of our popular services:
+                      </p>
+                      <div className="flex flex-wrap justify-center gap-1.5">
+                        {["Wedding", "Car Rental", "Plumbing", "Maid", "Electrician", "Tuition"].map(
+                          (term, i) => (
+                            <button
+                              key={i}
+                              type="button"
+                              onClick={() => {
+                                setSearchQuery(term);
+                              }}
+                              className="text-xs px-2.5 py-1 rounded-full bg-slate-100 hover:bg-orange-100 hover:text-orange-700 text-slate-600 cursor-pointer border-none transition-colors"
+                            >
+                              {term}
+                            </button>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {/* Bottom View All Results */}
+                  <div
+                    onClick={handleSearch}
+                    className="p-3 bg-slate-50 hover:bg-orange-50 border-t border-slate-100 text-center cursor-pointer transition-colors flex items-center justify-center gap-1.5 text-xs font-semibold text-orange-600"
+                  >
+                    <span>View all search results for "{searchQuery}"</span>
+                    <ArrowRight size={13} />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
-          {/* Animated Service Card Content */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={active?.id || activeIndex}
-              initial={{ opacity: 0, y: 10, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, scale: 0.98 }}
-              transition={{ duration: 0.35, ease: "easeOut" }}
-              className="flex flex-col gap-3 relative z-10"
-            >
-              {/* Service Thumbnail & Badges */}
-              <div className="relative w-full h-32 sm:h-36 rounded-2xl overflow-hidden group shadow-inner">
-                <img
-                  src={activeService?.bannerImage || activeService?.thumbnail || active?.imageUrl}
-                  alt={activeService?.name || active?.name}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                  style={active?.comingSoon ? { filter: "grayscale(0.5) brightness(0.85)" } : undefined}
-                />
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: "linear-gradient(to top, rgba(10, 14, 26, 0.92) 0%, rgba(10, 14, 26, 0.25) 60%, transparent 100%)",
-                  }}
-                />
-
-                {/* Rating Badge */}
-                <div className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-lg bg-black/60 backdrop-blur-md border border-white/15 flex items-center gap-1 text-white text-[11px] font-bold">
-                  <Star size={11} className="text-amber-400 fill-amber-400" />
-                  <span>{activeService?.rating || 4.9}</span>
-                  <span className="text-white/60 font-normal text-[10px]">
-                    ({activeService?.totalReviews || 120}+)
-                  </span>
-                </div>
-
-                {/* Category Pill */}
-                <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-lg bg-white/20 backdrop-blur-md border border-white/20 text-white text-[10px] font-semibold tracking-wider uppercase">
-                  {active?.name}
-                </div>
-
-                {/* Service Name Overlay */}
-                <div className="absolute bottom-2.5 left-3 right-3">
-                  <h3
-                    className="text-white font-bold text-sm sm:text-base leading-tight truncate m-0 drop-shadow-sm"
-                    style={{ fontFamily: "var(--font-display)", letterSpacing: "-0.01em" }}
-                  >
-                    {activeService?.name || active?.name}
-                  </h3>
-                </div>
-              </div>
-
-              {/* Conditional: Start & Destination Search for Vehicle Rental vs Value description for other services */}
-              {isVehicleRental ? (
-                <div className="flex flex-col gap-2 p-2.5 rounded-2xl bg-white/[0.07] border border-white/10 shadow-inner">
-                  <div className="flex items-center justify-between text-[10px] text-white/70 font-semibold px-0.5">
-                    <span className="flex items-center gap-1 text-emerald-300">
-                      <Navigation size={11} /> Start & Destination Search
-                    </span>
-                    <span className="text-[9px] text-white/40 font-normal">Direct Route</span>
-                  </div>
-
-                  {/* Start (Pickup) Input */}
-                  <div className="relative">
-                    <Navigation
-                      size={13}
-                      className="absolute left-2.5 top-1/2 -translate-y-1/2 text-emerald-400 pointer-events-none"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Start / Pickup location..."
-                      value={pickupLocation}
-                      onChange={(e) => setPickupLocation(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleVehicleSearch(e);
-                      }}
-                      className="w-full pl-8 pr-2.5 py-1.5 text-xs rounded-xl bg-black/45 border border-white/15 text-white placeholder-white/40 outline-none focus:border-emerald-400/80 transition-colors"
-                      style={{ fontFamily: "var(--font-body)" }}
-                    />
-                  </div>
-
-                  {/* Destination (Dropoff) Input */}
-                  <div className="relative">
-                    <MapPin
-                      size={13}
-                      className="absolute left-2.5 top-1/2 -translate-y-1/2 text-rose-400 pointer-events-none"
-                    />
-                    <input
-                      type="text"
-                      placeholder="Destination / Dropoff..."
-                      value={dropoffLocation}
-                      onChange={(e) => setDropoffLocation(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleVehicleSearch(e);
-                      }}
-                      className="w-full pl-8 pr-2.5 py-1.5 text-xs rounded-xl bg-black/45 border border-white/15 text-white placeholder-white/40 outline-none focus:border-rose-400/80 transition-colors"
-                      style={{ fontFamily: "var(--font-body)" }}
-                    />
-                  </div>
-
-                  {/* Quick Popular Routes */}
-                  <div className="flex items-center gap-1.5 pt-0.5 flex-wrap">
-                    <span className="text-[9px] text-white/40">Quick:</span>
-                    {[
-                      { from: "Patna", to: "Gaya" },
-                      { from: "Patna Airport", to: "City Center" },
-                      { from: "Patna", to: "Ranchi" },
-                    ].map((route, rIdx) => (
-                      <button
-                        key={rIdx}
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPickupLocation(route.from);
-                          setDropoffLocation(route.to);
-                        }}
-                        className="text-[9px] px-1.5 py-0.5 rounded-md bg-white/10 hover:bg-white/20 text-white/85 border border-white/10 transition-colors cursor-pointer"
-                      >
-                        {route.from.split(" ")[0]} → {route.to.split(" ")[0]}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                  /* Service Value Description */
-                  <p
-                    className="text-white/70 text-xs leading-relaxed line-clamp-2 m-0"
-                    style={{ fontFamily: "var(--font-body)" }}
-                  >
-                    {activeService?.shortDescription || truncate(active?.description, 85)}
-                  </p>
-              )}
-
-              {/* Pricing Row */}
-              <div className="flex items-center justify-between pt-1 border-t border-white/10">
-                <div>
-                  <span className="text-[9px] uppercase tracking-wider text-white/50 block font-medium">
-                    Starting from
-                  </span>
-                  <span className="text-base sm:text-lg font-bold text-white flex items-baseline gap-1" style={{ fontFamily: "var(--font-display)" }}>
-                    <span className="text-[#ff6b00]">₹</span>
-                    {(activeService?.startingPrice || 999).toLocaleString("en-IN")}
-                    <span className="text-[11px] font-normal text-white/55">
-                      {activeService?.priceUnit ? `/${activeService.priceUnit}` : ""}
-                    </span>
-                  </span>
-                </div>
-
-                {active?.comingSoon && (
-                  <span className="text-[10px] font-bold text-amber-300 bg-amber-500/20 border border-amber-500/40 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                    Soon
-                  </span>
-                )}
-              </div>
-
-              {/* Direct Onboarding & Booking Action Buttons */}
-              <div className="flex flex-col gap-2 mt-1">
-                {/* 1. Customer Direct Booking / Vehicle Search Redirect Button */}
-                {isVehicleRental ? (
-                  <button
-                    type="button"
-                    onClick={handleVehicleSearch}
-                    className="w-full py-2.5 sm:py-3 px-4 rounded-xl text-xs sm:text-sm font-bold border-0 cursor-pointer flex items-center justify-center gap-2 transition-all duration-200 hover:scale-[1.02] hover:brightness-110 active:scale-[0.98]"
+          {/* Quick-access category icons — modern Lucide style */}
+          <motion.div
+            initial={{ opacity: 0, y: 14 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.55, delay: 0.32 }}
+            className="flex items-center gap-4 flex-wrap"
+            style={{ maxWidth: 520 }}
+          >
+            {QUICK_CATS.map((qc, i) => {
+              const Icon = qc.icon;
+              return (
+                <button
+                  key={i}
+                  onClick={() => navigate(qc.route)}
+                  className="flex flex-col items-center gap-1.5 cursor-pointer border-none bg-transparent group"
+                  style={{ minWidth: 56 }}
+                >
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-200 group-hover:scale-110 group-hover:shadow-lg"
                     style={{
-                      fontFamily: "var(--font-body)",
-                      background: "linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%)",
-                      color: "#ffffff",
-                      boxShadow: "0 4px 18px rgba(255, 107, 0, 0.38)",
+                      background: qc.bg,
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
                     }}
                   >
-                    <Car size={15} />
-                    <span>Find Vehicles & Book</span>
-                    <ArrowRight size={14} />
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={handleDirectBooking}
-                    className="w-full py-2.5 sm:py-3 px-4 rounded-xl text-xs sm:text-sm font-bold border-0 cursor-pointer flex items-center justify-center gap-2 transition-all duration-200 hover:scale-[1.02] hover:brightness-110 active:scale-[0.98]"
+                    {Icon ? (
+                      <Icon size={22} style={{ color: qc.iconColor }} strokeWidth={1.8} />
+                    ) : (
+                      <span style={{ color: qc.iconColor, fontSize: 18, fontWeight: 700, letterSpacing: 1 }}>···</span>
+                    )}
+                  </div>
+                  <span
+                    className="text-[10px] font-semibold text-center leading-tight"
                     style={{
-                      fontFamily: "var(--font-body)",
-                      background: active?.comingSoon
-                        ? "rgba(255, 255, 255, 0.15)"
-                        : "linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%)",
-                      color: "#ffffff",
-                      boxShadow: active?.comingSoon
-                        ? "none"
-                        : "0 4px 18px rgba(255, 107, 0, 0.38)",
+                      fontFamily: FONT_HERO,
+                      color: "#475569",
+                      whiteSpace: "pre-line",
                     }}
                   >
-                    <CalendarDays size={14} />
-                    <span>{active?.comingSoon ? "View Coming Soon Details" : "Book Service Now"}</span>
-                    <ArrowRight size={14} />
-                  </button>
-                )}
+                    {qc.label}
+                  </span>
+                </button>
+              );
+            })}
+          </motion.div>
 
+          {/* Social proof stats */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.42 }}
+            className="flex items-center gap-6 mt-8 flex-wrap"
+          >
+            {[
+              { value: "10K+", label: "Happy Customers" },
+              { value: "50+", label: "Expert Partners" },
+              { value: "4.9★", label: "Average Rating" },
+            ].map((stat, i) => (
+              <div key={i} className="flex flex-col">
+                <span
+                  className="text-xl font-bold leading-none"
+                  style={{ fontFamily: FONT_HERO, color: "var(--color-primary)" }}
+                >
+                  {stat.value}
+                </span>
+                <span
+                  className="text-xs mt-0.5"
+                  style={{ fontFamily: FONT_HERO, color: "#94a3b8" }}
+                >
+                  {stat.label}
+                </span>
               </div>
-            </motion.div>
-          </AnimatePresence>
+            ))}
+          </motion.div>
         </div>
-      </div>
 
-      {/* ── Slide indicators (bottom-center) ── */}
-      <div className="absolute bottom-4 sm:bottom-8 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2 sm:gap-3 px-4 max-w-[90vw]">
-        <span
-          className="text-[10px] sm:text-xs font-semibold tracking-widest uppercase text-white/60 text-center truncate max-w-full"
-          style={{ fontFamily: "var(--font-body)", letterSpacing: "0.12em" }}
+        {/* ══ RIGHT SIDE — scrolling service cards ══ */}
+        <motion.div
+          initial={{ opacity: 0, x: 40 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.65, delay: 0.2 }}
+          className="w-full lg:w-[420px] xl:w-[460px] flex-shrink-0 relative"
         >
-          {categories?.map((cat, i) => (
-            <span
-              key={cat.id}
-              style={{
-                opacity: i === activeIndex ? 1 : 0,
-                position: i === activeIndex ? "relative" : "absolute",
-                transition: "opacity 0.4s ease",
-              }}
-            >
-              {cat.name}
-            </span>
-          ))}
-        </span>
+          {/* Soft background glows */}
+          <div
+            className="absolute -top-12 -right-10 w-72 h-72 rounded-full pointer-events-none"
+            style={{
+              background: "radial-gradient(circle, rgba(255,107,0,0.07) 0%, transparent 70%)",
+              filter: "blur(24px)",
+            }}
+          />
+          <div
+            className="absolute -bottom-8 -left-8 w-56 h-56 rounded-full pointer-events-none"
+            style={{
+              background: "radial-gradient(circle, rgba(11,79,216,0.07) 0%, transparent 70%)",
+              filter: "blur(24px)",
+            }}
+          />
 
-        <div className="flex gap-1.5 sm:gap-2">
-          {categories?.map((_, i) => (
+          {/* Category indicator icons */}
+          <div className="flex items-center gap-1.5 mb-4 justify-end pr-1">
+            {HERO_CATEGORIES.map((cat, i) => {
+              const Icon = cat.icon;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    setActiveCardIdx(i);
+                    startInterval();
+                  }}
+                  className="transition-all duration-300 cursor-pointer border-none flex items-center justify-center"
+                  style={{
+                    width: i === activeCardIdx ? 32 : 28,
+                    height: i === activeCardIdx ? 32 : 28,
+                    borderRadius: "50%",
+                    background: i === activeCardIdx ? cat.bgColor : "#f1f5f9",
+                    border: i === activeCardIdx ? `2px solid ${cat.iconColor}` : "2px solid transparent",
+                    boxShadow: i === activeCardIdx ? `0 2px 10px ${cat.iconColor}33` : "none",
+                    padding: 0,
+                  }}
+                  title={cat.title}
+                >
+                  <Icon
+                    size={i === activeCardIdx ? 15 : 13}
+                    style={{ color: i === activeCardIdx ? cat.iconColor : "#94a3b8" }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Animated service card */}
+          <div className="relative overflow-hidden" style={{ minHeight: 260 }}>
+            <AnimatePresence mode="wait">
+              <ServiceCard
+                key={activeCat.id}
+                cat={activeCat}
+                onNavigate={navigate}
+              />
+            </AnimatePresence>
+          </div>
+
+          {/* Footer: count + title + book now */}
+          <div className="flex items-center justify-between mt-4 px-1">
+            <div className="flex items-center gap-2">
+              <span
+                className="text-xs font-semibold"
+                style={{ color: "#94a3b8", fontFamily: FONT_HERO }}
+              >
+                {activeCardIdx + 1} / {HERO_CATEGORIES.length}
+              </span>
+              <span
+                className="text-xs font-semibold"
+                style={{ color: activeCat.iconColor, fontFamily: FONT_HERO }}
+              >
+                {activeCat.title}
+              </span>
+            </div>
             <button
-              key={i}
-              onClick={() => setActiveIndex(i)}
-              className="rounded-full border-0 cursor-pointer transition-all duration-300"
+              onClick={() => navigate(activeCat.route)}
+              className="flex items-center gap-1.5 text-xs font-semibold cursor-pointer border-none bg-transparent transition-all duration-200 hover:gap-2"
+              style={{ color: "var(--color-primary)", fontFamily: FONT_HERO }}
+            >
+              Book Now <ArrowRight size={13} />
+            </button>
+          </div>
+
+          {/* Progress bar */}
+          <div
+            className="mt-3 w-full rounded-full overflow-hidden"
+            style={{ height: 3, background: "#f1f5f9" }}
+          >
+            <motion.div
+              key={activeCardIdx}
+              initial={{ width: "0%" }}
+              animate={{ width: "100%" }}
+              transition={{ duration: 3.5, ease: "linear" }}
               style={{
-                width: i === activeIndex ? "20px" : "6px",
-                height: "6px",
-                backgroundColor:
-                  i === activeIndex
-                    ? "rgba(255,255,255,0.95)"
-                    : "rgba(255,255,255,0.35)",
-                padding: 0,
+                height: "100%",
+                background: `linear-gradient(90deg, ${activeCat.iconColor}, var(--color-accent))`,
+                borderRadius: 9999,
               }}
-              aria-label={`Go to slide ${i + 1}`}
             />
-          ))}
-        </div>
+          </div>
+        </motion.div>
+
       </div>
     </section>
   );

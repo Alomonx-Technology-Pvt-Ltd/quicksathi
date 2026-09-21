@@ -1,8 +1,19 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { ShieldCheck, Clock, CreditCard, Handshake } from "lucide-react";
+import {
+  ShieldCheck,
+  Clock,
+  CreditCard,
+  Handshake,
+  Sparkles,
+  ArrowRight,
+  Star,
+  CheckCircle2,
+  Award,
+} from "lucide-react";
 import AboutSection from "./AboutSection";
 import SEO from "../components/SEO";
+import aboutHeroBg from "../assets/aboutHeroBg.jpg";
 
 const stats = [
   { value: "10K+", label: "Happy Customers" },
@@ -57,70 +68,238 @@ const About = () => {
           "description": "Learn about TiptoBook's mission to connect you with trusted, vetted local service professionals."
         }}
       />
-      {/* ── Hero section ── */}
+      {/* ── Redesigned Hero section with custom high-res background image ── */}
       <div
         className="relative w-full overflow-hidden"
         style={{
-          minHeight: "360px",
-          backgroundColor: "var(--color-text-dark)",
+          minHeight: "clamp(520px, 68vh, 720px)",
+          backgroundColor: "#080e1e",
         }}
       >
+        {/* Background Image Layer */}
         <div
-          className="absolute inset-0 opacity-15"
+          className="absolute inset-0 z-0 scale-105 transition-transform duration-1000 ease-out"
           style={{
-            backgroundImage: `url('https://images.unsplash.com/photo-1521791136368-1a8b27503462?q=80&w=2070&auto=format&fit=crop')`,
+            backgroundImage: `url(${aboutHeroBg})`,
             backgroundSize: "cover",
-            backgroundPosition: "center",
+            backgroundPosition: "center 35%",
+            filter: "brightness(0.92)",
           }}
         />
-        <div className="relative z-10 px-4 sm:px-10 lg:px-16 py-24 sm:py-28 max-w-5xl">
-          <nav
-            className="flex items-center gap-2 text-xs mb-6"
-            style={{ fontFamily: "var(--font-body)" }}
-          >
-            <Link
-              to="/"
-              className="no-underline text-white opacity-60 hover:opacity-100"
-            >
-              Home
-            </Link>
-            <span className="text-white opacity-40">/</span>
-            <span className="text-white font-semibold">About Us</span>
-          </nav>
-          
-          <span
-            className="inline-block px-3 py-1 rounded-full text-xs font-semibold mb-4 border uppercase tracking-widest text-white/80"
-            style={{
-              fontFamily: "var(--font-body)",
-              backgroundColor: "rgba(255,255,255,0.08)",
-              borderColor: "rgba(255,255,255,0.15)",
-              letterSpacing: "0.08em",
-            }}
-          >
-            Our Mission
-          </span>
 
-          <h1
-            className="font-normal text-white leading-[1.05] m-0"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(32px, 5vw, 64px)",
-              letterSpacing: "-0.02em",
-            }}
+        {/* Multi-layered cinematic gradient overlays for high contrast and modern aesthetics */}
+        <div
+          className="absolute inset-0 z-1"
+          style={{
+            background:
+              "linear-gradient(90deg, rgba(8, 14, 30, 0.96) 0%, rgba(8, 14, 30, 0.86) 48%, rgba(8, 14, 30, 0.45) 80%, rgba(8, 14, 30, 0.65) 100%)",
+          }}
+        />
+        <div
+          className="absolute inset-0 z-1 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(8, 14, 30, 0.95) 0%, transparent 40%, rgba(8, 14, 30, 0.45) 100%)",
+          }}
+        />
+        <div
+          className="absolute -left-20 top-1/4 w-96 h-96 rounded-full pointer-events-none z-1"
+          style={{
+            background: "radial-gradient(circle, rgba(255, 107, 0, 0.22) 0%, transparent 70%)",
+            filter: "blur(50px)",
+          }}
+        />
+
+        {/* Hero Content */}
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-8 lg:px-12 py-16 sm:py-24 flex flex-col lg:flex-row items-center justify-between gap-12 min-h-[520px]">
+          
+          {/* Left Hero Text Column */}
+          <div className="max-w-2xl">
+            <nav
+              className="flex items-center gap-2 text-xs mb-5"
+              style={{ fontFamily: "var(--font-body)" }}
+            >
+              <Link
+                to="/"
+                className="no-underline text-white/70 hover:text-white transition-colors"
+              >
+                Home
+              </Link>
+              <span className="text-white/40">/</span>
+              <span className="text-orange-400 font-semibold">About Us</span>
+            </nav>
+
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-semibold mb-5 backdrop-blur-md"
+              style={{
+                background: "rgba(255, 107, 0, 0.15)",
+                border: "1px solid rgba(255, 107, 0, 0.35)",
+                color: "#FF8533",
+                letterSpacing: "0.06em",
+              }}
+            >
+              <Sparkles size={13} className="text-orange-400" />
+              <span>EMPOWERING HOMES & SERVICES ACROSS BIHAR</span>
+            </motion.div>
+
+            <motion.h1
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.1 }}
+              className="font-bold text-white leading-[1.08] m-0 mb-5"
+              style={{
+                fontFamily: "var(--font-display)",
+                fontSize: "clamp(34px, 5.2vw, 66px)",
+                letterSpacing: "-0.025em",
+              }}
+            >
+              Redefining Local Services.
+              <br />
+              <span
+                style={{
+                  background: "linear-gradient(135deg, #FF944D 0%, #FF6B00 55%, #FFB703 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
+                Restoring Absolute Trust.
+              </span>
+            </motion.h1>
+
+            <motion.p
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
+              className="text-slate-200 text-base sm:text-lg leading-relaxed m-0 mb-8 max-w-xl"
+              style={{ fontFamily: "var(--font-body)", opacity: 0.92 }}
+            >
+              TiptoBook bridges the gap between verified local service professionals and homeowners across Patna and Bihar. Combining modern on-demand booking with rigorous provider screening, we make finding electricians, wedding vendors, rental cars, and tutors effortless.
+            </motion.p>
+
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.28 }}
+              className="flex flex-wrap items-center gap-4"
+            >
+              <Link
+                to="/services"
+                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full font-semibold text-sm text-white no-underline transition-all duration-200 hover:scale-105 hover:brightness-110 active:scale-95 shadow-lg"
+                style={{
+                  background: "linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%)",
+                  boxShadow: "0 8px 24px rgba(255,107,0,0.38)",
+                  fontFamily: "var(--font-body)",
+                }}
+              >
+                <span>Explore Services</span>
+                <ArrowRight size={16} />
+              </Link>
+              <Link
+                to="/provider/onboarding"
+                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-full font-semibold text-sm text-white no-underline backdrop-blur-md transition-all duration-200 hover:bg-white/15 active:scale-95"
+                style={{
+                  background: "rgba(255,255,255,0.09)",
+                  border: "1px solid rgba(255,255,255,0.22)",
+                  fontFamily: "var(--font-body)",
+                }}
+              >
+                <span>Become a Partner</span>
+              </Link>
+            </motion.div>
+          </div>
+
+          {/* Right Floating Trust Highlights */}
+          <motion.div
+            initial={{ opacity: 0, x: 25 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.65, delay: 0.22 }}
+            className="w-full lg:w-auto flex flex-col gap-3.5 max-w-sm"
           >
-            Redefining Local Services. <br />
-            <span style={{ opacity: 0.5 }}>Restoring Absolute Trust.</span>
-          </h1>
-          <p
-            className="text-white mt-4 max-w-xl text-base"
-            style={{
-              fontFamily: "var(--font-body)",
-              opacity: 0.7,
-              lineHeight: 1.7,
-            }}
-          >
-            TiptoBook is on a mission to simplify local services for Patna and beyond. By combining technology with a rigorous screening process, we deliver elite security, logistics, and celebration services directly to your doorstep.
-          </p>
+            {/* Trust Pill 1 */}
+            <div
+              className="p-4 rounded-2xl backdrop-blur-xl transition-all duration-200 hover:scale-[1.02]"
+              style={{
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.15)",
+                boxShadow: "0 12px 32px rgba(0,0,0,0.25)",
+              }}
+            >
+              <div className="flex items-center gap-3.5">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: "rgba(16,185,129,0.2)", border: "1px solid rgba(16,185,129,0.35)" }}
+                >
+                  <ShieldCheck size={20} className="text-emerald-400" />
+                </div>
+                <div>
+                  <h4 className="text-white text-sm font-semibold m-0" style={{ fontFamily: "var(--font-display)" }}>
+                    100% Verified Experts
+                  </h4>
+                  <p className="text-slate-300 text-xs m-0 mt-0.5" style={{ fontFamily: "var(--font-body)" }}>
+                    Multi-step ID verification & background checks.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Trust Pill 2 */}
+            <div
+              className="p-4 rounded-2xl backdrop-blur-xl transition-all duration-200 hover:scale-[1.02]"
+              style={{
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.15)",
+                boxShadow: "0 12px 32px rgba(0,0,0,0.25)",
+              }}
+            >
+              <div className="flex items-center gap-3.5">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: "rgba(245,158,11,0.2)", border: "1px solid rgba(245,158,11,0.35)" }}
+                >
+                  <Star size={20} className="fill-amber-400 text-amber-400" />
+                </div>
+                <div>
+                  <h4 className="text-white text-sm font-semibold m-0" style={{ fontFamily: "var(--font-display)" }}>
+                    4.9 / 5.0 Average Rating
+                  </h4>
+                  <p className="text-slate-300 text-xs m-0 mt-0.5" style={{ fontFamily: "var(--font-body)" }}>
+                    Rated across 10,000+ local customers in Bihar.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Trust Pill 3 */}
+            <div
+              className="p-4 rounded-2xl backdrop-blur-xl transition-all duration-200 hover:scale-[1.02]"
+              style={{
+                background: "rgba(255,255,255,0.08)",
+                border: "1px solid rgba(255,255,255,0.15)",
+                boxShadow: "0 12px 32px rgba(0,0,0,0.25)",
+              }}
+            >
+              <div className="flex items-center gap-3.5">
+                <div
+                  className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ background: "rgba(59,130,246,0.2)", border: "1px solid rgba(59,130,246,0.35)" }}
+                >
+                  <CheckCircle2 size={20} className="text-blue-400" />
+                </div>
+                <div>
+                  <h4 className="text-white text-sm font-semibold m-0" style={{ fontFamily: "var(--font-display)" }}>
+                    Upfront Transparent Pricing
+                  </h4>
+                  <p className="text-slate-300 text-xs m-0 mt-0.5" style={{ fontFamily: "var(--font-body)" }}>
+                    Guaranteed clear quotes. Zero hidden fees.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+          </motion.div>
         </div>
       </div>
 

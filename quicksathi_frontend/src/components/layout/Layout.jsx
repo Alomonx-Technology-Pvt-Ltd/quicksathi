@@ -415,10 +415,17 @@ const CityPicker = ({ isFullBleed }) => {
 const Navbar = () => {
   const { pathname } = useRouterLocation();
   const navigate = useNavigate();
-  const isFullBleed = pathname === "/";
   const [menuOpen, setMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Scroll-based shadow
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // Notifications states
   const [notifications, setNotifications] = useState([]);
@@ -502,95 +509,78 @@ const Navbar = () => {
     return () => { document.body.style.overflow = ""; };
   }, [menuOpen]);
 
-  const navLinks = [
+  // Nav links: split by auth state
+  const guestLinks = [
     { to: "/", label: "Home", end: true },
-    { to: "/services", label: "Services" },
     { to: "/about", label: "About" },
+  ];
+  const authLinks = [
+    { to: "/", label: "Home", end: true },
+    { to: "/my-bookings", label: "My Bookings" },
     { to: "/contact", label: "Contact" },
   ];
+  const navLinks = isAuthenticated ? authLinks : guestLinks;
 
   return (
     <>
       <nav
-        className="absolute top-0 left-0 right-0 z-50 px-5 sm:px-10 h-16 sm:h-18 flex items-center justify-between"
-        style={
-          isFullBleed
-            ? { background: "transparent" }
-            : {
-                backgroundColor: "var(--color-bg-soft)",
-                borderBottom: "1px solid var(--color-border)",
-              }
-        }
+        className="sticky top-0 left-0 right-0 z-50 px-5 sm:px-10 flex items-center justify-between"
+        style={{
+          height: 64,
+          backgroundColor: "#ffffff",
+          borderBottom: "1px solid rgba(0,0,0,0.07)",
+          boxShadow: scrolled ? "0 4px 24px rgba(0,0,0,0.08)" : "none",
+          transition: "box-shadow 0.3s ease",
+        }}
       >
-        {/* Brand with logo & styled title text */}
+        {/* Brand */}
         <Link
           to="/"
-          className="px-2 sm:px-6 py-2 no-underline flex items-center group"
+          className="py-2 no-underline flex items-center group flex-shrink-0"
           aria-label="TiptoBook Home"
         >
-          <BrandLogo size={36} isDark={isFullBleed} />
+          <BrandLogo size={34} isDark={false} />
         </Link>
 
-        {/* Desktop Links */}
+        {/* Desktop Nav Links */}
         <div className="hidden md:flex items-center gap-6">
           {navLinks.map(({ to, label, end }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
-              className="text-sm font-medium no-underline transition-opacity duration-200 hover:opacity-70"
+              className="text-sm font-medium no-underline transition-all duration-200 hover:opacity-75"
               style={({ isActive }) => ({
                 fontFamily: "var(--font-body)",
-                color: isFullBleed
-                  ? isActive
-                    ? "#ffffff"
-                    : "rgba(255,255,255,0.75)"
-                  : isActive
-                    ? "var(--color-primary)"
-                    : "var(--color-text-mid)",
+                color: isActive ? "var(--color-primary)" : "#475569",
+                fontWeight: isActive ? 600 : 500,
               })}
             >
               {label}
             </NavLink>
           ))}
 
-          {isAuthenticated && (
-            <NavLink
-              to="/my-bookings"
-              className="text-sm font-medium no-underline transition-opacity duration-200 hover:opacity-70"
-              style={({ isActive }) => ({
-                fontFamily: "var(--font-body)",
-                color: isFullBleed
-                  ? isActive ? "#ffffff" : "rgba(255,255,255,0.75)"
-                  : isActive ? "var(--color-primary)" : "var(--color-text-mid)",
-              })}
-            >
-              Bookings
-            </NavLink>
-          )}
+          {/* City Picker */}
+          <CityPicker isFullBleed={false} />
 
-          {/* City Location Picker */}
-          <CityPicker isFullBleed={isFullBleed} />
-
-          {/* Auth buttons */}
+          {/* Auth area */}
           {isAuthenticated ? (
-            <div className="flex items-center gap-3 relative">
+            <div className="flex items-center gap-2.5 relative">
               {/* Notification Bell */}
               <div className="relative" ref={notifRef}>
                 <button
                   onClick={() => setNotifOpen(!notifOpen)}
-                  className="w-9 h-9 rounded-full flex items-center justify-center border-0 cursor-pointer transition-all duration-200 hover:opacity-80"
+                  className="w-9 h-9 rounded-full flex items-center justify-center border-0 cursor-pointer transition-all duration-200 hover:bg-slate-100"
                   style={{
-                    backgroundColor: isFullBleed ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.04)",
-                    color: isFullBleed ? "#fff" : "var(--color-text-dark)",
-                    backdropFilter: "blur(8px)",
+                    backgroundColor: "rgba(0,0,0,0.04)",
+                    color: "#475569",
                   }}
                 >
-                  <Bell size={18} />
+                  <Bell size={17} />
                   {unreadCount > 0 && (
-                    <span 
+                    <span
                       className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center text-[9px] font-bold"
-                      style={{ border: "1.5px solid var(--color-bg-white)" }}
+                      style={{ border: "1.5px solid #ffffff" }}
                     >
                       {unreadCount}
                     </span>
@@ -669,45 +659,42 @@ const Navbar = () => {
               <div className="relative">
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
-                  className="flex items-center gap-2 px-3 py-2 rounded-full border-0 cursor-pointer transition-all duration-200 hover:opacity-80"
-                  style={{
-                    backgroundColor: isFullBleed ? "rgba(255,255,255,0.15)" : "rgba(0,0,0,0.04)",
-                    backdropFilter: "blur(8px)",
-                  }}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full border-0 cursor-pointer transition-all duration-200 hover:bg-slate-100"
+                  style={{ backgroundColor: "rgba(0,0,0,0.04)" }}
                 >
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white"
-                    style={{ backgroundColor: "var(--color-primary)" }}>
+                  <div
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+                    style={{ backgroundColor: "var(--color-primary)" }}
+                  >
                     {user?.name?.[0] || "U"}
                   </div>
-                  <span className="text-sm font-medium" style={{
-                    fontFamily: "var(--font-body)",
-                    color: isFullBleed ? "#fff" : "var(--color-text-dark)",
-                  }}>
+                  <span
+                    className="text-sm font-semibold"
+                    style={{ fontFamily: "var(--font-body)", color: "#0f172a" }}
+                  >
                     {user?.name?.split(" ")[0] || "User"}
                   </span>
                 </button>
 
-                {/* Dropdown */}
                 {profileOpen && (
-                  <div className="absolute top-full right-0 mt-3 w-48 rounded-xl overflow-hidden shadow-2xl z-50 text-left border"
-                    style={{ backgroundColor: "var(--color-bg-white)", borderColor: "var(--color-border)" }}>
-                    <div className="px-4 py-3 border-b" style={{ borderColor: "var(--color-border)" }}>
-                      <p className="text-sm font-semibold m-0" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>{user?.name}</p>
-                      <p className="text-xs m-0" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-muted)" }}>{user?.email}</p>
+                  <div
+                    className="absolute top-full right-0 mt-3 w-52 rounded-2xl overflow-hidden shadow-2xl z-50 text-left border"
+                    style={{ backgroundColor: "#ffffff", borderColor: "rgba(0,0,0,0.08)" }}
+                  >
+                    <div className="px-4 py-3 border-b" style={{ borderColor: "rgba(0,0,0,0.07)" }}>
+                      <p className="text-sm font-semibold m-0" style={{ fontFamily: "var(--font-body)", color: "#0f172a" }}>{user?.name}</p>
+                      <p className="text-xs m-0 mt-0.5" style={{ fontFamily: "var(--font-body)", color: "#94a3b8" }}>{user?.email}</p>
                     </div>
                     {user?.role === "admin" && (
-                      <Link to="/admin" className="block px-4 py-2.5 text-sm no-underline hover:bg-neutral-50 dark:hover:bg-white/[0.02]" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>
-                        📊 Admin Panel
-                      </Link>
+                      <Link to="/admin" className="block px-4 py-2.5 text-sm no-underline hover:bg-slate-50 transition-colors" style={{ fontFamily: "var(--font-body)", color: "#0f172a" }}>📊 Admin Panel</Link>
                     )}
-                    <Link to="/profile" className="block px-4 py-2.5 text-sm no-underline hover:bg-neutral-50 dark:hover:bg-white/[0.02]" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>
-                      👤 My Profile
-                    </Link>
-                    <Link to="/my-bookings" className="block px-4 py-2.5 text-sm no-underline hover:bg-neutral-50 dark:hover:bg-white/[0.02]" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>
-                      📋 My Bookings
-                    </Link>
-                    <button onClick={logout} className="w-full text-left px-4 py-2.5 text-sm border-0 cursor-pointer hover:bg-neutral-50 dark:hover:bg-white/[0.02]"
-                      style={{ fontFamily: "var(--font-body)", color: "#dc2626", backgroundColor: "transparent", borderTop: "1px solid var(--color-border)", borderColor: "var(--color-border)" }}>
+                    <Link to="/profile" className="block px-4 py-2.5 text-sm no-underline hover:bg-slate-50 transition-colors" style={{ fontFamily: "var(--font-body)", color: "#0f172a" }}>👤 My Profile</Link>
+                    <Link to="/my-bookings" className="block px-4 py-2.5 text-sm no-underline hover:bg-slate-50 transition-colors" style={{ fontFamily: "var(--font-body)", color: "#0f172a" }}>📋 My Bookings</Link>
+                    <button
+                      onClick={logout}
+                      className="w-full text-left px-4 py-2.5 text-sm border-0 cursor-pointer hover:bg-red-50 transition-colors"
+                      style={{ fontFamily: "var(--font-body)", color: "#dc2626", backgroundColor: "transparent", borderTop: "1px solid rgba(0,0,0,0.07)" }}
+                    >
                       Sign Out
                     </button>
                   </div>
@@ -715,49 +702,45 @@ const Navbar = () => {
               </div>
             </div>
           ) : (
-            <button
-              onClick={() => navigate("/login")}
-              className="px-5 py-2 rounded-full text-sm font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-90"
-              style={{
-                fontFamily: "var(--font-body)",
-                backgroundColor: isFullBleed
-                  ? "rgba(255,255,255,0.95)"
-                  : "var(--color-primary)",
-                color: isFullBleed ? "var(--color-text-dark)" : "#ffffff",
-              }}
-            >
-              Log in
-            </button>
+            <div className="flex items-center gap-2.5">
+              <button
+                onClick={() => navigate("/login")}
+                className="px-4 py-2 rounded-full text-sm font-semibold border-0 cursor-pointer transition-all duration-200 hover:bg-slate-100"
+                style={{ fontFamily: "var(--font-body)", color: "#475569", backgroundColor: "transparent" }}
+              >
+                Log in
+              </button>
+              <Link
+                to="/provider/onboarding"
+                className="px-4 py-2 rounded-full text-sm font-semibold no-underline transition-all duration-200 hover:opacity-90 hover:scale-[1.02]"
+                style={{
+                  fontFamily: "var(--font-body)",
+                  background: "linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%)",
+                  color: "#ffffff",
+                  boxShadow: "0 3px 12px rgba(255,107,0,0.3)",
+                }}
+              >
+                Become a Partner
+              </Link>
+            </div>
           )}
         </div>
 
-        {/* Hamburger Button (mobile) */}
+        {/* Hamburger (mobile) */}
         <button
-          className="md:hidden flex flex-col justify-center items-center w-10 h-10 gap-1.5 rounded-lg border-0 cursor-pointer"
+          className="md:hidden flex flex-col justify-center items-center w-9 h-9 gap-1.5 rounded-lg border-0 cursor-pointer"
           style={{ background: "transparent" }}
           onClick={() => setMenuOpen((v) => !v)}
           aria-label={menuOpen ? "Close menu" : "Open menu"}
         >
-          <span
-            className="block w-6 h-0.5 transition-all duration-300"
-            style={{
-              backgroundColor: isFullBleed ? "#fff" : "var(--color-text-dark)",
-              transform: menuOpen ? "translateY(8px) rotate(45deg)" : "none",
-            }}
+          <span className="block w-6 h-0.5 transition-all duration-300"
+            style={{ backgroundColor: "#1e293b", transform: menuOpen ? "translateY(8px) rotate(45deg)" : "none" }}
           />
-          <span
-            className="block w-6 h-0.5 transition-all duration-300"
-            style={{
-              backgroundColor: isFullBleed ? "#fff" : "var(--color-text-dark)",
-              opacity: menuOpen ? 0 : 1,
-            }}
+          <span className="block w-6 h-0.5 transition-all duration-300"
+            style={{ backgroundColor: "#1e293b", opacity: menuOpen ? 0 : 1 }}
           />
-          <span
-            className="block w-6 h-0.5 transition-all duration-300"
-            style={{
-              backgroundColor: isFullBleed ? "#fff" : "var(--color-text-dark)",
-              transform: menuOpen ? "translateY(-8px) rotate(-45deg)" : "none",
-            }}
+          <span className="block w-6 h-0.5 transition-all duration-300"
+            style={{ backgroundColor: "#1e293b", transform: menuOpen ? "translateY(-8px) rotate(-45deg)" : "none" }}
           />
         </button>
       </nav>
@@ -802,12 +785,11 @@ const Navbar = () => {
               key={to}
               to={to}
               end={end}
-              className="text-lg font-medium no-underline transition-opacity duration-200"
+              className="text-base font-medium no-underline transition-all duration-200"
               style={({ isActive }) => ({
                 fontFamily: "var(--font-body)",
-                color: isActive
-                  ? "var(--color-primary)"
-                  : "var(--color-text-dark)",
+                color: isActive ? "var(--color-primary)" : "#1e293b",
+                fontWeight: isActive ? 600 : 500,
               })}
               onClick={() => setMenuOpen(false)}
             >
@@ -815,42 +797,36 @@ const Navbar = () => {
             </NavLink>
           ))}
 
-          {isAuthenticated && (
-            <NavLink
-              to="/my-bookings"
-              className="text-lg font-medium no-underline transition-opacity duration-200"
-              style={({ isActive }) => ({
-                fontFamily: "var(--font-body)",
-                color: isActive ? "var(--color-primary)" : "var(--color-text-dark)",
-              })}
-              onClick={() => setMenuOpen(false)}
-            >
-              My Bookings
-            </NavLink>
-          )}
-
           {/* City Picker in mobile drawer */}
           <CityPicker isFullBleed={false} />
 
           {!isAuthenticated && (
-            <button
-              onClick={() => {
-                setMenuOpen(false);
-                navigate("/login");
-              }}
-              className="mt-4 px-6 py-3 rounded-full text-sm font-semibold border-0 cursor-pointer text-center transition-all duration-200 hover:opacity-90"
-              style={{
-                fontFamily: "var(--font-body)",
-                backgroundColor: "var(--color-primary)",
-                color: "#ffffff",
-              }}
-            >
-              Log in
-            </button>
+            <>
+              <button
+                onClick={() => { setMenuOpen(false); navigate("/login"); }}
+                className="px-6 py-3 rounded-full text-sm font-semibold border-0 cursor-pointer text-center transition-all duration-200 hover:bg-slate-100"
+                style={{ fontFamily: "var(--font-body)", color: "#475569", backgroundColor: "rgba(0,0,0,0.04)" }}
+              >
+                Log in
+              </button>
+              <Link
+                to="/provider/onboarding"
+                className="px-6 py-3 rounded-full text-sm font-semibold no-underline text-center transition-all duration-200 hover:opacity-90"
+                style={{
+                  fontFamily: "var(--font-body)",
+                  background: "linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%)",
+                  color: "#ffffff",
+                  boxShadow: "0 3px 12px rgba(255,107,0,0.3)",
+                }}
+                onClick={() => setMenuOpen(false)}
+              >
+                Become a Partner
+              </Link>
+            </>
           )}
 
           {isAuthenticated && user?.role === "admin" && (
-            <Link to="/admin" className="text-lg font-medium no-underline" style={{ fontFamily: "var(--font-body)", color: "var(--color-primary)" }} onClick={() => setMenuOpen(false)}>
+            <Link to="/admin" className="text-base font-medium no-underline" style={{ fontFamily: "var(--font-body)", color: "var(--color-primary)" }} onClick={() => setMenuOpen(false)}>
               Admin Panel
             </Link>
           )}

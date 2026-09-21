@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../config/api";
 import SEO from "../components/SEO";
@@ -67,8 +67,9 @@ const CATEGORIES = [
 ];
 
 const Services = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [searchInput, setSearchInput] = useState("");
+  const [searchParams] = useSearchParams();
+  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("q") || "");
+  const [searchInput, setSearchInput] = useState(() => searchParams.get("q") || "");
   const [selectedFilter, setSelectedFilter] = useState("ALL");
   const [hoveredFacility, setHoveredFacility] = useState(null);
   const [categories, setCategories] = useState([]);
@@ -78,6 +79,20 @@ const Services = () => {
   const filterSectionRef = useRef(null);
   const resultsSectionRef = useRef(null);
   const { city } = useLocation();
+
+  // Sync with URL query parameter when navigating from Hero or other pages
+  useEffect(() => {
+    const q = searchParams.get("q");
+    if (q !== null) {
+      setSearchQuery(q);
+      setSearchInput(q);
+      if (q.trim()) {
+        setTimeout(() => {
+          filterSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+        }, 300);
+      }
+    }
+  }, [searchParams]);
 
   // Fetch categories and services from backend — refetch when city changes
   const fetchData = async () => {
