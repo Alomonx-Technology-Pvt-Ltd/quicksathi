@@ -1,0 +1,28 @@
+# TiptoBook
+
+> TiptoBook (operated by Alomonx Technology Pvt. Ltd.) is an online on-demand local services marketplace platform in India connecting customers with verified, trusted local service professionals.
+
+## Core Services & Offerings
+- **CCTV Security & Smart Locks**: Home and commercial HD CCTV camera installation, live remote monitoring, digital smart lock installation, and maintenance (starting ₹2,999).
+- **Vehicle & Car Rentals**: Everyday AC cars (5-seater and 7-seater), outstation cabs, and luxury decorated wedding cars with professional chauffeurs (starting ₹2,499/day).
+- **Wedding & Event Services**: Candid wedding photography, cinematic wedding films, drone shoots, floral stage decoration, catering counters, and bridal makeup (starting ₹15,000).
+- **Home Salon & Beauty**: At-home haircuts, facials, cleanups, bridal and party makeup, manicure, pedicure, and waxing (starting ₹799).
+- **House Help & Repairs**: Background-verified maids, full home deep cleaning, home cooks, babysitters, elder care attendants, AC repair, electricians, and plumbers (starting ₹199).
+- **Home Tuition & Coaching**: Personalized 1-on-1 home tuition for school academics (Class 1-10), senior secondary (Class 11-12), competitive exam preparation (JEE/NEET), and spoken English (starting ₹2,500/month).
+
+## Service Areas
+- Patna, Bihar
+- Delhi NCR
+- Mumbai, Maharashtra
+- Bengaluru, Karnataka
+- And expanding across India
+
+## Important Links
+- Website: https://www.tiptobook.com/
+- Services: https://www.tiptobook.com/services
+- CCTV Services: https://www.tiptobook.com/services/cctv
+- Vehicle Rentals: https://www.tiptobook.com/services/car-rentals
+- Wedding Services: https://www.tiptobook.com/services/weddings
+- About Us: https://www.tiptobook.com/about
+- Contact & Support: https://www.tiptobook.com/contact
+- Become a Partner: https://www.tiptobook.com/provider/onboarding
