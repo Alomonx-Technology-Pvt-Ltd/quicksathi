@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import api from "../../config/api";
+import { getClientFallbackResponse } from "./chatFallback";
 
 // ─── Lightweight Markdown Renderer ──────────────────────────────────────────
 // Converts **bold**, *italic*, numbered lists, bullet lists, and line breaks
@@ -291,16 +292,16 @@ export default function ChatBot() {
 
         if (!isOpen) setHasUnread(true);
       } catch (err) {
-        console.error("ChatBot error:", err);
+        console.warn("AI Proxy error, activating client-side knowledge fallback:", err);
+        const fallbackContent = getClientFallbackResponse(userText);
         setMessages((prev) => [
           ...prev,
           {
             role: "assistant",
-            content:
-              "I'm experiencing some difficulties right now. Please try again shortly, or contact us directly at TiptoBook9@gmail.com 😊",
-            error: true,
+            content: fallbackContent,
           },
         ]);
+        if (!isOpen) setHasUnread(true);
       } finally {
         setLoading(false);
       }
