@@ -173,15 +173,15 @@ const AllCategoriesSection = ({ categories = [] }) => {
               className="group flex flex-col items-center border-none bg-transparent cursor-pointer p-0 outline-none w-full"
               style={{ fontFamily: "var(--font-body, inherit)" }}
             >
-              {/* Image Icon Container */}
+              {/* Image Icon Container - 20% larger & image covers the entire box */}
               <div
-                className="relative flex items-center justify-center rounded-2xl sm:rounded-3xl transition-all duration-300 w-[60px] h-[60px] sm:w-[82px] sm:h-[82px] bg-[#FFF8F4] border border-[#FFE8DA] group-hover:border-[#FF6B00] group-hover:shadow-[0_8px_20px_rgba(255,107,0,0.18)] group-hover:bg-white group-hover:scale-105 p-2 sm:p-2.5 overflow-hidden"
+                className="relative flex items-center justify-center rounded-2xl sm:rounded-3xl transition-all duration-300 w-[74px] h-[74px] sm:w-[100px] sm:h-[100px] bg-white border border-slate-200/90 shadow-[0_2px_10px_rgba(0,0,0,0.05)] group-hover:border-[#FF6B00] group-hover:shadow-[0_10px_25px_rgba(255,107,0,0.22)] group-hover:scale-105 overflow-hidden p-0"
               >
                 <img
                   src={cat.iconImage}
                   alt={cat.title}
                   loading="lazy"
-                  className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 drop-shadow-sm"
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                   onError={(e) => {
                     // Fallback to URL-encoded image name if needed
                     if (!e.target.dataset.triedFallback) {
@@ -194,7 +194,7 @@ const AllCategoriesSection = ({ categories = [] }) => {
 
               {/* Service Label: 2 lines max, centered, tight spacing */}
               <span
-                className="mt-2 text-center leading-snug transition-colors duration-200 text-slate-800 group-hover:text-[#FF6B00] font-semibold text-[11px] sm:text-[13px] max-w-[85px] sm:max-w-[110px] line-clamp-2"
+                className="mt-2.5 text-center leading-snug transition-colors duration-200 text-slate-800 group-hover:text-[#FF6B00] font-semibold text-xs sm:text-[13.5px] max-w-[95px] sm:max-w-[130px] line-clamp-2"
               >
                 {cat.title}
               </span>
