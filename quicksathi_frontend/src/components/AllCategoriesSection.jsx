@@ -173,12 +173,26 @@ const AllCategoriesSection = ({ categories = [] }) => {
               {/* Image Icon Container - 20% larger & image covers the entire box */}
               <div
                 className="relative flex items-center justify-center rounded-2xl sm:rounded-3xl transition-all duration-300 w-[74px] h-[74px] sm:w-[100px] sm:h-[100px] bg-white border border-slate-200/90 shadow-[0_2px_10px_rgba(0,0,0,0.05)] group-hover:border-[#FF6B00] group-hover:shadow-[0_10px_25px_rgba(255,107,0,0.22)] group-hover:scale-105 overflow-hidden p-0"
+                style={{
+                  transform: "translateZ(0)",
+                  WebkitBackfaceVisibility: "hidden",
+                  backfaceVisibility: "hidden",
+                }}
               >
                 <img
                   src={cat.iconImage}
                   alt={cat.title}
-                  loading="lazy"
-                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  loading="eager"
+                  decoding="sync"
+                  fetchPriority="high"
+                  className="w-full h-full object-cover select-none pointer-events-none"
+                  style={{
+                    imageRendering: "-webkit-optimize-contrast",
+                    imageRendering: "high-quality",
+                    WebkitBackfaceVisibility: "hidden",
+                    backfaceVisibility: "hidden",
+                    transform: "translateZ(0)",
+                  }}
                   onError={(e) => {
                     // Fallback to URL-encoded image name if needed
                     if (!e.target.dataset.triedFallback) {
