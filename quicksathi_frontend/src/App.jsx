@@ -7,15 +7,17 @@ import Layout from "./components/layout/Layout";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import ScrollToTop from "./components/ScrollToTop";
 
-// ── Lazy-loaded Pages (code splitting — only loaded when navigated to) ──
-const Home = lazy(() => import("./pages/Home"));
-const Category = lazy(() => import("./pages/Category"));
-const Contact = lazy(() => import("./pages/Contact"));
-const ServiceDetail = lazy(() => import("./pages/ServiceDetail"));
+// ── Core Public Pages (eagerly imported for instant zero-lag navigation) ──
+import Home from "./pages/Home";
+import About from "./pages/About";
+import Contact from "./pages/Contact";
+import Services from "./pages/Services";
+import Category from "./pages/Category";
+import ServiceDetail from "./pages/ServiceDetail";
+import Login from "./pages/Login";
+
+// ── Lazy-loaded Secondary & Admin Pages ──
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
-const About = lazy(() => import("./pages/About"));
-const Login = lazy(() => import("./pages/Login"));
-const Services = lazy(() => import("./pages/Services"));
 const BookingPage = lazy(() => import("./pages/BookingPage"));
 const PaymentPage = lazy(() => import("./pages/PaymentPage"));
 const MyBookings = lazy(() => import("./pages/MyBookings"));

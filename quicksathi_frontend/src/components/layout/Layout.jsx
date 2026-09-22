@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, Suspense } from "react";
 import { Outlet, Link, NavLink, useLocation as useRouterLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useLocation as useCityLocation } from "../../context/LocationContext";
@@ -853,6 +853,19 @@ const Navbar = () => {
   );
 };
 
+const ContentLoader = () => (
+  <div className="flex justify-center items-center py-24 min-h-[50vh]">
+    <div
+      className="w-9 h-9 rounded-full border-3 border-orange-200 border-t-[#FF6B00] animate-spin"
+      style={{
+        borderWidth: "3px",
+        borderColor: "rgba(255, 107, 0, 0.18)",
+        borderTopColor: "#FF6B00",
+      }}
+    />
+  </div>
+);
+
 const Layout = () => {
   const location = useRouterLocation();
 
@@ -863,17 +876,16 @@ const Layout = () => {
     >
       <Navbar />
       <main className="flex-grow w-full">
-        <AnimatePresence mode="wait">
+        <Suspense fallback={<ContentLoader />}>
           <motion.div
             key={location.pathname}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
           >
             <Outlet />
           </motion.div>
-        </AnimatePresence>
+        </Suspense>
       </main>
       <Footer />
       <BottomNav />
