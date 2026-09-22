@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ShieldCheck, Gem, CreditCard } from "lucide-react";
 import api, { getCached } from "../config/api";
-import Card from "../components/common/Card";
+
 import Hero from "../components/Hero";
 import { Link, useNavigate } from "react-router-dom";
 import { mockCategories } from "../data/mockCategories";
@@ -10,7 +10,7 @@ import { mockServices } from "../data/mockServices";
 
 import { useLocation } from "../context/LocationContext";
 
-import QuickServicesSection from "../components/QuickServicesSection";
+import AllCategoriesSection from "../components/AllCategoriesSection";
 import WhyChooseUs from "../components/WhyChooseUs";
 import DownloadAppSection from "../components/DownloadAppSection";
 import SEO from "../components/SEO";
@@ -143,6 +143,7 @@ const Home = () => {
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.5 }}
+      className="bg-white min-h-screen"
     >
       <SEO
         title="TiptoBook – Book Local Services Online"
@@ -166,133 +167,20 @@ const Home = () => {
         categories={categories}
         services={services}
         onBookNow={handleBookNow}
-        style={{ backgroundColor: "var(--color-bg)" }}
+        style={{ backgroundColor: "#ffffff" }}
       />
-      <QuickServicesSection categories={categories} services={services} />
+      <AllCategoriesSection />
 
       {/* ── What We Do / Why Choose Us ── */}
       <WhyChooseUs />
 
-
-      <section className="px-4 sm:px-8 lg:px-16 py-12" style={{ backgroundColor: "var(--color-bg)" }}>
-        {/* Section header — stacks on mobile */}
-        <div className="flex flex-col sm:flex-row sm:items-baseline gap-2 sm:gap-4 mb-7">
-          <h2
-            className="text-lg sm:text-xl font-semibold uppercase tracking-[0.2em] flex-shrink-0"
-            style={{
-              fontFamily: "var(--font-body)",
-              color: "var(--color-primary)",
-            }}
-          >
-            Popular Services
-          </h2>
-
-          <div
-            className="hidden sm:block h-px flex-1"
-            style={{
-              background: "linear-gradient(to right, rgba(11,79,216,0.35), transparent)",
-            }}
-          />
-
-          <p
-            className="text-xl sm:text-2xl lg:text-3xl font-normal italic flex-shrink-0"
-            style={{
-              fontFamily: "var(--font-display)",
-              color: "var(--color-text-mid)",
-              opacity: 0.95,
-            }}
-          >
-            Discover our services and how we do it better.
-          </p>
-        </div>
-
-        <motion.div
-          className="flex flex-col gap-8"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-100px" }}
-          variants={{
-            hidden: {},
-            visible: { transition: { staggerChildren: 0.15 } }
-          }}
-        >
-          {[...(categories || [])].sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0)).map((parent) => {
-            const featuredSub = parent.subCategories?.[0];
-            if (!featuredSub) return null;
-
-            return (
-              <motion.div
-                key={parent._id}
-                variants={{
-                  hidden: { y: 30, opacity: 0 },
-                  visible: { y: 0, opacity: 1, transition: { duration: 0.6 } }
-                }}
-              >
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-                  <div className="flex items-center gap-4">
-                    <h3
-                      className="text-xl font-semibold m-0"
-                      style={{
-                        fontFamily: "var(--font-display)",
-                        color: "var(--color-text-dark)",
-                      }}
-                    >
-                      {parent.name}
-                    </h3>
-                    <div
-                      className="h-px w-20 sm:w-40 hidden sm:block"
-                      style={{
-                        background:
-                          "linear-gradient(to right, var(--color-accent), transparent)",
-                      }}
-                    />
-                  </div>
-
-                  <Link
-                    to={`/category/${parent._id}`}
-                    className="inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-semibold no-underline transition-all duration-200 hover:scale-105 self-start sm:self-auto shadow-sm"
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      backgroundColor: "var(--color-primary)",
-                      color: "#fff",
-                      boxShadow: "0 2px 12px rgba(11,79,216,0.25)",
-                    }}
-                  >
-                    View All Services{" "}
-                    <span style={{ fontSize: "12px" }}>→</span>
-                  </Link>
-                </div>
-
-                <div className="flex flex-col gap-6">
-  {parent.subCategories?.slice(0, 1).map((service) => {
-    return (
-      <Card
-        key={service._id || service.name}
-        title={service.name}
-        description={service.description}
-        image={service.imageUrl}
-        secondaryImage={service.secondaryImageUrl}
-        primaryAction="View Details"
-        secondaryAction="Book Now"
-        variant="servicePreview"
-        linkTo={getServiceLink(service.name, service._id || service.id)}
-        comingSoon={!!parent.comingSoon}
-        onSecondaryAction={() =>
-          handleBookNow(service.name, service._id || service.id)
-        }
-      />
-    );
-  })}
-</div>
-              </motion.div>
-            );
-          })}
-        </motion.div>
-      </section>
-
       {/* ── Become a Partner / Join Us Section ── */}
-      <section className="px-4 sm:px-8 lg:px-16 py-16 mt-16 border-t" style={{ borderColor: "var(--color-border)" }}>
-        <div
+      <section className="px-4 sm:px-8 lg:px-16 py-14 bg-white">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.55, ease: "easeOut" }}
           className="rounded-3xl p-8 sm:p-12 relative overflow-hidden flex flex-col md:flex-row items-center gap-10"
           style={{
             backgroundImage: "linear-gradient(135deg, rgba(15, 23, 42, 0.97) 0%, rgba(7, 57, 168, 0.94) 100%), url('https://images.unsplash.com/photo-1557804506-669a67965ba0?q=80&w=1000&auto=format&fit=crop')",
@@ -322,8 +210,10 @@ const Home = () => {
             </div>
 
             <Link to="/provider/onboarding" className="no-underline">
-              <button
-                className="px-8 py-4 rounded-full text-xs font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-90 hover:scale-[1.02]"
+              <motion.button
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.96 }}
+                className="px-8 py-4 rounded-full text-xs font-semibold border-0 cursor-pointer transition-all duration-200"
                 style={{
                   fontFamily: "var(--font-body)",
                   background: "linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%)",
@@ -332,22 +222,32 @@ const Home = () => {
                 }}
               >
                 Become a Partner
-              </button>
+              </motion.button>
             </Link>
           </div>
 
           {/* Interactive visual metrics on the right */}
           <div className="w-full md:w-72 flex flex-col gap-4 relative z-10">
-            <div className="p-5 rounded-2xl border" style={{ backgroundColor: "rgba(0,0,0,0.35)", backdropFilter: "blur(6px)", borderColor: "rgba(255,255,255,0.1)" }}>
+            <motion.div
+              whileHover={{ scale: 1.03, y: -2 }}
+              transition={{ duration: 0.2 }}
+              className="p-5 rounded-2xl border"
+              style={{ backgroundColor: "rgba(0,0,0,0.35)", backdropFilter: "blur(6px)", borderColor: "rgba(255,255,255,0.1)" }}
+            >
               <p className="text-[10px] uppercase font-bold tracking-wider m-0" style={{ color: "var(--color-accent)", fontFamily: "var(--font-body)" }}>Average Commission</p>
               <p className="text-2xl font-bold text-white m-0 mt-1" style={{ fontFamily: "var(--font-display)" }}>8% <span className="text-xs font-normal text-white/50">per checkout</span></p>
-            </div>
-            <div className="p-5 rounded-2xl border" style={{ backgroundColor: "rgba(0,0,0,0.35)", backdropFilter: "blur(6px)", borderColor: "rgba(255,255,255,0.1)" }}>
+            </motion.div>
+            <motion.div
+              whileHover={{ scale: 1.03, y: -2 }}
+              transition={{ duration: 0.2 }}
+              className="p-5 rounded-2xl border"
+              style={{ backgroundColor: "rgba(0,0,0,0.35)", backdropFilter: "blur(6px)", borderColor: "rgba(255,255,255,0.1)" }}
+            >
               <p className="text-[10px] uppercase font-bold tracking-wider m-0" style={{ color: "var(--color-accent)", fontFamily: "var(--font-body)" }}>Partner Support</p>
               <p className="text-2xl font-bold text-white m-0 mt-1" style={{ fontFamily: "var(--font-display)" }}>24/7 <span className="text-xs font-normal text-white/50">VIP line access</span></p>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* ── Download Our App Section ── */}

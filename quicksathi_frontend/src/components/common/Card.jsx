@@ -1,4 +1,7 @@
 import { Link } from "react-router-dom";
+import { motion } from "framer-motion";
+
+const MotionLink = motion(Link);
 
 const Card = ({
   title,
@@ -24,8 +27,12 @@ const Card = ({
   ───────────────────────────────────── */
   if (variant === "servicePreview") {
     return (
-      <div
-        className="w-full rounded-2xl sm:rounded-[20px] overflow-hidden border flex flex-col lg:flex-row transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-40px" }}
+        whileHover={{ y: -6, transition: { duration: 0.25, ease: "easeOut" } }}
+        className="w-full rounded-2xl sm:rounded-[20px] overflow-hidden border flex flex-col lg:flex-row transition-shadow duration-300 hover:shadow-2xl group"
         style={{
           backgroundColor: "var(--color-bg-white)",
           borderColor: "var(--color-border)",
@@ -135,7 +142,7 @@ const Card = ({
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
@@ -144,8 +151,13 @@ const Card = ({
   ───────────────────────────────────── */
   if (variant === "classic") {
     return (
-      <div
-        className="rounded-2xl sm:rounded-[20px] overflow-hidden flex flex-col h-full border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: "-40px" }}
+        whileHover={{ y: -6, transition: { duration: 0.25, ease: "easeOut" } }}
+        whileTap={{ scale: 0.98 }}
+        className="rounded-2xl sm:rounded-[20px] overflow-hidden flex flex-col h-full border transition-shadow duration-300 hover:shadow-2xl group"
         style={{
           backgroundColor: "var(--color-bg-white)",
           borderColor: "var(--color-border)",
@@ -241,7 +253,7 @@ const Card = ({
             )}
           </div>
         </div>
-      </div>
+      </motion.div>
     );
   }
 
@@ -352,8 +364,11 @@ const Card = ({
   // Coming Soon — render as a non-interactive div (no navigation, no booking)
   if (comingSoon || !linkTo) {
     return (
-      <div
-        className="group relative rounded-2xl sm:rounded-[18px] overflow-hidden border transition-all duration-300"
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        whileInView={{ opacity: 1, scale: 1 }}
+        viewport={{ once: true, margin: "-40px" }}
+        className="group relative rounded-2xl sm:rounded-[18px] overflow-hidden border"
         style={{
           aspectRatio: "4/3",
           borderColor: "var(--color-border)",
@@ -362,14 +377,19 @@ const Card = ({
         }}
       >
         {content}
-      </div>
+      </motion.div>
     );
   }
 
   return (
-    <Link
+    <MotionLink
       to={linkTo}
-      className="group relative rounded-2xl sm:rounded-[18px] overflow-hidden block no-underline border transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      whileHover={{ y: -6, transition: { duration: 0.25, ease: "easeOut" } }}
+      whileTap={{ scale: 0.98 }}
+      className="group relative rounded-2xl sm:rounded-[18px] overflow-hidden block no-underline border transition-shadow duration-300 hover:shadow-2xl"
       style={{
         aspectRatio: "4/3",
         borderColor: "var(--color-border)",
@@ -377,7 +397,7 @@ const Card = ({
       }}
     >
       {content}
-    </Link>
+    </MotionLink>
   );
 };
 

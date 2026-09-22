@@ -624,9 +624,11 @@ const Hero = ({ categories, services, onBookNow }) => {
                   <X size={15} />
                 </button>
               )}
-              <button
+              <motion.button
                 type="submit"
-                className="flex items-center gap-1.5 px-5 py-2.5 rounded-full font-semibold text-sm border-none cursor-pointer transition-all duration-200 hover:brightness-110 hover:scale-[1.02] active:scale-95 flex-shrink-0"
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.96 }}
+                className="flex items-center gap-1.5 px-5 py-2.5 rounded-full font-semibold text-sm border-none cursor-pointer transition-colors duration-200 hover:brightness-110 flex-shrink-0"
                 style={{
                   background: "linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%)",
                   color: "#fff",
@@ -636,7 +638,7 @@ const Hero = ({ categories, services, onBookNow }) => {
               >
                 <span>Search</span>
                 <ArrowRight size={15} />
-              </button>
+              </motion.button>
             </motion.form>
 
             {/* Real-time Search Dropdown */}
@@ -803,14 +805,17 @@ const Hero = ({ categories, services, onBookNow }) => {
             {QUICK_CATS.map((qc, i) => {
               const Icon = qc.icon;
               return (
-                <button
+                <motion.button
                   key={i}
+                  whileHover={{ scale: 1.08 }}
+                  whileTap={{ scale: 0.92 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
                   onClick={() => navigate(qc.route)}
                   className="flex flex-col items-center gap-1.5 cursor-pointer border-none bg-transparent group"
                   style={{ minWidth: 56 }}
                 >
                   <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-200 group-hover:scale-110 group-hover:shadow-lg"
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-200 group-hover:shadow-lg"
                     style={{
                       background: qc.bg,
                       boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
@@ -832,7 +837,7 @@ const Hero = ({ categories, services, onBookNow }) => {
                   >
                     {qc.label}
                   </span>
-                </button>
+                </motion.button>
               );
             })}
           </motion.div>

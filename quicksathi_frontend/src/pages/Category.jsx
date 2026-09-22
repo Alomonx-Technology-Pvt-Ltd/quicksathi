@@ -383,8 +383,10 @@ const Category = () => {
                   className="relative"
                   variants={{
                     hidden: { y: 20, opacity: 0 },
-                    visible: { y: 0, opacity: 1, transition: { duration: 0.5 } }
+                    visible: { y: 0, opacity: 1, transition: { duration: 0.45, ease: "easeOut" } }
                   }}
+                  whileHover={{ y: -5 }}
+                  transition={{ duration: 0.2 }}
                 >
                   {matched?.rating && (
                     <span

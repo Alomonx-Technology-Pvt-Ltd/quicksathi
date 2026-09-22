@@ -8,6 +8,7 @@ import ChatBot from "../chatbot/ChatBot";
 import api from "../../config/api";
 import { Bell, Trash2, MapPin } from "lucide-react";
 import BrandLogo from "../common/BrandLogo";
+import { motion, AnimatePresence } from "framer-motion";
 
 /* ── Compact City Picker (used inside navbar) ── */
 const CityPicker = ({ isFullBleed }) => {
@@ -588,71 +589,77 @@ const Navbar = () => {
                 </button>
 
                 {/* Notifications Dropdown */}
-                {notifOpen && (
-                  <div className="absolute top-full right-0 mt-3 w-80 rounded-2xl overflow-hidden shadow-2xl z-50 text-left border"
-                    style={{ 
-                      backgroundColor: "var(--color-bg-white)", 
-                      borderColor: "var(--color-border)",
-                      maxHeight: "360px",
-                      display: "flex",
-                      flexDirection: "column"
-                    }}
-                  >
-                    {/* Header */}
-                    <div className="px-4 py-3 flex items-center justify-between border-b" style={{ borderColor: "var(--color-border)" }}>
-                      <span className="text-xs font-bold" style={{ color: "var(--color-text-dark)", fontFamily: "var(--font-body)" }}>Notifications</span>
-                      {unreadCount > 0 && (
-                        <button 
-                          onClick={handleMarkAllRead}
-                          className="bg-transparent border-0 text-[10px] font-bold text-blue-600 hover:text-blue-700 cursor-pointer p-0"
-                          style={{ fontFamily: "var(--font-body)" }}
-                        >
-                          Mark all as read
-                        </button>
-                      )}
-                    </div>
-
-                    {/* Notification list */}
-                    <div className="overflow-y-auto flex-1 flex flex-col" style={{ maxHeight: "290px" }}>
-                      {notifications.length > 0 ? (
-                        notifications.map((notif) => (
-                          <div 
-                            key={notif._id}
-                            onClick={() => !notif.read && handleMarkRead(notif._id)}
-                            className="px-4 py-3 flex gap-2 items-start justify-between cursor-pointer border-b hover:bg-neutral-50 dark:hover:bg-white/[0.02] transition-all"
-                            style={{ 
-                              borderColor: "var(--color-border)",
-                              backgroundColor: notif.read ? "transparent" : "rgba(59, 130, 246, 0.04)"
-                            }}
+                <AnimatePresence>
+                  {notifOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -6 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -6 }}
+                      transition={{ duration: 0.18, ease: "easeOut" }}
+                      className="absolute top-full right-0 mt-3 w-80 rounded-2xl overflow-hidden shadow-2xl z-50 text-left border bg-white"
+                      style={{ 
+                        borderColor: "var(--color-border)",
+                        maxHeight: "360px",
+                        display: "flex",
+                        flexDirection: "column"
+                      }}
+                    >
+                      {/* Header */}
+                      <div className="px-4 py-3 flex items-center justify-between border-b" style={{ borderColor: "var(--color-border)" }}>
+                        <span className="text-xs font-bold" style={{ color: "var(--color-text-dark)", fontFamily: "var(--font-body)" }}>Notifications</span>
+                        {unreadCount > 0 && (
+                          <button 
+                            onClick={handleMarkAllRead}
+                            className="bg-transparent border-0 text-[10px] font-bold text-blue-600 hover:text-blue-700 cursor-pointer p-0"
+                            style={{ fontFamily: "var(--font-body)" }}
                           >
-                            <div className="flex flex-col gap-0.5 flex-1 min-w-0 pr-2">
-                              <span className="text-xs font-bold truncate" style={{ color: "var(--color-text-dark)", fontFamily: "var(--font-body)" }}>{notif.title}</span>
-                              <span className="text-[10px] leading-relaxed" style={{ color: "var(--color-text-mid)", fontFamily: "var(--font-body)", whiteSpace: "pre-line" }}>{notif.message}</span>
-                              <span className="text-[8px] mt-1" style={{ color: "var(--color-text-muted)", fontFamily: "var(--font-body)" }}>
-                                {new Date(notif.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
-                              </span>
+                            Mark all as read
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Notification list */}
+                      <div className="overflow-y-auto flex-1 flex flex-col" style={{ maxHeight: "290px" }}>
+                        {notifications.length > 0 ? (
+                          notifications.map((notif) => (
+                            <div 
+                              key={notif._id}
+                              onClick={() => !notif.read && handleMarkRead(notif._id)}
+                              className="px-4 py-3 flex gap-2 items-start justify-between cursor-pointer border-b hover:bg-neutral-50 dark:hover:bg-white/[0.02] transition-all"
+                              style={{ 
+                                borderColor: "var(--color-border)",
+                                backgroundColor: notif.read ? "transparent" : "rgba(59, 130, 246, 0.04)"
+                              }}
+                            >
+                              <div className="flex flex-col gap-0.5 flex-1 min-w-0 pr-2">
+                                <span className="text-xs font-bold truncate" style={{ color: "var(--color-text-dark)", fontFamily: "var(--font-body)" }}>{notif.title}</span>
+                                <span className="text-[10px] leading-relaxed" style={{ color: "var(--color-text-mid)", fontFamily: "var(--font-body)", whiteSpace: "pre-line" }}>{notif.message}</span>
+                                <span className="text-[8px] mt-1" style={{ color: "var(--color-text-muted)", fontFamily: "var(--font-body)" }}>
+                                  {new Date(notif.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {!notif.read && (
+                                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0" />
+                                )}
+                                <button 
+                                  onClick={(e) => handleDeleteNotif(e, notif._id)}
+                                  className="bg-transparent border-0 text-neutral-400 hover:text-red-500 cursor-pointer p-0.5"
+                                >
+                                  <Trash2 size={12} />
+                                </button>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                              {!notif.read && (
-                                <span className="w-1.5 h-1.5 bg-blue-500 rounded-full flex-shrink-0" />
-                              )}
-                              <button 
-                                onClick={(e) => handleDeleteNotif(e, notif._id)}
-                                className="bg-transparent border-0 text-neutral-400 hover:text-red-500 cursor-pointer p-0.5"
-                              >
-                                <Trash2 size={12} />
-                              </button>
-                            </div>
+                          ))
+                        ) : (
+                          <div className="px-4 py-8 text-center text-xs text-neutral-400" style={{ fontFamily: "var(--font-body)" }}>
+                            You have no notifications
                           </div>
-                        ))
-                      ) : (
-                        <div className="px-4 py-8 text-center text-xs text-neutral-400" style={{ fontFamily: "var(--font-body)" }}>
-                          You have no notifications
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
 
               {/* Profile button */}
@@ -746,120 +753,134 @@ const Navbar = () => {
       </nav>
 
       {/* Mobile Menu Drawer */}
-      <div
-        className="fixed inset-0 z-40 md:hidden transition-all duration-300"
-        style={{
-          pointerEvents: menuOpen ? "all" : "none",
-          opacity: menuOpen ? 1 : 0,
-        }}
-      >
-        {/* Backdrop */}
-        <div
-          className="absolute inset-0"
-          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-          onClick={() => setMenuOpen(false)}
-        />
-        {/* Drawer */}
-        <div
-          className="absolute top-0 right-0 h-full w-72 flex flex-col pt-6 px-6 pb-10 gap-5 overflow-y-auto"
-          style={{
-            backgroundColor: "var(--color-bg-soft)",
-            transform: menuOpen ? "translateX(0)" : "translateX(100%)",
-            transition: "transform 0.3s ease",
-          }}
-        >
-          <div className="flex items-center justify-between pb-3 border-b border-gray-200/70">
-            <Link to="/" onClick={() => setMenuOpen(false)} className="no-underline">
-              <BrandLogo size={30} isDark={false} />
-            </Link>
-            <button
+      <AnimatePresence>
+        {menuOpen && (
+          <div className="fixed inset-0 z-40 md:hidden">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="absolute inset-0 bg-black/50 backdrop-blur-xs"
               onClick={() => setMenuOpen(false)}
-              className="p-1.5 rounded-md text-gray-500 hover:bg-gray-200/50 border-0 bg-transparent cursor-pointer text-lg leading-none"
-              aria-label="Close menu"
+            />
+            {/* Drawer */}
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 28, stiffness: 320 }}
+              className="absolute top-0 right-0 h-full w-72 flex flex-col pt-6 px-6 pb-10 gap-5 overflow-y-auto shadow-2xl bg-white"
             >
-              ✕
-            </button>
+              <div className="flex items-center justify-between pb-3 border-b border-gray-200/70">
+                <Link to="/" onClick={() => setMenuOpen(false)} className="no-underline">
+                  <BrandLogo size={30} isDark={false} />
+                </Link>
+                <button
+                  onClick={() => setMenuOpen(false)}
+                  className="p-1.5 rounded-md text-gray-500 hover:bg-gray-200/50 border-0 bg-transparent cursor-pointer text-lg leading-none"
+                  aria-label="Close menu"
+                >
+                  ✕
+                </button>
+              </div>
+              {navLinks.map(({ to, label, end }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  end={end}
+                  className="text-base font-medium no-underline transition-all duration-200"
+                  style={({ isActive }) => ({
+                    fontFamily: "var(--font-body)",
+                    color: isActive ? "var(--color-primary)" : "#1e293b",
+                    fontWeight: isActive ? 600 : 500,
+                  })}
+                  onClick={() => setMenuOpen(false)}
+                >
+                  {label}
+                </NavLink>
+              ))}
+
+              {/* City Picker in mobile drawer */}
+              <CityPicker isFullBleed={false} />
+
+              {!isAuthenticated && (
+                <>
+                  <button
+                    onClick={() => { setMenuOpen(false); navigate("/login"); }}
+                    className="px-6 py-3 rounded-full text-sm font-semibold border-0 cursor-pointer text-center transition-all duration-200 hover:bg-slate-100"
+                    style={{ fontFamily: "var(--font-body)", color: "#475569", backgroundColor: "rgba(0,0,0,0.04)" }}
+                  >
+                    Log in
+                  </button>
+                  <Link
+                    to="/provider/onboarding"
+                    className="px-6 py-3 rounded-full text-sm font-semibold no-underline text-center transition-all duration-200 hover:opacity-90"
+                    style={{
+                      fontFamily: "var(--font-body)",
+                      background: "linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%)",
+                      color: "#ffffff",
+                      boxShadow: "0 3px 12px rgba(255,107,0,0.3)",
+                    }}
+                    onClick={() => setMenuOpen(false)}
+                  >
+                    Become a Partner
+                  </Link>
+                </>
+              )}
+
+              {isAuthenticated && user?.role === "admin" && (
+                <Link to="/admin" className="text-base font-medium no-underline" style={{ fontFamily: "var(--font-body)", color: "var(--color-primary)" }} onClick={() => setMenuOpen(false)}>
+                  Admin Panel
+                </Link>
+              )}
+
+              {isAuthenticated && (
+                <button
+                  onClick={() => { logout(); setMenuOpen(false); }}
+                  className="px-6 py-3 rounded-full text-sm font-semibold border cursor-pointer text-center"
+                  style={{ fontFamily: "var(--font-body)", borderColor: "var(--color-border)", color: "#dc2626", backgroundColor: "transparent" }}
+                >
+                  Sign Out
+                </button>
+              )}
+            </motion.div>
           </div>
-          {navLinks.map(({ to, label, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              className="text-base font-medium no-underline transition-all duration-200"
-              style={({ isActive }) => ({
-                fontFamily: "var(--font-body)",
-                color: isActive ? "var(--color-primary)" : "#1e293b",
-                fontWeight: isActive ? 600 : 500,
-              })}
-              onClick={() => setMenuOpen(false)}
-            >
-              {label}
-            </NavLink>
-          ))}
-
-          {/* City Picker in mobile drawer */}
-          <CityPicker isFullBleed={false} />
-
-          {!isAuthenticated && (
-            <>
-              <button
-                onClick={() => { setMenuOpen(false); navigate("/login"); }}
-                className="px-6 py-3 rounded-full text-sm font-semibold border-0 cursor-pointer text-center transition-all duration-200 hover:bg-slate-100"
-                style={{ fontFamily: "var(--font-body)", color: "#475569", backgroundColor: "rgba(0,0,0,0.04)" }}
-              >
-                Log in
-              </button>
-              <Link
-                to="/provider/onboarding"
-                className="px-6 py-3 rounded-full text-sm font-semibold no-underline text-center transition-all duration-200 hover:opacity-90"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  background: "linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%)",
-                  color: "#ffffff",
-                  boxShadow: "0 3px 12px rgba(255,107,0,0.3)",
-                }}
-                onClick={() => setMenuOpen(false)}
-              >
-                Become a Partner
-              </Link>
-            </>
-          )}
-
-          {isAuthenticated && user?.role === "admin" && (
-            <Link to="/admin" className="text-base font-medium no-underline" style={{ fontFamily: "var(--font-body)", color: "var(--color-primary)" }} onClick={() => setMenuOpen(false)}>
-              Admin Panel
-            </Link>
-          )}
-
-          {isAuthenticated && (
-            <button
-              onClick={() => { logout(); setMenuOpen(false); }}
-              className="px-6 py-3 rounded-full text-sm font-semibold border cursor-pointer text-center"
-              style={{ fontFamily: "var(--font-body)", borderColor: "var(--color-border)", color: "#dc2626", backgroundColor: "transparent" }}
-            >
-              Sign Out
-            </button>
-          )}
-        </div>
-      </div>
+        )}
+      </AnimatePresence>
     </>
   );
 };
 
-const Layout = () => (
-  <div
-    className="min-h-screen flex flex-col relative pb-16 md:pb-0"
-    style={{ backgroundColor: "var(--color-bg)" }}
-  >
-    <Navbar />
-    <main className="flex-grow w-full">
-      <Outlet />
-    </main>
-    <Footer />
-    <BottomNav />
-    {/* TiptoBook AI Chatbot — floating bottom-right */}
-    <ChatBot />
-  </div>
-);
+const Layout = () => {
+  const location = useRouterLocation();
+
+  return (
+    <div
+      className="min-h-screen flex flex-col relative pb-16 md:pb-0 bg-white"
+      style={{ backgroundColor: "#ffffff" }}
+    >
+      <Navbar />
+      <main className="flex-grow w-full">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Outlet />
+          </motion.div>
+        </AnimatePresence>
+      </main>
+      <Footer />
+      <BottomNav />
+      {/* TiptoBook AI Chatbot — floating bottom-right */}
+      <ChatBot />
+    </div>
+  );
+};
 
 export default Layout;

@@ -1083,6 +1083,7 @@ const Services = () => {
                       },
                     }}
                     whileHover={{ y: -8 }}
+                    whileTap={{ scale: 0.98 }}
                     transition={{
                       type: "spring",
                       stiffness: 350,
