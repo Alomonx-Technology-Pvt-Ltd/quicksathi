@@ -540,9 +540,9 @@ const Hero = ({ categories, services, onBookNow }) => {
               fontWeight: 800,
             }}
           >
-            One Tap.
+            Book Everyday
             <br />
-            <span style={{ color: "var(--color-accent)" }}>Everything Sorted.</span>
+            <span style={{ color: "var(--color-accent)" }}>Services Easily</span>
           </motion.h1>
 
           {/* Subheading */}
@@ -560,7 +560,7 @@ const Hero = ({ categories, services, onBookNow }) => {
               fontWeight: 400,
             }}
           >
-            From finding a tutor to planning a wedding, booking a car or getting help at home — discover the services you need, compare your options and book them in one place.
+            TiptoBook is an online service booking platform to find and book trusted local services including home services, wedding services, car rentals, tutors, house help and more in one place.
           </motion.p>
 
           {/* Search bar wrapper with real-time dropdown */}

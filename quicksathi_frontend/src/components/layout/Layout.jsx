@@ -512,7 +512,7 @@ const Navbar = () => {
   // Nav links: split by auth state
   const guestLinks = [
     { to: "/", label: "Home", end: true },
-    { to: "/about", label: "About" },
+    { to: "/about-us", label: "About Us" },
   ];
   const authLinks = [
     { to: "/", label: "Home", end: true },

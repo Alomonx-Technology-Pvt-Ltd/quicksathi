@@ -1,4 +1,4 @@
-﻿import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import weddingImg from "../assets/weddingImg.avif";
 import carImg from "../assets/carImg.avif";
 import smartLock from "../assets/cctv/smartLock.avif";
@@ -261,7 +261,7 @@ const AboutSection = () => {
           </div>
 
           <Link
-            to="/about"
+            to="/about-us"
             className="inline-flex items-center gap-3 px-8 py-4 rounded-full text-sm font-semibold no-underline transition-all duration-200 hover:scale-105 hover:shadow-lg"
             style={{
               fontFamily: "var(--font-body)",

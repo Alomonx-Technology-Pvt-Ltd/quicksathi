@@ -56,16 +56,26 @@ const About = () => {
       style={{ backgroundColor: "var(--color-bg)" }}
     >
       <SEO
-        title="About TiptoBook — Our Mission & Story"
-        description="Learn about TiptoBook's mission to connect you with trusted, vetted local service professionals. 100% verified providers, instant booking, and transparent pricing."
-        canonical="https://www.tiptobook.com/about"
-        keywords="about TiptoBook, our mission, trusted service professionals, vetted providers, local services company, Bihar services platform"
+        title="TiptoBook – Online Service Booking Platform in India"
+        description="Find and book trusted local services with TiptoBook. Explore home services, wedding services, car rentals, tutors, house help and more in one place."
+        canonical="https://www.tiptobook.com/about-us"
+        keywords="online service booking platform, service booking platform in India, book services online, local service providers, local services in India, home services, wedding services, car rental services, tutors near me, house help services, service providers in Patna, services in Bihar"
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "AboutPage",
-          "name": "About TiptoBook",
-          "url": "https://www.tiptobook.com/about",
-          "description": "Learn about TiptoBook's mission to connect you with trusted, vetted local service professionals."
+          "name": "About TiptoBook – Online Service Booking Platform",
+          "url": "https://www.tiptobook.com/about-us",
+          "description": "Find and book trusted local services with TiptoBook. Explore home services, wedding services, car rentals, tutors, house help and more in one place.",
+          "mainEntity": {
+            "@type": "Organization",
+            "name": "TiptoBook",
+            "url": "https://www.tiptobook.com",
+            "sameAs": [
+              "https://www.facebook.com/share/19PhRio3So/?mibextid=wwXIfr",
+              "https://www.linkedin.com/company/tiptobook/",
+              "https://www.instagram.com/tiptobook?stkn=MWxmYmwzc21qZ2w1Yg=="
+            ]
+          }
         }}
       />
       {/* ── Redesigned Hero section with custom high-res background image ── */}
@@ -156,7 +166,7 @@ const About = () => {
                 letterSpacing: "-0.025em",
               }}
             >
-              Redefining Local Services.
+              About TiptoBook –
               <br />
               <span
                 style={{
@@ -165,7 +175,7 @@ const About = () => {
                   WebkitTextFillColor: "transparent",
                 }}
               >
-                Restoring Absolute Trust.
+                Online Service Booking Platform
               </span>
             </motion.h1>
 
@@ -176,7 +186,7 @@ const About = () => {
               className="text-slate-200 text-base sm:text-lg leading-relaxed m-0 mb-8 max-w-xl"
               style={{ fontFamily: "var(--font-body)", opacity: 0.92 }}
             >
-              TiptoBook bridges the gap between verified local service professionals and homeowners across Patna and Bihar. Combining modern on-demand booking with rigorous provider screening, we make finding electricians, wedding vendors, rental cars, and tutors effortless.
+              Find and book trusted local services with TiptoBook. We connect customers across Patna, Bihar, and all over India with verified local service providers for home services, wedding services, car rental services, tutors near me, and house help services.
             </motion.p>
 
             <motion.div
@@ -383,10 +393,10 @@ const About = () => {
               style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
             >
               <p>
-                TiptoBook was founded with a clear realization: finding trustworthy local service providers in Patna is far too complicated. Sourcing a high-quality CCTV installer, hiring a reliable car rental, or finding event coordinators often leads to inconsistent service quality, opaque pricing, and delays.
+                TiptoBook was founded with a clear realization: finding trustworthy local service providers in India is far too complicated. Whether you are searching for dependable home services, reliable car rental services, wedding services, tutors near me, or house help services, customers in Patna and across Bihar often faced inconsistent service quality, opaque pricing, and delays.
               </p>
               <p>
-                We built a platform that puts the client first. We established direct partnerships with vetted professionals, automated the scheduling process, and mandated upfront, flat pricing quotes. The result is a premium marketplace where you can book top-tier professionals in minutes with complete confidence.
+                As a modern online service booking platform, we built TiptoBook to put trust and transparency first. We established direct partnerships with vetted service providers in Patna and across Bihar, automated the scheduling process, and mandated upfront, itemized quotes. The result is a seamless destination to book services online with complete confidence.
               </p>
             </div>
           </div>

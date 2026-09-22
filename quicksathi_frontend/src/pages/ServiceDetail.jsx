@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import api from "../config/api";
@@ -11,6 +11,7 @@ import ReviewsSection from "../components/serviceDetail/ReviewsSection";
 import FAQSection from "../components/serviceDetail/FAQSection";
 import BookingCard from "../components/serviceDetail/BookingCard";
 import AnimatedSection from "../components/common/AnimatedSection";
+import SEO from "../components/SEO";
 
 const ServiceDetail = () => {
   const { id } = useParams();
@@ -144,6 +145,29 @@ const ServiceDetail = () => {
       className="min-h-screen pb-16 sm:pb-24"
       style={{ backgroundColor: "var(--color-bg)" }}
     >
+      <SEO
+        title={`${service.name} — Book Online | TiptoBook`}
+        description={service.shortDescription || service.description || `Book verified ${service.name} professionals in India with TiptoBook. Upfront pricing, vetted experts, and instant booking.`}
+        canonical={`https://www.tiptobook.com/service/${service.slug || service._id || service.id || id}`}
+        keywords={`${service.name}, book ${service.name} online, ${service.name} in Patna, ${service.name} Bihar, local service providers, TiptoBook`}
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "Service",
+          "name": service.name,
+          "serviceType": service.name,
+          "description": service.shortDescription || service.description,
+          "provider": {
+            "@type": "Organization",
+            "name": "TiptoBook",
+            "url": "https://www.tiptobook.com"
+          },
+          "areaServed": [
+            { "@type": "City", "name": "Patna" },
+            { "@type": "AdministrativeArea", "name": "Bihar" },
+            { "@type": "Country", "name": "India" }
+          ]
+        }}
+      />
       {/* ── Hero banner ── */}
       <HeroBanner
         service={service}

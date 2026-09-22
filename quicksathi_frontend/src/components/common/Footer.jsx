@@ -59,7 +59,7 @@ const Footer = () => (
           {[
             { label: "Home", to: "/" },
             { label: "Services", to: "/services" },
-            { label: "About", to: "/about" },
+            { label: "About Us", to: "/about-us" },
             { label: "Contact", to: "/contact" },
             { label: "Login", to: "/login" },
           ].map(({ label, to }) => (
@@ -108,8 +108,8 @@ const Footer = () => (
             India — 800001
           </p>
           <p style={valueStyle}>
-            <a href="mailto:hello@TiptoBook.in" style={linkStyle}>
-              hello@TiptoBook.in
+            <a href="mailto:tiptobook9@gmail.com" style={linkStyle}>
+              tiptobook9@gmail.com
             </a>
           </p>
           <p style={valueStyle}>+91 98765 43210</p>
@@ -121,14 +121,15 @@ const Footer = () => (
         <p style={labelStyle}>Socials</p>
         <div style={{ display: "flex", flexDirection: "row", gap: "16px", alignItems: "center", marginTop: "4px" }}>
           {[
-            { Icon: Instagram, href: "#", label: "Instagram" },
-            { Icon: Twitter, href: "#", label: "Twitter" },
-            { Icon: Linkedin, href: "#", label: "LinkedIn" },
-            { Icon: Facebook, href: "#", label: "Facebook" },
+            { Icon: Instagram, href: "https://www.instagram.com/tiptobook?stkn=MWxmYmwzc21qZ2w1Yg==", label: "Instagram" },
+            { Icon: Linkedin, href: "https://www.linkedin.com/company/tiptobook/", label: "LinkedIn" },
+            { Icon: Facebook, href: "https://www.facebook.com/share/19PhRio3So/?mibextid=wwXIfr", label: "Facebook" },
           ].map(({ Icon, href, label }) => (
             <a
               key={label}
               href={href}
+              target="_blank"
+              rel="noopener noreferrer"
               aria-label={label}
               style={{ ...linkStyle, display: "flex" }}
               onMouseEnter={(e) => (e.currentTarget.style.color = "#f1efe8")}

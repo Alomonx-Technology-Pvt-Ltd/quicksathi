@@ -1,6 +1,6 @@
 # TiptoBook
 
-> TiptoBook (operated by Alomonx Technology Pvt. Ltd.) is an online on-demand local services marketplace platform in India connecting customers with verified, trusted local service professionals.
+> TiptoBook (operated by Alomonx Technology Pvt. Ltd.) is an online service booking platform in India connecting customers with verified, trusted local service professionals.
 
 ## Core Services & Offerings
 - **CCTV Security & Smart Locks**: Home and commercial HD CCTV camera installation, live remote monitoring, digital smart lock installation, and maintenance (starting ₹2,999).
@@ -23,6 +23,11 @@
 - CCTV Services: https://www.tiptobook.com/services/cctv
 - Vehicle Rentals: https://www.tiptobook.com/services/car-rentals
 - Wedding Services: https://www.tiptobook.com/services/weddings
-- About Us: https://www.tiptobook.com/about
+- About Us: https://www.tiptobook.com/about-us
 - Contact & Support: https://www.tiptobook.com/contact
 - Become a Partner: https://www.tiptobook.com/provider/onboarding
+
+## Official Social Channels
+- Facebook: https://www.facebook.com/share/19PhRio3So/?mibextid=wwXIfr
+- LinkedIn: https://www.linkedin.com/company/tiptobook/
+- Instagram: https://www.instagram.com/tiptobook?stkn=MWxmYmwzc21qZ2w1Yg==

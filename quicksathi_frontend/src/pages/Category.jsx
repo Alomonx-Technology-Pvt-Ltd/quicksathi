@@ -3,6 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import api from "../config/api";
 import Card from "../components/common/Card";
+import SEO from "../components/SEO";
 import { mockCategories } from "../data/mockCategories";
 import { mockServices } from "../data/mockServices";
 
@@ -285,6 +286,12 @@ const Category = () => {
       className="min-h-screen pb-16 sm:pb-20"
       style={{ backgroundColor: "var(--color-bg)" }}
     >
+      <SEO
+        title={`${category?.name || "Local Services"} in Patna & Bihar — TiptoBook`}
+        description={`Explore and book verified ${category?.name || "local services"} in Patna, Bihar, and India on TiptoBook. Compare packages, read reviews, and book vetted professionals.`}
+        canonical={`https://www.tiptobook.com/category/${id}`}
+        keywords={`${category?.name}, ${category?.name} in Patna, ${category?.name} Bihar, online service booking, local service providers, TiptoBook`}
+      />
       {/* ── Light banner ── */}
       <CategoryBanner
         category={category}

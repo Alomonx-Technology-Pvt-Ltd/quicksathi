@@ -145,10 +145,22 @@ const Home = () => {
       transition={{ duration: 0.5 }}
     >
       <SEO
-        title="TiptoBook — Trusted Local Services at Your Doorstep"
-        description="Find trusted local professionals for home services, repairs, cleaning, weddings, car rentals, CCTV installation and more."
+        title="TiptoBook – Book Local Services Online"
+        description="TiptoBook is an online service booking platform to find and book trusted local services including home services, wedding services, car rentals, tutors and more.."
         canonical="https://www.tiptobook.com/"
-        keywords="local services, home services, wedding services, car rental, CCTV installation, trusted professionals, TiptoBook, book services online, Bihar services, home repairs"
+        keywords="online service booking platform, service booking platform in India, book services online, local service providers, local services in India, home services, wedding services, car rental services, tutors near me, house help services, service providers in Patna, services in Bihar, TiptoBook"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "name": "TiptoBook",
+          "url": "https://www.tiptobook.com/",
+          "description": "TiptoBook is an online service booking platform to find and book trusted local services including home services, wedding services, car rentals, tutors and more..",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://www.tiptobook.com/services?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        }}
       />
       <Hero
         categories={categories}
