@@ -21,57 +21,18 @@ import {
   LayoutGrid,
   AlertTriangle,
 } from "lucide-react";
-import weddingImgg from "../assets/weddingImgg.avif";
-import carImg from "../assets/carImg.avif";
-import CCTVImg from "../assets/CCTVImg.avif";
 import serviceHeroImg from "../assets/serviceHeroImg.avif";
 
 import { useLocation } from "../context/LocationContext";
 import WorkProcess from "../components/servicePage/Workprocess";
 import { mockServices } from "../data/mockServices";
 import { mockCategories } from "../data/mockCategories";
-const CATEGORIES = [
-  {
-    id: "weddings",
-    name: "Wedding & Party",
-    tagline: "Exquisite Moments",
-    description: "Photography, décor, catering & styling.",
-    image: weddingImgg,
-    link: "/services/weddings",
-    color: "#440101",
-    icon: Sparkles,
-    stats: { providers: "50+", rating: "4.8" },
-  },
-  {
-    id: "car-rentals",
-    name: "Car Rentals",
-    tagline: "Premium Rides",
-    description: "Luxury sedans to rugged SUVs.",
-    image: carImg,
-    link: "/services/car-rentals",
-    color: "#0c193b",
-    icon: Car,
-    stats: { providers: "30+", rating: "4.6" },
-  },
-  {
-    id: "cctv",
-    name: "CCTV Security",
-    tagline: "Smart Vigilance",
-    description: "Enterprise-grade CCTV & monitoring.",
-    image: CCTVImg,
-    link: "/services/cctv",
-    color: "#1b2c4d",
-    icon: ShieldCheck,
-    stats: { providers: "20+", rating: "4.7" },
-  },
-];
 
 const Services = () => {
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("q") || "");
   const [searchInput, setSearchInput] = useState(() => searchParams.get("q") || "");
   const [selectedFilter, setSelectedFilter] = useState("ALL");
-  const [hoveredFacility, setHoveredFacility] = useState(null);
   const [categories, setCategories] = useState([]);
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -273,33 +234,6 @@ const Services = () => {
     setSearchQuery(tag);
     scrollToResults();
   };
-
-  const facilityCards = [
-    {
-      title: "Wedding & Events",
-      desc: "All-inclusive venues, luxury decorators, gourmet caterers, and cinematic photography facilities explained.",
-      image: weddingImgg,
-      link: "/services/weddings",
-      btn: "Explore Wedding Facility",
-      icon: Sparkles,
-    },
-    {
-      title: "Premium Vehicle Rentals",
-      desc: "Exotic sedans, luxury wedding cars, and SUVs for self-drive or chauffeur trips.",
-      image: carImg,
-      link: "/services/car-rentals",
-      btn: "Explore Rental Fleet",
-      icon: Car,
-    },
-    {
-      title: "AI Security Systems",
-      desc: "Complete residential and commercial smart locks and CCTV monitoring package setups.",
-      image: CCTVImg,
-      link: "/services/cctv",
-      btn: "Explore Security Plans",
-      icon: ShieldCheck,
-    },
-  ];
 
   const filterTabs = [
     { id: "ALL", title: "All Services", icon: LayoutGrid },
@@ -558,132 +492,6 @@ const Services = () => {
               "linear-gradient(to top, var(--color-bg), transparent)",
           }}
         />
-      </section>
-
-
-
-      <section className="px-6 py-16 sm:py-24 max-w-7xl mx-auto">
-        <div className="text-center mb-12">
-          <span
-            className="inline-block px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold mb-3 sm:mb-4 border uppercase tracking-widest"
-            style={{
-              fontFamily: "var(--font-body)",
-              backgroundColor: "rgba(139,26,26,0.06)",
-              borderColor: "rgba(139,26,26,0.15)",
-              color: "var(--color-primary)",
-            }}
-          >
-            Specialty Facilities
-          </span>
-          <h2
-            className="font-normal m-0"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(22px, 4vw, 42px)",
-              color: "var(--color-text-dark)",
-            }}
-          >
-            Explore Detailed Facility Sections
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 md:gap-8">
-          {facilityCards.map((card, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-60px" }}
-              transition={{ duration: 0.5, delay: idx * 0.08, ease: "easeOut" }}
-              onMouseEnter={() => setHoveredFacility(idx)}
-              onMouseLeave={() => setHoveredFacility(null)}
-              className="group relative rounded-2xl sm:rounded-3xl overflow-hidden flex flex-col h-full
-              transition-all duration-400 ease-out hover:-translate-y-1
-              shadow-[0_4px_12px_rgba(0,0,0,0.06)] sm:shadow-[0_1px_2px_rgba(0,0,0,0.03)]
-              hover:shadow-[0_16px_32px_-16px_rgba(0,0,0,0.16)]"
-              style={{
-                backgroundColor: "var(--color-bg-soft)",
-              }}
-            >
-              <div
-                className="relative overflow-hidden"
-                style={{ height: "clamp(170px, 28vw, 240px)" }}
-              >
-                <img
-                  src={card.image}
-                  alt={card.title}
-                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
-                />
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background:
-                      "linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 100%)",
-                  }}
-                />
-
-                <span
-                  className="absolute top-4 left-4 flex items-center justify-center rounded-full"
-                  style={{
-                    width: "36px",
-                    height: "36px",
-                    backgroundColor: "rgba(255,255,255,0.92)",
-                    color: "var(--color-primary)",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.12)",
-                    backdropFilter: "blur(6px)",
-                  }}
-                >
-                  {(() => {
-                    const CardIcon = card.icon;
-                    return <CardIcon size={18} strokeWidth={2} />;
-                  })()}
-                </span>
-
-                <h3
-                  className="absolute bottom-4 left-4 right-4 m-0 font-normal"
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontSize: "clamp(16px, 2.2vw, 22px)",
-                    color: "#fff",
-                    letterSpacing: "-0.01em",
-                  }}
-                >
-                  {card.title}
-                </h3>
-              </div>
-
-              <div className="p-5 sm:p-6 md:p-7 flex flex-col flex-1 gap-4 sm:gap-5 md:gap-6">
-                <p
-                  className="m-0 text-[11px] sm:text-xs leading-relaxed flex-1"
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    color: "var(--color-text-mid)",
-                  }}
-                >
-                  {card.desc}
-                </p>
-
-                <Link
-                  to={card.link}
-                  className="relative w-full text-center py-3 rounded-full text-[10px] sm:text-xs font-semibold no-underline block
-                  transition-colors duration-300 ease-out hover:opacity-90 active:scale-[0.98]"
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    backgroundColor: "var(--color-text-dark)",
-                    color: "#fff",
-                  }}
-                >
-                  <span className="inline-flex items-center gap-2">
-                    {card.btn}
-                    <span className="transition-transform duration-300 ease-out group-hover:translate-x-1">
-                      →
-                    </span>
-                  </span>
-                </Link>
-              </div>
-            </motion.div>
-          ))}
-        </div>
       </section>
 
       {/* ============ PREMIUM HEADER ============ */}

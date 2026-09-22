@@ -26,7 +26,7 @@ const HERO_CATEGORIES = [
     icon: Car,
     iconColor: "#7E22CE",
     bgColor: "#F3E8FF",
-    route: "/services/car-rentals",
+    route: "/services?q=rental",
     services: [
       {
         name: "Standard Car Rental",
@@ -52,7 +52,7 @@ const HERO_CATEGORIES = [
     icon: Sparkles,
     iconColor: "#B45309",
     bgColor: "#FEF3C7",
-    route: "/services/weddings",
+    route: "/services?q=wedding",
     services: [
       {
         name: "Wedding Photography",
@@ -182,7 +182,7 @@ const HERO_CATEGORIES = [
     icon: ShieldCheck,
     iconColor: "#166534",
     bgColor: "#E8F5E9",
-    route: "/services/cctv",
+    route: "/services?q=cctv",
     services: [
       {
         name: "Home CCTV Installation",

@@ -20,9 +20,6 @@
 ## Important Links
 - Website: https://www.tiptobook.com/
 - Services: https://www.tiptobook.com/services
-- CCTV Services: https://www.tiptobook.com/services/cctv
-- Vehicle Rentals: https://www.tiptobook.com/services/car-rentals
-- Wedding Services: https://www.tiptobook.com/services/weddings
 - About Us: https://www.tiptobook.com/about-us
 - Contact & Support: https://www.tiptobook.com/contact
 - Become a Partner: https://www.tiptobook.com/provider/onboarding

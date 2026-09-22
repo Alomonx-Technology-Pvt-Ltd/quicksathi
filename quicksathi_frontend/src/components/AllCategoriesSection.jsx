@@ -7,21 +7,21 @@ const DEFAULT_CATEGORIES = [
   {
     id: "cctv",
     title: "CCTV & Security",
-    route: "/services/cctv",
+    route: "/services?q=cctv",
     iconImage: "/icons/categories/cctv.png",
     matchKeywords: ["cctv", "security"],
   },
   {
     id: "weddings",
     title: "Wedding & Events",
-    route: "/services/weddings",
+    route: "/services?q=wedding",
     iconImage: "/icons/categories/wedding-events.png",
     matchKeywords: ["wedding", "party", "events"],
   },
   {
     id: "rental",
     title: "Vehicle Rental",
-    route: "/services/car-rentals",
+    route: "/services?q=rental",
     iconImage: "/icons/categories/car-rental.png",
     matchKeywords: ["vehicle", "car", "rental"],
   },
@@ -97,10 +97,7 @@ const AllCategoriesSection = ({ categories = [] }) => {
       // Determine destination route
       let route = def.route;
       if (matched?._id) {
-        if (def.id === "cctv") route = "/services/cctv";
-        else if (def.id === "weddings") route = "/services/weddings";
-        else if (def.id === "rental") route = "/services/car-rentals";
-        else route = `/category/${matched._id}`;
+        route = `/category/${matched._id}`;
       }
 
       return {

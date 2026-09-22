@@ -25,7 +25,7 @@ const REAL_CATEGORIES = [
     iconColor: "#7E22CE",
     borderColor: "#E9D5FF",
     activeColor: "#7E22CE",
-    route: "/services/car-rentals",
+    route: "/services?q=rental",
     fallbackServices: [
       {
         id: 109,
@@ -56,7 +56,7 @@ const REAL_CATEGORIES = [
     iconColor: "#B45309",
     borderColor: "#FDE68A",
     activeColor: "#B45309",
-    route: "/services/weddings",
+    route: "/services?q=wedding",
     fallbackServices: [
       {
         id: 11,
@@ -301,7 +301,7 @@ const REAL_CATEGORIES = [
     iconColor: "#166534",
     borderColor: "#C8E6C9",
     activeColor: "#166534",
-    route: "/services/cctv",
+    route: "/services?q=cctv",
     fallbackServices: [
       {
         id: 2,
@@ -461,7 +461,7 @@ const QuickServicesSection = ({ categories = [], services = [] }) => {
         const serviceId = realService.slug || realService._id || realService.id;
         navigate(`/service/${serviceId}`);
       } else {
-        navigate(activeCategoryConfig.route || "/services/car-rentals");
+        navigate(activeCategoryConfig.route || "/services");
       }
       return;
     }

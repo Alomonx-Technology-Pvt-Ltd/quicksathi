@@ -81,9 +81,9 @@ const Footer = () => (
         <p style={labelStyle}>Categories</p>
         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
           {[
-            { label: "Weddings", to: "/services/weddings" },
-            { label: "Car Rentals", to: "/services/car-rentals" },
-            { label: "Security & CCTV", to: "/services/cctv" },
+            { label: "Weddings", to: "/services?q=wedding" },
+            { label: "Car Rentals", to: "/services?q=rental" },
+            { label: "Security & CCTV", to: "/services?q=cctv" },
           ].map(({ label, to }) => (
             <Link
               key={label}

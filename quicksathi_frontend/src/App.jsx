@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import { HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "./context/AuthContext";
@@ -24,11 +24,6 @@ const MyBookings = lazy(() => import("./pages/MyBookings"));
 const ProviderOnboarding = lazy(() => import("./pages/ProviderOnboarding"));
 const ProviderDashboard = lazy(() => import("./pages/ProviderDashboard"));
 const Profile = lazy(() => import("./pages/Profile"));
-
-// Service Category Pages
-const WeddingServices = lazy(() => import("./pages/services/WeddingServices"));
-const CarRentals = lazy(() => import("./pages/services/CarRentals"));
-const CCTVServices = lazy(() => import("./pages/services/CCTVServices"));
 
 import AdminLogin from "./admin/pages/AdminLogin";
 
@@ -80,9 +75,9 @@ function App() {
             <Route path="/service/:id" element={<ServiceDetail />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="services" element={<Services />} />
-            <Route path="services/weddings" element={<WeddingServices />} />
-            <Route path="services/car-rentals" element={<CarRentals />} />
-            <Route path="services/cctv" element={<CCTVServices />} />
+            <Route path="services/weddings" element={<Navigate to="/services" replace />} />
+            <Route path="services/car-rentals" element={<Navigate to="/services" replace />} />
+            <Route path="services/cctv" element={<Navigate to="/services" replace />} />
             <Route path="booking/:serviceId" element={<BookingPage />} />
             <Route path="payment" element={<PaymentPage />} />
             <Route

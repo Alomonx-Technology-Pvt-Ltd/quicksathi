@@ -327,7 +327,7 @@ const BookingPage = () => {
           </Link>
           <span style={{ color: "var(--color-accent)" }}>/</span>
           <Link
-            to={isRental ? "/services/car-rentals" : "/services"}
+            to={isRental ? "/services?q=rental" : "/services"}
             className="no-underline"
             style={{ color: "var(--color-text-mid)" }}
           >
