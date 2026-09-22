@@ -1565,5 +1565,179 @@ name: "School Tuition",
   providers: [
     { id: 28, name: "Glamour Home Salon", rating: 4.8, experience: "5 Years", location: "Patna", startingPrice: 399, image: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=2070&auto=format&fit=crop" }
   ]
+},
+{
+  id: 401,
+  slug: "full-home-painting",
+  name: "Full Home Painting",
+  shortDescription: "Complete interior and exterior house painting with premium paints",
+  fullDescription: "Transform your entire home with our complete interior and exterior painting service. Includes thorough surface preparation, putty application, primer coats, 2-3 coats of premium royal emulsion paint, ceiling touch-ups, door/window polish, and complete site cleanup.",
+  categoryId: 35,
+  categoryName: "Painting",
+  thumbnail: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=2070&auto=format&fit=crop",
+  bannerImage: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=2070&auto=format&fit=crop",
+  gallery: [
+    "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
+    "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=2069&auto=format&fit=crop"
+  ],
+  startingPrice: 14999,
+  priceUnit: "per home",
+  rating: 4.8,
+  totalReviews: 128,
+  experience: "10 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["Painting", "Full Home", "Interior", "Exterior"],
+  featured: true,
+  packages: [
+    { id: 1, title: "1 BHK Full Home Painting", price: 14999, features: ["Interior Walls + Ceilings", "Wall Putty & Primer", "2 Coats Premium Emulsion", "Deep Post-Paint Cleaning", "1 Year Service Warranty"] },
+    { id: 2, title: "2 BHK Full Home Painting", price: 24999, features: ["Complete 2 BHK Coverage", "Accent Feature Wall Included", "Anti-Fungal Ceiling Coat", "Free Color Consultation", "1 Year Service Warranty"] },
+    { id: 3, title: "3 BHK / Villa Painting", price: 39999, features: ["Complete 3 BHK Interior + Balconies", "2 Designer Accent Walls", "Wood Polish Doors & Windows", "Dustless Sanding Machine", "2 Year Warranty"] }
+  ],
+  faqs: [
+    { question: "Do you supply paint and all materials?", answer: "Yes, we provide 100% genuine Asian Paints, Berger, or Dulux paints alongside all brushes, rollers, and masking tapes." },
+    { question: "How long will a full home painting take?", answer: "A 2BHK typically takes 4-5 days, while a 3BHK takes 6-7 days with fast-drying premium paints." }
+  ],
+  reviews: [
+    { id: 1, user: "Sunil Verma", rating: 5, comment: "Top quality work! The painters were extremely polite, clean, and finished right on time." }
+  ],
+  providers: [
+    { id: 41, name: "ColorCraft Master Painters", rating: 4.9, experience: "10 Years", location: "Patna", startingPrice: 14999, image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 402,
+  slug: "interior-wall-painting",
+  name: "Interior Wall Painting",
+  shortDescription: "Vibrant and smooth interior wall painting for rooms and halls",
+  fullDescription: "Upgrade your living spaces with odorless, eco-friendly interior wall painting. We provide color shade consultation, wall crack repair, smooth plaster touch-ups, and stain-resistant satin/matte finishes.",
+  categoryId: 35,
+  categoryName: "Painting",
+  thumbnail: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
+  bannerImage: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
+  gallery: [],
+  startingPrice: 12,
+  priceUnit: "per sq ft",
+  rating: 4.7,
+  totalReviews: 95,
+  experience: "8 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["Interior", "Wall Paint", "Bedroom", "Living Room"],
+  featured: false,
+  packages: [
+    { id: 1, title: "Single Room Refresh", price: 2999, features: ["Single Bedroom Walls + Ceiling", "Crack Filling & Minor Putty", "2 Coats Washable Paint", "1 Day Execution"] },
+    { id: 2, title: "Living Room Accent Refresh", price: 5499, features: ["Full Hall/Living Room", "1 Royal Texture Wall", "Premium Sheen Finish", "Furniture Covering Included"] }
+  ],
+  faqs: [
+    { question: "Is the paint washable?", answer: "Yes, we use washable luxury emulsion that allows you to easily wipe away stains." }
+  ],
+  reviews: [
+    { id: 1, user: "Deepak Choudhary", rating: 5, comment: "The living room color transformed the ambiance completely. Great precision on the corners." }
+  ],
+  providers: [
+    { id: 42, name: "Apex Color Studios", rating: 4.8, experience: "8 Years", location: "Patna", startingPrice: 2999, image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=600&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 403,
+  slug: "exterior-house-painting",
+  name: "Exterior House Painting",
+  shortDescription: "Weatherproof and UV-resistant exterior wall painting",
+  fullDescription: "Shield your building exterior against heavy rain, intense heat, moss, and dust. Our exterior painting specialists apply anti-fungal primers and advanced silicon elastomeric coatings with up to 5-year weather protection warranty.",
+  categoryId: 35,
+  categoryName: "Painting",
+  thumbnail: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=2069&auto=format&fit=crop",
+  bannerImage: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=2069&auto=format&fit=crop",
+  gallery: [],
+  startingPrice: 18,
+  priceUnit: "per sq ft",
+  rating: 4.8,
+  totalReviews: 82,
+  experience: "9 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["Exterior", "Weatherproof", "Anti-Fungal", "Facade"],
+  featured: false,
+  packages: [
+    { id: 1, title: "Standard Exterior Coat", price: 18, features: ["Pressure Jet Wash", "Algae/Fungus Removal", "1 Coat Exterior Primer", "2 Coats Apex Paint"] }
+  ],
+  faqs: [
+    { question: "Do you bring your own scaffolding / ladders?", answer: "Yes, all safety equipment, scaffolding, and safety ropes are provided by our crew." }
+  ],
+  reviews: [
+    { id: 1, user: "Rajesh Khemka", rating: 5, comment: "Protected our building through monsoon with zero seepage. Very sturdy exterior work." }
+  ],
+  providers: [
+    { id: 43, name: "ProShield Exterior Painters", rating: 4.8, experience: "9 Years", location: "Patna", startingPrice: 18, image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=600&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 404,
+  slug: "waterproofing-wall-texture",
+  name: "Waterproofing & Wall Texture",
+  shortDescription: "Advanced damp-proof barrier coatings and designer texture walls",
+  fullDescription: "Eliminate wall dampness, peeling paint, and ceiling leakages permanently with high-grade polymer waterproofing. We also create breathtaking modern 3D designer textures, metallic stencils, and marble finish walls.",
+  categoryId: 35,
+  categoryName: "Painting",
+  thumbnail: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop",
+  bannerImage: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop",
+  gallery: [],
+  startingPrice: 35,
+  priceUnit: "per sq ft",
+  rating: 4.9,
+  totalReviews: 114,
+  experience: "11 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["Waterproofing", "Texture", "Damp Proof", "Designer Wall"],
+  featured: true,
+  packages: [
+    { id: 1, title: "Damp-Proofing Solution", price: 35, features: ["Moisture Meter Scan", "Polymer Damp-Block Coating", "Efflorescence Salt Treatment", "Repaint Touch-up"] },
+    { id: 2, title: "Designer Texture Wall", price: 6999, features: ["1 Master Bedroom / Living Room Wall", "Metallic / Stucco / Linen Texture", "Dual-Tone Color Effect", "Protective Clear Topcoat"] }
+  ],
+  faqs: [
+    { question: "Can you stop ongoing bathroom wall seepage?", answer: "Yes, our polymer injection and barrier coatings stop active moisture seepage at the root." }
+  ],
+  reviews: [
+    { id: 1, user: "Priya Singh", rating: 5, comment: "The metallic texture wall in our drawing room is a showstopper. Everyone asks where we got it done!" }
+  ],
+  providers: [
+    { id: 44, name: "TextureArt & Waterproofing Co.", rating: 4.9, experience: "11 Years", location: "Patna", startingPrice: 35, image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=600&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 405,
+  slug: "painting",
+  name: "Painting",
+  shortDescription: "Professional interior and exterior home painting",
+  fullDescription: "Transform your home with professional painting services — interior wall painting, exterior coatings, texture finishes, waterproofing, wood polish, and color consultation by experienced painters.",
+  categoryId: 35,
+  categoryName: "Painting",
+  thumbnail: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
+  bannerImage: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
+  gallery: [],
+  startingPrice: 12,
+  priceUnit: "per sq ft",
+  rating: 4.7,
+  totalReviews: 98,
+  experience: "8 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["Painting", "Interior", "Exterior", "Waterproofing"],
+  featured: false,
+  packages: [
+    { id: 1, title: "Single Room Painting", price: 2999, features: ["Wall Prep & Putty", "2 Coats Premium Paint", "Ceiling Touch-up", "Clean-up After Work"] },
+    { id: 2, title: "Full Home Makeover", price: 14999, features: ["Complete Interior Painting (up to 3BHK)", "Texture Wall Feature", "Waterproofing (Bathroom & Balcony)", "Wood Polish Doors", "Color Consultation"] }
+  ],
+  faqs: [
+    { question: "Do you provide the paint?", answer: "Yes, we use premium brands like Asian Paints & Berger. You can also choose your own." }
+  ],
+  reviews: [
+    { id: 1, user: "Priya Singh", rating: 5, comment: "Beautiful texture wall finish. The team was very neat and professional." }
+  ],
+  providers: [
+    { id: 45, name: "ColorPro Painters", rating: 4.7, experience: "8 Years", location: "Patna", startingPrice: 2999, image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop" }
+  ]
 }
 ];

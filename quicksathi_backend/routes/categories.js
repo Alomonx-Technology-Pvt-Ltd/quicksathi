@@ -1,4 +1,5 @@
 import { Router } from "express";
+import mongoose from "mongoose";
 import Category from "../models/Category.js";
 import { protect } from "../middleware/auth.js";
 import { adminOnly } from "../middleware/admin.js";
@@ -18,10 +19,26 @@ router.get("/", async (req, res) => {
   }
 });
 
-// GET /api/categories/:id — Get single category
+// GET /api/categories/:id — Get single category (by ObjectId, slug, vertical, or name)
 router.get("/:id", async (req, res) => {
   try {
-    const category = await Category.findById(req.params.id);
+    const rawId = req.params.id;
+    let category = null;
+
+    if (mongoose.Types.ObjectId.isValid(rawId)) {
+      category = await Category.findById(rawId);
+    }
+
+    if (!category) {
+      const cleanName = rawId.replace(/-/g, " ");
+      category = await Category.findOne({
+        $or: [
+          { name: new RegExp(`^${cleanName}$`, "i") },
+          { vertical: rawId.toUpperCase().replace(/-/g, "_") },
+        ],
+      });
+    }
+
     if (!category) {
       return res.status(404).json({ message: "Category not found" });
     }

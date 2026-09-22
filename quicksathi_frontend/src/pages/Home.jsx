@@ -168,7 +168,7 @@ const Home = () => {
         onBookNow={handleBookNow}
         style={{ backgroundColor: "#ffffff" }}
       />
-      <AllCategoriesSection />
+      <AllCategoriesSection categories={categories} />
 
       {/* ── What We Do / Why Choose Us ── */}
       <WhyChooseUs />

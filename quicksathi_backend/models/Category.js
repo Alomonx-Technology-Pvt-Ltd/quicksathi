@@ -7,6 +7,7 @@ const subCategorySchema = new mongoose.Schema({
   type: { type: String, enum: ["SERVICE_ONLY", "PRODUCT_ONLY", "BOTH"], default: "SERVICE_ONLY" },
   imageUrl: { type: String, default: "" },
   secondaryImageUrl: { type: String, default: "" },
+  iconUrl: { type: String, default: "" },
   displayOrder: { type: Number, default: 0 },
   active: { type: Boolean, default: true },
 });
@@ -25,7 +26,7 @@ const categorySchema = new mongoose.Schema(
     vertical: {
       type: String,
       required: true,
-      enum: ["WEDDING", "VEHICLE_RENTAL", "CCTV_SECURITY", "HOME_TUITION", "HOUSE_HELP", "HOME_SALON", "HOUSE_SERVICES"],
+      enum: ["WEDDING", "VEHICLE_RENTAL", "CCTV_SECURITY", "HOME_TUITION", "HOUSE_HELP", "HOME_SALON", "HOUSE_SERVICES", "PAINTING"],
     },
     type: {
       type: String,
@@ -37,6 +38,10 @@ const categorySchema = new mongoose.Schema(
       default: "",
     },
     secondaryImageUrl: {
+      type: String,
+      default: "",
+    },
+    iconUrl: {
       type: String,
       default: "",
     },

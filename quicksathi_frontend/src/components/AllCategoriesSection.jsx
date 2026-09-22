@@ -1,73 +1,64 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import {
-  ShieldCheck,
-  Sparkles,
-  Car,
-  Scissors,
-  Home,
-  Wrench,
-  GraduationCap,
-  LayoutGrid,
-} from "lucide-react";
 
-// ── Only real TiptoBook platform services (4 in a row layout) ──────────────
-const PLATFORM_SERVICES = [
+// ── Default 8 Platform Categories with Provided Image Icons ──
+const DEFAULT_CATEGORIES = [
   {
     id: "cctv",
     title: "CCTV & Security",
     route: "/services/cctv",
-    icon: ShieldCheck,
-    isHighlighted: false,
+    iconImage: "/icons/categories/cctv.png",
+    matchKeywords: ["cctv", "security"],
   },
   {
     id: "weddings",
     title: "Wedding & Events",
     route: "/services/weddings",
-    icon: Sparkles,
-    isHighlighted: false,
+    iconImage: "/icons/categories/wedding-events.png",
+    matchKeywords: ["wedding", "party", "events"],
   },
   {
     id: "rental",
     title: "Vehicle Rental",
     route: "/services/car-rentals",
-    icon: Car,
-    isHighlighted: false,
+    iconImage: "/icons/categories/car-rental.png",
+    matchKeywords: ["vehicle", "car", "rental"],
   },
   {
     id: "salon",
     title: "Home Salon & Beauty",
     route: "/category/25",
-    icon: Scissors,
-    isHighlighted: false,
+    iconImage: "/icons/categories/home-salon.png",
+    matchKeywords: ["salon", "beauty"],
   },
   {
     id: "help",
     title: "House Help",
     route: "/category/20",
-    icon: Home,
-    isHighlighted: false,
+    iconImage: "/icons/categories/house-help.png",
+    matchKeywords: ["house help", "maid", "cook"],
   },
   {
     id: "repair",
     title: "House Repair",
-    route: "/category/30",
-    icon: Wrench,
-    isHighlighted: false,
+    route: "/category/31",
+    iconImage: "/icons/categories/home-repair.png",
+    matchKeywords: ["repair", "plumbing", "electrician", "carpentry", "house services"],
   },
   {
     id: "tuition",
     title: "Home Tuition",
     route: "/category/15",
-    icon: GraduationCap,
-    isHighlighted: false,
+    iconImage: "/icons/categories/home-tuition.png",
+    matchKeywords: ["tuition", "tutor", "tution"],
   },
   {
-    id: "all",
-    title: "All Services",
-    route: "/services",
-    icon: LayoutGrid,
-    isHighlighted: true, // Matching the yellow circular highlight from reference image
+    id: "painting",
+    title: "Painting",
+    route: "/category/35",
+    iconImage: "/icons/categories/painting.png",
+    matchKeywords: ["painting", "paint"],
   },
 ];
 
@@ -85,8 +76,42 @@ const itemVariants = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.28, ease: "easeOut" } },
 };
 
-const AllCategoriesSection = () => {
+const AllCategoriesSection = ({ categories = [] }) => {
   const navigate = useNavigate();
+
+  // Merge real-time backend categories with icon metadata and dynamic routing
+  const displayCategories = useMemo(() => {
+    return DEFAULT_CATEGORIES.map((def) => {
+      // Find matching real-time category from backend
+      const matched = (categories || []).find((c) => {
+        const catName = (c.name || "").toLowerCase();
+        const catVert = (c.vertical || "").toLowerCase();
+        return def.matchKeywords.some(
+          (kw) => catName.includes(kw) || catVert.includes(kw)
+        );
+      });
+
+      // Prefer backend iconUrl if provided and non-empty
+      const icon = matched?.iconUrl || def.iconImage;
+
+      // Determine destination route
+      let route = def.route;
+      if (matched?._id) {
+        if (def.id === "cctv") route = "/services/cctv";
+        else if (def.id === "weddings") route = "/services/weddings";
+        else if (def.id === "rental") route = "/services/car-rentals";
+        else route = `/category/${matched._id}`;
+      }
+
+      return {
+        id: matched?._id || matched?.id || def.id,
+        title: matched?.name || def.title,
+        route,
+        iconImage: icon,
+        rawCategory: matched,
+      };
+    });
+  }, [categories]);
 
   return (
     <section
@@ -131,7 +156,7 @@ const AllCategoriesSection = () => {
           </button>
         </div>
 
-        {/* ── App-style 4-column Grid ── */}
+        {/* ── 8 Category Grid (4 per row on all screens) ── */}
         <motion.div
           className="grid grid-cols-4 gap-y-6 sm:gap-y-8 gap-x-2 sm:gap-x-6"
           variants={containerVariants}
@@ -139,43 +164,42 @@ const AllCategoriesSection = () => {
           whileInView="visible"
           viewport={{ once: true, margin: "-40px" }}
         >
-          {PLATFORM_SERVICES.map((cat) => {
-            const Icon = cat.icon;
-            return (
-              <motion.button
-                key={cat.id}
-                variants={itemVariants}
-                whileTap={{ scale: 0.92 }}
-                onClick={() => navigate(cat.route)}
-                className="group flex flex-col items-center border-none bg-transparent cursor-pointer p-0 outline-none w-full"
-                style={{ fontFamily: "var(--font-body, inherit)" }}
+          {displayCategories.map((cat) => (
+            <motion.button
+              key={cat.id}
+              variants={itemVariants}
+              whileTap={{ scale: 0.92 }}
+              onClick={() => navigate(cat.route)}
+              className="group flex flex-col items-center border-none bg-transparent cursor-pointer p-0 outline-none w-full"
+              style={{ fontFamily: "var(--font-body, inherit)" }}
+            >
+              {/* Image Icon Container */}
+              <div
+                className="relative flex items-center justify-center rounded-2xl sm:rounded-3xl transition-all duration-300 w-[60px] h-[60px] sm:w-[82px] sm:h-[82px] bg-[#FFF8F4] border border-[#FFE8DA] group-hover:border-[#FF6B00] group-hover:shadow-[0_8px_20px_rgba(255,107,0,0.18)] group-hover:bg-white group-hover:scale-105 p-2 sm:p-2.5 overflow-hidden"
               >
-                {/* 
-                  Clean circle container (NO square card borders)
-                  Matches the outline stroke icons and yellow highlight from reference image
-                */}
-                <div
-                  className={`relative flex items-center justify-center rounded-full transition-all duration-200 w-[58px] h-[58px] sm:w-[76px] sm:h-[76px] ${
-                    cat.isHighlighted
-                      ? "bg-[#FF6B00] text-white shadow-md group-hover:bg-[#E05600] group-hover:scale-105"
-                      : "bg-white text-slate-800 border border-slate-200/90 group-hover:border-[#FF6B00] group-hover:bg-orange-50/60 group-hover:text-[#FF6B00] group-hover:scale-105 shadow-[0_2px_8px_rgba(0,0,0,0.04)] group-hover:shadow-md"
-                  }`}
-                >
-                  <Icon
-                    className="w-6 h-6 sm:w-7 sm:h-7 transition-colors duration-200"
-                    strokeWidth={1.85}
-                  />
-                </div>
+                <img
+                  src={cat.iconImage}
+                  alt={cat.title}
+                  loading="lazy"
+                  className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-110 drop-shadow-sm"
+                  onError={(e) => {
+                    // Fallback to URL-encoded image name if needed
+                    if (!e.target.dataset.triedFallback) {
+                      e.target.dataset.triedFallback = "true";
+                      e.target.src = `/icons/categories/${encodeURIComponent(cat.title.toLowerCase())}.png`;
+                    }
+                  }}
+                />
+              </div>
 
-                {/* Service Label: 2 lines max, centered, tight spacing */}
-                <span
-                  className="mt-2 text-center leading-snug transition-colors duration-200 text-slate-800 group-hover:text-slate-950 font-medium text-[11px] sm:text-[13px] max-w-[78px] sm:max-w-[105px] line-clamp-2"
-                >
-                  {cat.title}
-                </span>
-              </motion.button>
-            );
-          })}
+              {/* Service Label: 2 lines max, centered, tight spacing */}
+              <span
+                className="mt-2 text-center leading-snug transition-colors duration-200 text-slate-800 group-hover:text-[#FF6B00] font-semibold text-[11px] sm:text-[13px] max-w-[85px] sm:max-w-[110px] line-clamp-2"
+              >
+                {cat.title}
+              </span>
+            </motion.button>
+          ))}
         </motion.div>
 
         {/* Mobile "View All" Footer CTA */}

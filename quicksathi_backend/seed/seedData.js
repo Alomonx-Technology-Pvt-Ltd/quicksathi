@@ -21,6 +21,7 @@ const categoriesData = [
     type: "BOTH",
     imageUrl: "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778413946/VehicleRental_eeacbd.png",
     secondaryImageUrl: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=2070&auto=format&fit=crop",
+    iconUrl: "/icons/categories/car-rental.png",
     displayOrder: 1,
     active: true,
     subCategories: [
@@ -53,6 +54,7 @@ const categoriesData = [
     type: "BOTH",
     imageUrl: "https://images.unsplash.com/photo-1610173826608-bd1f53a52db1?q=80&w=2070&auto=format&fit=crop",
     secondaryImageUrl: "https://res.cloudinary.com/dtrhtdngp/image/upload/q_auto/f_auto/v1778413707/Wedding_Photo_flultf.png",
+    iconUrl: "/icons/categories/wedding-events.png",
     displayOrder: 2,
     active: true,
     subCategories: [
@@ -95,6 +97,7 @@ const categoriesData = [
     type: "BOTH",
     imageUrl: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=2070&auto=format&fit=crop",
     secondaryImageUrl: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=2070&auto=format&fit=crop",
+    iconUrl: "/icons/categories/house-help.png",
     displayOrder: 3,
     active: true,
     subCategories: [
@@ -147,6 +150,7 @@ const categoriesData = [
     type: "BOTH",
     imageUrl: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?q=80&w=2069&auto=format&fit=crop",
     secondaryImageUrl: "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?q=80&w=2032&auto=format&fit=crop",
+    iconUrl: "/icons/categories/home-repair.png",
     displayOrder: 4,
     active: true,
     subCategories: [
@@ -179,16 +183,6 @@ const categoriesData = [
         secondaryImageUrl: "https://images.unsplash.com/photo-1504148455328-c376907d081c?q=80&w=2057&auto=format&fit=crop",
         displayOrder: 3,
         active: true
-      },
-      {
-        name: "Painting",
-        description: "Professional home painting services — interior, exterior, texture, and waterproofing solutions.",
-        vertical: "HOUSE_SERVICES",
-        type: "SERVICE_ONLY",
-        imageUrl: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
-        secondaryImageUrl: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
-        displayOrder: 4,
-        active: true
       }
     ]
   },
@@ -199,6 +193,7 @@ const categoriesData = [
     type: "SERVICE_ONLY",
     imageUrl: "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=2070&auto=format&fit=crop",
     secondaryImageUrl: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=2070&auto=format&fit=crop",
+    iconUrl: "/icons/categories/home-salon.png",
     displayOrder: 5,
     active: true,
     subCategories: [
@@ -261,6 +256,7 @@ const categoriesData = [
     type: "BOTH",
     imageUrl: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=2070&auto=format&fit=crop",
     secondaryImageUrl: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?q=80&w=2070&auto=format&fit=crop",
+    iconUrl: "/icons/categories/home-tuition.png",
     displayOrder: 6,
     active: true,
     subCategories: [
@@ -313,6 +309,7 @@ const categoriesData = [
     type: "BOTH",
     imageUrl: "/images/cctv-main.png",
     secondaryImageUrl: "/images/cctv-main.png",
+    iconUrl: "/icons/categories/cctv.png",
     displayOrder: 7,
     active: true,
     subCategories: [
@@ -334,6 +331,59 @@ const categoriesData = [
         imageUrl: "/images/cctv-main.png",
         secondaryImageUrl: "/images/cctv-main.png",
         displayOrder: 2,
+        active: true
+      }
+    ]
+  },
+  {
+    name: "Painting",
+    description: "Professional interior and exterior house painting, waterproofing, wall texture, and expert color consultation.",
+    vertical: "PAINTING",
+    type: "SERVICE_ONLY",
+    imageUrl: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=2070&auto=format&fit=crop",
+    secondaryImageUrl: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
+    iconUrl: "/icons/categories/painting.png",
+    displayOrder: 8,
+    active: true,
+    subCategories: [
+      {
+        name: "Full Home Painting",
+        description: "Complete interior and exterior house painting with premium paints, dustless sanding, and 1-year warranty.",
+        vertical: "PAINTING",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
+        displayOrder: 1,
+        active: true
+      },
+      {
+        name: "Interior Wall Painting",
+        description: "Refresh your living room, bedrooms, and kitchen walls with vibrant colors, smooth finish, and zero odor.",
+        vertical: "PAINTING",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=2070&auto=format&fit=crop",
+        displayOrder: 2,
+        active: true
+      },
+      {
+        name: "Exterior House Painting",
+        description: "Weatherproof and UV-resistant exterior wall painting to protect your home against rain, sun, and algae.",
+        vertical: "PAINTING",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=2069&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=2069&auto=format&fit=crop",
+        displayOrder: 3,
+        active: true
+      },
+      {
+        name: "Waterproofing & Wall Texture",
+        description: "Advanced damp-proof coatings, crack filling, terrace waterproofing, and luxury designer stencil & texture walls.",
+        vertical: "PAINTING",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop",
+        displayOrder: 4,
         active: true
       }
     ]
@@ -993,11 +1043,149 @@ const servicesData = [
     ]
   },
   {
+    slug: "full-home-painting",
+    name: "Full Home Painting",
+    shortDescription: "Complete interior and exterior house painting with premium paints",
+    fullDescription: "Transform your entire home with our complete interior and exterior painting service. Includes thorough surface preparation, putty application, primer coats, 2-3 coats of premium royal emulsion paint, ceiling touch-ups, door/window polish, and complete site cleanup.",
+    categoryGroup: "Painting",
+    thumbnail: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=2070&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=2070&auto=format&fit=crop",
+    gallery: [
+      "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=2069&auto=format&fit=crop"
+    ],
+    startingPrice: 14999,
+    priceUnit: "per home",
+    rating: 4.8,
+    totalReviews: 128,
+    experience: "10 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["Painting", "Full Home", "Interior", "Exterior"],
+    featured: true,
+    packages: [
+      { title: "1 BHK Full Home Painting", price: 14999, features: ["Interior Walls + Ceilings", "Wall Putty & Primer", "2 Coats Premium Emulsion", "Deep Post-Paint Cleaning", "1 Year Service Warranty"] },
+      { title: "2 BHK Full Home Painting", price: 24999, features: ["Complete 2 BHK Coverage", "Accent Feature Wall Included", "Anti-Fungal Ceiling Coat", "Free Color Consultation", "1 Year Service Warranty"] },
+      { title: "3 BHK / Villa Painting", price: 39999, features: ["Complete 3 BHK Interior + Balconies", "2 Designer Accent Walls", "Wood Polish Doors & Windows", "Dustless Sanding Machine", "2 Year Warranty"] }
+    ],
+    faqs: [
+      { question: "Do you supply paint and all materials?", answer: "Yes, we provide 100% genuine Asian Paints, Berger, or Dulux paints alongside all brushes, rollers, and masking tapes." },
+      { question: "How long will a full home painting take?", answer: "A 2BHK typically takes 4-5 days, while a 3BHK takes 6-7 days with fast-drying premium paints." },
+      { question: "Is floor and furniture covering included?", answer: "Yes, our team covers all furniture, floors, switches, and fixtures with protective plastic sheets before starting." }
+    ],
+    reviews: [
+      { userName: "Sunil Verma", rating: 5, comment: "Top quality work! The painters were extremely polite, clean, and finished right on time." },
+      { userName: "Ankita Bose", rating: 5, comment: "House looks completely brand new. Loved the smooth finish and clean cleanup afterwards." }
+    ],
+    providers: [
+      { name: "ColorCraft Master Painters", rating: 4.9, experience: "10 Years", location: "Patna", startingPrice: 14999, image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop" }
+    ]
+  },
+  {
+    slug: "interior-wall-painting",
+    name: "Interior Wall Painting",
+    shortDescription: "Vibrant and smooth interior wall painting for rooms and halls",
+    fullDescription: "Upgrade your living spaces with odorless, eco-friendly interior wall painting. We provide color shade consultation, wall crack repair, smooth plaster touch-ups, and stain-resistant satin/matte finishes.",
+    categoryGroup: "Painting",
+    thumbnail: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 12,
+    priceUnit: "per sq ft",
+    rating: 4.7,
+    totalReviews: 95,
+    experience: "8 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["Interior", "Wall Paint", "Bedroom", "Living Room"],
+    featured: false,
+    packages: [
+      { title: "Single Room Refresh", price: 2999, features: ["Single Bedroom Walls + Ceiling", "Crack Filling & Minor Putty", "2 Coats Washable Paint", "1 Day Execution"] },
+      { title: "Living Room Accent Refresh", price: 5499, features: ["Full Hall/Living Room", "1 Royal Texture Wall", "Premium Sheen Finish", "Furniture Covering Included"] }
+    ],
+    faqs: [
+      { question: "Is the paint washable?", answer: "Yes, we use washable luxury emulsion that allows you to easily wipe away stains." },
+      { question: "Does the paint have a strong smell?", answer: "No, we use low-VOC, odorless paints that are safe for kids and pets." }
+    ],
+    reviews: [
+      { userName: "Deepak Choudhary", rating: 5, comment: "The living room color transformed the ambiance completely. Great precision on the corners." }
+    ],
+    providers: [
+      { name: "Apex Color Studios", rating: 4.8, experience: "8 Years", location: "Patna", startingPrice: 2999, image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=600&auto=format&fit=crop" }
+    ]
+  },
+  {
+    slug: "exterior-house-painting",
+    name: "Exterior House Painting",
+    shortDescription: "Weatherproof and UV-resistant exterior wall painting",
+    fullDescription: "Shield your building exterior against heavy rain, intense heat, moss, and dust. Our exterior painting specialists apply anti-fungal primers and advanced silicon elastomeric coatings with up to 5-year weather protection warranty.",
+    categoryGroup: "Painting",
+    thumbnail: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=2069&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=2069&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 18,
+    priceUnit: "per sq ft",
+    rating: 4.8,
+    totalReviews: 82,
+    experience: "9 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["Exterior", "Weatherproof", "Anti-Fungal", "Facade"],
+    featured: false,
+    packages: [
+      { title: "Standard Exterior Coat", price: 18, features: ["Pressure Jet Wash", "Algae/Fungus Removal", "1 Coat Exterior Primer", "2 Coats Apex Paint"] },
+      { title: "Ultima Weather Guard", price: 28, features: ["Complete Crack Seal Treatment", "Damp-Proof Base Coat", "2 Coats Ultima Protek", "5 Year Manufacturer Warranty"] }
+    ],
+    faqs: [
+      { question: "Do you bring your own scaffolding / ladders?", answer: "Yes, all safety equipment, scaffolding, and safety ropes are provided by our crew." },
+      { question: "How many years does exterior paint last?", answer: "Our premium exterior coatings last between 5 to 7 years with minimal fading." }
+    ],
+    reviews: [
+      { userName: "Rajesh Khemka", rating: 5, comment: "Protected our building through monsoon with zero seepage. Very sturdy exterior work." }
+    ],
+    providers: [
+      { name: "ProShield Exterior Painters", rating: 4.8, experience: "9 Years", location: "Patna", startingPrice: 18, image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=600&auto=format&fit=crop" }
+    ]
+  },
+  {
+    slug: "waterproofing-wall-texture",
+    name: "Waterproofing & Wall Texture",
+    shortDescription: "Advanced damp-proof barrier coatings and designer texture walls",
+    fullDescription: "Eliminate wall dampness, peeling paint, and ceiling leakages permanently with high-grade polymer waterproofing. We also create breathtaking modern 3D designer textures, metallic stencils, and marble finish walls.",
+    categoryGroup: "Painting",
+    thumbnail: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 35,
+    priceUnit: "per sq ft",
+    rating: 4.9,
+    totalReviews: 114,
+    experience: "11 Years",
+    available: true,
+    serviceMode: "AT_HOME",
+    tags: ["Waterproofing", "Texture", "Damp Proof", "Designer Wall"],
+    featured: true,
+    packages: [
+      { title: "Damp-Proofing Solution", price: 35, features: ["Moisture Meter Scan", "Polymer Damp-Block Coating", "Efflorescence Salt Treatment", "Repaint Touch-up"] },
+      { title: "Designer Texture Wall", price: 6999, features: ["1 Master Bedroom / Living Room Wall", "Metallic / Stucco / Linen Texture", "Dual-Tone Color Effect", "Protective Clear Topcoat"] }
+    ],
+    faqs: [
+      { question: "Can you stop ongoing bathroom wall seepage?", answer: "Yes, our polymer injection and barrier coatings stop active moisture seepage at the root." },
+      { question: "How long does a texture wall take?", answer: "Usually 1 to 2 days including base primer, texture embossing, and metallic glazing." }
+    ],
+    reviews: [
+      { userName: "Priya Singh", rating: 5, comment: "The metallic texture wall in our drawing room is a showstopper. Everyone asks where we got it done!" }
+    ],
+    providers: [
+      { name: "TextureArt & Waterproofing Co.", rating: 4.9, experience: "11 Years", location: "Patna", startingPrice: 35, image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=600&auto=format&fit=crop" }
+    ]
+  },
+  {
     slug: "painting",
     name: "Painting",
     shortDescription: "Professional interior and exterior home painting",
     fullDescription: "Transform your home with professional painting services — interior wall painting, exterior coatings, texture finishes, waterproofing, wood polish, and color consultation by experienced painters.",
-    categoryGroup: "House Services & Repair",
+    categoryGroup: "Painting",
     thumbnail: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
     bannerImage: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
     gallery: [],
