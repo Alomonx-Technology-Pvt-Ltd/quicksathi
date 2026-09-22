@@ -48,9 +48,7 @@ const values = [
 
 const About = () => {
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+    <div
       className="min-h-screen pb-20"
       style={{ backgroundColor: "var(--color-bg)" }}
     >
@@ -554,7 +552,7 @@ const About = () => {
           Explore All Services →
         </Link>
       </section>
-    </motion.div>
+    </div>
   );
 };
 

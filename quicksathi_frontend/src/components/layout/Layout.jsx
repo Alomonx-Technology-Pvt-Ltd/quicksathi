@@ -877,14 +877,7 @@ const Layout = () => {
       <Navbar />
       <main className="flex-grow w-full">
         <Suspense fallback={<ContentLoader />}>
-          <motion.div
-            key={location.pathname}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-          >
-            <Outlet />
-          </motion.div>
+          <Outlet />
         </Suspense>
       </main>
       <Footer />

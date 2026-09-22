@@ -313,9 +313,7 @@ const Services = () => {
   ];
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+    <div
       className="min-h-screen pb-12 sm:pb-20"
       style={{ backgroundColor: "var(--color-bg)" }}
     >
@@ -1369,7 +1367,7 @@ const Services = () => {
           </Link>
         </div>
       </motion.section>
-    </motion.div>
+    </div>
   );
 };
 

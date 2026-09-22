@@ -204,16 +204,6 @@ const HERO_CATEGORIES = [
   },
 ];
 
-// Quick-access shortcuts — Lucide icons with colored circle backgrounds
-const QUICK_CATS = [
-  { label: "Home\nServices", route: "/category/30", icon: Hammer, bg: "#FFF0E6", iconColor: "#EA580C" },
-  { label: "Wedding\nServices", route: "/services/weddings", icon: Sparkles, bg: "#FEF9C3", iconColor: "#CA8A04" },
-  { label: "Car\nRental", route: "/services/car-rentals", icon: Car, bg: "#F3E8FF", iconColor: "#7C3AED" },
-  { label: "Tutors", route: "/category/15", icon: GraduationCap, bg: "#E0E7FF", iconColor: "#4338CA" },
-  { label: "House\nHelp", route: "/category/20", icon: Wrench, bg: "#E0F2FE", iconColor: "#0284C7" },
-  { label: "More", route: "/services", icon: null, bg: "#F1F5F9", iconColor: "#64748B" },
-];
-
 const FONT_HERO = "var(--font-sans, 'Plus Jakarta Sans', 'Inter', sans-serif)";
 
 // ── Single service card for the right panel ──
@@ -794,60 +784,12 @@ const Hero = ({ categories, services, onBookNow }) => {
             </AnimatePresence>
           </div>
 
-          {/* Quick-access category icons — modern Lucide style */}
-          <motion.div
-            initial={{ opacity: 0, y: 14 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.32 }}
-            className="flex items-center gap-4 flex-wrap"
-            style={{ maxWidth: 520 }}
-          >
-            {QUICK_CATS.map((qc, i) => {
-              const Icon = qc.icon;
-              return (
-                <motion.button
-                  key={i}
-                  whileHover={{ scale: 1.08 }}
-                  whileTap={{ scale: 0.92 }}
-                  transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                  onClick={() => navigate(qc.route)}
-                  className="flex flex-col items-center gap-1.5 cursor-pointer border-none bg-transparent group"
-                  style={{ minWidth: 56 }}
-                >
-                  <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-200 group-hover:shadow-lg"
-                    style={{
-                      background: qc.bg,
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
-                    }}
-                  >
-                    {Icon ? (
-                      <Icon size={22} style={{ color: qc.iconColor }} strokeWidth={1.8} />
-                    ) : (
-                      <span style={{ color: qc.iconColor, fontSize: 18, fontWeight: 700, letterSpacing: 1 }}>···</span>
-                    )}
-                  </div>
-                  <span
-                    className="text-[10px] font-semibold text-center leading-tight"
-                    style={{
-                      fontFamily: FONT_HERO,
-                      color: "#475569",
-                      whiteSpace: "pre-line",
-                    }}
-                  >
-                    {qc.label}
-                  </span>
-                </motion.button>
-              );
-            })}
-          </motion.div>
-
           {/* Social proof stats */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.42 }}
-            className="flex items-center gap-6 mt-8 flex-wrap"
+            transition={{ duration: 0.6, delay: 0.3 }}
+            className="flex items-center gap-6 mt-6 sm:mt-7 flex-wrap"
           >
             {[
               { value: "10K+", label: "Happy Customers" },

@@ -138,12 +138,7 @@ const Home = () => {
 
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.35 }}
-      className="bg-white min-h-screen"
-    >
+    <div className="bg-white min-h-screen">
       <SEO
         title="TiptoBook – Book Local Services Online"
         description="TiptoBook is an online service booking platform to find and book trusted local services including home services, wedding services, car rentals, tutors and more.."
@@ -251,7 +246,7 @@ const Home = () => {
 
       {/* ── Download Our App Section ── */}
       <DownloadAppSection />
-    </motion.div>
+    </div>
   );
 };
 

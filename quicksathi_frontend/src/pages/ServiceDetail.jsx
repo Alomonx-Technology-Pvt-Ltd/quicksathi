@@ -138,9 +138,7 @@ const ServiceDetail = () => {
   const isRental = service.serviceMode === "RENTAL";
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+    <div
       className="min-h-screen pb-16 sm:pb-24"
       style={{ backgroundColor: "var(--color-bg)" }}
     >
@@ -227,7 +225,7 @@ const ServiceDetail = () => {
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
