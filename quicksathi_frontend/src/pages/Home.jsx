@@ -11,6 +11,7 @@ import { mockServices } from "../data/mockServices";
 import { useLocation } from "../context/LocationContext";
 
 import AllCategoriesSection from "../components/AllCategoriesSection";
+import HomeFeaturedServices from "../components/HomeFeaturedServices";
 import WhyChooseUs from "../components/WhyChooseUs";
 import DownloadAppSection from "../components/DownloadAppSection";
 import SEO from "../components/SEO";
@@ -164,6 +165,11 @@ const Home = () => {
         style={{ backgroundColor: "#ffffff" }}
       />
       <AllCategoriesSection categories={categories} />
+      <HomeFeaturedServices
+        categories={categories}
+        services={services}
+        onBookNow={handleBookNow}
+      />
 
       {/* ── What We Do / Why Choose Us ── */}
       <WhyChooseUs />

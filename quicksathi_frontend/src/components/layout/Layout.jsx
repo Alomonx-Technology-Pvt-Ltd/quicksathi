@@ -514,9 +514,11 @@ const Navbar = () => {
   const guestLinks = [
     { to: "/", label: "Home", end: true },
     { to: "/about-us", label: "About Us" },
+    { to: "/contact", label: "Contact" },
   ];
   const authLinks = [
     { to: "/", label: "Home", end: true },
+    { to: "/about-us", label: "About Us" },
     { to: "/my-bookings", label: "My Bookings" },
     { to: "/contact", label: "Contact" },
   ];

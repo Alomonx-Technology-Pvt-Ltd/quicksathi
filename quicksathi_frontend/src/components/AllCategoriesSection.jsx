@@ -6,14 +6,14 @@ import { motion } from "framer-motion";
 const DEFAULT_CATEGORIES = [
   {
     id: "cctv",
-    title: "CCTV & Security",
+    title: "CCTV Security",
     route: "/services?q=cctv",
     iconImage: "/icons/categories/cctv.png",
     matchKeywords: ["cctv", "security"],
   },
   {
     id: "weddings",
-    title: "Wedding & Events",
+    title: "Wedding & Party Services",
     route: "/services?q=wedding",
     iconImage: "/icons/categories/wedding-events.png",
     matchKeywords: ["wedding", "party", "events"],
@@ -41,7 +41,7 @@ const DEFAULT_CATEGORIES = [
   },
   {
     id: "repair",
-    title: "House Repair",
+    title: "House Services & Repair",
     route: "/category/31",
     iconImage: "/icons/categories/home-repair.png",
     matchKeywords: ["repair", "plumbing", "electrician", "carpentry", "house services"],
@@ -91,8 +91,8 @@ const AllCategoriesSection = ({ categories = [] }) => {
         );
       });
 
-      // Prefer backend iconUrl if provided and non-empty
-      const icon = matched?.iconUrl || def.iconImage;
+      // Always use our clean high-quality icons
+      const icon = def.iconImage;
 
       // Determine destination route
       let route = def.route;
@@ -102,7 +102,7 @@ const AllCategoriesSection = ({ categories = [] }) => {
 
       return {
         id: matched?._id || matched?.id || def.id,
-        title: matched?.name || def.title,
+        title: def.title,
         route,
         iconImage: icon,
         rawCategory: matched,
@@ -114,7 +114,7 @@ const AllCategoriesSection = ({ categories = [] }) => {
     <section
       className="w-full py-8 sm:py-12 px-4 sm:px-8 lg:px-12 select-none bg-white"
     >
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* ── Section Header ── */}
         <div className="flex items-end justify-between mb-6 sm:mb-8">
           <div>
@@ -125,16 +125,16 @@ const AllCategoriesSection = ({ categories = [] }) => {
                 fontFamily: "var(--font-display, inherit)",
               }}
             >
-              All Categories
+              Explore All Categories
             </h2>
             <p
-              className="text-xs sm:text-sm mt-1 mb-0"
+              className="text-xs sm:text-sm mt-1 mb-0 max-w-xl"
               style={{
                 color: "var(--color-text-mid, #64748b)",
                 fontFamily: "var(--font-body, inherit)",
               }}
             >
-              Find the right service for your needs
+              Book home services, wedding services, car rentals, tutors, and more—all in one convenient place.
             </p>
           </div>
 
@@ -153,65 +153,55 @@ const AllCategoriesSection = ({ categories = [] }) => {
           </button>
         </div>
 
-        {/* ── 8 Category Grid (4 per row on all screens) ── */}
-        <motion.div
-          className="grid grid-cols-4 gap-y-6 sm:gap-y-8 gap-x-2 sm:gap-x-6"
-          variants={containerVariants}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-40px" }}
-        >
-          {displayCategories.map((cat) => (
-            <motion.button
-              key={cat.id}
-              variants={itemVariants}
-              whileTap={{ scale: 0.92 }}
-              onClick={() => navigate(cat.route)}
-              className="group flex flex-col items-center border-none bg-transparent cursor-pointer p-0 outline-none w-full"
-              style={{ fontFamily: "var(--font-body, inherit)" }}
-            >
-              {/* Image Icon Container - 20% larger & image covers the entire box */}
-              <div
-                className="relative flex items-center justify-center rounded-2xl sm:rounded-3xl transition-all duration-300 w-[74px] h-[74px] sm:w-[100px] sm:h-[100px] bg-white border border-slate-200/90 shadow-[0_2px_10px_rgba(0,0,0,0.05)] group-hover:border-[#FF6B00] group-hover:shadow-[0_10px_25px_rgba(255,107,0,0.22)] group-hover:scale-105 overflow-hidden p-0"
-                style={{
-                  transform: "translateZ(0)",
-                  WebkitBackfaceVisibility: "hidden",
-                  backfaceVisibility: "hidden",
-                }}
+        {/* ── 8 Category Grid (4 per row, centered in the middle) ── */}
+        <div className="w-full flex justify-center">
+          <motion.div
+            className="grid grid-cols-4 justify-items-center gap-y-5 sm:gap-y-8 md:gap-y-9 gap-x-2 sm:gap-x-6 md:gap-x-12 w-full max-w-3xl sm:max-w-4xl md:max-w-5xl mx-auto"
+            style={{ margin: "0 auto" }}
+            variants={containerVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-40px" }}
+          >
+            {displayCategories.map((cat) => (
+              <motion.button
+                key={cat.id}
+                variants={itemVariants}
+                whileTap={{ scale: 0.94 }}
+                onClick={() => navigate(cat.route)}
+                className="group flex flex-col items-center text-center justify-center border-none bg-transparent cursor-pointer p-0 outline-none w-full"
+                style={{ fontFamily: "var(--font-body, inherit)" }}
               >
-                <img
-                  src={cat.iconImage}
-                  alt={cat.title}
-                  loading="eager"
-                  decoding="sync"
-                  fetchPriority="high"
-                  className="w-full h-full object-cover select-none pointer-events-none"
-                  style={{
-                    imageRendering: "-webkit-optimize-contrast",
-                    imageRendering: "high-quality",
-                    WebkitBackfaceVisibility: "hidden",
-                    backfaceVisibility: "hidden",
-                    transform: "translateZ(0)",
-                  }}
-                  onError={(e) => {
-                    // Fallback to URL-encoded image name if needed
-                    if (!e.target.dataset.triedFallback) {
-                      e.target.dataset.triedFallback = "true";
-                      e.target.src = `/icons/categories/${encodeURIComponent(cat.title.toLowerCase())}.png`;
-                    }
-                  }}
-                />
-              </div>
+                {/* Clean Icon Container: responsive sizing, NO border, NO card */}
+                <div
+                  className="relative flex items-center justify-center rounded-2xl sm:rounded-3xl transition-transform duration-200 w-[54px] h-[54px] xs:w-[62px] xs:h-[62px] sm:w-[74px] sm:h-[74px] md:w-[80px] md:h-[80px] group-hover:scale-105 active:scale-95 overflow-hidden p-0 mx-auto"
+                >
+                  <img
+                    src={cat.iconImage}
+                    alt={cat.title}
+                    loading="eager"
+                    decoding="sync"
+                    fetchPriority="high"
+                    className="w-full h-full object-contain select-none pointer-events-none rounded-2xl sm:rounded-3xl"
+                    onError={(e) => {
+                      if (!e.target.dataset.triedFallback) {
+                        e.target.dataset.triedFallback = "true";
+                        e.target.src = `/icons/categories/${encodeURIComponent(cat.title.toLowerCase())}.png`;
+                      }
+                    }}
+                  />
+                </div>
 
-              {/* Service Label: 2 lines max, centered, tight spacing */}
-              <span
-                className="mt-2.5 text-center leading-snug transition-colors duration-200 text-slate-800 group-hover:text-[#FF6B00] font-semibold text-xs sm:text-[13.5px] max-w-[95px] sm:max-w-[130px] line-clamp-2"
-              >
-                {cat.title}
-              </span>
-            </motion.button>
-          ))}
-        </motion.div>
+                {/* Service Label: centered below the icon */}
+                <span
+                  className="mt-1.5 sm:mt-2.5 text-center leading-tight sm:leading-snug transition-colors duration-200 text-slate-800 group-hover:text-purple-700 font-semibold text-[10.5px] xs:text-xs sm:text-[13px] max-w-[74px] xs:max-w-[86px] sm:max-w-[125px] line-clamp-2 mx-auto"
+                >
+                  {cat.title}
+                </span>
+              </motion.button>
+            ))}
+          </motion.div>
+        </div>
 
         {/* Mobile "View All" Footer CTA */}
         <div className="flex justify-center mt-6 sm:hidden">
