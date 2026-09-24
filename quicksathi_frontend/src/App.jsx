@@ -14,6 +14,7 @@ import Contact from "./pages/Contact";
 import Services from "./pages/Services";
 import Category from "./pages/Category";
 import ServiceDetail from "./pages/ServiceDetail";
+import ACCategoryPage from "./pages/ACCategoryPage";
 import Login from "./pages/Login";
 
 // ── Lazy-loaded Secondary & Admin Pages ──
@@ -75,9 +76,10 @@ function App() {
             <Route path="/service/:id" element={<ServiceDetail />} />
             <Route path="/product/:id" element={<ProductDetail />} />
             <Route path="services" element={<Services />} />
+            <Route path="services/ac" element={<ACCategoryPage />} />
             <Route path="services/weddings" element={<Navigate to="/services" replace />} />
             <Route path="services/car-rentals" element={<Navigate to="/services" replace />} />
-            <Route path="services/cctv" element={<Navigate to="/services" replace />} />
+            <Route path="services/cctv" element={<Navigate to="/services?q=cctv" replace />} />
             <Route path="booking/:serviceId" element={<BookingPage />} />
             <Route path="payment" element={<PaymentPage />} />
             <Route

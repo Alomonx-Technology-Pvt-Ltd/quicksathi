@@ -5,11 +5,11 @@ import { motion } from "framer-motion";
 // ── Default 8 Platform Categories with Provided Image Icons ──
 const DEFAULT_CATEGORIES = [
   {
-    id: "cctv",
-    title: "CCTV Security",
-    route: "/services?q=cctv",
-    iconImage: "/icons/categories/cctv.png",
-    matchKeywords: ["cctv", "security"],
+    id: "ac",
+    title: "AC & Appliances",
+    route: "/services/ac",
+    iconImage: "/icons/categories/ac-appliances.png",
+    matchKeywords: ["ac", "appliance", "air conditioner"],
   },
   {
     id: "weddings",
@@ -112,7 +112,7 @@ const AllCategoriesSection = ({ categories = [] }) => {
 
   return (
     <section
-      className="w-full py-8 sm:py-12 px-4 sm:px-8 lg:px-12 select-none bg-white"
+      className="w-full py-8 sm:py-12 px-4 sm:px-8 lg:px-12 select-none bg-white overflow-hidden"
     >
       <div className="max-w-7xl mx-auto">
         {/* ── Section Header ── */}

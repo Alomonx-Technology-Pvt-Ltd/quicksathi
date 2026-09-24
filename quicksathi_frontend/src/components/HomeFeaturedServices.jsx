@@ -17,11 +17,20 @@ import api from "../config/api";
 // ── Target 4 core categories ──────────────────────────────────────────────────
 const SECTIONS_CONFIG = [
   {
+    key: "ac-appliances",
+    title: "AC & Appliance Services",
+    subtitle: "AC repair, gas refill, installation & annual maintenance",
+    vertical: "AC_APPLIANCES",
+    nameKeywords: ["ac", "appliance", "air conditioner"],
+    fallbackIcon: Wrench,
+    accentColor: "#0ea5e9", // Sky Blue
+  },
+  {
     key: "house-services",
-    title: "Home Services & Appliances",
-    subtitle: "AC service, appliance repair, electrical & plumbing",
+    title: "House Services & Repair",
+    subtitle: "Plumbing, electrical, carpentry & CCTV security",
     vertical: "HOUSE_SERVICES",
-    nameKeywords: ["house services", "home service", "repair", "appliance"],
+    nameKeywords: ["house services", "home service", "repair", "cctv", "security"],
     fallbackIcon: Wrench,
     accentColor: "#f97316", // Amber / Orange
   },
@@ -42,15 +51,6 @@ const SECTIONS_CONFIG = [
     nameKeywords: ["wedding", "party", "event"],
     fallbackIcon: Sparkles,
     accentColor: "#db2777", // Rose Pink
-  },
-  {
-    key: "cctv",
-    title: "CCTV & Security Systems",
-    subtitle: "HD security cameras, smart locks & annual maintenance",
-    vertical: "CCTV_SECURITY",
-    nameKeywords: ["cctv", "security"],
-    fallbackIcon: ShieldCheck,
-    accentColor: "#16a34a", // Green
   },
 ];
 
@@ -133,8 +133,7 @@ const ServiceCard = ({ service, onBookNow }) => {
             imageLoaded ? "opacity-100" : "opacity-0"
           }`}
           onError={(e) => {
-            e.currentTarget.src =
-              "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=800&auto=format&fit=crop";
+            e.currentTarget.src = "/images/ac/ac-checkup.jpg";
           }}
         />
         {!imageLoaded && (
@@ -186,7 +185,7 @@ const ServiceCard = ({ service, onBookNow }) => {
           </div>
         </div>
 
-        {/* ── Bottom Row: Price & ADD Button ── */}
+        {/* ── Bottom Row: Price & BOOK Button ── */}
         <div className="flex items-center justify-between pt-1 border-t border-gray-50">
           <div className="flex items-baseline gap-0.5">
             <span className="text-sm sm:text-base font-bold text-gray-900">
@@ -200,7 +199,7 @@ const ServiceCard = ({ service, onBookNow }) => {
             aria-label={`Book ${service.name}`}
             className="border border-purple-200 bg-purple-50/80 text-purple-700 hover:bg-purple-600 hover:text-white hover:border-purple-600 active:scale-95 font-bold text-[11px] sm:text-xs tracking-wider uppercase px-3.5 sm:px-4 py-1.5 rounded-xl transition-all shadow-sm cursor-pointer"
           >
-            ADD
+            BOOK
           </button>
         </div>
       </div>
@@ -334,7 +333,7 @@ const CategorySectionRow = ({
       {/* ── Horizontal Scrolling Container ── */}
       <div
         ref={scrollRef}
-        className="flex gap-3.5 sm:gap-4.5 overflow-x-auto pb-4 pt-1 px-0.5 scroll-smooth snap-x snap-mandatory [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        className="flex gap-3.5 sm:gap-4.5 overflow-x-auto pb-4 pt-1 px-0.5 scroll-smooth snap-x snap-mandatory overscroll-x-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
       >
         {loading
           ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
@@ -446,7 +445,7 @@ const HomeFeaturedServices = ({
   });
 
   return (
-    <div className="w-full bg-[#fcfcfd] py-8 sm:py-12 border-y border-gray-100">
+    <div className="w-full bg-[#fcfcfd] py-8 sm:py-12 border-y border-gray-100 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12">
         {groupedData.map(({ config, category, services }) => (
           <CategorySectionRow

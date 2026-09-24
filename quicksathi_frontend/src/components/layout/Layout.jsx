@@ -527,7 +527,7 @@ const Navbar = () => {
   return (
     <>
       <nav
-        className="sticky top-0 left-0 right-0 z-50 px-5 sm:px-10 flex items-center justify-between"
+        className="sticky top-0 left-0 right-0 z-50 px-4 sm:px-10 flex items-center justify-between w-full max-w-full"
         style={{
           height: 64,
           backgroundColor: "#ffffff",
@@ -873,11 +873,11 @@ const Layout = () => {
 
   return (
     <div
-      className="min-h-screen flex flex-col relative pb-16 md:pb-0 bg-white"
+      className="min-h-screen flex flex-col relative pb-16 md:pb-0 bg-white w-full max-w-full overflow-x-hidden"
       style={{ backgroundColor: "#ffffff" }}
     >
       <Navbar />
-      <main className="flex-grow w-full">
+      <main className="flex-grow w-full max-w-full min-w-0 overflow-x-hidden">
         <Suspense fallback={<ContentLoader />}>
           <Outlet />
         </Suspense>

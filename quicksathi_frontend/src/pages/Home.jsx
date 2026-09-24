@@ -139,7 +139,7 @@ const Home = () => {
 
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-white min-h-screen w-full max-w-full overflow-x-hidden">
       <SEO
         title="TiptoBook – Book Local Services Online"
         description="TiptoBook is an online service booking platform to find and book trusted local services including home services, wedding services, car rentals, tutors and more.."
@@ -175,7 +175,7 @@ const Home = () => {
       <WhyChooseUs />
 
       {/* ── Become a Partner / Join Us Section ── */}
-      <section className="px-4 sm:px-8 lg:px-16 py-14 bg-white">
+      <section className="px-4 sm:px-8 lg:px-16 py-14 bg-white overflow-hidden w-full max-w-full">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}

@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, QrCode, Check, Shield, Sparkles, Smartphone } from "lucide-react";
 
@@ -14,7 +14,7 @@ const DownloadAppSection = () => {
 
   return (
     <section
-      className="py-16 mt-16 border-t"
+      className="py-16 mt-16 border-t overflow-hidden w-full max-w-full"
       style={{
         borderColor: "var(--color-border)",
         backgroundColor: "#ffffff",

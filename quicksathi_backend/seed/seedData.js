@@ -183,6 +183,16 @@ const categoriesData = [
         secondaryImageUrl: "https://images.unsplash.com/photo-1504148455328-c376907d081c?q=80&w=2057&auto=format&fit=crop",
         displayOrder: 3,
         active: true
+      },
+      {
+        name: "CCTV & Security",
+        description: "Comprehensive CCTV camera installation, smart locks, and security system maintenance for homes and businesses.",
+        vertical: "HOUSE_SERVICES",
+        type: "SERVICE_ONLY",
+        imageUrl: "/images/cctv-main.png",
+        secondaryImageUrl: "/images/cctv-main.png",
+        displayOrder: 4,
+        active: true
       }
     ]
   },
@@ -303,34 +313,54 @@ const categoriesData = [
     ]
   },
   {
-    name: "CCTV Security",
-    description: "Enterprise-grade CCTV and monitoring systems with expert installation and 24/7 support.",
-    vertical: "CCTV_SECURITY",
-    type: "BOTH",
-    imageUrl: "/images/cctv-main.png",
-    secondaryImageUrl: "/images/cctv-main.png",
-    iconUrl: "/icons/categories/cctv.png",
+    name: "AC & Appliances",
+    description: "Professional AC repair, servicing, gas refill, installation & uninstallation — trusted technicians at your doorstep.",
+    vertical: "AC_APPLIANCES",
+    type: "SERVICE_ONLY",
+    imageUrl: "/images/ac/ac-checkup.jpg",
+    secondaryImageUrl: "/images/ac/ac-annual-maintenance.jpg",
+    iconUrl: "/icons/categories/ac-appliances.png",
     displayOrder: 7,
     active: true,
     subCategories: [
       {
-        name: "Home Security",
-        description: "Comprehensive residential security setups with high-res cameras, motion alerts, and mobile monitoring.",
-        vertical: "CCTV_SECURITY",
+        name: "Repair & Services",
+        description: "AC check-up, lite service, foam jet deep cleaning — diagnose and fix cooling issues fast.",
+        vertical: "AC_APPLIANCES",
         type: "SERVICE_ONLY",
-        imageUrl: "/images/cctv-main.png",
-        secondaryImageUrl: "/images/cctv-main.png",
+        imageUrl: "/images/ac/ac-checkup.jpg",
+        secondaryImageUrl: "/images/ac/foam-jet-ac-service.jpg",
         displayOrder: 1,
         active: true
       },
       {
-        name: "Commercial Pro",
-        description: "Scalable security infrastructure for businesses, featuring AI monitoring and central control station access.",
-        vertical: "CCTV_SECURITY",
+        name: "Gas Refill",
+        description: "AC gas refill and leak detection for instant cooling restoration.",
+        vertical: "AC_APPLIANCES",
         type: "SERVICE_ONLY",
-        imageUrl: "/images/cctv-main.png",
-        secondaryImageUrl: "/images/cctv-main.png",
+        imageUrl: "/images/ac/ac-gas-refill.jpg",
+        secondaryImageUrl: "/images/ac/ac-gas-refill.jpg",
         displayOrder: 2,
+        active: true
+      },
+      {
+        name: "Install & Uninstall",
+        description: "Safe AC installation and uninstallation with performance checks by certified technicians.",
+        vertical: "AC_APPLIANCES",
+        type: "SERVICE_ONLY",
+        imageUrl: "/images/ac/ac-installation.jpg",
+        secondaryImageUrl: "/images/ac/ac-uninstallation.jpg",
+        displayOrder: 3,
+        active: true
+      },
+      {
+        name: "Saver Packs",
+        description: "Annual maintenance contracts and combo service packs at discounted rates.",
+        vertical: "AC_APPLIANCES",
+        type: "SERVICE_ONLY",
+        imageUrl: "/images/ac/ac-annual-maintenance.jpg",
+        secondaryImageUrl: "/images/ac/ac-annual-maintenance.jpg",
+        displayOrder: 4,
         active: true
       }
     ]

@@ -6,6 +6,7 @@ import Card from "../components/common/Card";
 import SEO from "../components/SEO";
 import { mockCategories } from "../data/mockCategories";
 import { mockServices } from "../data/mockServices";
+import ACCategoryPage from "./ACCategoryPage";
 
 const INTERVAL_MS = 4000;
 const MotionLink = motion(Link);
@@ -262,6 +263,15 @@ const Category = () => {
   );
 
 
+
+  if (
+    category?.vertical === "AC_APPLIANCES" ||
+    id === "ac" ||
+    id === "ac-appliances" ||
+    category?.name?.toLowerCase().includes("ac & appliances")
+  ) {
+    return <ACCategoryPage category={category} />;
+  }
 
   if (!category) {
     return (

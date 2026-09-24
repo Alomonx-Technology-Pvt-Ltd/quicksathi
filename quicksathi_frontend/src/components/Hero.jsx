@@ -15,6 +15,7 @@ import {
   Car,
   X,
   Tag,
+  Snowflake,
 } from "lucide-react";
 import { mockServices } from "../data/mockServices";
 
@@ -177,28 +178,28 @@ const HERO_CATEGORIES = [
     ],
   },
   {
-    id: "cctv",
-    title: "CCTV Security",
-    icon: ShieldCheck,
-    iconColor: "#166534",
-    bgColor: "#E8F5E9",
-    route: "/services?q=cctv",
+    id: "ac-appliances",
+    title: "AC & Appliances",
+    icon: Snowflake,
+    iconColor: "#0284C7",
+    bgColor: "#E0F2FE",
+    route: "/services/ac",
     services: [
       {
-        name: "Home CCTV Installation",
-        desc: "HD cameras with mobile alerts for full home security.",
-        price: 2999,
-        rating: 4.9,
+        name: "AC Repair & Service",
+        desc: "Foam jet deep clean, inspection & cooling fix.",
+        price: 449,
+        rating: 4.8,
         badge: "Popular",
-        img: "https://images.unsplash.com/photo-1557597774-9d273605dfa9?q=80&w=600&auto=format&fit=crop",
+        img: "/images/ac/ac-lite-service.jpg",
       },
       {
-        name: "Smart Lock Installation",
-        desc: "Fingerprint & keypad smart lock by certified techs.",
-        price: 1999,
+        name: "AC Gas Refill",
+        desc: "Leak detection & complete gas refill for instant cooling.",
+        price: 2499,
         rating: 4.9,
-        badge: "Smart Home",
-        img: "https://images.unsplash.com/photo-1558002038-1055907df827?q=80&w=600&auto=format&fit=crop",
+        badge: "Top Rated",
+        img: "/images/ac/ac-gas-refill.jpg",
       },
     ],
   },
@@ -458,7 +459,7 @@ const Hero = ({ categories, services, onBookNow }) => {
 
   return (
     <section
-      className="w-full"
+      className="w-full overflow-hidden"
       style={{
         background: "#ffffff",
         minHeight: "clamp(480px, 80vh, 760px)",
@@ -816,10 +817,10 @@ const Hero = ({ categories, services, onBookNow }) => {
 
         {/* ══ RIGHT SIDE — scrolling service cards ══ */}
         <motion.div
-          initial={{ opacity: 0, x: 40 }}
-          animate={{ opacity: 1, x: 0 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, delay: 0.2 }}
-          className="w-full lg:w-[420px] xl:w-[460px] flex-shrink-0 relative"
+          className="w-full lg:w-[420px] xl:w-[460px] flex-shrink-0 relative overflow-hidden lg:overflow-visible"
         >
           {/* Soft background glows */}
           <div

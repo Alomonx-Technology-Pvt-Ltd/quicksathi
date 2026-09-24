@@ -1737,7 +1737,252 @@ name: "School Tuition",
     { id: 1, user: "Priya Singh", rating: 5, comment: "Beautiful texture wall finish. The team was very neat and professional." }
   ],
   providers: [
-    { id: 45, name: "ColorPro Painters", rating: 4.7, experience: "8 Years", location: "Patna", startingPrice: 2999, image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 501,
+  slug: "ac-checkup",
+  name: "AC Check-up",
+  shortDescription: "Accurate AC issue diagnosis before any repair",
+  fullDescription: "Get a thorough AC health check-up by certified technicians. Includes compressor testing, gas pressure check, thermostat calibration, electrical connection audit, and a detailed report with repair recommendations. Visitation fee will be adjusted in the final repair quote.",
+  categoryId: 1,
+  categoryName: "AC & Appliances",
+  subCategoryName: "Repair & Services",
+  thumbnail: "/images/ac/ac-checkup.jpg",
+  bannerImage: "/images/ac/ac-checkup.jpg",
+  gallery: ["/images/ac/ac-checkup.jpg"],
+  startingPrice: 299,
+  priceUnit: "per visit",
+  rating: 4.7,
+  totalReviews: 8831,
+  experience: "5 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["AC", "Check-up", "Diagnosis", "Repair", "Air Conditioner"],
+  featured: true,
+  packages: [
+    { id: 1, title: "Split AC Check-up", price: 299, features: ["Compressor & gas pressure test", "Thermostat calibration", "Electrical connection check", "Detailed diagnosis report"] },
+    { id: 2, title: "Window AC Check-up", price: 249, features: ["Full unit inspection", "Cooling efficiency test", "Filter & coil check", "Written diagnosis report"] }
+  ],
+  faqs: [
+    { question: "Will the check-up fee be adjusted if I proceed with repair?", answer: "Yes, the visitation fee is fully adjusted against the final repair bill." },
+    { question: "How long does the check-up take?", answer: "A standard AC check-up takes about 20-30 minutes." }
+  ],
+  reviews: [
+    { id: 1, user: "Rajesh Kumar", rating: 5, comment: "Very thorough diagnosis. Explained everything clearly before proceeding." }
+  ],
+  providers: [
+    { id: 51, name: "CoolTech AC Services", rating: 4.7, experience: "5 Years", location: "Patna", startingPrice: 299, image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 502,
+  slug: "ac-lite-service",
+  name: "AC Lite Service",
+  shortDescription: "Quick AC clean for smooth cooling. Perfect for regular maintenance.",
+  fullDescription: "Ideal for regular maintenance and mild dust buildup. Includes indoor filter cleaning, cooling coil dry brushing, outdoor unit dust wash, and overall cooling efficiency check.",
+  categoryId: 1,
+  categoryName: "AC & Appliances",
+  subCategoryName: "Repair & Services",
+  thumbnail: "/images/ac/ac-lite-service.jpg",
+  bannerImage: "/images/ac/ac-lite-service.jpg",
+  gallery: ["/images/ac/ac-lite-service.jpg"],
+  startingPrice: 449,
+  priceUnit: "per AC",
+  rating: 4.7,
+  totalReviews: 8848,
+  experience: "4 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["AC", "Service", "Cleaning", "Filter", "Lite Service"],
+  featured: true,
+  packages: [
+    { id: 1, title: "1 Split AC Lite Service", price: 449, features: ["Indoor filter & grill clean", "Cooling coil dry brush", "Outdoor dust wash", "Gas check"] },
+    { id: 2, title: "2 ACs Lite Combo", price: 799, features: ["Complete lite clean for 2 ACs", "Free gas leak test", "Performance report"] }
+  ],
+  faqs: [
+    { question: "How often should I get lite service?", answer: "We recommend a lite service every 3-4 months during peak summer." }
+  ],
+  reviews: [
+    { id: 1, user: "Amit Anand", rating: 5, comment: "Quick, neat, and prompt service. The cooling improved noticeably right away." }
+  ],
+  providers: [
+    { id: 52, name: "AirMaster Patna", rating: 4.8, experience: "6 Years", location: "Patna", startingPrice: 449, image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=600&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 503,
+  slug: "foam-jet-ac-service",
+  name: "Foam Jet AC Service",
+  shortDescription: "Restores cooling with deep foam and jet cleaning. Best for dust buildup.",
+  fullDescription: "Our flagship deep cleaning service. Uses specialized foam spray to melt stubborn dirt and high-pressure jet wash to flush out deep-seated grime from the indoor cooling coil and outdoor condenser.",
+  categoryId: 1,
+  categoryName: "AC & Appliances",
+  subCategoryName: "Repair & Services",
+  thumbnail: "/images/ac/foam-jet-ac-service.jpg",
+  bannerImage: "/images/ac/foam-jet-ac-service.jpg",
+  gallery: ["/images/ac/foam-jet-ac-service.jpg"],
+  startingPrice: 699,
+  priceUnit: "per AC",
+  rating: 4.6,
+  totalReviews: 8853,
+  experience: "7 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["AC", "Foam Jet", "Deep Clean", "Pressure Wash"],
+  featured: true,
+  packages: [
+    { id: 1, title: "1 Split AC Foam Jet Service", price: 699, features: ["2X deeper cleaning with foam spray", "High-pressure water jet flush", "Indoor jacket protection", "Full outdoor unit jet wash"] },
+    { id: 2, title: "2 ACs Foam Jet Combo", price: 1299, features: ["2 Split ACs deep foam jet cleaning", "Condenser coil descaling", "Drain pipe unclogging"] }
+  ],
+  faqs: [
+    { question: "Will water spill inside the room?", answer: "No! Technicians install a waterproof catch jacket around the indoor unit." }
+  ],
+  reviews: [
+    { id: 1, user: "Vikram Sen", rating: 5, comment: "Incredible airflow after the foam jet wash! Ice cold cooling restored." }
+  ],
+  providers: [
+    { id: 53, name: "JetCool Experts", rating: 4.9, experience: "7 Years", location: "Patna", startingPrice: 699, image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 504,
+  slug: "ac-gas-refill",
+  name: "Gas Refill & Check-up",
+  shortDescription: "AC gas refill for instant cooling. Fix leaks. Refill gas. Cool better.",
+  fullDescription: "Complete AC gas replenishment solution. Includes electronic leak detection, brazing/repair of copper pipe leaks, vacuum flushing of lines, and precision gas recharge (R32 / R410A / R22) with warranty.",
+  categoryId: 1,
+  categoryName: "AC & Appliances",
+  subCategoryName: "Gas Refill",
+  thumbnail: "/images/ac/ac-gas-refill.jpg",
+  bannerImage: "/images/ac/ac-gas-refill.jpg",
+  gallery: ["/images/ac/ac-gas-refill.jpg"],
+  startingPrice: 2499,
+  priceUnit: "complete refill",
+  rating: 4.7,
+  totalReviews: 9069,
+  experience: "8 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["AC", "Gas Refill", "R32", "R410A", "Leak Repair", "Freon"],
+  featured: true,
+  packages: [
+    { id: 1, title: "Complete Gas Refill (R32/R410A)", price: 2499, features: ["Leak identification & nitrogen test", "Minor leak fixing & vacuum process", "100% genuine gas recharge", "60-day cooling warranty"] },
+    { id: 2, title: "Gas Top-up & Leak Check", price: 1499, features: ["Gas pressure check", "Up to 30% top-up recharge", "Leak testing report"] }
+  ],
+  faqs: [
+    { question: "Is there any warranty on gas refill?", answer: "Yes, we provide a 60-day cooling and leak-free warranty on complete gas refills." }
+  ],
+  reviews: [
+    { id: 1, user: "Suresh Sinha", rating: 5, comment: "Technician found a tiny leak at flare nut, tightened it and refilled gas. Instant chilling!" }
+  ],
+  providers: [
+    { id: 54, name: "ChillWave HVAC", rating: 4.8, experience: "8 Years", location: "Patna", startingPrice: 2499, image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=600&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 505,
+  slug: "ac-installation",
+  name: "AC Installation",
+  shortDescription: "Quick, safe AC installation for optimal cooling. Secure setup with final performance check.",
+  fullDescription: "Professional AC installation by certified technicians. Includes indoor unit mounting, outdoor bracket fixing, copper pipe connection, electrical wiring, drain pipe routing, vacuum test, and performance verification.",
+  categoryId: 1,
+  categoryName: "AC & Appliances",
+  subCategoryName: "Install & Uninstall",
+  thumbnail: "/images/ac/ac-installation.jpg",
+  bannerImage: "/images/ac/ac-installation.jpg",
+  gallery: ["/images/ac/ac-installation.jpg"],
+  startingPrice: 1199,
+  priceUnit: "per AC",
+  rating: 4.7,
+  totalReviews: 8935,
+  experience: "6 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["AC", "Installation", "Split AC", "Window AC", "Setup"],
+  featured: false,
+  packages: [
+    { id: 1, title: "Split AC Standard Installation", price: 1199, features: ["Indoor bracket & unit mounting", "Outdoor unit placement & fixing", "Core drilling (standard brick wall)", "Copper piping & wiring connection", "Vacuum testing & cooling demo"] },
+    { id: 2, title: "Window AC Installation", price: 699, features: ["Window frame bracket setup", "Unit leveling & sealing", "Power connection & testing"] }
+  ],
+  faqs: [
+    { question: "Are copper pipes and stand included?", answer: "Standard brackets and piping provided with the new AC are used. Extra copper pipes or stands are billed at standardized rates." }
+  ],
+  reviews: [
+    { id: 1, user: "Deepak Ranjan", rating: 5, comment: "Punctual and very neat drill work. No dust left behind." }
+  ],
+  providers: [
+    { id: 55, name: "Apex Cooling Solutions", rating: 4.8, experience: "6 Years", location: "Patna", startingPrice: 1199, image: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=600&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 506,
+  slug: "ac-uninstallation",
+  name: "AC Uninstallation",
+  shortDescription: "Careful dismantling of AC indoor & outdoor units with safe packing.",
+  fullDescription: "Damage-free AC uninstallation with complete gas recovery/pump down. Certified technicians safely dismount indoor & outdoor units, seal copper tubes to prevent moisture, and wrap units for transit or renovation.",
+  categoryId: 1,
+  categoryName: "AC & Appliances",
+  subCategoryName: "Install & Uninstall",
+  thumbnail: "/images/ac/ac-uninstallation.jpg",
+  bannerImage: "/images/ac/ac-uninstallation.jpg",
+  gallery: ["/images/ac/ac-uninstallation.jpg"],
+  startingPrice: 499,
+  priceUnit: "per AC",
+  rating: 4.7,
+  totalReviews: 8829,
+  experience: "5 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["AC", "Uninstallation", "Dismantling", "Relocation"],
+  featured: false,
+  packages: [
+    { id: 1, title: "Split AC Uninstallation", price: 499, features: ["Gas pump down (zero gas loss)", "Indoor & outdoor unit dismount", "Copper pipe coil & tube sealing", "Bracket removal"] },
+    { id: 2, title: "Window AC Uninstallation", price: 349, features: ["Unit dismantling from window", "Frame removal & clean-up"] }
+  ],
+  faqs: [
+    { question: "Will gas be lost during uninstallation?", answer: "No! Technicians perform a pump down to trap all refrigerant inside the compressor." }
+  ],
+  reviews: [
+    { id: 1, user: "Neha Kumari", rating: 5, comment: "Dismantled safely for our home shifting without any gas leakage." }
+  ],
+  providers: [
+    { id: 56, name: "QuickPro Technicians", rating: 4.7, experience: "5 Years", location: "Patna", startingPrice: 499, image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=600&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 507,
+  slug: "ac-annual-maintenance",
+  name: "AC Annual Maintenance Pack",
+  shortDescription: "Complete year-round AC care — 2 foam jet services + breakdown visits.",
+  fullDescription: "Stay worry-free all year with our AC Annual Maintenance Pack. Includes 2 deep foam jet cleanings, unlimited breakdown visits, priority service scheduling, and 15% discount on all spare parts and gas refilling.",
+  categoryId: 1,
+  categoryName: "AC & Appliances",
+  subCategoryName: "Saver Packs",
+  thumbnail: "/images/ac/ac-annual-maintenance.jpg",
+  bannerImage: "/images/ac/ac-annual-maintenance.jpg",
+  gallery: ["/images/ac/ac-annual-maintenance.jpg"],
+  startingPrice: 1499,
+  priceUnit: "per year / AC",
+  rating: 4.8,
+  totalReviews: 4520,
+  experience: "10 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["AC", "AMC", "Annual Maintenance", "Saver Pack", "Warranty"],
+  featured: true,
+  packages: [
+    { id: 1, title: "1 AC 1-Year Saver Plan", price: 1499, features: ["2 Deep Foam Jet Cleanings", "2 Breakdown Diagnosis Visits", "15% Off on Spare Parts & Gas", "Priority Technicians"] },
+    { id: 2, title: "2 ACs Whole-Home Pack", price: 2699, features: ["4 Deep Foam Jet Cleanings (2 per AC)", "Unlimited breakdown assistance", "20% Off on Gas & Spares", "Dedicated Account Manager"] }
+  ],
+  faqs: [
+    { question: "When are the 2 services scheduled?", answer: "One before summer (March-April) and one post-monsoon (September-October), or whenever you prefer." }
+  ],
+  reviews: [
+    { id: 1, user: "Rohan Varma", rating: 5, comment: "Best value pack! Both our split ACs run like brand new without any breakdown." }
+  ],
+  providers: [
+    { id: 57, name: "CoolGuard AMC Services", rating: 4.9, experience: "10 Years", location: "Patna", startingPrice: 1499, image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop" }
   ]
 }
 ];

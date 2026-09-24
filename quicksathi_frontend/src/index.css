@@ -11,6 +11,14 @@ body,
   min-height: 100%;
   margin: 0;
   padding: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+body {
+  position: relative;
 }
 
 *,
@@ -104,9 +112,12 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
-/* Prevent horizontal overflow on mobile */
-body {
+/* Prevent horizontal overflow on mobile across viewport */
+html,
+body,
+#root {
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 /* ─────────────────────────────────────────

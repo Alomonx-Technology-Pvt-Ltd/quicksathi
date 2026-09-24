@@ -26,7 +26,7 @@ const categorySchema = new mongoose.Schema(
     vertical: {
       type: String,
       required: true,
-      enum: ["WEDDING", "VEHICLE_RENTAL", "CCTV_SECURITY", "HOME_TUITION", "HOUSE_HELP", "HOME_SALON", "HOUSE_SERVICES", "PAINTING"],
+      enum: ["WEDDING", "VEHICLE_RENTAL", "CCTV_SECURITY", "HOME_TUITION", "HOUSE_HELP", "HOME_SALON", "HOUSE_SERVICES", "PAINTING", "AC_APPLIANCES"],
     },
     type: {
       type: String,
