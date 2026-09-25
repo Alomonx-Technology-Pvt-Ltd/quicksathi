@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -10,9 +10,10 @@ import {
   Wrench,
   Car,
   Sparkles,
-  ShieldCheck,
 } from "lucide-react";
-import api from "../config/api";
+import api, { getCached } from "../config/api";
+import { mockServices } from "../data/mockServices";
+import { mockCategories } from "../data/mockCategories";
 
 // ── Target 4 core categories ──────────────────────────────────────────────────
 const SECTIONS_CONFIG = [
@@ -21,7 +22,7 @@ const SECTIONS_CONFIG = [
     title: "AC & Appliance Services",
     subtitle: "AC repair, gas refill, installation & annual maintenance",
     vertical: "AC_APPLIANCES",
-    nameKeywords: ["ac", "appliance", "air conditioner"],
+    nameKeywords: ["ac", "appliance", "air conditioner", "refrigerator", "cooler"],
     fallbackIcon: Wrench,
     accentColor: "#0ea5e9", // Sky Blue
   },
@@ -30,7 +31,7 @@ const SECTIONS_CONFIG = [
     title: "House Services & Repair",
     subtitle: "Plumbing, electrical, carpentry & CCTV security",
     vertical: "HOUSE_SERVICES",
-    nameKeywords: ["house services", "home service", "repair", "cctv", "security"],
+    nameKeywords: ["house services", "home service", "repair", "cctv", "security", "electric", "plumb", "carpenter", "lock"],
     fallbackIcon: Wrench,
     accentColor: "#f97316", // Amber / Orange
   },
@@ -39,7 +40,7 @@ const SECTIONS_CONFIG = [
     title: "Car & Vehicle Rentals",
     subtitle: "Everyday city rides, outstation cabs & luxury wedding cars",
     vertical: "VEHICLE_RENTAL",
-    nameKeywords: ["vehicle", "car", "rental"],
+    nameKeywords: ["vehicle", "car", "rental", "ride", "cab", "drive", "suv"],
     fallbackIcon: Car,
     accentColor: "#7c3aed", // Purple
   },
@@ -48,7 +49,7 @@ const SECTIONS_CONFIG = [
     title: "Wedding & Event Services",
     subtitle: "Cinematic photography, stage decoration, catering & bridal makeup",
     vertical: "WEDDING",
-    nameKeywords: ["wedding", "party", "event"],
+    nameKeywords: ["wedding", "party", "event", "photograph", "decor", "cater", "makeup"],
     fallbackIcon: Sparkles,
     accentColor: "#db2777", // Rose Pink
   },
@@ -58,7 +59,6 @@ const SECTIONS_CONFIG = [
 const ServiceCard = ({ service, onBookNow }) => {
   const navigate = useNavigate();
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
 
   // Check saved wishlist state
   useEffect(() => {
@@ -113,8 +113,12 @@ const ServiceCard = ({ service, onBookNow }) => {
   };
 
   const formattedPrice = Number(service.startingPrice || 0).toLocaleString("en-IN");
-  const ratingValue = service.rating ? Number(service.rating).toFixed(1) : "0.0";
-  const thumbnail = service.thumbnail || service.bannerImage || "/images/cctv-main.png";
+  const ratingValue = service.rating ? Number(service.rating).toFixed(1) : "4.8";
+  const thumbnail =
+    service.thumbnail ||
+    service.bannerImage ||
+    (Array.isArray(service.gallery) && service.gallery[0]) ||
+    "/images/ac/ac-checkup.webp";
 
   return (
     <motion.div
@@ -128,17 +132,14 @@ const ServiceCard = ({ service, onBookNow }) => {
         <img
           src={thumbnail}
           alt={service.name}
-          onLoad={() => setImageLoaded(true)}
-          className={`w-full h-full object-cover transition-transform duration-500 group-hover:scale-105 ${
-            imageLoaded ? "opacity-100" : "opacity-0"
-          }`}
+          loading="lazy"
+          decoding="async"
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           onError={(e) => {
-            e.currentTarget.src = "/images/ac/ac-checkup.jpg";
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = "/images/ac/ac-checkup.webp";
           }}
         />
-        {!imageLoaded && (
-          <div className="absolute inset-0 bg-slate-200 animate-pulse" />
-        )}
 
         {/* Favorite / Wishlist Heart Button */}
         <button
@@ -243,7 +244,7 @@ const CategorySectionRow = ({
   };
 
   useEffect(() => {
-    const timer = setTimeout(checkScroll, 300);
+    const timer = setTimeout(checkScroll, 100);
     const el = scrollRef.current;
     if (el) {
       el.addEventListener("scroll", checkScroll, { passive: true });
@@ -263,11 +264,13 @@ const CategorySectionRow = ({
   };
 
   // Build target destination route for "See all"
-  const seeAllRoute = category?._id
+  const seeAllRoute = config.key === "ac-appliances"
+    ? "/services/ac"
+    : category?._id
     ? `/category/${category._id}`
     : `/services?q=${encodeURIComponent(config.nameKeywords[0])}`;
 
-  // If not loading and no real services exist, do not render an empty section
+  // If not loading and no services exist, do not render an empty section
   if (!loading && services.length === 0) {
     return null;
   }
@@ -335,7 +338,7 @@ const CategorySectionRow = ({
         ref={scrollRef}
         className="flex gap-3.5 sm:gap-4.5 overflow-x-auto pb-4 pt-1 px-0.5 scroll-smooth snap-x snap-mandatory overscroll-x-contain [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
       >
-        {loading
+        {loading && services.length === 0
           ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
           : services.map((service) => (
               <ServiceCard
@@ -349,100 +352,145 @@ const CategorySectionRow = ({
   );
 };
 
+// ── Precise section matchers to avoid false positive substring matches ────────
+const SECTION_MATCHERS = {
+  "ac-appliances": (s) => {
+    const name = (s.name || "").toLowerCase();
+    const catName = (s.categoryName || s.category?.name || "").toLowerCase();
+    const tags = Array.isArray(s.tags) ? s.tags.join(" ").toLowerCase() : "";
+    const vertical = s.vertical || s.category?.vertical || "";
+
+    if (vertical === "AC_APPLIANCES") return true;
+    if (catName.includes("ac & appliance") || catName.includes("ac repair") || catName.includes("air conditioner")) return true;
+    if (/\bac\b/i.test(name) || /\bair conditioner\b/i.test(name) || /\bfoam jet\b/i.test(name)) return true;
+    if (/\bac\b/i.test(tags)) return true;
+    return false;
+  },
+  "house-services": (s) => {
+    const name = (s.name || "").toLowerCase();
+    const catName = (s.categoryName || s.category?.name || "").toLowerCase();
+    const tags = Array.isArray(s.tags) ? s.tags.join(" ").toLowerCase() : "";
+    const vertical = s.vertical || s.category?.vertical || "";
+
+    // Exclude AC services from general house services
+    if (SECTION_MATCHERS["ac-appliances"](s)) return false;
+
+    if (vertical === "HOUSE_SERVICES") return true;
+    if (catName.includes("house service") || catName.includes("home repair") || catName.includes("plumb") || catName.includes("electric") || catName.includes("carpenter")) return true;
+    if (/\b(electric|plumb|carpenter|cctv|smart lock|appliance repair|switch|wiring|fan repair)\b/i.test(name)) return true;
+    if (/\b(electric|plumb|carpenter|cctv)\b/i.test(tags)) return true;
+    return false;
+  },
+  "cars": (s) => {
+    const name = (s.name || "").toLowerCase();
+    const catName = (s.categoryName || s.category?.name || "").toLowerCase();
+    const vertical = s.vertical || s.category?.vertical || "";
+
+    if (vertical === "VEHICLE_RENTAL") return true;
+    if (catName.includes("vehicle") || catName.includes("rental") || catName.includes("car")) return true;
+    if (/\b(car rental|vehicle|cab|chauffeur|sedan|suv|self-drive)\b/i.test(name)) return true;
+    return false;
+  },
+  "wedding": (s) => {
+    const name = (s.name || "").toLowerCase();
+    const catName = (s.categoryName || s.category?.name || "").toLowerCase();
+    const vertical = s.vertical || s.category?.vertical || "";
+
+    if (vertical === "WEDDING") return true;
+    if (catName.includes("wedding") || catName.includes("event") || catName.includes("party")) return true;
+    if (/\b(wedding|photography|cinematic|candid|stage decor|bridal makeup|catering|caterer)\b/i.test(name)) return true;
+    return false;
+  },
+};
+
 // Main Export Component
 const HomeFeaturedServices = ({
   categories: propCategories = [],
   services: propServices = [],
   onBookNow,
 }) => {
-  const [realServices, setRealServices] = useState([]);
-  const [realCategories, setRealCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+  // ── Instant 0ms Render: seed immediately from props or cache or mock data ──
+  const [realServices, setRealServices] = useState(() => {
+    if (Array.isArray(propServices) && propServices.length > 0) return propServices;
+    const cached = getCached("/services");
+    if (cached && cached.length > 0) return cached;
+    return mockServices;
+  });
 
-  // Fetch real-time services and categories directly from backend API
-  // Ensuring only real-time working services from backend are displayed
+  const [realCategories, setRealCategories] = useState(() => {
+    if (Array.isArray(propCategories) && propCategories.length > 0) return propCategories;
+    const cached = getCached("/categories");
+    if (cached && cached.length > 0) return cached;
+    return mockCategories;
+  });
+
+  // Never block the user with full-section skeletons if services are already present
+  const [loading, setLoading] = useState(false);
+
+  // Sync state if parent props update (e.g., when Home.jsx finishes background fetch or city change)
+  useEffect(() => {
+    if (Array.isArray(propServices) && propServices.length > 0) {
+      setRealServices(propServices);
+    }
+  }, [propServices]);
+
+  useEffect(() => {
+    if (Array.isArray(propCategories) && propCategories.length > 0) {
+      setRealCategories(propCategories);
+    }
+  }, [propCategories]);
+
+  // Silent background fetch to refresh real database data without blocking UI
   useEffect(() => {
     let isMounted = true;
-
-    const fetchRealData = async () => {
+    const fetchFreshData = async () => {
       try {
-        setLoading(true);
         const [servicesRes, categoriesRes] = await Promise.all([
-          api.get("/services"),
-          api.get("/categories"),
+          api.get("/services").catch(() => null),
+          api.get("/categories").catch(() => null),
         ]);
 
         if (isMounted) {
-          if (Array.isArray(servicesRes.data) && servicesRes.data.length > 0) {
-            // Keep only real services from backend (with Mongo _id)
+          if (servicesRes?.data && Array.isArray(servicesRes.data) && servicesRes.data.length > 0) {
             setRealServices(servicesRes.data);
-          } else if (Array.isArray(propServices) && propServices.length > 0) {
-            setRealServices(propServices.filter((s) => s._id || String(s.id).length > 8));
           }
-
-          if (Array.isArray(categoriesRes.data) && categoriesRes.data.length > 0) {
+          if (categoriesRes?.data && Array.isArray(categoriesRes.data) && categoriesRes.data.length > 0) {
             setRealCategories(categoriesRes.data);
-          } else if (Array.isArray(propCategories) && propCategories.length > 0) {
-            setRealCategories(propCategories);
           }
         }
       } catch (err) {
-        console.warn("HomeFeaturedServices fetch error:", err?.message);
-        if (isMounted && Array.isArray(propServices)) {
-          // Filter to real services if present
-          setRealServices(propServices.filter((s) => s._id || String(s.id).length > 8));
-          setRealCategories(propCategories);
-        }
-      } finally {
-        if (isMounted) setLoading(false);
+        // Silently keep current data on failure
       }
     };
 
-    fetchRealData();
-
+    fetchFreshData();
     return () => {
       isMounted = false;
     };
-  }, [propServices, propCategories]);
+  }, []);
 
-  // Group real-time services by category vertical / keyword
-  const groupedData = SECTIONS_CONFIG.map((config) => {
-    // 1. Find matching real category from backend
-    const matchedCategory = realCategories.find((cat) => {
-      if (cat.vertical && cat.vertical === config.vertical) return true;
-      const catName = (cat.name || "").toLowerCase();
-      return config.nameKeywords.some((kw) => catName.includes(kw));
+  // Group services by category section using the precise matchers
+  const groupedData = useMemo(() => {
+    return SECTIONS_CONFIG.map((config) => {
+      const matcher = SECTION_MATCHERS[config.key] || (() => false);
+
+      // Find matching category
+      const matchedCategory = realCategories.find((cat) => {
+        if (cat.vertical && cat.vertical === config.vertical) return true;
+        const catName = (cat.name || "").toLowerCase();
+        return config.nameKeywords.some((kw) => catName.includes(kw));
+      });
+
+      // Filter services using the precise matcher
+      const categoryServices = realServices.filter(matcher);
+
+      return {
+        config,
+        category: matchedCategory,
+        services: categoryServices,
+      };
     });
-
-    const catId = matchedCategory?._id || matchedCategory?.id;
-
-    // 2. Filter real services for this category
-    const categoryServices = realServices.filter((service) => {
-      // Match by category ObjectId
-      if (catId && service.category) {
-        if (String(service.category._id || service.category) === String(catId)) {
-          return true;
-        }
-      }
-      // Match by category vertical
-      if (service.vertical && service.vertical === config.vertical) {
-        return true;
-      }
-      // Match by categoryName string
-      const serviceCatName = (service.categoryName || "").toLowerCase();
-      if (matchedCategory?.name && serviceCatName === matchedCategory.name.toLowerCase()) {
-        return true;
-      }
-      // Match by keyword in categoryName or service tags
-      return config.nameKeywords.some((kw) => serviceCatName.includes(kw));
-    });
-
-    return {
-      config,
-      category: matchedCategory,
-      services: categoryServices,
-    };
-  });
+  }, [realCategories, realServices]);
 
   return (
     <div className="w-full bg-[#fcfcfd] py-8 sm:py-12 border-y border-gray-100 overflow-hidden">

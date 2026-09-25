@@ -54,10 +54,10 @@ const MyBookings = () => {
       <div className="min-h-screen flex items-center justify-center px-6 pt-20" style={{ backgroundColor: "var(--color-bg)" }}>
         <div className="text-center">
           <h2 className="text-2xl font-normal mb-4" style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}>
-            Please login to view bookings
+            Please sign in to view bookings
           </h2>
           <Link to="/login" className="px-6 py-3 rounded-full text-sm font-semibold no-underline" style={{ fontFamily: "var(--font-body)", backgroundColor: "var(--color-primary)", color: "#fff" }}>
-            Login / Sign Up
+            Sign In / Sign Up
           </Link>
         </div>
       </div>

@@ -31,9 +31,9 @@ const migrate = async () => {
       vertical: "AC_APPLIANCES",
       type: "SERVICE_ONLY",
       imageUrl:
-        "/images/ac/ac-checkup.jpg",
+        "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790330172/TiptoBook/services/ac-checkup.jpg",
       secondaryImageUrl:
-        "/images/ac/ac-annual-maintenance.jpg",
+        "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315768/TiptoBook/services/ac-annual-maintenance.jpg",
       iconUrl: "/icons/categories/ac-appliances.png",
       displayOrder: 7,
       active: true,
@@ -46,9 +46,9 @@ const migrate = async () => {
           vertical: "AC_APPLIANCES",
           type: "SERVICE_ONLY",
           imageUrl:
-            "/images/ac/ac-checkup.jpg",
+            "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790330172/TiptoBook/services/ac-checkup.jpg",
           secondaryImageUrl:
-            "/images/ac/foam-jet-ac-service.jpg",
+            "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790330173/TiptoBook/services/foam-jet-ac-service.png",
           displayOrder: 1,
           active: true,
         },
@@ -59,9 +59,9 @@ const migrate = async () => {
           vertical: "AC_APPLIANCES",
           type: "SERVICE_ONLY",
           imageUrl:
-            "/images/ac/ac-gas-refill.jpg",
+            "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790330172/TiptoBook/services/ac-gas-refill.png",
           secondaryImageUrl:
-            "/images/ac/ac-gas-refill.jpg",
+            "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790330172/TiptoBook/services/ac-gas-refill.png",
           displayOrder: 2,
           active: true,
         },
@@ -72,9 +72,9 @@ const migrate = async () => {
           vertical: "AC_APPLIANCES",
           type: "SERVICE_ONLY",
           imageUrl:
-            "/images/ac/ac-installation.jpg",
+            "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315766/TiptoBook/services/ac-installation.jpg",
           secondaryImageUrl:
-            "/images/ac/ac-uninstallation.jpg",
+            "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315767/TiptoBook/services/ac-uninstallation.jpg",
           displayOrder: 3,
           active: true,
         },
@@ -85,9 +85,9 @@ const migrate = async () => {
           vertical: "AC_APPLIANCES",
           type: "SERVICE_ONLY",
           imageUrl:
-            "/images/ac/ac-annual-maintenance.jpg",
+            "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315768/TiptoBook/services/ac-annual-maintenance.jpg",
           secondaryImageUrl:
-            "/images/ac/ac-annual-maintenance.jpg",
+            "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315768/TiptoBook/services/ac-annual-maintenance.jpg",
           displayOrder: 4,
           active: true,
         },
@@ -115,8 +115,8 @@ const migrate = async () => {
           "Comprehensive CCTV camera installation, smart locks, and security system maintenance for homes and businesses.",
         vertical: "HOUSE_SERVICES",
         type: "SERVICE_ONLY",
-        imageUrl: "/images/cctv-main.png",
-        secondaryImageUrl: "/images/cctv-main.png",
+        imageUrl: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/cctv-main.jpg",
+        secondaryImageUrl: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/cctv-main.jpg",
         displayOrder: 5,
         active: true,
       },
@@ -176,11 +176,11 @@ const migrate = async () => {
       fullDescription:
         "Get a thorough AC health check-up by certified technicians. Includes compressor testing, gas pressure check, thermostat calibration, electrical connection audit, and a detailed report with repair recommendations. Visitation fee will be adjusted in the final repair quote.",
       thumbnail:
-        "/images/ac/ac-checkup.jpg",
+        "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790330172/TiptoBook/services/ac-checkup.jpg",
       bannerImage:
-        "/images/ac/ac-checkup.jpg",
+        "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790330172/TiptoBook/services/ac-checkup.jpg",
       gallery: [
-        "/images/ac/ac-checkup.jpg",
+        "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790330172/TiptoBook/services/ac-checkup.jpg",
       ],
       startingPrice: 299,
       priceUnit: "per visit",
@@ -253,10 +253,10 @@ const migrate = async () => {
       fullDescription:
         "A quick and affordable AC service that includes filter cleaning, indoor unit jet wash, drain pipe flush, and basic performance checks. Perfect for regular maintenance to keep your AC running efficiently. Recommended every 3-4 months.",
       thumbnail:
-        "/images/ac/ac-lite-service.jpg",
+        "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315763/TiptoBook/services/ac-lite-service.jpg",
       bannerImage:
-        "/images/ac/ac-lite-service.jpg",
-      gallery: ["/images/ac/ac-lite-service.jpg"],
+        "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315763/TiptoBook/services/ac-lite-service.jpg",
+      gallery: ["https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315763/TiptoBook/services/ac-lite-service.jpg"],
       startingPrice: 449,
       priceUnit: "per unit",
       rating: 4.7,
@@ -328,10 +328,10 @@ const migrate = async () => {
       fullDescription:
         "Our premium foam jet AC service restores cooling with deep foam cleaning of evaporator coils, high-pressure jet wash of indoor and outdoor units, anti-bacterial treatment, and comprehensive performance testing. Best for ACs with heavy dust buildup or weak airflow.",
       thumbnail:
-        "/images/ac/foam-jet-ac-service.jpg",
+        "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790330173/TiptoBook/services/foam-jet-ac-service.png",
       bannerImage:
-        "/images/ac/foam-jet-ac-service.jpg",
-      gallery: ["/images/ac/foam-jet-ac-service.jpg"],
+        "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790330173/TiptoBook/services/foam-jet-ac-service.png",
+      gallery: ["https://res.cloudinary.com/bnmn9cbp/image/upload/v1790330173/TiptoBook/services/foam-jet-ac-service.png"],
       startingPrice: 699,
       priceUnit: "per unit",
       rating: 4.6,
@@ -403,10 +403,10 @@ const migrate = async () => {
       fullDescription:
         "Professional AC gas refill service with leak detection and pressure testing. Fix leaks, refill gas, and restore optimal cooling. Includes R32/R410A refrigerant top-up, leak detection using electronic sensors, pressure gauge testing, and post-refill performance validation.",
       thumbnail:
-        "/images/ac/ac-gas-refill.jpg",
+        "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790330172/TiptoBook/services/ac-gas-refill.png",
       bannerImage:
-        "/images/ac/ac-gas-refill.jpg",
-      gallery: ["/images/ac/ac-gas-refill.jpg"],
+        "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790330172/TiptoBook/services/ac-gas-refill.png",
+      gallery: ["https://res.cloudinary.com/bnmn9cbp/image/upload/v1790330172/TiptoBook/services/ac-gas-refill.png"],
       startingPrice: 2499,
       priceUnit: "per unit",
       rating: 4.7,
@@ -478,10 +478,10 @@ const migrate = async () => {
       fullDescription:
         "Professional split & window AC installation by certified technicians. Includes wall mounting, copper piping, electrical connection, drain pipe setup, gas charging verification, and a final performance check to ensure optimal cooling from day one.",
       thumbnail:
-        "/images/ac/ac-installation.jpg",
+        "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315766/TiptoBook/services/ac-installation.jpg",
       bannerImage:
-        "/images/ac/ac-installation.jpg",
-      gallery: ["/images/ac/ac-installation.jpg"],
+        "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315766/TiptoBook/services/ac-installation.jpg",
+      gallery: ["https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315766/TiptoBook/services/ac-installation.jpg"],
       startingPrice: 1199,
       priceUnit: "per unit",
       rating: 4.7,
@@ -553,10 +553,10 @@ const migrate = async () => {
       fullDescription:
         "Professional AC uninstallation with proper gas recovery, safe dismounting of indoor and outdoor units, electrical disconnection, and piping removal. Ideal when shifting homes, renovating, or upgrading your AC unit.",
       thumbnail:
-        "/images/ac/ac-uninstallation.jpg",
+        "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315767/TiptoBook/services/ac-uninstallation.jpg",
       bannerImage:
-        "/images/ac/ac-uninstallation.jpg",
-      gallery: ["/images/ac/ac-uninstallation.jpg"],
+        "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315767/TiptoBook/services/ac-uninstallation.jpg",
+      gallery: ["https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315767/TiptoBook/services/ac-uninstallation.jpg"],
       startingPrice: 499,
       priceUnit: "per unit",
       rating: 4.7,
@@ -627,10 +627,10 @@ const migrate = async () => {
       fullDescription:
         "Get complete peace of mind with our Annual Maintenance Contract (AMC). Includes 2 preventive services per year, priority scheduling, discounted repairs, free gas top-ups (up to 200g), and a dedicated service manager. Save up to 30% compared to individual service calls.",
       thumbnail:
-        "/images/ac/ac-annual-maintenance.jpg",
+        "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315768/TiptoBook/services/ac-annual-maintenance.jpg",
       bannerImage:
-        "/images/ac/ac-annual-maintenance.jpg",
-      gallery: ["/images/ac/ac-annual-maintenance.jpg"],
+        "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315768/TiptoBook/services/ac-annual-maintenance.jpg",
+      gallery: ["https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315768/TiptoBook/services/ac-annual-maintenance.jpg"],
       startingPrice: 1499,
       priceUnit: "per year",
       rating: 4.8,

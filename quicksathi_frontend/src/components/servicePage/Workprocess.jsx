@@ -1,4 +1,4 @@
-﻿import { motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Search, MapPinned, ShieldCheck, CheckCircle2 } from "lucide-react";
 
 const steps = [
@@ -53,7 +53,7 @@ const WorkProcess = () => {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.4 }}
+            viewport={{ once: true }}
             transition={{ delay: 0.05 }}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full w-fit mx-auto mb-6"
             style={{
@@ -76,7 +76,7 @@ const WorkProcess = () => {
           <motion.h2
             initial={{ opacity: 0, y: 14 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.4 }}
+            viewport={{ once: true }}
             transition={{ delay: 0.12 }}
             className="font-normal m-0 mb-4 leading-[1.1]"
             style={{
@@ -102,7 +102,7 @@ const WorkProcess = () => {
           <motion.p
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, amount: 0.4 }}
+            viewport={{ once: true }}
             transition={{ delay: 0.18 }}
             className="text-sm sm:text-base leading-relaxed max-w-md mx-auto m-0"
             style={{
@@ -123,7 +123,7 @@ const WorkProcess = () => {
               key={step.num}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.3 }}
+              viewport={{ once: true }}
               transition={{ delay: 0.15 + index * 0.1, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
               whileHover={{ y: -6 }}
               className="group relative overflow-hidden rounded-3xl p-6 sm:p-7"

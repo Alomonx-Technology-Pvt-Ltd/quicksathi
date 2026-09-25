@@ -28,9 +28,6 @@ const Card = ({
   if (variant === "servicePreview") {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-40px" }}
         whileHover={{ y: -6, transition: { duration: 0.25, ease: "easeOut" } }}
         className="w-full rounded-2xl sm:rounded-[20px] overflow-hidden border flex flex-col lg:flex-row transition-shadow duration-300 hover:shadow-2xl group"
         style={{
@@ -47,6 +44,10 @@ const Card = ({
             <img
               src={image}
               alt={title}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=800&auto=format&fit=crop";
+              }}
               className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
             />
           </div>
@@ -57,6 +58,10 @@ const Card = ({
             <img
               src={secondaryImage || image}
               alt={title}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=800&auto=format&fit=crop";
+              }}
               className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
             />
           </div>
@@ -152,9 +157,6 @@ const Card = ({
   if (variant === "classic") {
     return (
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-40px" }}
         whileHover={{ y: -6, transition: { duration: 0.25, ease: "easeOut" } }}
         whileTap={{ scale: 0.98 }}
         className="rounded-2xl sm:rounded-[20px] overflow-hidden flex flex-col h-full border transition-shadow duration-300 hover:shadow-2xl group"
@@ -173,6 +175,10 @@ const Card = ({
             <img
               src={image}
               alt={title}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=800&auto=format&fit=crop";
+              }}
               className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
             />
           </div>
@@ -265,6 +271,10 @@ const Card = ({
       <img
         src={image}
         alt={title}
+        onError={(e) => {
+          e.currentTarget.onerror = null;
+          e.currentTarget.src = "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=800&auto=format&fit=crop";
+        }}
         className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         style={comingSoon ? { filter: "grayscale(0.65) brightness(0.8)" } : undefined}
       />
@@ -364,10 +374,7 @@ const Card = ({
   // Coming Soon — render as a non-interactive div (no navigation, no booking)
   if (comingSoon || !linkTo) {
     return (
-      <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
-        whileInView={{ opacity: 1, scale: 1 }}
-        viewport={{ once: true, margin: "-40px" }}
+      <div
         className="group relative rounded-2xl sm:rounded-[18px] overflow-hidden border"
         style={{
           aspectRatio: "4/3",
@@ -377,16 +384,13 @@ const Card = ({
         }}
       >
         {content}
-      </motion.div>
+      </div>
     );
   }
 
   return (
     <MotionLink
       to={linkTo}
-      initial={{ opacity: 0, y: 18 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
       whileHover={{ y: -6, transition: { duration: 0.25, ease: "easeOut" } }}
       whileTap={{ scale: 0.98 }}
       className="group relative rounded-2xl sm:rounded-[18px] overflow-hidden block no-underline border transition-shadow duration-300 hover:shadow-2xl"

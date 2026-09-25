@@ -24,25 +24,25 @@ const SUB_CATEGORIES = [
   {
     id: "repair-services",
     name: "Repair & Services",
-    image: "/images/ac/ac-checkup.jpg",
+    image: "/images/ac/ac-checkup.webp",
     keywords: ["check-up", "checkup", "lite", "foam", "jet", "repair", "service"],
   },
   {
     id: "gas-refill",
     name: "Gas Refill",
-    image: "/images/ac/ac-gas-refill.jpg",
+    image: "/images/ac/gas-refill.webp",
     keywords: ["gas", "refill", "leak"],
   },
   {
     id: "install-uninstall",
     name: "Install & Uninstall",
-    image: "/images/ac/ac-installation.jpg",
+    image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315766/TiptoBook/services/ac-installation.jpg",
     keywords: ["installation", "uninstallation", "install", "uninstall"],
   },
   {
     id: "saver-packs",
     name: "Saver Packs",
-    image: "/images/ac/ac-annual-maintenance.jpg",
+    image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315768/TiptoBook/services/ac-annual-maintenance.jpg",
     keywords: ["saver", "annual", "maintenance", "amc", "pack"],
   },
 ];
@@ -58,7 +58,7 @@ const FALLBACK_AC_SERVICES = [
     totalReviews: 8831,
     startingPrice: 299,
     priceUnit: "visit",
-    thumbnail: "/images/ac/ac-checkup.jpg",
+    thumbnail: "/images/ac/ac-checkup.webp",
     bullets: [
       "Accurate AC issue diagnosis before any repair.",
       "Visitation fee will be adjusted in the final repair quote.",
@@ -83,7 +83,7 @@ const FALLBACK_AC_SERVICES = [
     totalReviews: 8848,
     startingPrice: 449,
     priceUnit: "AC",
-    thumbnail: "/images/ac/ac-lite-service.jpg",
+    thumbnail: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315763/TiptoBook/services/ac-lite-service.jpg",
     bullets: [
       "Quick AC clean for smooth cooling.",
       "Perfect for regular maintenance.",
@@ -107,7 +107,7 @@ const FALLBACK_AC_SERVICES = [
     totalReviews: 8853,
     startingPrice: 699,
     priceUnit: "AC",
-    thumbnail: "/images/ac/foam-jet-ac-service.jpg",
+    thumbnail: "/images/ac/foam-jet.webp",
     bullets: [
       "Restores cooling with deep foam and jet cleaning.",
       "Best for ACs with dust buildup or weak airflow.",
@@ -131,7 +131,7 @@ const FALLBACK_AC_SERVICES = [
     totalReviews: 9069,
     startingPrice: 2499,
     priceUnit: "refill",
-    thumbnail: "/images/ac/ac-gas-refill.jpg",
+    thumbnail: "/images/ac/gas-refill.webp",
     bullets: [
       "AC gas refill for instant cooling",
       "Fix leaks. Refill gas. Cool better.",
@@ -155,7 +155,7 @@ const FALLBACK_AC_SERVICES = [
     totalReviews: 8935,
     startingPrice: 1199,
     priceUnit: "AC",
-    thumbnail: "/images/ac/ac-installation.jpg",
+    thumbnail: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315766/TiptoBook/services/ac-installation.jpg",
     bullets: [
       "Quick, safe AC installation for optimal cooling.",
       "Secure setup with final performance check.",
@@ -179,7 +179,7 @@ const FALLBACK_AC_SERVICES = [
     totalReviews: 8829,
     startingPrice: 499,
     priceUnit: "AC",
-    thumbnail: "/images/ac/ac-uninstallation.jpg",
+    thumbnail: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315767/TiptoBook/services/ac-uninstallation.jpg",
     bullets: [
       "Careful dismantling of AC indoor & outdoor units.",
       "Pipe sealing and safe packing.",
@@ -203,7 +203,7 @@ const FALLBACK_AC_SERVICES = [
     totalReviews: 4520,
     startingPrice: 1499,
     priceUnit: "year",
-    thumbnail: "/images/ac/ac-annual-maintenance.jpg",
+    thumbnail: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315768/TiptoBook/services/ac-annual-maintenance.jpg",
     bullets: [
       "2 Complete Foam Jet services + 1 breakdown inspection.",
       "Priority support & guaranteed cooling all year round.",
@@ -321,10 +321,10 @@ const ACCategoryPage = ({ category: propCategory }) => {
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-20 overflow-x-hidden selection:bg-purple-100 selection:text-purple-900">
       <SEO
-        title="AC Services & Repair Near You — QuickSathi"
-        description="Book top-rated AC repair, foam jet deep service, gas refill, and installation in Patna. Verified technicians, upfront pricing & 30-day warranty."
-        canonical="https://www.quicksathi.com/services/ac"
-        keywords="AC repair, AC service, AC gas refill, AC installation, Split AC service, Patna AC repair, QuickSathi"
+        title="AC Services & Repair in Patna & Bihar — TiptoBook"
+        description="Book top-rated AC repair, foam jet deep service, gas refill, and installation in Patna & Bihar. Verified technicians, upfront pricing & 30-day warranty on TiptoBook."
+        canonical="https://www.tiptobook.com/services/ac"
+        keywords="AC repair Patna, AC service Patna, AC gas refill Bihar, Split AC installation Patna, Window AC repair, TiptoBook"
       />
 
       {/* ── Main Container: max-w-4xl for clean centered Urban Company feel ── */}
@@ -513,7 +513,8 @@ const ACCategoryPage = ({ category: propCategory }) => {
                           loading="lazy"
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                           onError={(e) => {
-                            e.currentTarget.src = "/images/ac/ac-checkup.jpg";
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = "/images/ac/ac-checkup.webp";
                           }}
                         />
                       </div>
@@ -623,7 +624,7 @@ const ACCategoryPage = ({ category: propCategory }) => {
                 <div className="p-3.5 rounded-2xl bg-purple-50/70 border border-purple-100 space-y-1.5 text-xs text-purple-900">
                   <div className="flex items-center gap-1.5 font-bold">
                     <Sparkles size={14} className="text-purple-600" />
-                    <span>QuickSathi AC Assurance</span>
+                    <span>TiptoBook AC Assurance</span>
                   </div>
                   <p className="m-0 leading-relaxed text-purple-800/90">
                     Background-verified technicians • 30-day post-service warranty • Standardized pricing with zero hidden charges.

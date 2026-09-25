@@ -23,7 +23,7 @@ router.get("/cities", async (req, res) => {
 // GET /api/services — Get all services (with optional filters)
 router.get("/", async (req, res) => {
   try {
-    const { category, featured, search, city, limit = 50 } = req.query;
+    const { category, featured, search, city, limit = 200 } = req.query;
     const filter = { available: true, approvalStatus: "approved" };
 
     if (category) {

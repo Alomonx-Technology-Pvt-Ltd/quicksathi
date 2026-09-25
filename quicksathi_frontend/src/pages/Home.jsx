@@ -11,7 +11,9 @@ import { mockServices } from "../data/mockServices";
 import { useLocation } from "../context/LocationContext";
 
 import AllCategoriesSection from "../components/AllCategoriesSection";
+import CategoryBannersCarousel from "../components/CategoryBannersCarousel";
 import HomeFeaturedServices from "../components/HomeFeaturedServices";
+import SpotlightPromoBanners from "../components/SpotlightPromoBanners";
 import WhyChooseUs from "../components/WhyChooseUs";
 import DownloadAppSection from "../components/DownloadAppSection";
 import SEO from "../components/SEO";
@@ -141,16 +143,16 @@ const Home = () => {
   return (
     <div className="bg-white min-h-screen w-full max-w-full overflow-x-hidden">
       <SEO
-        title="TiptoBook – Book Local Services Online"
-        description="TiptoBook is an online service booking platform to find and book trusted local services including home services, wedding services, car rentals, tutors and more.."
+        title="TiptoBook – Book Home Services, AC Repair & Car Rental in Patna & Bihar"
+        description="Book trusted local services in Patna & Bihar on TiptoBook. AC repair, wedding photography & catering, car rental, home salon, tuition, and cleaning at transparent prices."
         canonical="https://www.tiptobook.com/"
-        keywords="online service booking platform, service booking platform in India, book services online, local service providers, local services in India, home services, wedding services, car rental services, tutors near me, house help services, service providers in Patna, services in Bihar, TiptoBook"
+        keywords="home services in Patna, AC repair Patna, wedding services Patna, car rental in Patna, home salon Patna, home tuition Patna, house cleaning Patna, book services online Bihar, local services Patna, TiptoBook"
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "WebSite",
           "name": "TiptoBook",
           "url": "https://www.tiptobook.com/",
-          "description": "TiptoBook is an online service booking platform to find and book trusted local services including home services, wedding services, car rentals, tutors and more..",
+          "description": "Book trusted local services in Patna & Bihar on TiptoBook. AC repair, wedding photography, car rental, home salon, tuition, and cleaning at transparent prices.",
           "potentialAction": {
             "@type": "SearchAction",
             "target": "https://www.tiptobook.com/services?q={search_term_string}",
@@ -164,12 +166,14 @@ const Home = () => {
         onBookNow={handleBookNow}
         style={{ backgroundColor: "#ffffff" }}
       />
+      <CategoryBannersCarousel />
       <AllCategoriesSection categories={categories} />
       <HomeFeaturedServices
         categories={categories}
         services={services}
         onBookNow={handleBookNow}
       />
+      <SpotlightPromoBanners />
 
       {/* ── What We Do / Why Choose Us ── */}
       <WhyChooseUs />
@@ -177,9 +181,9 @@ const Home = () => {
       {/* ── Become a Partner / Join Us Section ── */}
       <section className="px-4 sm:px-8 lg:px-16 py-14 bg-white overflow-hidden w-full max-w-full">
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-60px" }}
+          viewport={{ once: true }}
           transition={{ duration: 0.55, ease: "easeOut" }}
           className="rounded-3xl p-8 sm:p-12 relative overflow-hidden flex flex-col md:flex-row items-center gap-10"
           style={{

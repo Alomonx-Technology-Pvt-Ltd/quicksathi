@@ -287,7 +287,7 @@ const BookingPage = () => {
               color: "var(--color-text-dark)",
             }}
           >
-            Please login to book
+            Please sign in to book
           </h2>
           <Link
             to="/login"
@@ -298,7 +298,7 @@ const BookingPage = () => {
               color: "#fff",
             }}
           >
-            Login / Sign Up
+            Sign In / Sign Up
           </Link>
         </div>
       </div>

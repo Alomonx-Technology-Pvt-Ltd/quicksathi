@@ -1,7 +1,9 @@
-import { NavLink } from "react-router-dom";
-import { Home, Grid, CalendarCheck, Phone } from "lucide-react";
+import { NavLink, useLocation } from "react-router-dom";
+import { Home, Grid, CalendarCheck, User } from "lucide-react";
 
 const BottomNav = () => {
+  const location = useLocation();
+
   const navItems = [
     {
       to: "/",
@@ -20,11 +22,19 @@ const BottomNav = () => {
       icon: <CalendarCheck size={22} strokeWidth={1.5} />,
     },
     {
-      to: "/contact",
-      label: "Contact",
-      icon: <Phone size={22} strokeWidth={1.5} />,
+      to: "/account",
+      label: "Account",
+      icon: <User size={22} strokeWidth={1.5} />,
     },
   ];
+
+  const checkActive = (to, end) => {
+    if (end) return location.pathname === to;
+    if (to === "/account") {
+      return location.pathname === "/account" || location.pathname === "/profile";
+    }
+    return location.pathname === to || (to !== "/" && location.pathname.startsWith(to));
+  };
 
   return (
     <div
@@ -37,27 +47,30 @@ const BottomNav = () => {
         boxShadow: "0 -4px 12px rgba(0,0,0,0.05)",
       }}
     >
-      {navItems.map(({ to, label, end, icon }) => (
-        <NavLink
-          key={to}
-          to={to}
-          end={end}
-          className="flex flex-col items-center justify-center w-full h-full gap-0.5 sm:gap-1 no-underline transition-colors duration-200"
-          style={({ isActive }) => ({
-            color: isActive ? "var(--color-primary)" : "var(--color-text-mid)",
-          })}
-        >
-          <div className="transition-transform duration-200 active:scale-95">
-            {icon}
-          </div>
-          <span
-            className="text-[9px] sm:text-[10px] font-medium tracking-wide whitespace-nowrap"
-            style={{ fontFamily: "var(--font-body)" }}
+      {navItems.map(({ to, label, end, icon }) => {
+        const active = checkActive(to, end);
+        return (
+          <NavLink
+            key={to}
+            to={to}
+            end={end}
+            className="flex flex-col items-center justify-center w-full h-full gap-0.5 sm:gap-1 no-underline transition-colors duration-200"
+            style={{
+              color: active ? "var(--color-primary)" : "var(--color-text-mid)",
+            }}
           >
-            {label}
-          </span>
-        </NavLink>
-      ))}
+            <div className="transition-transform duration-200 active:scale-95">
+              {icon}
+            </div>
+            <span
+              className="text-[9px] sm:text-[10px] font-medium tracking-wide whitespace-nowrap"
+              style={{ fontFamily: "var(--font-body)" }}
+            >
+              {label}
+            </span>
+          </NavLink>
+        );
+      })}
     </div>
   );
 };

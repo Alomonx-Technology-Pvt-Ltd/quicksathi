@@ -11,7 +11,7 @@ import BrandLogo from "../common/BrandLogo";
 import { motion, AnimatePresence } from "framer-motion";
 
 /* ── Compact City Picker (used inside navbar) ── */
-const CityPicker = ({ isFullBleed }) => {
+const CityPicker = ({ isFullBleed, isMobile }) => {
   const {
     fullLocation,
     street,
@@ -47,6 +47,15 @@ const CityPicker = ({ isFullBleed }) => {
     }
     return fullLocation || "Set your location";
   }, [street, road, locality, city, fullLocation]);
+
+  // Concise label for mobile header button
+  const mobileLabel = useMemo(() => {
+    if (locality) return locality;
+    if (city) return city;
+    if (street) return street.split(",")[0];
+    if (road) return road.split(",")[0];
+    return "Location";
+  }, [locality, city, street, road]);
 
   useEffect(() => {
     const handler = (e) => {
@@ -145,34 +154,44 @@ const CityPicker = ({ isFullBleed }) => {
       <button
         onClick={() => setOpen((v) => !v)}
         title={fullLocation ? `Exact Location: ${fullLocation}` : "Select Location"}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border-0 cursor-pointer transition-all duration-200 hover:opacity-80"
+        className="flex items-center gap-1.5 rounded-full border-0 cursor-pointer transition-all duration-200 hover:opacity-80 active:scale-95"
         style={{
-          backgroundColor: isFullBleed ? "rgba(255,255,255,0.14)" : "rgba(0,0,0,0.05)",
+          padding: isMobile ? "5px 10px" : "6px 12px",
+          backgroundColor: isMobile
+            ? "rgba(255, 107, 0, 0.08)"
+            : isFullBleed
+            ? "rgba(255,255,255,0.14)"
+            : "rgba(0,0,0,0.05)",
+          border: isMobile ? "1px solid rgba(255, 107, 0, 0.22)" : "none",
           backdropFilter: "blur(8px)",
-          color: isFullBleed ? "rgba(255,255,255,0.95)" : "var(--color-text-dark)",
+          color: isMobile
+            ? "#ea580c"
+            : isFullBleed
+            ? "rgba(255,255,255,0.95)"
+            : "var(--color-text-dark)",
           fontFamily: "var(--font-body)",
-          fontSize: "12px",
+          fontSize: isMobile ? "11.5px" : "12px",
           fontWeight: 600,
         }}
       >
         <MapPin
-          size={13}
+          size={isMobile ? 12 : 13}
           strokeWidth={2.4}
-          style={{ color: isFullBleed ? "#ff6b00" : "#ff6b00", flexShrink: 0 }}
+          style={{ color: "#ff6b00", flexShrink: 0 }}
         />
         {detecting ? (
-          <span style={{ fontSize: "11px", opacity: 0.8 }}>Locating GPS…</span>
+          <span style={{ fontSize: isMobile ? "10px" : "11px", opacity: 0.8 }}>Locating…</span>
         ) : (
           <span
             style={{
-              maxWidth: "230px",
+              maxWidth: isMobile ? "85px" : "230px",
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
               display: "inline-block",
             }}
           >
-            {displayLabel}
+            {isMobile ? mobileLabel : displayLabel}
           </span>
         )}
         <svg
@@ -193,14 +212,28 @@ const CityPicker = ({ isFullBleed }) => {
         </svg>
       </button>
 
+      {/* Backdrop for mobile */}
+      {open && isMobile && (
+        <div
+          className="fixed inset-0 z-[999] bg-black/25 backdrop-blur-[2px]"
+          onClick={() => setOpen(false)}
+        />
+      )}
+
       {open && (
         <div
-          className="absolute top-full mt-2 rounded-2xl overflow-hidden shadow-2xl z-[1000] border"
+          className={
+            isMobile
+              ? "fixed left-3 right-3 top-[68px] max-w-[360px] mx-auto rounded-2xl overflow-hidden shadow-2xl z-[1000] border"
+              : "absolute top-full mt-2 rounded-2xl overflow-hidden shadow-2xl z-[1000] border"
+          }
           style={{
-            right: 0,
-            width: "300px",
+            right: isMobile ? undefined : 0,
+            width: isMobile ? "auto" : "300px",
             backgroundColor: "var(--color-bg-white)",
             borderColor: "var(--color-border)",
+            maxHeight: isMobile ? "75vh" : undefined,
+            overflowY: isMobile ? "auto" : undefined,
           }}
         >
           {/* Current Location Header & Refinement */}
@@ -717,7 +750,7 @@ const Navbar = () => {
                 className="px-4 py-2 rounded-full text-sm font-semibold border-0 cursor-pointer transition-all duration-200 hover:bg-slate-100"
                 style={{ fontFamily: "var(--font-body)", color: "#475569", backgroundColor: "transparent" }}
               >
-                Log in
+                Sign In
               </button>
               <Link
                 to="/provider/onboarding"
@@ -735,23 +768,26 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Hamburger (mobile) */}
-        <button
-          className="md:hidden flex flex-col justify-center items-center w-9 h-9 gap-1.5 rounded-lg border-0 cursor-pointer"
-          style={{ background: "transparent" }}
-          onClick={() => setMenuOpen((v) => !v)}
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-        >
-          <span className="block w-6 h-0.5 transition-all duration-300"
-            style={{ backgroundColor: "#1e293b", transform: menuOpen ? "translateY(8px) rotate(45deg)" : "none" }}
-          />
-          <span className="block w-6 h-0.5 transition-all duration-300"
-            style={{ backgroundColor: "#1e293b", opacity: menuOpen ? 0 : 1 }}
-          />
-          <span className="block w-6 h-0.5 transition-all duration-300"
-            style={{ backgroundColor: "#1e293b", transform: menuOpen ? "translateY(-8px) rotate(-45deg)" : "none" }}
-          />
-        </button>
+        {/* Mobile Header: Location + Hamburger */}
+        <div className="flex items-center gap-2 md:hidden">
+          <CityPicker isMobile={true} />
+          <button
+            className="flex flex-col justify-center items-center w-9 h-9 gap-1.5 rounded-lg border-0 cursor-pointer"
+            style={{ background: "transparent" }}
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+          >
+            <span className="block w-6 h-0.5 transition-all duration-300"
+              style={{ backgroundColor: "#1e293b", transform: menuOpen ? "translateY(8px) rotate(45deg)" : "none" }}
+            />
+            <span className="block w-6 h-0.5 transition-all duration-300"
+              style={{ backgroundColor: "#1e293b", opacity: menuOpen ? 0 : 1 }}
+            />
+            <span className="block w-6 h-0.5 transition-all duration-300"
+              style={{ backgroundColor: "#1e293b", transform: menuOpen ? "translateY(-8px) rotate(-45deg)" : "none" }}
+            />
+          </button>
+        </div>
       </nav>
 
       {/* Mobile Menu Drawer */}
@@ -814,7 +850,7 @@ const Navbar = () => {
                     className="px-6 py-3 rounded-full text-sm font-semibold border-0 cursor-pointer text-center transition-all duration-200 hover:bg-slate-100"
                     style={{ fontFamily: "var(--font-body)", color: "#475569", backgroundColor: "rgba(0,0,0,0.04)" }}
                   >
-                    Log in
+                    Sign In / Sign Up
                   </button>
                   <Link
                     to="/provider/onboarding"

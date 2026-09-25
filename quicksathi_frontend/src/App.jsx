@@ -25,6 +25,10 @@ const MyBookings = lazy(() => import("./pages/MyBookings"));
 const ProviderOnboarding = lazy(() => import("./pages/ProviderOnboarding"));
 const ProviderDashboard = lazy(() => import("./pages/ProviderDashboard"));
 const Profile = lazy(() => import("./pages/Profile"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const ProviderPolicy = lazy(() => import("./pages/ProviderPolicy"));
+const ProviderTerms = lazy(() => import("./pages/ProviderTerms"));
 
 import AdminLogin from "./admin/pages/AdminLogin";
 
@@ -70,7 +74,7 @@ function App() {
           <Route path="/" element={<Layout />}>
             <Route index element={<Home />} />
             <Route path="category/:id" element={<Category />} />
-            <Route path="/about" element={<About />} />
+            <Route path="/about" element={<Navigate to="/about-us" replace />} />
             <Route path="/about-us" element={<About />} />
             <Route path="contact" element={<Contact />} />
             <Route path="/service/:id" element={<ServiceDetail />} />
@@ -91,14 +95,16 @@ function App() {
               }
             />
             <Route path="provider/onboarding" element={<ProviderOnboarding />} />
-            <Route
-              path="profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
+            <Route path="profile" element={<Profile />} />
+            <Route path="account" element={<Profile />} />
+            <Route path="privacy" element={<PrivacyPolicy />} />
+            <Route path="privacy-policy" element={<PrivacyPolicy />} />
+            <Route path="terms" element={<Terms />} />
+            <Route path="terms-and-conditions" element={<Terms />} />
+            <Route path="provider/rules-and-policies" element={<ProviderPolicy />} />
+            <Route path="provider/terms-and-conditions" element={<ProviderTerms />} />
+            <Route path="provider/rules" element={<Navigate to="/provider/rules-and-policies" replace />} />
+            <Route path="provider/terms" element={<Navigate to="/provider/terms-and-conditions" replace />} />
             <Route
               path="*"
               element={

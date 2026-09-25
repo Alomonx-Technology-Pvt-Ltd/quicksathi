@@ -191,7 +191,7 @@ const HERO_CATEGORIES = [
         price: 449,
         rating: 4.8,
         badge: "Popular",
-        img: "/images/ac/ac-lite-service.jpg",
+        img: "/images/ac/foam-jet.webp",
       },
       {
         name: "AC Gas Refill",
@@ -199,7 +199,7 @@ const HERO_CATEGORIES = [
         price: 2499,
         rating: 4.9,
         badge: "Top Rated",
-        img: "/images/ac/ac-gas-refill.jpg",
+        img: "/images/ac/gas-refill.webp",
       },
     ],
   },
@@ -268,6 +268,10 @@ const ServiceCard = ({ cat, onNavigate }) => {
             <img
               src={svc.img}
               alt={svc.name}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop";
+              }}
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
           </div>
@@ -531,9 +535,9 @@ const Hero = ({ categories, services, onBookNow }) => {
               fontWeight: 800,
             }}
           >
-            Book Everyday
+            One Tap.
             <br />
-            <span style={{ color: "var(--color-accent)" }}>Services Easily</span>
+            <span style={{ color: "var(--color-accent)" }}>Everything Sorted.</span>
           </motion.h1>
 
           {/* Subheading */}
@@ -546,12 +550,12 @@ const Hero = ({ categories, services, onBookNow }) => {
               fontFamily: FONT_HERO,
               fontSize: "clamp(14px, 1.4vw, 16.5px)",
               color: "#475569",
-              maxWidth: 480,
+              maxWidth: 520,
               lineHeight: 1.65,
               fontWeight: 400,
             }}
           >
-            TiptoBook is an online service booking platform to find and book trusted local services including home services, wedding services, car rentals, tutors, house help and more in one place.
+            From finding a tutor to planning a wedding, booking a car or getting help at home — discover the services you need, compare your options and book them in one place.
           </motion.p>
 
           {/* Search bar wrapper with real-time dropdown */}

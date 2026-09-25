@@ -19,6 +19,35 @@ router.get("/", async (req, res) => {
   }
 });
 
+const LEGACY_CATEGORY_MAP = {
+  "1": "AC_APPLIANCES",
+  "ac": "AC_APPLIANCES",
+  "ac-appliances": "AC_APPLIANCES",
+  "6": "VEHICLE_RENTAL",
+  "rental": "VEHICLE_RENTAL",
+  "vehicle-rental": "VEHICLE_RENTAL",
+  "10": "WEDDING",
+  "wedding": "WEDDING",
+  "weddings": "WEDDING",
+  "15": "HOME_TUITION",
+  "tuition": "HOME_TUITION",
+  "home-tuition": "HOME_TUITION",
+  "20": "HOUSE_HELP",
+  "help": "HOUSE_HELP",
+  "house-help": "HOUSE_HELP",
+  "25": "HOME_SALON",
+  "salon": "HOME_SALON",
+  "home-salon": "HOME_SALON",
+  "30": "HOUSE_SERVICES",
+  "31": "HOUSE_SERVICES",
+  "repair": "HOUSE_SERVICES",
+  "house-services": "HOUSE_SERVICES",
+  "cctv": "CCTV_SECURITY",
+  "cctv-security": "CCTV_SECURITY",
+  "35": "PAINTING",
+  "painting": "PAINTING",
+};
+
 // GET /api/categories/:id — Get single category (by ObjectId, slug, vertical, or name)
 router.get("/:id", async (req, res) => {
   try {
@@ -27,6 +56,13 @@ router.get("/:id", async (req, res) => {
 
     if (mongoose.Types.ObjectId.isValid(rawId)) {
       category = await Category.findById(rawId);
+    }
+
+    if (!category) {
+      const mappedVertical = LEGACY_CATEGORY_MAP[rawId.toLowerCase()];
+      if (mappedVertical) {
+        category = await Category.findOne({ vertical: mappedVertical });
+      }
     }
 
     if (!category) {

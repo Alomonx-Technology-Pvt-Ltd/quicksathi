@@ -356,7 +356,7 @@ const About = () => {
           className="flex flex-col lg:flex-row gap-16 items-center"
           initial={{ y: 25, opacity: 0 }}
           whileInView={{ y: 0, opacity: 1 }}
-          viewport={{ once: true, margin: "-100px" }}
+          viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
           {/* Left Text */}
@@ -463,7 +463,7 @@ const About = () => {
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: "-100px" }}
+            viewport={{ once: true }}
             variants={{
               hidden: {},
               visible: { transition: { staggerChildren: 0.1 } }

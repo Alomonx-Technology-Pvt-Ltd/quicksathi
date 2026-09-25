@@ -205,7 +205,7 @@ const Login = () => {
           </h2>
           <p className="text-white/80 text-lg" style={{ fontFamily: "var(--font-body)", maxWidth: "400px" }}>
             {isProviderMode
-              ? "Login to manage your services, track bookings, and reach thousands of customers."
+              ? "Sign in to manage your services, track bookings, and reach thousands of customers."
               : "From weddings to car rentals to security — TiptoBook brings everything together."}
           </p>
         </div>
@@ -615,7 +615,7 @@ const Login = () => {
               }}
               onClick={() => { setError(""); setPhoneMode(false); setOtpSent(false); }}
             >
-              {isProviderMode ? "← Back to User Login" : "🏢 Login as Provider"}
+              {isProviderMode ? "← Back to User Sign In" : "🏢 Sign In as Provider"}
             </Link>
           </div>
         </div>

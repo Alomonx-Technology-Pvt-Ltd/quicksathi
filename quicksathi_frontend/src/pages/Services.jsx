@@ -135,6 +135,12 @@ const Services = () => {
         const matched = findMatchedService(sub.name);
         return {
           ...sub,
+          imageUrl:
+            sub.imageUrl ||
+            matched?.thumbnail ||
+            matched?.bannerImage ||
+            cat.imageUrl ||
+            "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=800&auto=format&fit=crop",
           parentName: cat.name,
           parentId: cat._id,
           vertical: cat.vertical,
@@ -166,6 +172,12 @@ const Services = () => {
           _id: s._id,
           name: s.name,
           description: s.shortDescription || s.fullDescription || "Professional Service",
+          imageUrl:
+            s.thumbnail ||
+            s.bannerImage ||
+            (Array.isArray(s.gallery) && s.gallery[0]) ||
+            parentCat.imageUrl ||
+            "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=800&auto=format&fit=crop",
           parentName: parentCat.name || s.categoryName || "General",
           parentId: parentCat._id || s.category || null,
           vertical: parentCat.vertical || "OTHER",
@@ -252,16 +264,16 @@ const Services = () => {
       style={{ backgroundColor: "var(--color-bg)" }}
     >
       <SEO
-        title="Local Services Near You — TiptoBook"
-        description="Browse all local services on TiptoBook — home repairs, cleaning, weddings, car rentals, CCTV installation, and more. Book trusted professionals instantly."
+        title="Local Services in Patna & Bihar — AC, Car Rental, Wedding & Repairs | TiptoBook"
+        description="Browse 40+ verified local services in Patna & Bihar on TiptoBook. Book AC repair, wedding photography & catering, car rental, home salon, electrician, plumbing & tutors."
         canonical="https://www.tiptobook.com/services"
-        keywords="local services, book services online, wedding services, car rentals, CCTV security, home repair, Patna services, TiptoBook catalog"
+        keywords="local services in Patna, home services Patna, car rental Patna, wedding vendors Bihar, AC service Patna, electrician Patna, plumbing Patna, TiptoBook catalog"
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "CollectionPage",
-          "name": "Local Services on TiptoBook",
+          "name": "Local Services in Patna & Bihar — TiptoBook",
           "url": "https://www.tiptobook.com/services",
-          "description": "Browse all local services on TiptoBook — home repairs, cleaning, weddings, car rentals, CCTV installation, and more."
+          "description": "Browse 40+ verified local services in Patna & Bihar on TiptoBook — AC repairs, cleaning, weddings, car rentals, CCTV installation, and more."
         }}
       />
       {/* ============ HERO SECTION ============ */}
@@ -925,6 +937,11 @@ const Services = () => {
                       <img
                         src={item.imageUrl}
                         alt={item.name}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src =
+                            "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=800&auto=format&fit=crop";
+                        }}
                         className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover/card:scale-110"
                         style={item.comingSoon ? { filter: "grayscale(0.65) brightness(0.8)" } : undefined}
                       />
@@ -1087,11 +1104,11 @@ const Services = () => {
 
       {/* ============ CTA ============ */}
       <motion.section
-        initial={{ opacity: 0, y: 70 }}
+        initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.3 }}
+        viewport={{ once: true }}
         transition={{
-          duration: 0.8,
+          duration: 0.6,
           ease: [0.22, 1, 0.36, 1],
         }}
         className="relative overflow-hidden py-20 px-6 lg:px-8"

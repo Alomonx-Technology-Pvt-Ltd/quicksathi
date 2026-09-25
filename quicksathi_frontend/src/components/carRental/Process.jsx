@@ -68,7 +68,7 @@ const stops = [
 
 const Process = () => {
   const sectionRef = useRef(null);
-  const isInView = useInView(sectionRef, { once: true, amount: 0.1, margin: "-50px" });
+  const isInView = useInView(sectionRef, { once: true });
 
   return (
     <section

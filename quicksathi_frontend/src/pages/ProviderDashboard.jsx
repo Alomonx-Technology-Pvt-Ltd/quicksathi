@@ -134,7 +134,6 @@ const ProviderDashboard = () => {
 
   const handleSubmitService = async (e) => {
     e.preventDefault();
-    console.log("handleSubmitService triggered", formData);
     
     if (!formData.name?.trim()) {
       setMessage("Service Name is required");

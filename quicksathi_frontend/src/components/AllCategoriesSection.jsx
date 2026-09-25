@@ -1,6 +1,8 @@
 import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+
+const MotionLink = motion(Link);
 
 // ── Default 8 Platform Categories with Provided Image Icons ──
 const DEFAULT_CATEGORIES = [
@@ -14,49 +16,49 @@ const DEFAULT_CATEGORIES = [
   {
     id: "weddings",
     title: "Wedding & Party Services",
-    route: "/services?q=wedding",
+    route: "/category/wedding",
     iconImage: "/icons/categories/wedding-events.png",
     matchKeywords: ["wedding", "party", "events"],
   },
   {
     id: "rental",
     title: "Vehicle Rental",
-    route: "/services?q=rental",
+    route: "/category/vehicle-rental",
     iconImage: "/icons/categories/car-rental.png",
     matchKeywords: ["vehicle", "car", "rental"],
   },
   {
     id: "salon",
     title: "Home Salon & Beauty",
-    route: "/category/25",
+    route: "/category/home-salon",
     iconImage: "/icons/categories/home-salon.png",
     matchKeywords: ["salon", "beauty"],
   },
   {
     id: "help",
     title: "House Help",
-    route: "/category/20",
+    route: "/category/house-help",
     iconImage: "/icons/categories/house-help.png",
     matchKeywords: ["house help", "maid", "cook"],
   },
   {
     id: "repair",
     title: "House Services & Repair",
-    route: "/category/31",
+    route: "/category/house-services",
     iconImage: "/icons/categories/home-repair.png",
     matchKeywords: ["repair", "plumbing", "electrician", "carpentry", "house services"],
   },
   {
     id: "tuition",
     title: "Home Tuition",
-    route: "/category/15",
+    route: "/category/home-tuition",
     iconImage: "/icons/categories/home-tuition.png",
     matchKeywords: ["tuition", "tutor", "tution"],
   },
   {
     id: "painting",
     title: "Painting",
-    route: "/category/35",
+    route: "/category/painting",
     iconImage: "/icons/categories/painting.png",
     matchKeywords: ["painting", "paint"],
   },
@@ -94,11 +96,8 @@ const AllCategoriesSection = ({ categories = [] }) => {
       // Always use our clean high-quality icons
       const icon = def.iconImage;
 
-      // Determine destination route
-      let route = def.route;
-      if (matched?._id) {
-        route = `/category/${matched._id}`;
-      }
+      // Keep clean semantic slug route (e.g. /category/vehicle-rental)
+      const route = def.route;
 
       return {
         id: matched?._id || matched?.id || def.id,
@@ -161,15 +160,15 @@ const AllCategoriesSection = ({ categories = [] }) => {
             variants={containerVariants}
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: "-40px" }}
+            viewport={{ once: true }}
           >
             {displayCategories.map((cat) => (
-              <motion.button
+              <MotionLink
                 key={cat.id}
+                to={cat.route}
                 variants={itemVariants}
                 whileTap={{ scale: 0.94 }}
-                onClick={() => navigate(cat.route)}
-                className="group flex flex-col items-center text-center justify-center border-none bg-transparent cursor-pointer p-0 outline-none w-full"
+                className="group flex flex-col items-center text-center justify-center no-underline border-none bg-transparent cursor-pointer p-0 outline-none w-full"
                 style={{ fontFamily: "var(--font-body, inherit)" }}
               >
                 {/* Clean Icon Container: responsive sizing, NO border, NO card */}
@@ -198,7 +197,7 @@ const AllCategoriesSection = ({ categories = [] }) => {
                 >
                   {cat.title}
                 </span>
-              </motion.button>
+              </MotionLink>
             ))}
           </motion.div>
         </div>

@@ -15,8 +15,24 @@ import SEO from "../components/SEO";
 
 const ServiceDetail = () => {
   const { id } = useParams();
-  const [service, setService] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const findInitialService = (targetId) => {
+    if (!targetId) return null;
+    const tid = String(targetId).toLowerCase();
+    return (
+      mockServices.find(
+        (s) =>
+          String(s.id) === tid ||
+          String(s._id) === tid ||
+          s.slug?.toLowerCase() === tid ||
+          s.name?.toLowerCase() === tid ||
+          s.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-") === tid
+      ) || null
+    );
+  };
+
+  const initialService = findInitialService(id);
+  const [service, setService] = useState(initialService);
+  const [loading, setLoading] = useState(!initialService);
   const [error, setError] = useState(null);
   const [activeImg, setActiveImg] = useState(0);
   const [openFaq, setOpenFaq] = useState(null);
@@ -28,12 +44,14 @@ const ServiceDetail = () => {
   useEffect(() => {
     const fetchService = async () => {
       try {
-        setLoading(true);
+        if (!service) setLoading(true);
         setError(null);
 
         const { data } = await api.get(`/services/${id}`);
 
-        setService(data);
+        if (data) {
+          setService(data);
+        }
 
         // Check if the service's category is in "Coming Soon" mode —
         // if so, booking is blocked on this page.
@@ -50,16 +68,11 @@ const ServiceDetail = () => {
       } catch (err) {
         console.warn("Backend failed, checking mock data");
 
-        const match = mockServices.find(
-          (s) =>
-            String(s.id) === String(id) ||
-            s.slug === String(id) ||
-            s.name?.toLowerCase() === String(id).toLowerCase()
-        );
+        const match = findInitialService(id);
 
         if (match) {
           setService(match);
-        } else {
+        } else if (!service) {
           setError(
             err.response?.data?.message ||
             "Service not found"

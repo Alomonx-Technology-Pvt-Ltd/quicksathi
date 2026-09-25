@@ -1,4 +1,11 @@
 User-agent: *
 Allow: /
+Disallow: /admin
+Disallow: /admin/
+Disallow: /payment
+Disallow: /payment/
+Disallow: /my-bookings
+Disallow: /profile
+Disallow: /booking/
 
 Sitemap: https://www.tiptobook.com/sitemap.xml

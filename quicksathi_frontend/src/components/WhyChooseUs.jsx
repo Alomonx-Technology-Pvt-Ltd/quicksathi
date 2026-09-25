@@ -81,9 +81,9 @@ const WhyChooseUs = () => {
             return (
               <motion.div
                 key={card.id}
-                initial={{ opacity: 0, y: 24 }}
+                initial={{ opacity: 0, y: 16 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-40px" }}
+                viewport={{ once: true }}
                 whileHover={{ y: -6 }}
                 whileTap={{ scale: 0.98 }}
                 transition={{ type: "spring", stiffness: 350, damping: 22 }}
