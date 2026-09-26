@@ -29,8 +29,7 @@ const FALLBACK_KNOWLEDGE = [
       /\b(car|rental|rent a car|vehicle|cab|taxi|chauffeur|driver|suv|sedan|innova|scorpio|wedding car|gaadi)\b/i,
     ],
     generate: () =>
-      `Looking for reliable transportation? Here are our **Vehicle Rental** options:\n\n- **Standard Car Rental** — From ₹2,499/day. Clean, air-conditioned sedans and 5/7-seater SUVs for city commute, airport pickup/drop, or outstation tours.\n- **Wedding Luxury Fleet** — From ₹7,999/event. Elegantly decorated luxury cars with uniformed, courteous chauffeurs.\n- **Outstation & Tour Packages** — Custom flexible mileage and multi-day packages.\n\nAll vehicles undergo 40-point safety inspections before dispatch!`,
-  },
+      `Looking for reliable transportation? Here are our **Vehicle Rental** options:\n\n- **Wedding Luxury Fleet** — From ₹7,999/event. Elegantly decorated luxury cars with uniformed, courteous chauffeurs.\n- **Outstation & Tour Packages** — Custom flexible mileage and multi-day packages.\n\nAll vehicles undergo 40-point safety inspections before dispatch!`,},
   {
     category: "WEDDINGS",
     patterns: [

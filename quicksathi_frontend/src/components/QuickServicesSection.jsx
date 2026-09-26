@@ -28,15 +28,6 @@ const REAL_CATEGORIES = [
     route: "/services?q=rental",
     fallbackServices: [
       {
-        id: 109,
-        name: "Standard Car Rental",
-        description: "Everyday AC car booking for city rides, outstation trips & airport transfers.",
-        startingPrice: 2499,
-        rating: 4.5,
-        imageUrl: "https://images.unsplash.com/photo-1549317661-bd32c8ce0f2e?q=80&w=600&auto=format&fit=crop",
-        badge: "5 / 7 Seater"
-      },
-      {
         id: 110,
         name: "Wedding Car Rental",
         description: "Decorated cars for weddings & special occasions with professional driver.",

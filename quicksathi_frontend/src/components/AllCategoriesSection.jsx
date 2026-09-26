@@ -1,6 +1,7 @@
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import ApplianceCategoryModal from "./modals/ApplianceCategoryModal";
 
 const MotionLink = motion(Link);
 
@@ -12,6 +13,7 @@ const DEFAULT_CATEGORIES = [
     route: "/services/ac",
     iconImage: "/icons/categories/ac-appliances.png",
     matchKeywords: ["ac", "appliance", "air conditioner"],
+    isModalTrigger: true,
   },
   {
     id: "weddings",
@@ -80,6 +82,14 @@ const itemVariants = {
 
 const AllCategoriesSection = ({ categories = [] }) => {
   const navigate = useNavigate();
+  const [isApplianceModalOpen, setIsApplianceModalOpen] = useState(false);
+
+  // Listen for global event to open appliance modal from any component
+  useEffect(() => {
+    const handleOpen = () => setIsApplianceModalOpen(true);
+    window.addEventListener("open-appliance-modal", handleOpen);
+    return () => window.removeEventListener("open-appliance-modal", handleOpen);
+  }, []);
 
   // Merge real-time backend categories with icon metadata and dynamic routing
   const displayCategories = useMemo(() => {
@@ -105,9 +115,17 @@ const AllCategoriesSection = ({ categories = [] }) => {
         route,
         iconImage: icon,
         rawCategory: matched,
+        isModalTrigger: def.isModalTrigger,
       };
     });
   }, [categories]);
+
+  const handleCategoryClick = (e, cat) => {
+    if (cat.isModalTrigger || cat.id === "ac" || cat.title.toLowerCase().includes("appliance")) {
+      e.preventDefault();
+      window.dispatchEvent(new CustomEvent("open-appliance-modal"));
+    }
+  };
 
   return (
     <section
@@ -115,7 +133,7 @@ const AllCategoriesSection = ({ categories = [] }) => {
     >
       <div className="max-w-7xl mx-auto">
         {/* ── Section Header ── */}
-        <div className="flex items-end justify-between mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 sm:mb-12 border-b border-gray-100 pb-4">
           <div>
             <h2
               className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight m-0"
@@ -166,6 +184,7 @@ const AllCategoriesSection = ({ categories = [] }) => {
               <MotionLink
                 key={cat.id}
                 to={cat.route}
+                onClick={(e) => handleCategoryClick(e, cat)}
                 variants={itemVariants}
                 whileTap={{ scale: 0.94 }}
                 className="group flex flex-col items-center text-center justify-center no-underline border-none bg-transparent cursor-pointer p-0 outline-none w-full"

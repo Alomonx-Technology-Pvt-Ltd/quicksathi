@@ -30,14 +30,6 @@ const HERO_CATEGORIES = [
     route: "/services?q=rental",
     services: [
       {
-        name: "Standard Car Rental",
-        desc: "AC car for city rides, outstation & airport transfers.",
-        price: 2499,
-        rating: 4.5,
-        badge: "5/7 Seater",
-        img: "https://images.unsplash.com/photo-1549317661-bd32c8ce0f2e?q=80&w=600&auto=format&fit=crop",
-      },
-      {
         name: "Wedding Car Rental",
         desc: "Decorated cars for special occasions with driver.",
         price: 7999,
@@ -880,7 +872,13 @@ const Hero = ({ categories, services, onBookNow }) => {
               <ServiceCard
                 key={activeCat.id}
                 cat={activeCat}
-                onNavigate={navigate}
+                onNavigate={(route) => {
+                  if (route === "/services/ac") {
+                    window.dispatchEvent(new CustomEvent("open-appliance-modal"));
+                    return;
+                  }
+                  navigate(route);
+                }}
               />
             </AnimatePresence>
           </div>
@@ -902,7 +900,13 @@ const Hero = ({ categories, services, onBookNow }) => {
               </span>
             </div>
             <button
-              onClick={() => navigate(activeCat.route)}
+              onClick={() => {
+                if (activeCat.route === "/services/ac") {
+                  window.dispatchEvent(new CustomEvent("open-appliance-modal"));
+                  return;
+                }
+                navigate(activeCat.route);
+              }}
               className="flex items-center gap-1.5 text-xs font-semibold cursor-pointer border-none bg-transparent transition-all duration-200 hover:gap-2"
               style={{ color: "var(--color-primary)", fontFamily: FONT_HERO }}
             >

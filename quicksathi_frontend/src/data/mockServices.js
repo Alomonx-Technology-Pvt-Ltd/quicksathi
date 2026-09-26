@@ -559,79 +559,6 @@ export const mockServices = [
   },
 
   {
-    id: 109,
-    slug: "standard-car-rental",
-    name: "Standard Car Rental",
-    shortDescription: "Everyday AC car booking for city rides, outstation trips & airport transfers",
-    fullDescription:
-      "Book a comfortable, fully insured AC car for city rides, outstation trips, airport pickups, and corporate travel. Choose between our 5-seater and 7-seater variations — a well-maintained car is randomly assigned to you at booking time.",
-    categoryId: 6,
-    categoryName: "Vehicle Rental",
-    thumbnail:
-      "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2183&auto=format&fit=crop",
-    bannerImage:
-      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2070&auto=format&fit=crop",
-    gallery: [
-      "https://images.unsplash.com/photo-1549924231-f129b911e442?q=80&w=2070&auto=format&fit=crop",
-    ],
-    startingPrice: 2499,
-    priceUnit: "per day",
-    rating: 4.5,
-    totalReviews: 212,
-    experience: "8 Years",
-    available: true,
-    serviceMode: "RENTAL",
-    tags: ["Cars", "AC", "City Ride", "Outstation"],
-    featured: false,
-    packages: [
-      {
-        id: 1,
-        title: "5 Seater Car",
-        price: 2499,
-        image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0f2e?q=80&w=600&auto=format&fit=crop",
-        features: ["Swift Dzire / Aura or similar", "4+1 Seats", "Fully AC", "100 KM Included"],
-      },
-      {
-        id: 2,
-        title: "7 Seater Car",
-        price: 3499,
-        image: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=600&auto=format&fit=crop",
-        features: ["Ertiga / Innova or similar", "6+1 Seats", "Fully AC", "100 KM Included"],
-      },
-    ],
-    faqs: [
-      {
-        question: "Which car will I get for my booking?",
-        answer:
-          "We maintain a fleet of well-maintained 5-seater and 7-seater cars. Based on the variation you select, any one of the available cars is randomly assigned to you — all cars are AC, sanitized, and fully insured.",
-      },
-      {
-        question: "Is fuel included in the price?",
-        answer:
-          "Fuel charges are separate unless specified. The quoted price covers the vehicle, driver allowance, and insurance.",
-      },
-      {
-        question: "What documents do I need at pickup?",
-        answer:
-          "For with-driver bookings no documents are needed. For self-drive trips, a valid driving license and a government ID (Aadhaar / Passport) are mandatory.",
-      },
-      {
-        question: "Can I extend my trip after booking?",
-        answer:
-          "Yes. Extra hours or kilometres are charged at the per-km rate shown at checkout — just inform the driver or our support team.",
-      },
-    ],
-    reviews: [
-      {
-        id: 1,
-        user: "Neha Singh",
-        rating: 4,
-        comment: "Car condition was excellent and pickup was smooth.",
-      },
-    ],
-  },
-
-  {
     id: 110,
     slug: "wedding-car-rental",
     name: "Wedding Car Rental",
@@ -1776,41 +1703,6 @@ name: "School Tuition",
   ]
 },
 {
-  id: 502,
-  slug: "ac-lite-service",
-  name: "AC Lite Service",
-  shortDescription: "Quick AC clean for smooth cooling. Perfect for regular maintenance.",
-  fullDescription: "Ideal for regular maintenance and mild dust buildup. Includes indoor filter cleaning, cooling coil dry brushing, outdoor unit dust wash, and overall cooling efficiency check.",
-  categoryId: 1,
-  categoryName: "AC & Appliances",
-  subCategoryName: "Repair & Services",
-  thumbnail: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315763/TiptoBook/services/ac-lite-service.jpg",
-  bannerImage: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315763/TiptoBook/services/ac-lite-service.jpg",
-  gallery: ["https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315763/TiptoBook/services/ac-lite-service.jpg"],
-  startingPrice: 449,
-  priceUnit: "per AC",
-  rating: 4.7,
-  totalReviews: 8848,
-  experience: "4 Years",
-  available: true,
-  serviceMode: "AT_HOME",
-  tags: ["AC", "Service", "Cleaning", "Filter", "Lite Service"],
-  featured: true,
-  packages: [
-    { id: 1, title: "1 Split AC Lite Service", price: 449, features: ["Indoor filter & grill clean", "Cooling coil dry brush", "Outdoor dust wash", "Gas check"] },
-    { id: 2, title: "2 ACs Lite Combo", price: 799, features: ["Complete lite clean for 2 ACs", "Free gas leak test", "Performance report"] }
-  ],
-  faqs: [
-    { question: "How often should I get lite service?", answer: "We recommend a lite service every 3-4 months during peak summer." }
-  ],
-  reviews: [
-    { id: 1, user: "Amit Anand", rating: 5, comment: "Quick, neat, and prompt service. The cooling improved noticeably right away." }
-  ],
-  providers: [
-    { id: 52, name: "AirMaster Patna", rating: 4.8, experience: "6 Years", location: "Patna", startingPrice: 449, image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=600&auto=format&fit=crop" }
-  ]
-},
-{
   id: 503,
   slug: "foam-jet-ac-service",
   name: "Foam Jet AC Service",
@@ -1951,38 +1843,157 @@ name: "School Tuition",
   ]
 },
 {
-  id: 507,
-  slug: "ac-annual-maintenance",
-  name: "AC Annual Maintenance Pack",
-  shortDescription: "Complete year-round AC care — 2 foam jet services + breakdown visits.",
-  fullDescription: "Stay worry-free all year with our AC Annual Maintenance Pack. Includes 2 deep foam jet cleanings, unlimited breakdown visits, priority service scheduling, and 15% discount on all spare parts and gas refilling.",
+  id: 511,
+  slug: "washing-machine-repair",
+  name: "Washing Machine Repair",
+  shortDescription: "Expert repair for front load, top load & semi-automatic washing machines.",
+  fullDescription: "Reliable, doorstep washing machine repair by certified appliance technicians. We fix drum spin issues, water leakage, drainage clogs, noisy motors, and PCB control board faults across all top brands (LG, Samsung, Whirlpool, Bosch, IFB, etc.) with genuine spares and a 30-day service warranty.",
   categoryId: 1,
   categoryName: "AC & Appliances",
-  subCategoryName: "Saver Packs",
-  thumbnail: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315768/TiptoBook/services/ac-annual-maintenance.jpg",
-  bannerImage: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315768/TiptoBook/services/ac-annual-maintenance.jpg",
-  gallery: ["https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315768/TiptoBook/services/ac-annual-maintenance.jpg"],
-  startingPrice: 1499,
-  priceUnit: "per year / AC",
+  subCategoryName: "Washing Machine Repair",
+  thumbnail: "/icons/appliances/washing-machine.jpg",
+  bannerImage: "/icons/appliances/washing-machine.jpg",
+  gallery: ["/icons/appliances/washing-machine.jpg"],
+  startingPrice: 299,
+  priceUnit: "service",
   rating: 4.8,
-  totalReviews: 4520,
-  experience: "10 Years",
+  totalReviews: 3420,
+  experience: "7 Years",
   available: true,
   serviceMode: "AT_HOME",
-  tags: ["AC", "AMC", "Annual Maintenance", "Saver Pack", "Warranty"],
+  tags: ["Washing Machine", "Appliance Repair", "Drum Fix", "Motor", "Door Leak"],
   featured: true,
   packages: [
-    { id: 1, title: "1 AC 1-Year Saver Plan", price: 1499, features: ["2 Deep Foam Jet Cleanings", "2 Breakdown Diagnosis Visits", "15% Off on Spare Parts & Gas", "Priority Technicians"] },
-    { id: 2, title: "2 ACs Whole-Home Pack", price: 2699, features: ["4 Deep Foam Jet Cleanings (2 per AC)", "Unlimited breakdown assistance", "20% Off on Gas & Spares", "Dedicated Account Manager"] }
+    { id: 1, title: "Inspection & Diagnosis", price: 299, features: ["Complete diagnostic scan", "Error code check", "Door gasket & drum inspection", "Transparent upfront quote"] },
+    { id: 2, title: "Front Load Machine Service & Repair", price: 699, features: ["Drum bearing & suspension check", "Drain pump clearing", "Water inlet valve repair", "Vibration fixing"] },
+    { id: 3, title: "Top Load Machine Service & Repair", price: 499, features: ["Agitator/pulsator cleaning", "Drive belt tensioning", "Drain valve repair", "Spin cycle test"] },
+    { id: 4, title: "Semi-Automatic Machine Repair", price: 399, features: ["Dryer motor troubleshooting", "Wash timer replacement", "Lint filter cleaning", "Power cable safety check"] }
   ],
   faqs: [
-    { question: "When are the 2 services scheduled?", answer: "One before summer (March-April) and one post-monsoon (September-October), or whenever you prefer." }
+    { question: "Which brands do you service?", answer: "We service LG, Samsung, Whirlpool, Bosch, IFB, Godrej, Haier, Panasonic, and all major brands." },
+    { question: "Is there a warranty on repairs?", answer: "Yes, all repairs include a 30-day service guarantee and genuine manufacturer warranty on replaced spare parts." },
+    { question: "Are spare parts included in the inspection fee?", answer: "The ₹299 covers visit and diagnosis. Any required spare parts are billed transparently after your approval." }
   ],
   reviews: [
-    { id: 1, user: "Rohan Varma", rating: 5, comment: "Best value pack! Both our split ACs run like brand new without any breakdown." }
+    { id: 1, user: "Sunil Verma", rating: 5, comment: "Quick diagnosis and fixed our LG front load machine drum noise in less than an hour!" }
   ],
   providers: [
-    { id: 57, name: "CoolGuard AMC Services", rating: 4.9, experience: "10 Years", location: "Patna", startingPrice: 1499, image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=600&auto=format&fit=crop" }
+    { id: 60, name: "SmartCare Appliances", rating: 4.8, experience: "8 Years", location: "Patna", startingPrice: 299, image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 512,
+  slug: "refrigerator-repair",
+  name: "Refrigerator Repair & Services",
+  shortDescription: "Complete fridge repair — cooling issues, gas refilling, compressor & defrosting.",
+  fullDescription: "Get your single door, double door, frost-free, or side-by-side refrigerator fixed quickly at home. Our technicians fix lack of cooling, excessive frost buildup, gas leaks, loud compressor buzzing, faulty thermostats, and door gasket leaks with authentic spare parts.",
+  categoryId: 1,
+  categoryName: "AC & Appliances",
+  subCategoryName: "Refrigerator Repair & Services",
+  thumbnail: "/icons/appliances/refrigerator.jpg",
+  bannerImage: "/icons/appliances/refrigerator.jpg",
+  gallery: ["/icons/appliances/refrigerator.jpg"],
+  startingPrice: 299,
+  priceUnit: "service",
+  rating: 4.8,
+  totalReviews: 4180,
+  experience: "8 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["Refrigerator", "Fridge Repair", "Cooling Problem", "Gas Refill", "Compressor"],
+  featured: true,
+  packages: [
+    { id: 1, title: "Diagnosis & Gas Leak Check", price: 299, features: ["Compressor current test", "Thermostat calibration", "Gas leak detector check", "Report & estimate"] },
+    { id: 2, title: "Single Door Refrigerator Service", price: 499, features: ["Defrost timer repair", "Relay/capacitor replacement", "Door rubber gasket fitting", "Drain line clean"] },
+    { id: 3, title: "Double Door / Frost-Free Repair", price: 699, features: ["Evaporator fan motor fix", "Bimetal defrost sensor replacement", "Heating coil test", "Air duct de-icing"] },
+    { id: 4, title: "Side-by-Side Inverter Refrigerator Repair", price: 999, features: ["Inverter PCB controller repair", "Dual cooling circuit diagnosis", "Precision temperature calibration"] }
+  ],
+  faqs: [
+    { question: "Why is the freezer cooling but the main fridge section warm?", answer: "This is commonly caused by a faulty defrost timer, burnt heater coil, or clogged air damper between chambers. Our technician will test each component." },
+    { question: "Do you provide gas refilling?", answer: "Yes, we provide pressure leak testing and genuine eco-friendly R134a and R600a refrigerant gas recharging." }
+  ],
+  reviews: [
+    { id: 1, user: "Pooja Sharma", rating: 5, comment: "Samsung double door fridge was not cooling. The technician repaired the fan motor and cooling was back in 2 hours." }
+  ],
+  providers: [
+    { id: 61, name: "CoolBreeze Techs", rating: 4.9, experience: "9 Years", location: "Patna", startingPrice: 299, image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=600&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 513,
+  slug: "tv-repair",
+  name: "TV Repair & Services",
+  shortDescription: "Smart TV repair, LED screen backlight fix, motherboard troubleshooting & wall mounting.",
+  fullDescription: "Comprehensive LED, LCD, QLED, and Smart TV repair services at your doorstep. We specialize in sound without picture (blackout), screen flickering, motherboard / power supply board chip repair, HDMI port issues, and sturdy wall bracket installation.",
+  categoryId: 1,
+  categoryName: "AC & Appliances",
+  subCategoryName: "TV Repair & Services",
+  thumbnail: "/icons/appliances/tv-repair.jpg",
+  bannerImage: "/icons/appliances/tv-repair.jpg",
+  gallery: ["/icons/appliances/tv-repair.jpg"],
+  startingPrice: 349,
+  priceUnit: "service",
+  rating: 4.7,
+  totalReviews: 2890,
+  experience: "6 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["TV Repair", "LED TV", "Smart TV", "Backlight", "Wall Mount"],
+  featured: true,
+  packages: [
+    { id: 1, title: "TV Diagnosis & Issue Inspection", price: 349, features: ["Display panel voltage scan", "Motherboard & audio IC check", "Power supply diagnostics", "Upfront estimate"] },
+    { id: 2, title: "TV Wall Mounting & Setup", price: 449, features: ["Heavy-duty bracket installation up to 65\"", "Level balancing", "HDMI / Setup box routing", "Audio testing"] },
+    { id: 3, title: "Backlight & Screen Flickering Repair", price: 899, features: ["Complete LED strip replacement", "Diffuser alignment", "Constant-current driver calibration", "60-day warranty"] },
+    { id: 4, title: "Motherboard & Audio IC Repair", price: 699, features: ["Power regulator replacement", "Audio amp repair", "Firmware / smart OS flashing", "Port soldering"] }
+  ],
+  faqs: [
+    { question: "Do you repair all TV brands?", answer: "Yes, including Sony Bravia, Samsung, LG, Mi, OnePlus, TCL, Vu, Panasonic, and Philips." },
+    { question: "Can a broken/cracked glass screen be repaired?", answer: "Cracked physical screens require full display panel replacement, which our technician will assess." }
+  ],
+  reviews: [
+    { id: 1, user: "Anand Kishore", rating: 5, comment: "Audio was playing but screen went black on our 55 inch Sony TV. Replaced the backlight strips perfectly." }
+  ],
+  providers: [
+    { id: 62, name: "PixelFix TV Specialists", rating: 4.7, experience: "7 Years", location: "Patna", startingPrice: 349, image: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?q=80&w=600&auto=format&fit=crop" }
+  ]
+},
+{
+  id: 514,
+  slug: "geyser-repair",
+  name: "Geyser Repair & Services",
+  shortDescription: "Water heater repair, heating element replacement, tank descaling & installation.",
+  fullDescription: "Fast, safe doorstep geyser and water heater servicing. Our certified electricians and plumbers fix geysers not heating, electricity tripping / short-circuits, slow water heating, water leakage from tank or safety valve, and perform safe wall installations.",
+  categoryId: 1,
+  categoryName: "AC & Appliances",
+  subCategoryName: "Geyser Repair & Services",
+  thumbnail: "/icons/appliances/geyser-repair.jpg",
+  bannerImage: "/icons/appliances/geyser-repair.jpg",
+  gallery: ["/icons/appliances/geyser-repair.jpg"],
+  startingPrice: 249,
+  priceUnit: "service",
+  rating: 4.8,
+  totalReviews: 2310,
+  experience: "7 Years",
+  available: true,
+  serviceMode: "AT_HOME",
+  tags: ["Geyser Repair", "Water Heater", "Heating Element", "Thermostat", "Descaling"],
+  featured: true,
+  packages: [
+    { id: 1, title: "Geyser Checkup & Descaling", price: 249, features: ["Sediment & hard water scale flush", "Safety pressure valve test", "Thermostat cutoff check", "Earthing test"] },
+    { id: 2, title: "Heating Element & Thermostat Replacement", price: 499, features: ["Heavy-duty copper heating coil install", "Dual thermostat calibration", "New high-temp rubber gasket", "Leak test"] },
+    { id: 3, title: "Geyser Installation / Uninstallation", price: 449, features: ["Wall bracket mounting", "Inlet/outlet braided pipe fitting", "Angle valve connection", "Pressure & heating test"] },
+    { id: 4, title: "Tank Leakage & Valve Repair", price: 599, features: ["Flange gasket replacement", "Safety non-return valve fix", "Pipe joint sealing", "Pressure leak verification"] }
+  ],
+  faqs: [
+    { question: "Why does the geyser trip my home's MCB?", answer: "A cracked heating element allows water to touch the electric coil, causing a ground fault. Our technician will replace the element and restore safe operation." },
+    { question: "Do you repair both instant and storage geysers?", answer: "Yes, we repair instant geysers (3L) as well as storage water heaters (10L, 15L, 25L, 50L) of Havells, Bajaj, AO Smith, Racold, Crompton, and V-Guard." }
+  ],
+  reviews: [
+    { id: 1, user: "Deepak Rawat", rating: 5, comment: "Quick arrival on a cold morning! Replaced the burnt heating coil and geyser was heating in 20 minutes." }
+  ],
+  providers: [
+    { id: 63, name: "HydroWarm Experts", rating: 4.8, experience: "6 Years", location: "Patna", startingPrice: 249, image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=600&auto=format&fit=crop" }
   ]
 }
+
 ];

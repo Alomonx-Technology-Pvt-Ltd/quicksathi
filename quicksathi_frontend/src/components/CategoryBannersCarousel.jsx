@@ -265,6 +265,12 @@ export default function CategoryBannersCarousel() {
             <Link
               key={banner.id}
               to={banner.link}
+              onClick={(e) => {
+                if (banner.id === "ac" || banner.link === "/services/ac") {
+                  e.preventDefault();
+                  window.dispatchEvent(new CustomEvent("open-appliance-modal"));
+                }
+              }}
               className="category-banner-card snap-start flex-shrink-0 no-underline block rounded-2xl sm:rounded-3xl overflow-hidden relative transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.99] group"
               style={{
                 width: "clamp(310px, 82vw, 385px)",

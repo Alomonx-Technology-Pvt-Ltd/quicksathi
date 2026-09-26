@@ -130,7 +130,6 @@ TiptoBook connects customers with verified, top-rated service providers across 6
 - **Security Maintenance & Repair** — Inspection, line repair, power supply replacement & lens alignment (from ₹599).
 
 ### 2. Vehicle Rental
-- **Standard Car Rental** — From ₹2,499/day. Everyday AC cars for city rides, outstation trips & airport transfers (5 seater & 7 seater).
 - **Wedding Car Rental** — From ₹7,999/event. Decorated wedding cars with professional chauffeur (5 seater & 7 seater).
 
 ### 3. Wedding & Event Services

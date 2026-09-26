@@ -39,12 +39,6 @@ const SUB_CATEGORIES = [
     image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315766/TiptoBook/services/ac-installation.jpg",
     keywords: ["installation", "uninstallation", "install", "uninstall"],
   },
-  {
-    id: "saver-packs",
-    name: "Saver Packs",
-    image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315768/TiptoBook/services/ac-annual-maintenance.jpg",
-    keywords: ["saver", "annual", "maintenance", "amc", "pack"],
-  },
 ];
 
 // Fallback 7 AC services strictly matching user reference
@@ -72,30 +66,6 @@ const FALLBACK_AC_SERVICES = [
     faqs: [
       { question: "Will the check-up fee be adjusted if I proceed with repair?", answer: "Yes, the visitation fee is fully adjusted against the final repair bill." },
       { question: "How long does the check-up take?", answer: "A standard AC check-up takes about 20-30 minutes." },
-    ],
-  },
-  {
-    _id: "ac-lite-service",
-    slug: "ac-lite-service",
-    name: "AC Lite Service",
-    section: "Repair & Services",
-    rating: 4.7,
-    totalReviews: 8848,
-    startingPrice: 449,
-    priceUnit: "AC",
-    thumbnail: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315763/TiptoBook/services/ac-lite-service.jpg",
-    bullets: [
-      "Quick AC clean for smooth cooling.",
-      "Perfect for regular maintenance.",
-    ],
-    fullDescription:
-      "Ideal for regular maintenance and mild dust buildup. Includes indoor filter cleaning, cooling coil dry brushing, outdoor unit dust wash, and overall cooling efficiency check.",
-    packages: [
-      { title: "1 Split AC Lite Service", price: 449, features: ["Indoor filter & grill clean", "Cooling coil dry brush", "Outdoor dust wash", "Gas check"] },
-      { title: "2 ACs Lite Combo", price: 799, features: ["Complete lite clean for 2 ACs", "Free gas leak test", "Performance report"] },
-    ],
-    faqs: [
-      { question: "How often should I get lite service?", answer: "We recommend a lite service every 3-4 months during peak summer." },
     ],
   },
   {
@@ -192,30 +162,6 @@ const FALLBACK_AC_SERVICES = [
     ],
     faqs: [
       { question: "Will gas be lost during uninstallation?", answer: "No! Technicians perform a pump down to trap all refrigerant inside the compressor." },
-    ],
-  },
-  {
-    _id: "ac-annual-maintenance",
-    slug: "ac-annual-maintenance",
-    name: "AC Annual Maintenance Pack",
-    section: "Saver Packs",
-    rating: 4.8,
-    totalReviews: 4520,
-    startingPrice: 1499,
-    priceUnit: "year",
-    thumbnail: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315768/TiptoBook/services/ac-annual-maintenance.jpg",
-    bullets: [
-      "2 Complete Foam Jet services + 1 breakdown inspection.",
-      "Priority support & guaranteed cooling all year round.",
-    ],
-    fullDescription:
-      "Stay worry-free all year with our AC Annual Maintenance Pack. Includes 2 deep foam jet cleanings, unlimited breakdown visits, priority service scheduling, and 15% discount on all spare parts and gas refilling.",
-    packages: [
-      { title: "1 AC 1-Year Saver Plan", price: 1499, features: ["2 Deep Foam Jet Cleanings", "2 Breakdown Diagnosis Visits", "15% Off on Spare Parts & Gas", "Priority Technicians"] },
-      { title: "2 ACs Whole-Home Pack", price: 2699, features: ["4 Deep Foam Jet Cleanings (2 per AC)", "Unlimited breakdown assistance", "20% Off on Gas & Spares", "Dedicated Account Manager"] },
-    ],
-    faqs: [
-      { question: "When are the 2 services scheduled?", answer: "One before summer (March-April) and one post-monsoon (September-October), or whenever you prefer." },
     ],
   },
 ];

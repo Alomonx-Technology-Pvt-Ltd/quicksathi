@@ -26,16 +26,6 @@ const categoriesData = [
     active: true,
     subCategories: [
       {
-        name: "Standard Car Rental",
-        description: "Everyday AC car booking for city rides, outstation trips & airport transfers — 5 seater and 7 seater options.",
-        vertical: "VEHICLE_RENTAL",
-        type: "PRODUCT_ONLY",
-        imageUrl: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2183&auto=format&fit=crop",
-        secondaryImageUrl: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?q=80&w=2070&auto=format&fit=crop",
-        displayOrder: 1,
-        active: true
-      },
-      {
         name: "Wedding Car Rental",
         description: "Decorated cars for weddings & special occasions with professional driver — 5 seater and 7 seater options.",
         vertical: "VEHICLE_RENTAL",
@@ -649,40 +639,6 @@ const servicesData = [
     ],
     providers: [
       { name: "CoolTech AC Services", rating: 4.6, experience: "7 Years", location: "Patna", startingPrice: 599, image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=1974&auto=format&fit=crop" }
-    ]
-  },
-  {
-    slug: "standard-car-rental",
-    name: "Standard Car Rental",
-    shortDescription: "Everyday AC car booking for city rides, outstation trips & airport transfers",
-    fullDescription: "Book a comfortable, fully insured AC car for city rides, outstation trips, airport pickups, and corporate travel. Choose between our 5-seater and 7-seater variations — a well-maintained car is randomly assigned to you at booking time.",
-    categoryGroup: "Vehicle Rental",
-    thumbnail: "https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?q=80&w=2183&auto=format&fit=crop",
-    bannerImage: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=2070&auto=format&fit=crop",
-    gallery: [
-      "https://images.unsplash.com/photo-1549924231-f129b911e442?q=80&w=2070&auto=format&fit=crop"
-    ],
-    startingPrice: 2499,
-    priceUnit: "per day",
-    rating: 4.5,
-    totalReviews: 212,
-    experience: "8 Years",
-    available: true,
-    serviceMode: "RENTAL",
-    tags: ["Cars", "AC", "City Ride", "Outstation"],
-    featured: false,
-    packages: [
-      { title: "5 Seater Car", price: 2499, image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0f2e?q=80&w=600&auto=format&fit=crop", features: ["Swift Dzire / Aura or similar", "4+1 Seats", "Fully AC", "100 KM Included"] },
-      { title: "7 Seater Car", price: 3499, image: "https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?q=80&w=600&auto=format&fit=crop", features: ["Ertiga / Innova or similar", "6+1 Seats", "Fully AC", "100 KM Included"] }
-    ],
-    faqs: [
-      { question: "Which car will I get for my booking?", answer: "We maintain a fleet of well-maintained 5-seater and 7-seater cars. Based on the variation you select, any one of the available cars is randomly assigned to you — all cars are AC, sanitized, and fully insured." },
-      { question: "Is fuel included in the price?", answer: "Fuel charges are separate unless specified. The quoted price covers the vehicle, driver allowance, and insurance." },
-      { question: "What documents do I need at pickup?", answer: "For with-driver bookings no documents are needed. For self-drive trips, a valid driving license and a government ID (Aadhaar / Passport) are mandatory." },
-      { question: "Can I extend my trip after booking?", answer: "Yes. Extra hours or kilometres are charged at the per-km rate shown at checkout — just inform the driver or our support team." }
-    ],
-    reviews: [
-      { userName: "Neha Singh", rating: 4, comment: "Car condition was excellent and driver was polite." }
     ]
   },
   {
