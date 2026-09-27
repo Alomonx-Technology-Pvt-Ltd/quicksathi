@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 
 // ── Only Real Working Platform Services in QuickSathi ─────────────────────────
 const CATEGORY_BANNERS = [
@@ -225,61 +225,85 @@ export default function CategoryBannersCarousel() {
   };
 
   return (
-    <section className="relative w-full max-w-full overflow-hidden pt-3 pb-6 sm:py-6 bg-white select-none">
-      <div className="max-w-7xl mx-auto px-4 sm:px-8">
-        {/* Navigation Arrow Left (Desktop) */}
-        {canScrollLeft && (
-          <button
-            type="button"
-            onClick={() => scrollByAmount("left")}
-            aria-label="Previous banners"
-            className="hidden md:flex absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/95 text-gray-800 shadow-xl border border-gray-200/80 items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110 hover:bg-white active:scale-95"
+    <section className="relative w-full max-w-full overflow-hidden pt-5 pb-7 sm:pt-6 sm:pb-8 bg-white select-none">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
+        {/* ── Section Header / Caption: Featured Services ── */}
+        <div className="mb-4 sm:mb-6">
+          <div className="flex items-center gap-1.5 mb-1.5">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-100/90 shadow-2xs">
+              <Sparkles size={11} className="text-purple-600" />
+              Special Deals
+            </span>
+          </div>
+          <h2
+            className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight text-slate-900 m-0"
+            style={{ fontFamily: "var(--font-display, inherit)" }}
           >
-            <ChevronLeft size={20} strokeWidth={2.5} />
-          </button>
-        )}
-
-        {/* Navigation Arrow Right (Desktop) */}
-        {canScrollRight && (
-          <button
-            type="button"
-            onClick={() => scrollByAmount("right")}
-            aria-label="Next banners"
-            className="hidden md:flex absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/95 text-gray-800 shadow-xl border border-gray-200/80 items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110 hover:bg-white active:scale-95"
+            Featured Services
+          </h2>
+          <p
+            className="text-xs sm:text-sm mt-1 sm:mt-1.5 m-0 leading-relaxed text-slate-500 max-w-xl"
+            style={{ fontFamily: "var(--font-body, inherit)" }}
           >
-            <ChevronRight size={20} strokeWidth={2.5} />
-          </button>
-        )}
+            Explore top-rated verified services, seasonal specials, and instant doorstep booking.
+          </p>
+        </div>
 
-        {/* Scrollable Track */}
-        <div
-          ref={scrollRef}
-          className="flex items-center gap-3.5 sm:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory py-2 -mx-4 px-4 sm:mx-0 sm:px-0"
-          style={{
-            scrollbarWidth: "none",
-            msOverflowStyle: "none",
-            WebkitOverflowScrolling: "touch",
-          }}
-        >
-          {CATEGORY_BANNERS.map((banner) => (
-            <Link
-              key={banner.id}
-              to={banner.link}
-              onClick={(e) => {
-                if (banner.id === "ac" || banner.link === "/services/ac") {
-                  e.preventDefault();
-                  window.dispatchEvent(new CustomEvent("open-appliance-modal"));
-                }
-              }}
-              className="category-banner-card snap-start flex-shrink-0 no-underline block rounded-2xl sm:rounded-3xl overflow-hidden relative transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.99] group"
-              style={{
-                width: "clamp(310px, 82vw, 385px)",
-                height: "195px",
-                backgroundColor: banner.bgFallback,
-                color: banner.textColor,
-                boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
-              }}
+        {/* ── Carousel Track & Arrows Relative Container ── */}
+        <div className="relative">
+          {/* Navigation Arrow Left (Desktop) */}
+          {canScrollLeft && (
+            <button
+              type="button"
+              onClick={() => scrollByAmount("left")}
+              aria-label="Previous banners"
+              className="hidden md:flex absolute -left-4 lg:-left-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/95 text-gray-800 shadow-xl border border-gray-200/80 items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110 hover:bg-white active:scale-95"
             >
+              <ChevronLeft size={20} strokeWidth={2.5} />
+            </button>
+          )}
+
+          {/* Navigation Arrow Right (Desktop) */}
+          {canScrollRight && (
+            <button
+              type="button"
+              onClick={() => scrollByAmount("right")}
+              aria-label="Next banners"
+              className="hidden md:flex absolute -right-4 lg:-right-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/95 text-gray-800 shadow-xl border border-gray-200/80 items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110 hover:bg-white active:scale-95"
+            >
+              <ChevronRight size={20} strokeWidth={2.5} />
+            </button>
+          )}
+
+          {/* Scrollable Track: Preserves proper side gap (NO -mx-4 edge sticking) */}
+          <div
+            ref={scrollRef}
+            className="flex items-center gap-3.5 sm:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory py-2 px-0.5 scroll-pl-1 sm:scroll-pl-0"
+            style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+              WebkitOverflowScrolling: "touch",
+            }}
+          >
+            {CATEGORY_BANNERS.map((banner) => (
+              <Link
+                key={banner.id}
+                to={banner.link}
+                onClick={(e) => {
+                  if (banner.id === "ac" || banner.link === "/services/ac") {
+                    e.preventDefault();
+                    window.dispatchEvent(new CustomEvent("open-appliance-modal"));
+                  }
+                }}
+                className="category-banner-card snap-start flex-shrink-0 no-underline block rounded-2xl sm:rounded-3xl overflow-hidden relative transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.99] group"
+                style={{
+                  width: "clamp(315px, 84vw, 390px)",
+                  height: "195px",
+                  backgroundColor: banner.bgFallback,
+                  color: banner.textColor,
+                  boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
+                }}
+              >
               {/* ── Full Card Photographic Imagery (Rendered across full card) ── */}
               <div className="absolute inset-0 overflow-hidden">
                 <img
@@ -367,6 +391,7 @@ export default function CategoryBannersCarousel() {
             </Link>
           ))}
         </div>
+      </div>
 
         {/* Minimalist Slider Indicator (matches reference image: active dark dash + inactive gray dash) */}
         <div className="flex items-center justify-center gap-1.5 mt-3 sm:mt-4">

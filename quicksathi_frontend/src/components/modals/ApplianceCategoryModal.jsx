@@ -10,26 +10,26 @@ const APPLIANCE_SERVICES = [
       {
         id: "ac-repair",
         name: "AC Repair & Services",
-        icon: "/icons/appliances/ac-repair.jpg",
+        icon: "/icons/appliances/ac-repair.png",
         route: "/services/ac",
         badge: "Popular",
       },
       {
         id: "washing-machine",
         name: "Washing Machine Repair",
-        icon: "/icons/appliances/washing-machine.jpg",
+        icon: "/icons/appliances/washing-machine.png",
         route: "/service/washing-machine-repair",
       },
       {
         id: "refrigerator",
         name: "Refrigerator Repair & Services",
-        icon: "/icons/appliances/refrigerator.jpg",
+        icon: "/icons/appliances/refrigerator.png",
         route: "/service/refrigerator-repair",
       },
       {
         id: "tv-repair",
         name: "TV Repair & Services",
-        icon: "/icons/appliances/tv-repair.jpg",
+        icon: "/icons/appliances/tv-repair.png",
         route: "/service/tv-repair",
       },
     ],
@@ -40,7 +40,7 @@ const APPLIANCE_SERVICES = [
       {
         id: "geyser-repair",
         name: "Geyser Repair & Services",
-        icon: "/icons/appliances/geyser-repair.jpg",
+        icon: "/icons/appliances/geyser-repair.png",
         route: "/service/geyser-repair",
         badge: "Essential",
       },
@@ -91,7 +91,7 @@ const ApplianceCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }) =>
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
           {/* Backdrop with subtle blur */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -103,13 +103,13 @@ const ApplianceCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }) =>
             aria-hidden="true"
           />
 
-          {/* Modal Container */}
+          {/* Modal Container: Clean unified single background */}
           <motion.div
             initial={{ opacity: 0, scale: 0.94, y: 15 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.94, y: 15 }}
             transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
-            className="relative w-full max-w-[480px] bg-white rounded-3xl shadow-2xl border border-slate-100/80 overflow-hidden z-10 my-auto p-5 sm:p-7"
+            className="relative w-full max-w-[480px] bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden z-10 my-auto p-5 sm:p-7"
             style={{
               boxShadow: "0 25px 70px -12px rgba(15, 23, 42, 0.25)",
             }}
@@ -141,8 +141,8 @@ const ApplianceCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }) =>
               </button>
             </div>
 
-            {/* Sections Content */}
-            <div className="mt-4 flex flex-col gap-5 max-h-[70vh] overflow-y-auto pr-1">
+            {/* Sections Content — Scrollbars hidden cleanly */}
+            <div className="mt-4 flex flex-col gap-5 max-h-[70vh] overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden pr-0.5">
               {APPLIANCE_SERVICES.map((sec) => (
                 <div key={sec.section}>
                   {/* Section Label */}
@@ -153,8 +153,8 @@ const ApplianceCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }) =>
                     <div className="flex-1 h-px bg-slate-100" />
                   </div>
 
-                  {/* 3-Column Grid */}
-                  <div className="grid grid-cols-3 gap-2.5 sm:gap-3.5">
+                  {/* 3-Column Clean Icon Grid: NO card background, seamless unified popup */}
+                  <div className="grid grid-cols-3 gap-2 sm:gap-3.5">
                     {sec.items.map((item) => (
                       <motion.button
                         key={item.id}
@@ -162,22 +162,22 @@ const ApplianceCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }) =>
                         whileHover={{ y: -3, scale: 1.02 }}
                         whileTap={{ scale: 0.96 }}
                         onClick={() => handleSelectService(item.route)}
-                        className="group flex flex-col items-center text-center p-2.5 sm:p-3 rounded-2xl bg-slate-50/70 hover:bg-purple-50/50 border border-slate-100 hover:border-purple-200 hover:shadow-md transition-all duration-200 cursor-pointer outline-none relative"
+                        className="group flex flex-col items-center text-center p-2 sm:p-2.5 rounded-2xl bg-transparent hover:bg-slate-50/80 transition-all duration-200 cursor-pointer outline-none relative border-0"
                       >
                         {/* Popular / Essential Badge */}
                         {item.badge && (
-                          <span className="absolute top-1.5 right-1.5 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-purple-600 text-white tracking-wide shadow-xs">
+                          <span className="absolute top-0.5 right-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-purple-600 text-white tracking-wide shadow-xs z-10">
                             {item.badge}
                           </span>
                         )}
 
-                        {/* High-res Appliance Icon Tile */}
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-white border border-slate-100/80 p-1 flex items-center justify-center overflow-hidden shadow-xs group-hover:shadow-sm transition-all">
+                        {/* Clean High-res Appliance Icon Tile (NO card frame, NO border) */}
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center relative p-1">
                           <img
                             src={item.icon}
                             alt={item.name}
                             loading="eager"
-                            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+                            className="w-full h-full object-contain drop-shadow-xs group-hover:scale-108 transition-transform duration-300 select-none pointer-events-none"
                             onError={(e) => {
                               e.currentTarget.onerror = null;
                               e.currentTarget.src = "/icons/categories/ac-appliances.png";

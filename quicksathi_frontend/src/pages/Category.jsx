@@ -10,6 +10,9 @@ import {
   MapPin,
   Sparkles,
   ChevronDown,
+  Users,
+  ShieldCheck,
+  Check,
 } from "lucide-react";
 import api from "../config/api";
 import SEO from "../components/SEO";
@@ -17,6 +20,7 @@ import { useLocation } from "../context/LocationContext";
 import { mockCategories } from "../data/mockCategories";
 import { mockServices } from "../data/mockServices";
 import ACCategoryPage from "./ACCategoryPage";
+import CategorySpotlightBanner from "../components/CategorySpotlightBanner";
 
 // Helper to extract clean bullet points from service data
 const getServiceBullets = (service) => {
@@ -133,7 +137,41 @@ const getServicesForSub = (sub, allServices, categoryVertical) => {
 const Category = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { city, setIsPickerOpen } = useLocation();
+  const {
+    city,
+    locality,
+    street,
+    road,
+    fullLocation,
+    detecting,
+    detectExactLocation,
+    setCity,
+    cityOptions = [],
+  } = useLocation();
+
+  const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
+
+  // Real-time location formatting
+  const realTimeLocation = useMemo(() => {
+    if (street && locality && street !== locality) {
+      return `${street}, ${locality}`;
+    }
+    if (road && locality && road !== locality) {
+      return `${road}, ${locality}`;
+    }
+    if (locality && city && locality !== city) {
+      return `${locality}, ${city}`;
+    }
+    if (locality) return locality;
+    if (street) return street;
+    if (road) return road;
+    if (city) return city;
+    if (fullLocation) {
+      const parts = fullLocation.split(",").map((p) => p.trim()).filter(Boolean);
+      return parts.slice(0, 2).join(", ");
+    }
+    return null;
+  }, [street, road, locality, city, fullLocation]);
 
   // Instant render: find mock category for this id immediately
   const findMock = (catId) => {
@@ -308,31 +346,95 @@ const Category = () => {
 
       {/* ── Main Container: max-w-4xl for clean centered Urban Company feel ── */}
       <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
-        {/* ── Top City / Location Selector Header ── */}
+        {/* ── Top City / Real-Time Location Selector Header ── */}
         <div className="mb-4">
-          <button
-            type="button"
-            onClick={() => setIsPickerOpen?.(true)}
-            className="flex items-center gap-1.5 text-xs font-medium text-slate-500 hover:text-purple-600 mb-1.5 bg-transparent border-0 p-0 cursor-pointer transition-colors"
-          >
-            <MapPin size={13} className="text-purple-600" />
-            <span>{city ? `Services in ${city}` : "Select city"}</span>
-          </button>
+          <div className="flex items-center gap-2 mb-2 flex-wrap text-xs">
+            {/* Real-time located user location */}
+            <div className="inline-flex items-center gap-1.5 font-semibold text-slate-800 bg-purple-50/70 border border-purple-100/90 px-2.5 py-1 rounded-full shadow-2xs">
+              <MapPin size={13} className="text-purple-600 shrink-0" />
+              <span>
+                {detecting
+                  ? "Locating in real-time..."
+                  : realTimeLocation || "Current Location"}
+              </span>
+              {detecting && (
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-ping inline-block ml-0.5" />
+              )}
+            </div>
+
+            {/* Select city option with dropdown selector */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsCityDropdownOpen((prev) => !prev)}
+                className="inline-flex items-center gap-1 text-slate-500 hover:text-purple-700 font-medium px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors border-0 bg-transparent cursor-pointer text-xs"
+              >
+                <span>{city ? `City: ${city}` : "Select city"}</span>
+                <ChevronDown
+                  size={12}
+                  className={`transition-transform duration-200 ${
+                    isCityDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {/* Dropdown menu for selecting city */}
+              {isCityDropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsCityDropdownOpen(false)}
+                  />
+                  <div className="absolute top-full left-0 mt-1 z-50 w-48 max-h-60 overflow-y-auto bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 no-scrollbar">
+                    <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      Select City
+                    </div>
+                    {cityOptions.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => {
+                          setCity(c);
+                          setIsCityDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-1.5 text-xs hover:bg-purple-50 hover:text-purple-700 border-0 bg-transparent cursor-pointer flex items-center justify-between transition-colors ${
+                          city === c
+                            ? "font-bold text-purple-700 bg-purple-50/50"
+                            : "text-slate-700"
+                        }`}
+                      >
+                        <span>{c}</span>
+                        {city === c && <Check size={12} className="text-purple-600" />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
 
           <h1 className="text-2xl sm:text-3xl md:text-[34px] font-extrabold text-slate-900 tracking-tight leading-tight m-0">
             {displayTitle}
           </h1>
 
-          {/* Trust Badges */}
-          <div className="flex items-center gap-2.5 sm:gap-3 mt-3 flex-wrap">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-700 text-xs font-semibold border border-slate-200/60 shadow-xs">
-              <Shield size={12} className="text-purple-600" />
-              <span>5k+ Experts</span>
+          {/* Trust Badges: 200+ Happy Customers, 50+ Partners, 4.8 Rating */}
+          <div className="flex items-center gap-2 sm:gap-2.5 mt-3 flex-wrap">
+            {/* 200+ happy customer */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 text-xs font-semibold border border-slate-200/60 shadow-xs">
+              <Users size={12} className="text-purple-600" />
+              <span>200+ Happy Customers</span>
             </div>
 
+            {/* 50+ partner */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 text-xs font-semibold border border-slate-200/60 shadow-xs">
+              <ShieldCheck size={12} className="text-emerald-600" />
+              <span>50+ Partners</span>
+            </div>
+
+            {/* 4.8 rating */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 text-xs font-semibold border border-slate-200/60 shadow-xs">
               <Star size={12} className="fill-amber-400 text-amber-400" />
-              <span>400K+ ★★★★★</span>
+              <span>4.8 Rating</span>
             </div>
           </div>
         </div>
@@ -350,66 +452,8 @@ const Category = () => {
           </div>
         )}
 
-        {/* ── Custom Category Spotlight Banner (Wedding & Events) ── */}
-        {(category?.vertical === "WEDDING" || id === "wedding" || category?.name?.toLowerCase().includes("wedding")) && (
-          <div
-            className="mt-5 rounded-2xl overflow-hidden border border-rose-100/80 shadow-sm relative min-h-[220px] sm:min-h-[260px] flex items-center bg-cover bg-no-repeat"
-            style={{
-              backgroundImage: "url('/banners/wedding_banner.webp')",
-              backgroundColor: "#fdf8f5",
-              backgroundPosition: "center right",
-            }}
-          >
-            <div className="absolute inset-0 pointer-events-none md:hidden bg-gradient-to-r from-white/95 via-white/85 to-transparent" />
-            <div className="relative z-10 p-5 sm:p-7 max-w-lg">
-              <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-rose-100 text-rose-700 mb-2">
-                Wedding & Celebration
-              </span>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900 leading-tight m-0 mb-1">
-                Plan Your Perfect Wedding.
-              </h2>
-              <p className="text-xs text-gray-500 m-0 mb-1">Find trusted services for your special day:</p>
-              <p className="text-xs sm:text-sm text-gray-800 font-semibold m-0 mb-3">
-                Venues • Decorators • Photographers • Makeup • Catering & More
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-lg bg-white/90 border border-gray-200/80 shadow-xs">💍 Trusted Service Providers</span>
-                <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-lg bg-white/90 border border-gray-200/80 shadow-xs">✨ Multiple Options</span>
-                <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-lg bg-white/90 border border-gray-200/80 shadow-xs">📅 Easy Booking</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── Custom Category Spotlight Banner (Home Tuition) ── */}
-        {(category?.vertical === "HOME_TUITION" || id === "home-tuition" || category?.name?.toLowerCase().includes("tuition") || category?.name?.toLowerCase().includes("tutor")) && (
-          <div
-            className="mt-5 rounded-2xl overflow-hidden border border-sky-100/80 shadow-sm relative min-h-[220px] sm:min-h-[260px] flex items-center bg-cover bg-no-repeat"
-            style={{
-              backgroundImage: "url('/banners/tuition_banner.webp')",
-              backgroundColor: "#f0f9ff",
-              backgroundPosition: "center right",
-            }}
-          >
-            <div className="absolute inset-0 pointer-events-none md:hidden bg-gradient-to-r from-white/95 via-white/85 to-transparent" />
-            <div className="relative z-10 p-5 sm:p-7 max-w-lg">
-              <span className="inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wide uppercase bg-sky-100 text-sky-700 mb-2">
-                Verified Expert Tutors
-              </span>
-              <h2 className="text-xl sm:text-2xl font-extrabold text-gray-900 leading-tight m-0 mb-1.5">
-                Find trusted home tutors for:
-              </h2>
-              <p className="text-xs sm:text-sm text-sky-950 font-semibold m-0 mb-3">
-                Maths • Science • English • Computer • Other Subjects
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-lg bg-white/90 border border-gray-200/80 shadow-xs">👨‍🏫 Experienced Tutors</span>
-                <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-lg bg-white/90 border border-gray-200/80 shadow-xs">🏠 One-to-One Learning</span>
-                <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-lg bg-white/90 border border-gray-200/80 shadow-xs">📚 Personalized Classes</span>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* ── Category Spotlight Banner for all service pages ── */}
+        <CategorySpotlightBanner category={category} id={id} />
 
         {/* ── "What service do you need ?" (Visual Grid Cards matching AC design) ── */}
         <div className="mt-8 pt-6 border-t border-slate-100">

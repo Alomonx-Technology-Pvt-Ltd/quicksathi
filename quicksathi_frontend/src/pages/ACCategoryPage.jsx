@@ -13,11 +13,15 @@ import {
   Clock,
   Sparkles,
   ChevronDown,
+  Users,
+  ShieldCheck,
+  Check,
 } from "lucide-react";
 import api from "../config/api";
 import SEO from "../components/SEO";
 import { useLocation } from "../context/LocationContext";
 import { mockServices } from "../data/mockServices";
+import CategorySpotlightBanner from "../components/CategorySpotlightBanner";
 
 // ── Sub-category quick selection tiles matching reference ──
 const SUB_CATEGORIES = [
@@ -168,12 +172,45 @@ const FALLBACK_AC_SERVICES = [
 
 const ACCategoryPage = ({ category: propCategory }) => {
   const navigate = useNavigate();
-  const { currentCity } = useLocation();
+  const {
+    city,
+    locality,
+    street,
+    road,
+    fullLocation,
+    detecting,
+    detectExactLocation,
+    setCity,
+    cityOptions = [],
+  } = useLocation();
 
+  const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("all");
   const [selectedServiceForModal, setSelectedServiceForModal] = useState(null);
   const [liveServices, setLiveServices] = useState(FALLBACK_AC_SERVICES);
   const sectionRefs = useRef({});
+
+  // Real-time location formatting
+  const realTimeLocation = useMemo(() => {
+    if (street && locality && street !== locality) {
+      return `${street}, ${locality}`;
+    }
+    if (road && locality && road !== locality) {
+      return `${road}, ${locality}`;
+    }
+    if (locality && city && locality !== city) {
+      return `${locality}, ${city}`;
+    }
+    if (locality) return locality;
+    if (street) return street;
+    if (road) return road;
+    if (city) return city;
+    if (fullLocation) {
+      const parts = fullLocation.split(",").map((p) => p.trim()).filter(Boolean);
+      return parts.slice(0, 2).join(", ");
+    }
+    return null;
+  }, [street, road, locality, city, fullLocation]);
 
   // Fetch live services from backend
   useEffect(() => {
@@ -276,32 +313,104 @@ const ACCategoryPage = ({ category: propCategory }) => {
       {/* ── Main Container: max-w-4xl for clean centered Urban Company feel ── */}
       <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
         
-        {/* ── Top City / Location Selector Header ── */}
+        {/* ── Top City / Real-Time Location Selector Header ── */}
         <div className="mb-4">
-          <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500 mb-1.5">
-            <MapPin size={13} className="text-purple-600" />
-            <span>Select city</span>
+          <div className="flex items-center gap-2 mb-2 flex-wrap text-xs">
+            {/* Real-time located user location */}
+            <div className="inline-flex items-center gap-1.5 font-semibold text-slate-800 bg-purple-50/70 border border-purple-100/90 px-2.5 py-1 rounded-full shadow-2xs">
+              <MapPin size={13} className="text-purple-600 shrink-0" />
+              <span>
+                {detecting
+                  ? "Locating in real-time..."
+                  : realTimeLocation || "Current Location"}
+              </span>
+              {detecting && (
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-ping inline-block ml-0.5" />
+              )}
+            </div>
+
+            {/* Select city option with dropdown selector */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsCityDropdownOpen((prev) => !prev)}
+                className="inline-flex items-center gap-1 text-slate-500 hover:text-purple-700 font-medium px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors border-0 bg-transparent cursor-pointer text-xs"
+              >
+                <span>{city ? `City: ${city}` : "Select city"}</span>
+                <ChevronDown
+                  size={12}
+                  className={`transition-transform duration-200 ${
+                    isCityDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {/* Dropdown menu for selecting city */}
+              {isCityDropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsCityDropdownOpen(false)}
+                  />
+                  <div className="absolute top-full left-0 mt-1 z-50 w-48 max-h-60 overflow-y-auto bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 no-scrollbar">
+                    <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      Select City
+                    </div>
+                    {cityOptions.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => {
+                          setCity(c);
+                          setIsCityDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-1.5 text-xs hover:bg-purple-50 hover:text-purple-700 border-0 bg-transparent cursor-pointer flex items-center justify-between transition-colors ${
+                          city === c
+                            ? "font-bold text-purple-700 bg-purple-50/50"
+                            : "text-slate-700"
+                        }`}
+                      >
+                        <span>{c}</span>
+                        {city === c && <Check size={12} className="text-purple-600" />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
           </div>
 
           <h1 className="text-2xl sm:text-3xl md:text-[34px] font-extrabold text-slate-900 tracking-tight leading-tight m-0">
-            AC Services services near you
+            AC Services near you
           </h1>
 
-          {/* Trust Badges */}
-          <div className="flex items-center gap-2.5 sm:gap-3 mt-3 flex-wrap">
-            {/* 5k+ Experts badge */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-700 text-xs font-semibold border border-slate-200/60 shadow-xs">
-              <Shield size={12} className="text-purple-600" />
-              <span>5k+ Experts</span>
+          {/* Trust Badges: 200+ Happy Customers, 50+ Partners, 4.8 Rating */}
+          <div className="flex items-center gap-2 sm:gap-2.5 mt-3 flex-wrap">
+            {/* 200+ happy customer */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 text-xs font-semibold border border-slate-200/60 shadow-xs">
+              <Users size={12} className="text-purple-600" />
+              <span>200+ Happy Customers</span>
             </div>
 
-            {/* 400K+ ★★★★★ badge */}
+            {/* 50+ partner */}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 text-xs font-semibold border border-slate-200/60 shadow-xs">
+              <ShieldCheck size={12} className="text-emerald-600" />
+              <span>50+ Partners</span>
+            </div>
+
+            {/* 4.8 rating */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 text-xs font-semibold border border-slate-200/60 shadow-xs">
               <Star size={12} className="fill-amber-400 text-amber-400" />
-              <span>400K+ ★★★★★</span>
+              <span>4.8 Rating</span>
             </div>
           </div>
         </div>
+
+        {/* ── Category Spotlight Banner for AC & Appliances ── */}
+        <CategorySpotlightBanner
+          category={{ vertical: "AC_APPLIANCES", name: "AC & Appliances" }}
+          id="ac"
+        />
 
         {/* ── "What service do you need ?" (4 Visual Grid Cards) ── */}
         <div className="mt-8 pt-6 border-t border-slate-100">
