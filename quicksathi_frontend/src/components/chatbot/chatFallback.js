@@ -84,7 +84,7 @@ const FALLBACK_KNOWLEDGE = [
       /\b(partner|become a partner|join as provider|provider registration|kaam chahiye|list my service|vendor)\b/i,
     ],
     generate: () =>
-      `Join TiptoBook's growing network of elite service professionals! 🤝\n\n**Why Partner With Us?**\n- Consistent high-paying customer bookings in your city.\n- Fair, transparent commission (only 8% per completed booking).\n- Automated weekly or daily payouts straight to your bank account.\n- Free marketing, digital scheduling, and 24/7 partner support.\n\nClick **"Become a Partner"** in the website header or visit \`/provider/onboarding\` to get started!`,
+      `Join TiptoBook's growing network of elite service professionals! 🤝\n\n**Why Partner With Us?**\n- Consistent high-paying customer bookings in your city.\n- Zero upfront joining fees and guaranteed timely settlements.\n- Automated weekly or daily payouts straight to your bank account.\n- Free marketing, digital scheduling, and 24/7 partner support.\n\nClick **"Become a Partner"** in the website header or visit \`/provider/onboarding\` to get started!`,
   },
   {
     category: "CONTACT_SUPPORT",

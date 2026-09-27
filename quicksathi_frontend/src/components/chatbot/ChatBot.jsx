@@ -167,7 +167,7 @@ TiptoBook connects customers with verified, top-rated service providers across 6
 
 ## Partner / Provider Program
 - Service providers can list services on TiptoBook to gain verified client bookings
-- Transparent 8% commission per booking
+- Zero upfront joining fee and fast direct bank payouts
 - Automated weekly/daily payouts & 24/7 support
 - Apply via "Become a Partner" on the website footer/header
 

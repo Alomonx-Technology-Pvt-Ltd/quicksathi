@@ -381,7 +381,7 @@ const ProviderOnboarding = () => {
             className="text-2xl sm:text-3xl font-bold mb-3 tracking-tight text-slate-900"
             style={{ fontFamily: "var(--font-display)" }}
           >
-            Welcome to QuickSathi!
+            Welcome to TiptoBook!
           </h2>
 
           <p
@@ -460,18 +460,18 @@ const ProviderOnboarding = () => {
               className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight m-0 text-white leading-tight"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              Grow Your Service Business with QuickSathi
+              Grow Your Service Business with TiptoBook
             </h1>
 
             <p className="mt-3 text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl">
-              Partner with the leading home & appliance services platform. Enjoy transparent 8% platform fee, verified local customers, and direct bank payouts.
+              Partner with Bihar's trusted home & vehicle services network. Enjoy verified customer bookings, automated scheduling, and direct bank payouts.
             </p>
 
             {/* Quick Stats Pill Strip */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 mt-6 pt-6 border-t border-white/10">
               <div className="flex flex-col">
-                <span className="text-lg sm:text-xl font-bold text-white">8% Only</span>
-                <span className="text-[11px] text-slate-400">Flat commission</span>
+                <span className="text-lg sm:text-xl font-bold text-white">Direct Payouts</span>
+                <span className="text-[11px] text-slate-400">Fast & transparent</span>
               </div>
               <div className="flex flex-col">
                 <span className="text-lg sm:text-xl font-bold text-white">₹0 Upfront</span>
@@ -1182,7 +1182,7 @@ const ProviderOnboarding = () => {
                     </div>
 
                     <div className="text-xs text-slate-500 leading-relaxed bg-slate-50 p-4 rounded-xl border border-slate-100">
-                      By submitting this registration, you agree to QuickSathi's{" "}
+                      By submitting this registration, you agree to TiptoBook's{" "}
                       <Link to="/provider/terms" target="_blank" className="text-purple-600 font-semibold underline">
                         Provider Terms of Service
                       </Link>{" "}
@@ -1190,7 +1190,7 @@ const ProviderOnboarding = () => {
                       <Link to="/provider/policy" target="_blank" className="text-purple-600 font-semibold underline">
                         Partner Quality Code of Conduct
                       </Link>
-                      . Platform commission is capped at 8% per completed order.
+                      . Secure direct bank settlements for every completed order.
                     </div>
                   </motion.div>
                 )}
@@ -1265,7 +1265,7 @@ const ProviderOnboarding = () => {
 
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 my-4 text-center">
                 <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                  ₹45,000 – ₹85,000
+                  ₹20,000 – ₹60,000
                 </span>
                 <span className="block text-[11px] text-slate-500 mt-0.5">Average monthly earnings</span>
               </div>
@@ -1273,7 +1273,7 @@ const ProviderOnboarding = () => {
               <div className="flex flex-col gap-2.5 text-xs text-slate-600">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 size={14} className="text-emerald-500 flex-shrink-0" />
-                  <span>Fair 8% platform fee — keep 92% of your revenue</span>
+                  <span>Zero upfront joining fee or listing charges</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 size={14} className="text-emerald-500 flex-shrink-0" />
@@ -1286,7 +1286,7 @@ const ProviderOnboarding = () => {
               </div>
             </div>
 
-            {/* Why Partner with QuickSathi */}
+            {/* Why Partner with TiptoBook */}
             <div className="bg-gradient-to-br from-purple-900 to-indigo-950 text-white rounded-3xl p-6 shadow-xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full blur-2xl" />
 
@@ -1295,7 +1295,7 @@ const ProviderOnboarding = () => {
                   Partner Guarantee
                 </span>
                 <h4 className="text-base font-bold text-white m-0 mb-3">
-                  Safety & Growth Backed by QuickSathi
+                  Safety & Growth Backed by TiptoBook
                 </h4>
 
                 <div className="flex flex-col gap-3 text-xs text-slate-300">

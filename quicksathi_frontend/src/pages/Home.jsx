@@ -238,8 +238,8 @@ const Home = () => {
               className="p-5 rounded-2xl border"
               style={{ backgroundColor: "rgba(0,0,0,0.35)", backdropFilter: "blur(6px)", borderColor: "rgba(255,255,255,0.1)" }}
             >
-              <p className="text-[10px] uppercase font-bold tracking-wider m-0" style={{ color: "var(--color-accent)", fontFamily: "var(--font-body)" }}>Average Commission</p>
-              <p className="text-2xl font-bold text-white m-0 mt-1" style={{ fontFamily: "var(--font-display)" }}>8% <span className="text-xs font-normal text-white/50">per checkout</span></p>
+              <p className="text-[10px] uppercase font-bold tracking-wider m-0" style={{ color: "var(--color-accent)", fontFamily: "var(--font-body)" }}>Zero Joining Fee</p>
+              <p className="text-2xl font-bold text-white m-0 mt-1" style={{ fontFamily: "var(--font-display)" }}>₹0 <span className="text-xs font-normal text-white/50">get started free</span></p>
             </motion.div>
             <motion.div
               whileHover={{ scale: 1.03, y: -2 }}
