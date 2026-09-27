@@ -1,9 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
 import ApplianceCategoryModal from "./modals/ApplianceCategoryModal";
-
-const MotionLink = motion(Link);
 
 // ── Default 8 Platform Categories with Provided Image Icons ──
 const DEFAULT_CATEGORIES = [
@@ -66,20 +63,6 @@ const DEFAULT_CATEGORIES = [
   },
 ];
 
-const containerVariants = {
-  hidden: {},
-  visible: {
-    transition: {
-      staggerChildren: 0.04,
-    },
-  },
-};
-
-const itemVariants = {
-  hidden: { opacity: 0, y: 12 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.28, ease: "easeOut" } },
-};
-
 const AllCategoriesSection = ({ categories = [] }) => {
   const navigate = useNavigate();
   const [isApplianceModalOpen, setIsApplianceModalOpen] = useState(false);
@@ -129,7 +112,7 @@ const AllCategoriesSection = ({ categories = [] }) => {
 
   return (
     <section
-      className="w-full py-8 sm:py-12 px-4 sm:px-8 lg:px-12 select-none bg-white overflow-hidden"
+      className="w-full py-8 sm:py-12 px-4 sm:px-8 lg:px-12 select-none bg-white"
     >
       <div className="max-w-7xl mx-auto">
         {/* ── Section Header ── */}
@@ -172,22 +155,16 @@ const AllCategoriesSection = ({ categories = [] }) => {
 
         {/* ── 8 Category Grid (4 per row, centered in the middle) ── */}
         <div className="w-full flex justify-center">
-          <motion.div
+          <div
             className="grid grid-cols-4 justify-items-center gap-y-5 sm:gap-y-8 md:gap-y-9 gap-x-2 sm:gap-x-6 md:gap-x-12 w-full max-w-3xl sm:max-w-4xl md:max-w-5xl mx-auto"
             style={{ margin: "0 auto" }}
-            variants={containerVariants}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
           >
             {displayCategories.map((cat) => (
-              <MotionLink
+              <Link
                 key={cat.id}
                 to={cat.route}
                 onClick={(e) => handleCategoryClick(e, cat)}
-                variants={itemVariants}
-                whileTap={{ scale: 0.94 }}
-                className="group flex flex-col items-center text-center justify-center no-underline border-none bg-transparent cursor-pointer p-0 outline-none w-full"
+                className="group flex flex-col items-center text-center justify-center no-underline border-none bg-transparent cursor-pointer p-0 outline-none w-full transition-all duration-200 hover:-translate-y-1 active:scale-95"
                 style={{ fontFamily: "var(--font-body, inherit)" }}
               >
                 {/* Clean Icon Container: responsive sizing, NO border, NO card */}
@@ -216,9 +193,9 @@ const AllCategoriesSection = ({ categories = [] }) => {
                 >
                   {cat.title}
                 </span>
-              </MotionLink>
+              </Link>
             ))}
-          </motion.div>
+          </div>
         </div>
 
         {/* Mobile "View All" Footer CTA */}
