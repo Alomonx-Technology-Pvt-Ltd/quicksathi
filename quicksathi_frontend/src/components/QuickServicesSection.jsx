@@ -35,6 +35,15 @@ const REAL_CATEGORIES = [
         rating: 4.8,
         imageUrl: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=600&auto=format&fit=crop",
         badge: "Wedding Special"
+      },
+      {
+        id: 111,
+        name: "Outstation & Airport Cab Rental",
+        description: "One-way and round trips with verified commercial drivers and clean AC cabs.",
+        startingPrice: 3499,
+        rating: 4.8,
+        imageUrl: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/outstation-airport-cab.jpg",
+        badge: "Everyday Ride"
       }
     ]
   },

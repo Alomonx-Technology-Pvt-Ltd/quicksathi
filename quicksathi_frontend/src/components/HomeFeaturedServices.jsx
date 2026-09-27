@@ -384,11 +384,15 @@ const SECTION_MATCHERS = {
   "cars": (s) => {
     const name = (s.name || "").toLowerCase();
     const catName = (s.categoryName || s.category?.name || "").toLowerCase();
+    const catGroup = (s.categoryGroup || "").toLowerCase();
+    const tags = Array.isArray(s.tags) ? s.tags.join(" ").toLowerCase() : "";
     const vertical = s.vertical || s.category?.vertical || "";
 
     if (vertical === "VEHICLE_RENTAL") return true;
     if (catName.includes("vehicle") || catName.includes("rental") || catName.includes("car")) return true;
-    if (/\b(car rental|vehicle|cab|chauffeur|sedan|suv|self-drive)\b/i.test(name)) return true;
+    if (catGroup.includes("vehicle") || catGroup.includes("rental") || catGroup.includes("car")) return true;
+    if (/\b(car rental|vehicle|cab|chauffeur|sedan|suv|self-drive|outstation|airport cab)\b/i.test(name)) return true;
+    if (/\b(car|cab|rental|outstation|airport)\b/i.test(tags)) return true;
     return false;
   },
   "wedding": (s) => {

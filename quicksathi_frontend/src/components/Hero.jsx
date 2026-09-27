@@ -37,6 +37,14 @@ const HERO_CATEGORIES = [
         badge: "Wedding",
         img: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=600&auto=format&fit=crop",
       },
+      {
+        name: "Outstation & Airport Cab Rental",
+        desc: "AC sedans & SUVs for airport, city & outstation trips.",
+        price: 3499,
+        rating: 4.8,
+        badge: "Everyday Ride",
+        img: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/outstation-airport-cab.jpg",
+      },
     ],
   },
   {

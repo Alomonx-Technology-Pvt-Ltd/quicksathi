@@ -630,6 +630,79 @@ export const mockServices = [
   },
 
   {
+    id: 111,
+    slug: "outstation-car-rental",
+    name: "Outstation & Airport Cab Rental",
+    shortDescription: "One-way and round trips with verified commercial drivers and clean AC cabs.",
+    fullDescription:
+      "Inter-city and local travel with fixed transparent rates, zero toll confusion, and 24/7 roadside assistance. Enjoy clean, air-conditioned sedans and spacious 7-seater SUVs with professional chauffeurs.",
+    categoryId: 6,
+    categoryName: "Vehicle Rental",
+    vertical: "VEHICLE_RENTAL",
+    thumbnail:
+      "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/outstation-airport-cab.jpg",
+    bannerImage:
+      "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/outstation-airport-cab.jpg",
+    gallery: [
+      "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/outstation-airport-cab.jpg",
+      "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=1200&auto=format&fit=crop",
+    ],
+    startingPrice: 3499,
+    priceUnit: "per trip",
+    rating: 4.8,
+    totalReviews: 167,
+    experience: "8 Years",
+    available: true,
+    serviceMode: "RENTAL",
+    tags: ["Cars", "Cab", "Airport", "Outstation", "Rental", "Everyday"],
+    featured: true,
+    packages: [
+      {
+        id: 1,
+        title: "Airport Transfer (Sedan)",
+        price: 1299,
+        image: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=600&auto=format&fit=crop",
+        features: ["AC Sedan (Dzire / Etios)", "Luggage Assistance", "Flight Tracking", "Toll Included"],
+      },
+      {
+        id: 2,
+        title: "Outstation Round Trip (SUV)",
+        price: 3499,
+        image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/outstation-airport-cab.jpg",
+        features: ["7-Seater Ertiga / Innova", "Chauffeur Driven", "250 KM Included", "Clean Sanitized Cab"],
+      },
+    ],
+    faqs: [
+      {
+        question: "Are toll taxes and driver allowance included?",
+        answer: "Base fares cover driver allowance. State toll taxes and parking fees are either included in package pricing or clearly billed as per actual receipts.",
+      },
+      {
+        question: "Can I book for outstation one-way trips?",
+        answer: "Yes, we offer both dedicated one-way drops and flexible multi-day round trip bookings.",
+      },
+      {
+        question: "How are the drivers verified?",
+        answer: "All chauffeurs have commercial driving licenses, minimum 5 years experience, and verified background checks.",
+      },
+    ],
+    reviews: [
+      {
+        id: 1,
+        user: "Rajesh Kumar",
+        rating: 5,
+        comment: "Punctual airport pickup, very courteous driver and spotless AC cab!",
+      },
+      {
+        id: 2,
+        user: "Pooja Sharma",
+        rating: 5,
+        comment: "Great experience for our outstation family trip. Safe and comfortable driving.",
+      },
+    ],
+  },
+
+  {
  id: 16,
 slug: "school-tuition",
 name: "School Tuition",

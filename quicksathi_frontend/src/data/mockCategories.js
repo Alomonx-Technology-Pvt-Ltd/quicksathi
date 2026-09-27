@@ -172,6 +172,20 @@ export const mockCategories = [
         parent: 6,
         subCategories: [],
       },
+      {
+        id: 8,
+        name: "Outstation & Airport Cab Rental",
+        description:
+          "Reliable outstation cabs and airport transfers with verified drivers — Sedans and 7-seater SUVs.",
+        vertical: "VEHICLE_RENTAL",
+        type: "PRODUCT_ONLY",
+        imageUrl: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/outstation-airport-cab.jpg",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=1200&auto=format&fit=crop",
+        displayOrder: 1,
+        active: true,
+        parent: 6,
+        subCategories: [],
+      },
     ],
   },
 
