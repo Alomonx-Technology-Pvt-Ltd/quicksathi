@@ -1,6 +1,7 @@
 import { useRef, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
+import api from "../config/api";
 
 // ── Only Real Working Platform Services in QuickSathi ─────────────────────────
 const CATEGORY_BANNERS = [
@@ -188,9 +189,28 @@ const CATEGORY_BANNERS = [
 
 export default function CategoryBannersCarousel() {
   const scrollRef = useRef(null);
+  const [banners, setBanners] = useState(CATEGORY_BANNERS);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+
+  // Fetch real-time banners created from Admin Panel
+  useEffect(() => {
+    let active = true;
+    api
+      .get("/banners")
+      .then(({ data }) => {
+        if (active && Array.isArray(data) && data.length > 0) {
+          setBanners(data);
+        }
+      })
+      .catch(() => {
+        // Fallback to default platform banners if network/offline
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const updateScrollState = () => {
     const el = scrollRef.current;
@@ -285,14 +305,17 @@ export default function CategoryBannersCarousel() {
               WebkitOverflowScrolling: "touch",
             }}
           >
-            {CATEGORY_BANNERS.map((banner) => (
+            {banners.map((banner) => (
               <Link
-                key={banner.id}
+                key={banner._id || banner.id}
                 to={banner.link}
                 onClick={(e) => {
                   if (banner.id === "ac" || banner.link === "/services/ac") {
                     e.preventDefault();
                     window.dispatchEvent(new CustomEvent("open-appliance-modal"));
+                  } else if (banner.id === "salon" || banner.link?.includes("home-salon") || banner.link?.includes("salon")) {
+                    e.preventDefault();
+                    window.dispatchEvent(new CustomEvent("open-salon-modal"));
                   }
                 }}
                 className="category-banner-card snap-start flex-shrink-0 no-underline block rounded-2xl sm:rounded-3xl overflow-hidden relative transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.99] group"

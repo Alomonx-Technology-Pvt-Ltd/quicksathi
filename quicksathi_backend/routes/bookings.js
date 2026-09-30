@@ -2,14 +2,27 @@ import { Router } from "express";
 import Booking from "../models/Booking.js";
 import Service from "../models/Service.js";
 import Notification from "../models/Notification.js";
+import Coupon from "../models/Coupon.js";
+import User from "../models/User.js";
 import { protect } from "../middleware/auth.js";
+import { sendBookingConfirmationEmail, sendBookingStatusEmail } from "../services/emailService.js";
 
 const router = Router();
 
 // POST /api/bookings — Create a booking
 router.post("/", protect, async (req, res) => {
   try {
-    const { serviceId, packageIndex, scheduledDate, scheduledTime, location, notes, paymentMethod, amount } = req.body;
+    const {
+      serviceId,
+      packageIndex,
+      scheduledDate,
+      scheduledTime,
+      location,
+      notes,
+      paymentMethod,
+      amount,
+      couponCode,
+    } = req.body;
 
     const service = await Service.findById(serviceId);
     if (!service) {
@@ -17,6 +30,46 @@ router.post("/", protect, async (req, res) => {
     }
 
     const pkg = service.packages?.[packageIndex];
+    const basePrice = Number(amount) || pkg?.price || service.startingPrice || 0;
+
+    let appliedDiscount = 0;
+    let validatedCoupon = null;
+
+    // Handle coupon application if couponCode was provided
+    if (couponCode && couponCode.trim()) {
+      const cleanCode = couponCode.trim().toUpperCase();
+      validatedCoupon = await Coupon.findOne({ code: cleanCode });
+
+      if (validatedCoupon && validatedCoupon.isActive) {
+        // Enforce ONE-TIME-PER-USER rule
+        const alreadyUsed = validatedCoupon.usedBy?.some(
+          (entry) => entry.user && entry.user.toString() === req.user._id.toString()
+        );
+
+        if (alreadyUsed) {
+          return res.status(400).json({
+            message: "You have already used this coupon code. Each coupon can only be applied once per user.",
+          });
+        }
+
+        // Check expiry and min order amount
+        const isExpired = validatedCoupon.validUntil && new Date(validatedCoupon.validUntil) < new Date();
+        const meetsMinAmount = !validatedCoupon.minOrderAmount || basePrice >= validatedCoupon.minOrderAmount;
+
+        if (!isExpired && meetsMinAmount) {
+          if (validatedCoupon.discountType === "percentage") {
+            appliedDiscount = Math.round((basePrice * validatedCoupon.discountValue) / 100);
+            if (validatedCoupon.maxDiscountAmount && appliedDiscount > validatedCoupon.maxDiscountAmount) {
+              appliedDiscount = validatedCoupon.maxDiscountAmount;
+            }
+          } else {
+            appliedDiscount = Math.min(validatedCoupon.discountValue, basePrice);
+          }
+        }
+      }
+    }
+
+    const finalPayable = Math.max(0, basePrice - appliedDiscount);
 
     const booking = await Booking.create({
       user: req.user._id,
@@ -28,11 +81,38 @@ router.post("/", protect, async (req, res) => {
       scheduledTime,
       location,
       notes,
-      amount: amount || pkg?.price || service.startingPrice,
+      originalAmount: basePrice,
+      amount: finalPayable,
+      couponCode: validatedCoupon ? validatedCoupon.code : "",
+      discountAmount: appliedDiscount,
       paymentMethod,
       paymentStatus: paymentMethod === "razorpay" ? "paid" : "pending",
       status: paymentMethod === "razorpay" ? "confirmed" : "pending",
     });
+
+    // Record coupon usage for this user
+    if (validatedCoupon && appliedDiscount > 0) {
+      await Coupon.findByIdAndUpdate(validatedCoupon._id, {
+        $inc: { usedCount: 1 },
+        $push: {
+          usedBy: {
+            user: req.user._id,
+            bookingId: booking._id,
+            discountApplied: appliedDiscount,
+            usedAt: new Date(),
+          },
+        },
+      });
+    }
+
+    // Send confirmation email asynchronously (does not block HTTP response)
+    if (req.user?.email) {
+      sendBookingConfirmationEmail({
+        to: req.user.email,
+        name: req.user.name,
+        booking,
+      }).catch((err) => console.error("Email notification error:", err?.message || err));
+    }
 
     res.status(201).json(booking);
   } catch (error) {
@@ -114,6 +194,23 @@ router.patch("/:id/cancel", protect, async (req, res) => {
       console.error("Failed to create cancellation notification:", notifError);
     }
 
+    // Send cancellation email notification asynchronously
+    (async () => {
+      try {
+        const bookedUser = await User.findById(booking.user).select("name email");
+        if (bookedUser?.email) {
+          await sendBookingStatusEmail({
+            to: bookedUser.email,
+            name: bookedUser.name,
+            booking,
+            status: "cancelled",
+          });
+        }
+      } catch (emailErr) {
+        console.error("Booking cancellation email error:", emailErr?.message || emailErr);
+      }
+    })();
+
     res.json(booking);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -153,6 +250,23 @@ router.patch("/:id/status", protect, async (req, res) => {
     } catch (notifError) {
       console.error("Failed to create status update notification:", notifError);
     }
+
+    // Send status update email notification asynchronously
+    (async () => {
+      try {
+        const bookedUser = await User.findById(booking.user).select("name email");
+        if (bookedUser?.email) {
+          await sendBookingStatusEmail({
+            to: bookedUser.email,
+            name: bookedUser.name,
+            booking,
+            status: req.body.status,
+          });
+        }
+      } catch (emailErr) {
+        console.error("Booking status email error:", emailErr?.message || emailErr);
+      }
+    })();
 
     res.json(booking);
   } catch (error) {

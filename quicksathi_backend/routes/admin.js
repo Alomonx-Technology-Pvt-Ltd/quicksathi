@@ -1,5 +1,5 @@
-﻿import { Router } from "express";
-import nodemailer from "nodemailer";
+import { Router } from "express";
+import { sendMail, sendTestEmail } from "../services/emailService.js";
 import User from "../models/User.js";
 import Provider from "../models/Provider.js";
 import Booking from "../models/Booking.js";
@@ -833,42 +833,25 @@ router.post("/send-email", protect, adminOnly, async (req, res) => {
 
     // --- Channel 1: Email ---
     if (channels.includes("email")) {
-      const smtpHost = process.env.SMTP_HOST;
-      const smtpPort = process.env.SMTP_PORT || 587;
-      const smtpUser = process.env.SMTP_USER;
-      const smtpPass = process.env.SMTP_PASS;
-      const smtpSender = process.env.SMTP_SENDER || `"TiptoBook Notifications" <no-reply@tiptobook.com>`;
+      const emailHtml = `
+        <div style="font-family: sans-serif; padding: 24px; color: #334155; line-height: 1.6; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
+          <h2 style="color: #f97316; margin-top: 0;">QuickSathi Platform Announcement</h2>
+          <p style="white-space: pre-line; font-size: 15px; color: #1e293b;">${body}</p>
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-top: 24px;" />
+          <p style="font-size: 12px; color: #94a3b8; text-align: center;">You received this notification from the QuickSathi Administrator.</p>
+        </div>
+      `;
 
-      if (smtpHost && smtpUser && smtpPass) {
-        const transporter = nodemailer.createTransport({
-          host: smtpHost,
-          port: parseInt(smtpPort),
-          secure: parseInt(smtpPort) === 465,
-          auth: { user: smtpUser, pass: smtpPass }
-        });
-
-        await transporter.sendMail({
-          from: smtpSender,
-          to: smtpSender,
-          bcc: recipients.join(", "),
-          subject: subject,
+      for (const recipient of recipients) {
+        sendMail({
+          to: recipient,
+          subject,
           text: body,
-          html: `<div style="font-family: sans-serif; padding: 20px; color: #333; line-height: 1.6;">
-                   <h2 style="color: #3b82f6;">Platform Notification</h2>
-                   <p style="white-space: pre-line;">${body}</p>
-                   <hr style="border: 0; border-top: 1px solid #eee; margin-top: 20px;" />
-                   <p style="font-size: 11px; color: #888;">You received this service announcement from the TiptoBook Administrator.</p>
-                 </div>`
-        });
-        isMock = false;
-      } else {
-        console.log("\n=================== MOCK EMAIL NOTIFICATION ===================");
-        console.log(`FROM: ${smtpSender}`);
-        console.log(`BCC RECIPIENTS: [${recipients.length} accounts] -> ${recipients.join(", ")}`);
-        console.log(`SUBJECT: ${subject}`);
-        console.log(`BODY:\n${body}`);
-        console.log("================================================================\n");
+          html: emailHtml,
+        }).catch((err) => console.error("Admin broadcast send error:", err?.message || err));
       }
+
+      isMock = !process.env.BREVO_API_KEY && !process.env.SMTP_USER;
       emailSent = true;
     }
 
@@ -1059,6 +1042,25 @@ router.get("/providers/approved", protect, adminOnly, async (req, res) => {
     res.json(providers);
   } catch (error) {
     res.status(500).json({ message: error.message });
+  }
+});
+
+// POST /api/admin/test-email — Fast real-time test of email service
+router.post("/test-email", protect, adminOnly, async (req, res) => {
+  try {
+    const { to } = req.body;
+    const targetEmail = to || req.user.email;
+    const result = await sendTestEmail({ to: targetEmail });
+    res.json({
+      success: result.success,
+      recipient: targetEmail,
+      provider: result.provider || (result.mock ? "mock" : "unknown"),
+      durationMs: result.durationMs,
+      messageId: result.messageId,
+      error: result.error,
+    });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 

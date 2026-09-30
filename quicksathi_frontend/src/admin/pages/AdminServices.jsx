@@ -298,7 +298,7 @@ const AdminServices = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center" style={{ minHeight: "40vh" }}>
-        <div className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin" style={{ borderColor: "rgba(255,255,255,0.1)", borderTopColor: "var(--color-primary)" }} />
+        <div className="w-10 h-10 rounded-full border-4 border-t-transparent animate-spin" style={{ borderColor: "var(--admin-border)", borderTopColor: "var(--admin-primary)" }} />
       </div>
     );
   }
@@ -308,7 +308,7 @@ const AdminServices = () => {
       <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-white m-0 mb-1" style={{ fontFamily: "var(--font-display)" }}>Services</h1>
-          <p className="text-sm m-0" style={{ fontFamily: "var(--font-body)", color: "rgba(255,255,255,0.35)" }}>
+          <p className="text-sm m-0" style={{ fontFamily: "var(--font-body)", color: "var(--admin-text-muted)" }}>
             Manage all service cards — add, edit, delete, toggle availability
           </p>
         </div>
@@ -329,12 +329,12 @@ const AdminServices = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search services by name or category..."
           className="w-full max-w-md px-4 py-2.5 rounded-xl text-sm border-0 outline-none"
-          style={{ fontFamily: "var(--font-body)", backgroundColor: "rgba(255,255,255,0.06)", color: "#fff" }}
+          style={{ fontFamily: "var(--font-body)", backgroundColor: "var(--admin-input-bg)", color: "var(--admin-text-primary)" }}
         />
       </div>
 
       {/* Services Table */}
-      <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+      <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: "var(--admin-subtle-bg)", border: "1px solid var(--admin-border)" }}>
         <div className="overflow-x-auto">
           <table className="w-full" style={{ fontFamily: "var(--font-body)" }}>
             <thead>
@@ -441,11 +441,11 @@ const AdminServices = () => {
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.6)" }}>
-          <div className="rounded-2xl p-6 max-w-sm w-full mx-4" style={{ backgroundColor: "#1e1e26", border: "1px solid rgba(255,255,255,0.1)" }}>
+          <div className="rounded-2xl p-6 max-w-sm w-full mx-4" style={{ backgroundColor: "var(--admin-card-bg)", border: "1px solid var(--admin-border)" }}>
             <h3 className="text-lg font-bold text-white mb-2" style={{ fontFamily: "var(--font-display)" }}>Delete Service?</h3>
             <p className="text-sm mb-6" style={{ fontFamily: "var(--font-body)", color: "rgba(255,255,255,0.5)" }}>This action cannot be undone. The service will be permanently removed.</p>
             <div className="flex gap-3 justify-end">
-              <button onClick={() => setDeleteConfirm(null)} className="px-4 py-2 rounded-xl text-sm border-0 cursor-pointer" style={{ backgroundColor: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)", fontFamily: "var(--font-body)" }}>Cancel</button>
+              <button onClick={() => setDeleteConfirm(null)} className="px-4 py-2 rounded-xl text-sm border-0 cursor-pointer" style={{ backgroundColor: "var(--admin-btn-ghost-bg)", color: "var(--admin-text-secondary)", fontFamily: "var(--font-body)" }}>Cancel</button>
               <button onClick={() => handleDelete(deleteConfirm)} className="px-4 py-2 rounded-xl text-sm border-0 cursor-pointer font-semibold" style={{ backgroundColor: "#ef4444", color: "#fff", fontFamily: "var(--font-body)" }}>Delete</button>
             </div>
           </div>
@@ -455,12 +455,12 @@ const AdminServices = () => {
       {/* Add/Edit Form Modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto" style={{ backgroundColor: "rgba(0,0,0,0.7)" }}>
-          <div className="rounded-2xl p-6 sm:p-8 max-w-3xl w-full mx-4 my-8" style={{ backgroundColor: "#1e1e26", border: "1px solid rgba(255,255,255,0.1)" }}>
+          <div className="rounded-2xl p-6 sm:p-8 max-w-3xl w-full mx-4 my-8" style={{ backgroundColor: "var(--admin-card-bg)", border: "1px solid var(--admin-border)" }}>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-white m-0" style={{ fontFamily: "var(--font-display)" }}>
                 {editingId ? "Edit Service" : "Add New Service"}
               </h2>
-              <button onClick={closeForm} className="w-8 h-8 rounded-full flex items-center justify-center border-0 cursor-pointer text-white text-lg" style={{ backgroundColor: "rgba(255,255,255,0.06)" }}>×</button>
+              <button onClick={closeForm} className="w-8 h-8 rounded-full flex items-center justify-center border-0 cursor-pointer text-lg" style={{ backgroundColor: "var(--admin-btn-ghost-bg)", color: "var(--admin-text-primary)" }}>×</button>
             </div>
 
             <form onSubmit={handleSubmit} className="flex flex-col gap-5">
@@ -728,8 +728,8 @@ const AdminServices = () => {
 
               {/* Submit */}
               <div className="flex gap-3 justify-end mt-2">
-                <button type="button" onClick={closeForm} className="px-5 py-2.5 rounded-xl text-sm border-0 cursor-pointer" style={{ backgroundColor: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.6)", fontFamily: "var(--font-body)" }}>Cancel</button>
-                <button type="submit" disabled={saving} className="px-6 py-2.5 rounded-xl text-sm font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-90" style={{ backgroundColor: "var(--color-primary)", color: "#fff", fontFamily: "var(--font-body)", opacity: saving ? 0.7 : 1 }}>
+                <button type="button" onClick={closeForm} className="px-5 py-2.5 rounded-xl text-sm border-0 cursor-pointer" style={{ backgroundColor: "var(--admin-btn-ghost-bg)", color: "var(--admin-text-secondary)", fontFamily: "var(--font-body)" }}>Cancel</button>
+                <button type="submit" disabled={saving} className="px-6 py-2.5 rounded-xl text-sm font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-90 text-white" style={{ backgroundColor: "var(--admin-primary)", fontFamily: "var(--font-body)", opacity: saving ? 0.7 : 1 }}>
                   {saving ? "Saving..." : editingId ? "Update Service" : "Create Service"}
                 </button>
               </div>
@@ -741,7 +741,7 @@ const AdminServices = () => {
   );
 };
 
-const labelStyle = { fontFamily: "var(--font-body)", color: "rgba(255,255,255,0.4)" };
-const inputStyle = { fontFamily: "var(--font-body)", backgroundColor: "rgba(255,255,255,0.06)", color: "#fff" };
+const labelStyle = { fontFamily: "var(--font-body)", color: "var(--admin-text-muted)" };
+const inputStyle = { fontFamily: "var(--font-body)", backgroundColor: "var(--admin-input-bg)", color: "var(--admin-text-primary)" };
 
 export default AdminServices;

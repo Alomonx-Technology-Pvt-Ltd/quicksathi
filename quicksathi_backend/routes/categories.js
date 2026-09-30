@@ -9,7 +9,7 @@ const router = Router();
 // GET /api/categories — Get all active categories
 router.get("/", async (req, res) => {
   try {
-    const categories = await Category.find({ active: true }).sort("displayOrder");
+    const categories = await Category.find({ active: true }).sort("displayOrder").lean();
     // Cache at CDN edge for 60s, serve stale for up to 5min while revalidating
     // This makes Vercel's Edge Network cache the response — instant for users
     res.set("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");

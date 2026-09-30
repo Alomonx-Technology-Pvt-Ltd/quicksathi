@@ -632,8 +632,8 @@ export const mockServices = [
   {
     id: 111,
     slug: "outstation-car-rental",
-    name: "Outstation & Airport Cab Rental",
-    shortDescription: "One-way and round trips with verified commercial drivers and clean AC cabs.",
+    name: "Daily Car Rental",
+    shortDescription: "Daily and outstation car rentals with verified commercial drivers and clean AC cabs.",
     fullDescription:
       "Inter-city and local travel with fixed transparent rates, zero toll confusion, and 24/7 roadside assistance. Enjoy clean, air-conditioned sedans and spacious 7-seater SUVs with professional chauffeurs.",
     categoryId: 6,

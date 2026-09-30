@@ -1,8 +1,9 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import User from "../models/User.js";
 import Provider from "../models/Provider.js";
 import { generateToken, protect } from "../middleware/auth.js";
 import { firebaseAuth } from "../config/firebase.js";
+import { sendWelcomeEmail } from "../services/emailService.js";
 
 const router = Router();
 
@@ -36,6 +37,13 @@ router.post("/register", async (req, res) => {
     });
 
     const token = generateToken(user._id);
+
+    // Send welcome email asynchronously
+    if (user.email) {
+      sendWelcomeEmail({ to: user.email, name: user.name }).catch((err) =>
+        console.error("Welcome email error:", err?.message || err)
+      );
+    }
 
     res.status(201).json({
       token,
@@ -133,6 +141,13 @@ router.post("/google", async (req, res) => {
         authProvider: "google",
         role: isAdminEmail(verifiedEmail) ? "admin" : "user",
       });
+
+      // Send welcome email to new Google user
+      if (user.email) {
+        sendWelcomeEmail({ to: user.email, name: user.name }).catch((err) =>
+          console.error("Welcome email error:", err?.message || err)
+        );
+      }
     } else {
       let changed = false;
       // Update firebase UID if not set

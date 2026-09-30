@@ -168,7 +168,7 @@ export default function Terms() {
                 <a href="mailto:tiptobook9@gmail.com" className="text-blue-600 underline">
                   tiptobook9@gmail.com
                 </a>{" "}
-                | +91 98765 43210
+                | +91 93045 31876
               </p>
             </div>
           </div>

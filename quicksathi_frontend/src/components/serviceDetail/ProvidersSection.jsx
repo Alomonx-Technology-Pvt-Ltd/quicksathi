@@ -1,103 +1,64 @@
 import SectionHeader from "./SectionHeader";
-import Stars from "./Stars";
+import { Star, ShieldCheck, MapPin, Award } from "lucide-react";
 
-const ProvidersSection = ({ providers }) => {
+const ProvidersSection = ({ providers = [] }) => {
   if (!providers?.length) return null;
 
   return (
-    <div>
-      <SectionHeader title="Service Providers" />
+    <div id="providers-section" className="scroll-mt-24">
+      <SectionHeader
+        title="Top Verified Professionals"
+        subtitle="Vetted service partners assigned to deliver this service"
+      />
 
-      <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {providers.map((provider, idx) => (
           <div
             key={provider.id || provider._id || idx}
-            className="flex items-center gap-5 p-5 rounded-2xl border"
-            style={{
-              backgroundColor: "var(--color-bg-white)",
-              borderColor: "var(--color-border)",
-              boxShadow: "0 2px 8px rgba(44,24,16,0.05)",
-            }}
+            className="flex items-center gap-4 p-4 sm:p-5 rounded-2xl sm:rounded-3xl border border-slate-200/80 bg-white shadow-2xs hover:border-purple-200 transition-all"
           >
-            <img
-              src={provider.image}
-              alt={provider.name}
-              className="w-14 h-14 rounded-full object-cover flex-shrink-0"
-              style={{ border: "3px solid var(--color-border)" }}
-            />
-
-            <div className="flex-1">
-              <p
-                className="font-semibold m-0 mb-1"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  color: "var(--color-text-dark)",
-                  fontSize: "16px",
+            <div className="relative shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
+              <img
+                src={provider.image}
+                alt={provider.name}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src =
+                    "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=300&auto=format&fit=crop";
                 }}
-              >
-                {provider.name}
-              </p>
-
-              <div className="flex items-center gap-3 flex-wrap">
-                <Stars rating={provider.rating} />
-
-                <span
-                  className="text-xs"
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    color: "var(--color-text-mid)",
-                  }}
-                >
-                  {provider.rating} rating
-                </span>
-
-                <span style={{ color: "var(--color-accent)" }}>·</span>
-
-                <span
-                  className="text-xs"
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    color: "var(--color-text-mid)",
-                  }}
-                >
-                  {provider.experience} exp
-                </span>
-
-                <span style={{ color: "var(--color-accent)" }}>·</span>
-
-                <span
-                  className="text-xs"
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    color: "var(--color-text-mid)",
-                  }}
-                >
-                  {provider.location}
-                </span>
+              />
+              <div className="absolute bottom-0 right-0 p-0.5 bg-emerald-500 rounded-tl-lg text-white">
+                <ShieldCheck size={10} />
               </div>
             </div>
 
-            <div className="text-right flex-shrink-0">
-              <p
-                className="text-xs mb-1"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  color: "var(--color-text-muted)",
-                }}
-              >
-                From
-              </p>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-bold text-sm sm:text-base text-slate-900 m-0 truncate">
+                {provider.name}
+              </h4>
 
-              <p
-                className="font-bold m-0"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  color: "var(--color-text-dark)",
-                  fontSize: "18px",
-                }}
-              >
-                ₹{provider.startingPrice?.toLocaleString()}
-              </p>
+              <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 flex-wrap">
+                <span className="flex items-center gap-1 font-semibold text-slate-700">
+                  <Star size={11} className="fill-amber-400 text-amber-400" />
+                  {provider.rating}
+                </span>
+                <span>•</span>
+                <span>{provider.experience} exp</span>
+                {provider.location && (
+                  <>
+                    <span>•</span>
+                    <span className="flex items-center gap-0.5">
+                      <MapPin size={10} />
+                      {provider.location}
+                    </span>
+                  </>
+                )}
+              </div>
+
+              <div className="mt-2 text-xs font-bold text-purple-700">
+                Starting ₹{(provider.startingPrice || 349).toLocaleString("en-IN")}
+              </div>
             </div>
           </div>
         ))}

@@ -38,8 +38,8 @@ const REAL_CATEGORIES = [
       },
       {
         id: 111,
-        name: "Outstation & Airport Cab Rental",
-        description: "One-way and round trips with verified commercial drivers and clean AC cabs.",
+        name: "Daily Car Rental",
+        description: "Daily and outstation car rentals with verified commercial drivers and clean AC cabs.",
         startingPrice: 3499,
         rating: 4.8,
         imageUrl: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/outstation-airport-cab.jpg",

@@ -134,6 +134,7 @@ body,
   --admin-bg-main: #0c0c0e;
   --admin-bg-sidebar: #131316;
   --admin-bg-card: #18181c;
+  --admin-card-bg: #18181c;
   --admin-bg-card-hover: #1e1e24;
   --admin-border: rgba(255, 255, 255, 0.08);
   --admin-border-focus: rgba(255, 255, 255, 0.16);
@@ -141,13 +142,26 @@ body,
   --admin-text-secondary: rgba(255, 255, 255, 0.7);
   --admin-text-muted: rgba(255, 255, 255, 0.45);
   --admin-bg-input: rgba(255, 255, 255, 0.04);
+  --admin-input-bg: rgba(255, 255, 255, 0.06);
   --admin-bg-hover: rgba(255, 255, 255, 0.06);
+  --admin-primary: #2563eb;
+  --admin-primary-hover: #1d4ed8;
+  --admin-modal-bg: #1e1e26;
+  --admin-subtle-bg: rgba(255, 255, 255, 0.03);
+  --admin-subtle-text: rgba(255, 255, 255, 0.6);
+  --admin-btn-ghost-bg: rgba(255, 255, 255, 0.06);
+  --admin-btn-ghost-hover: rgba(255, 255, 255, 0.10);
+  --admin-btn-ghost-text: rgba(255, 255, 255, 0.5);
+  --admin-btn-ghost-border: rgba(255, 255, 255, 0.10);
+  --admin-detail-text: #cbd5e1;
+  --admin-dashed-border: rgba(255, 255, 255, 0.10);
 }
 
 [data-admin-theme="light"] {
   --admin-bg-main: #f8fafc;
   --admin-bg-sidebar: #ffffff;
   --admin-bg-card: #ffffff;
+  --admin-card-bg: #ffffff;
   --admin-bg-card-hover: #f1f5f9;
   --admin-border: #e2e8f0;
   --admin-border-focus: #cbd5e1;
@@ -155,7 +169,19 @@ body,
   --admin-text-secondary: #334155;
   --admin-text-muted: #64748b;
   --admin-bg-input: #f1f5f9;
+  --admin-input-bg: #f1f5f9;
   --admin-bg-hover: #e2e8f0;
+  --admin-primary: #2563eb;
+  --admin-primary-hover: #1d4ed8;
+  --admin-modal-bg: #ffffff;
+  --admin-subtle-bg: #f8fafc;
+  --admin-subtle-text: #475569;
+  --admin-btn-ghost-bg: #f1f5f9;
+  --admin-btn-ghost-hover: #e2e8f0;
+  --admin-btn-ghost-text: #475569;
+  --admin-btn-ghost-border: #e2e8f0;
+  --admin-detail-text: #1e293b;
+  --admin-dashed-border: #cbd5e1;
 }
 
 .admin-transition {

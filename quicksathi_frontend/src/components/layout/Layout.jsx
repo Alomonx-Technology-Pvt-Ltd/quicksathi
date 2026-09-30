@@ -10,6 +10,7 @@ import { Bell, Trash2, MapPin } from "lucide-react";
 import BrandLogo from "../common/BrandLogo";
 import { motion, AnimatePresence } from "framer-motion";
 import ApplianceCategoryModal from "../modals/ApplianceCategoryModal";
+import HomeSalonCategoryModal from "../modals/HomeSalonCategoryModal";
 
 /* ── Compact City Picker (used inside navbar) ── */
 const CityPicker = ({ isFullBleed, isMobile }) => {
@@ -925,6 +926,8 @@ const Layout = () => {
       <ChatBot />
       {/* Global Appliance Category Quick-Picker Modal */}
       <ApplianceCategoryModal />
+      {/* Global Home Salon Category Quick-Picker Modal */}
+      <HomeSalonCategoryModal />
     </div>
   );
 };

@@ -1,23 +1,14 @@
-const SectionHeader = ({ title }) => {
+const SectionHeader = ({ title, subtitle }) => {
   return (
-    <div className="flex items-center gap-4 mb-6">
-      <h2
-        className="text-xl font-normal whitespace-nowrap m-0"
-        style={{
-          fontFamily: "var(--font-display)",
-          color: "var(--color-text-dark)",
-        }}
-      >
+    <div className="mb-5 pb-3 border-b border-slate-100 flex flex-col gap-1">
+      <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 tracking-tight m-0">
         {title}
       </h2>
-
-      <div
-        className="flex-1 h-px"
-        style={{
-          background:
-            "linear-gradient(to right, var(--color-accent), transparent)",
-        }}
-      />
+      {subtitle && (
+        <p className="text-xs sm:text-sm text-slate-500 m-0">
+          {subtitle}
+        </p>
+      )}
     </div>
   );
 };

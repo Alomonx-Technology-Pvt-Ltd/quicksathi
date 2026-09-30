@@ -1,10 +1,10 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import User from "../models/User.js";
 import Notification from "../models/Notification.js";
 import Contact from "../models/Contact.js";
 import { protect } from "../middleware/auth.js";
 import { adminOnly } from "../middleware/admin.js";
-import nodemailer from "nodemailer";
+import { sendMail } from "../services/emailService.js";
 
 const router = Router();
 
@@ -63,37 +63,22 @@ router.post("/", async (req, res) => {
                       `Date: ${new Date().toLocaleString()}\n\n` +
                       `Message:\n${message}`;
 
-    if (smtpHost && smtpUser && smtpPass && adminEmails.length > 0) {
-      const transporter = nodemailer.createTransport({
-        host: smtpHost,
-        port: parseInt(smtpPort),
-        secure: parseInt(smtpPort) === 465,
-        auth: { user: smtpUser, pass: smtpPass }
-      });
-
-      await transporter.sendMail({
-        from: smtpSender,
-        to: adminEmails.join(", "),
+    for (const adminEmail of adminEmails) {
+      sendMail({
+        to: adminEmail,
         subject: emailSubject,
         text: emailBody,
         html: `<div style="font-family: sans-serif; padding: 25px; color: #333; line-height: 1.6; max-width: 600px; border: 1px solid #e8ddd4; border-radius: 12px; background-color: #faf7f3;">
-                 <h2 style="color: #8b1a1a; margin-top: 0; font-family: Georgia, serif;">New Contact Submission</h2>
+                 <h2 style="color: #f97316; margin-top: 0; font-family: Georgia, serif;">New Contact Submission</h2>
                  <p style="margin: 5px 0;"><strong>Sender Name:</strong> ${senderName}</p>
-                 <p style="margin: 5px 0;"><strong>Sender Email:</strong> <a href="mailto:${email}" style="color: #8b1a1a;">${email}</a></p>
+                 <p style="margin: 5px 0;"><strong>Sender Email:</strong> <a href="mailto:${email}" style="color: #f97316;">${email}</a></p>
                  <p style="margin: 5px 0;"><strong>Date Received:</strong> ${new Date().toLocaleString()}</p>
                  <hr style="border: 0; border-top: 1px dashed #c4a882; margin: 20px 0;" />
                  <p style="white-space: pre-line; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e8ddd4;">${message}</p>
                  <hr style="border: 0; border-top: 1px solid #e8ddd4; margin: 20px 0;" />
-                 <p style="font-size: 11px; color: #9a8478; text-align: center; margin: 0;">This email was sent automatically from TiptoBook's system dispatcher.</p>
-               </div>`
-      });
-    } else {
-      console.log("\n=================== MOCK CONTACT EMAIL ALERT ===================");
-      console.log(`FROM: ${smtpSender}`);
-      console.log(`TO ADMINS: ${adminEmails.join(", ")}`);
-      console.log(`SUBJECT: ${emailSubject}`);
-      console.log(`BODY:\n${emailBody}`);
-      console.log("================================================================\n");
+                 <p style="font-size: 11px; color: #9a8478; text-align: center; margin: 0;">This email was sent automatically from QuickSathi's system dispatcher.</p>
+               </div>`,
+      }).catch((err) => console.error("Contact email dispatch error:", err?.message || err));
     }
 
     res.status(201).json({

@@ -1,6 +1,17 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { MapPin, Navigation, Clock, Route, IndianRupee, CalendarDays, Search } from "lucide-react";
+import {
+  MapPin,
+  Navigation,
+  Clock,
+  Route,
+  IndianRupee,
+  Sparkles,
+  CheckCircle2,
+  ShieldCheck,
+  ArrowRight,
+  ShieldAlert,
+} from "lucide-react";
 import LocationSearch from "../carRental/LocationSearch";
 import RouteMap from "../carRental/RouteMap";
 
@@ -8,7 +19,7 @@ const BookingCard = ({ service, pkg }) => {
   const navigate = useNavigate();
   const isRental = service?.serviceMode === "RENTAL";
 
-  const perKmRate = service.perKmRate || 10; // admin-configured, default ₹10/km
+  const perKmRate = service?.perKmRate || 10;
 
   // ── Route state (only for RENTAL services) ──
   const [pickup, setPickup] = useState(null);
@@ -26,8 +37,9 @@ const BookingCard = ({ service, pkg }) => {
   // Calculate trip price based on distance
   const distanceKm = routeInfo?.distanceKm || 0;
   const distancePrice = Math.round(distanceKm * perKmRate);
-  const basePkgPrice = pkg?.price ?? service.startingPrice;
+  const basePkgPrice = pkg?.price ?? service?.startingPrice ?? 349;
   const tripTotal = isRental && distanceKm > 0 ? distancePrice : basePkgPrice;
+  const originalPrice = tripTotal ? Math.round(tripTotal * 1.25) : null;
 
   // Format duration
   const formatDuration = (min) => {
@@ -45,7 +57,7 @@ const BookingCard = ({ service, pkg }) => {
 
   // Book handler
   const handleBook = () => {
-    const serviceId = service.id || service._id;
+    const serviceId = service.slug || service.id || service._id;
     const params = new URLSearchParams({
       name: service.name,
       package: pkg?.title ?? "",
@@ -75,25 +87,15 @@ const BookingCard = ({ service, pkg }) => {
   };
 
   return (
-    <div
-      className="static lg:sticky lg:top-24 rounded-2xl sm:rounded-3xl border p-4 sm:p-6 flex flex-col gap-4 sm:gap-5"
-      style={{
-        backgroundColor: "var(--color-bg-white)",
-        borderColor: "var(--color-border)",
-        boxShadow: "0 8px 40px rgba(44,24,16,0.08)",
-      }}
-    >
+    <div className="static lg:sticky lg:top-24 rounded-3xl border border-slate-200/90 bg-white p-5 sm:p-6 shadow-xl flex flex-col gap-4 sm:gap-5 transition-all">
       {/* ═══════════════════════════════════════════════════════════════════
           RENTAL: Route Search Section
       ═══════════════════════════════════════════════════════════════════ */}
       {isRental && (
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2 mb-1">
-            <Route size={16} strokeWidth={2} style={{ color: "var(--color-primary)" }} />
-            <p
-              className="text-xs font-semibold uppercase tracking-widest m-0"
-              style={{ fontFamily: "var(--font-body)", color: "var(--color-text-muted)", letterSpacing: "0.1em" }}
-            >
+            <Route size={16} strokeWidth={2} className="text-purple-600" />
+            <p className="text-xs font-bold uppercase tracking-wider text-slate-500 m-0">
               Plan Your Trip
             </p>
           </div>
@@ -138,24 +140,19 @@ const BookingCard = ({ service, pkg }) => {
             }}
           />
 
-          {/* Calculate Route button */}
-          <button
-            onClick={handleSearch}
-            disabled={!pickup || !dropoff}
-            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed"
-            style={{
-              fontFamily: "var(--font-body)",
-              backgroundColor: "#1a3a6b",
-              color: "#fff",
-            }}
-          >
-            <Search size={14} strokeWidth={2.2} />
-            Calculate Route & Price
-          </button>
+          {/* Search route button */}
+          {pickup && dropoff && !showMap && (
+            <button
+              onClick={handleSearch}
+              className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-sm cursor-pointer border-0"
+            >
+              Calculate Route & Price
+            </button>
+          )}
 
-          {/* ── Map ── */}
+          {/* Live route map & breakdown */}
           {showMap && pickup && dropoff && (
-            <div className="mt-1">
+            <div className="rounded-2xl overflow-hidden border border-slate-200 mt-1">
               <RouteMap
                 pickup={pickup}
                 dropoff={dropoff}
@@ -164,157 +161,115 @@ const BookingCard = ({ service, pkg }) => {
             </div>
           )}
 
-          {/* ── Trip Details (shown after route is calculated) ── */}
-          {showMap && routeInfo && distanceKm > 0 && (
-            <div
-              className="rounded-xl p-3.5 flex flex-col gap-2.5"
-              style={{ backgroundColor: "rgba(26,58,107,0.04)", border: "1px solid rgba(26,58,107,0.1)" }}
-            >
+          {/* Trip breakdown */}
+          {routeInfo && (
+            <div className="p-3.5 rounded-2xl bg-purple-50/60 border border-purple-100 flex flex-col gap-2 text-xs">
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-xs" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
-                  <Navigation size={13} strokeWidth={1.8} style={{ color: "#16a34a" }} />
-                  Distance
-                </span>
-                <span className="text-sm font-bold" style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}>
-                  {distanceKm} km
-                </span>
+                <span className="text-slate-600">Total Distance:</span>
+                <span className="font-bold text-slate-900">{distanceKm} km</span>
               </div>
-
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-xs" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
-                  <Clock size={13} strokeWidth={1.8} style={{ color: "#f59e0b" }} />
-                  Est. Time
-                </span>
-                <span className="text-sm font-bold" style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}>
-                  {formatDuration(routeInfo.durationMin)}
-                </span>
+                <span className="text-slate-600">Est. Duration:</span>
+                <span className="font-bold text-slate-900">{formatDuration(routeInfo.durationMin)}</span>
               </div>
-
-              <div className="h-px" style={{ backgroundColor: "rgba(26,58,107,0.1)" }} />
-
-              <div className="flex items-center justify-between">
-                <span className="flex items-center gap-1.5 text-xs" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
-                  <IndianRupee size={13} strokeWidth={1.8} style={{ color: "var(--color-primary)" }} />
-                  Rate
-                </span>
-                <span className="text-xs font-semibold" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
-                  ₹{perKmRate}/km × {distanceKm} km
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-sm font-bold" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>
-                  Trip Total
-                </span>
-                <span className="text-xl font-bold" style={{ fontFamily: "var(--font-display)", color: "var(--color-primary)" }}>
-                  ₹{distancePrice.toLocaleString()}
-                </span>
+              <div className="flex items-center justify-between pt-1 border-t border-purple-200/60">
+                <span className="font-bold text-slate-900">Trip Total:</span>
+                <span className="text-base font-extrabold text-purple-700">₹{distancePrice.toLocaleString()}</span>
               </div>
             </div>
           )}
 
-          {/* Divider */}
-          <div className="h-px -mx-4 sm:-mx-6" style={{ backgroundColor: "var(--color-border)" }} />
+          <div className="h-px bg-slate-100 my-1" />
         </div>
       )}
 
       {/* ═══════════════════════════════════════════════════════════════════
-          STANDARD: Selected Package + Price (shown for all services)
+          STANDARD: Selected Package Header & Pricing
       ═══════════════════════════════════════════════════════════════════ */}
       <div>
-        <p
-          className="text-xs font-semibold uppercase tracking-widest mb-1"
-          style={{ fontFamily: "var(--font-body)", color: "var(--color-text-muted)", letterSpacing: "0.1em" }}
-        >
-          {isRental && distanceKm > 0 ? "Trip Price" : "Selected Package"}
-        </p>
+        <div className="flex items-center justify-between mb-1.5">
+          <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-100">
+            <Sparkles size={11} className="text-purple-600" />
+            {isRental && distanceKm > 0 ? "Trip Estimate" : "Selected Package"}
+          </span>
+          <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+            Instant Booking
+          </span>
+        </div>
 
-        <h3
-          className="text-base sm:text-lg font-normal m-0 mb-1"
-          style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}
-        >
+        <h3 className="text-lg font-bold text-slate-900 m-0 leading-snug">
           {isRental && distanceKm > 0
             ? `${pickupName} → ${dropoffName}`
-            : (pkg?.title ?? service.name)}
+            : (pkg?.title ?? service?.name)}
         </h3>
 
-        <p
-          className="text-2xl sm:text-3xl font-bold m-0"
-          style={{ fontFamily: "var(--font-display)", color: "var(--color-primary)" }}
-        >
-          ₹{tripTotal.toLocaleString()}
-        </p>
-
-        <p
-          className="text-xs mt-1 m-0"
-          style={{ fontFamily: "var(--font-body)", color: "var(--color-text-muted)" }}
-        >
-          {isRental && distanceKm > 0
-            ? `₹${perKmRate}/km × ${distanceKm} km`
-            : service.priceUnit}
-        </p>
+        {/* Price Row with strikethrough comparison */}
+        <div className="flex items-baseline gap-2.5 mt-2">
+          <span className="text-3xl font-extrabold text-slate-900 tracking-tight">
+            ₹{tripTotal.toLocaleString("en-IN")}
+          </span>
+          {originalPrice && (
+            <span className="text-sm text-slate-400 line-through">
+              ₹{originalPrice.toLocaleString("en-IN")}
+            </span>
+          )}
+          {service?.priceUnit && !isRental && (
+            <span className="text-xs text-slate-500 font-normal">
+              /{service.priceUnit}
+            </span>
+          )}
+        </div>
       </div>
 
-      {/* Features */}
-      {pkg?.features && (
-        <ul
-          className="m-0 p-0 list-none flex flex-col gap-2 border-t border-b py-3 sm:py-4"
-          style={{ borderColor: "var(--color-border)" }}
-        >
-          {pkg.features.map((feature) => (
-            <li
-              key={feature}
-              className="flex items-center gap-2 text-xs sm:text-sm"
-              style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-              {feature}
-            </li>
-          ))}
-        </ul>
+      {/* Doorstep location badge */}
+      <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600">
+        <MapPin size={14} className="text-purple-600 shrink-0" />
+        <span>Doorstep service executed at your home</span>
+      </div>
+
+      {/* Package Features List */}
+      {pkg?.features && pkg.features.length > 0 && (
+        <div className="space-y-2 pt-1 border-t border-slate-100">
+          <span className="text-xs font-bold text-slate-700 block uppercase tracking-wider text-[10px]">
+            Package Inclusions:
+          </span>
+          <ul className="m-0 p-0 list-none space-y-1.5 text-xs text-slate-600">
+            {pkg.features.map((feat, idx) => (
+              <li key={idx} className="flex items-start gap-2">
+                <CheckCircle2 size={13} className="text-emerald-600 shrink-0 mt-0.5" />
+                <span>{feat}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
 
-      {/* Service Mode */}
-      <div
-        className="flex items-center gap-2 text-xs sm:text-sm"
-        style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
-          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
-          <circle cx="12" cy="9" r="2.5" />
-        </svg>
-        {service.serviceMode?.replace(/_/g, " ")}
+      {/* Pay after service reassurance */}
+      <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-100 text-[11px] text-emerald-800 space-y-1">
+        <div className="flex items-center gap-1.5 font-bold text-emerald-900">
+          <ShieldCheck size={13} className="text-emerald-600" />
+          <span>Pay After Service</span>
+        </div>
+        <p className="m-0 text-emerald-700/90 leading-tight">
+          No advance payment required. Inspect the work and pay safely via UPI or Cash.
+        </p>
       </div>
 
-      {/* Book Button */}
+      {/* Main Book Now Button */}
       <button
+        type="button"
         onClick={handleBook}
-        disabled={isRental && showMap && distanceKm === 0}
-        className="w-full py-3.5 sm:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-90 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed"
-        style={{
-          fontFamily: "var(--font-body)",
-          backgroundColor: "var(--color-primary)",
-          color: "#fff",
-          boxShadow: "0 6px 24px rgba(139,26,26,0.30)",
-        }}
+        className="w-full py-3.5 px-6 rounded-2xl bg-purple-600 hover:bg-purple-700 active:scale-98 text-white font-bold text-sm tracking-wider uppercase transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer border-0"
       >
-        {isRental && distanceKm > 0 ? `Book for ₹${tripTotal.toLocaleString()}` : "Book Now"}
+        <span>Book Now</span>
+        <ArrowRight size={16} />
       </button>
 
-      {/* Contact Button */}
-      <button
-        className="w-full py-2.5 sm:py-3 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-semibold border cursor-pointer transition-all duration-200 hover:opacity-80"
-        style={{
-          fontFamily: "var(--font-body)",
-          backgroundColor: "transparent",
-          color: "var(--color-text-dark)",
-          borderColor: "var(--color-border)",
-        }}
-      >
-        Contact Provider
-      </button>
+      {/* Assurance footer */}
+      <div className="text-center pt-1 border-t border-slate-100 text-[11px] text-slate-400">
+        <span>Verified technicians • Standardized rates</span>
+      </div>
     </div>
   );
 };

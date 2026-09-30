@@ -38,8 +38,8 @@ const HERO_CATEGORIES = [
         img: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=600&auto=format&fit=crop",
       },
       {
-        name: "Outstation & Airport Cab Rental",
-        desc: "AC sedans & SUVs for airport, city & outstation trips.",
+        name: "Daily Car Rental",
+        desc: "AC sedans & SUVs for daily rentals, airport & city trips.",
         price: 3499,
         rating: 4.8,
         badge: "Everyday Ride",
@@ -885,6 +885,10 @@ const Hero = ({ categories, services, onBookNow }) => {
                     window.dispatchEvent(new CustomEvent("open-appliance-modal"));
                     return;
                   }
+                  if (route.includes("salon") || route === "/category/25" || route.includes("home-salon")) {
+                    window.dispatchEvent(new CustomEvent("open-salon-modal"));
+                    return;
+                  }
                   navigate(route);
                 }}
               />
@@ -911,6 +915,10 @@ const Hero = ({ categories, services, onBookNow }) => {
               onClick={() => {
                 if (activeCat.route === "/services/ac") {
                   window.dispatchEvent(new CustomEvent("open-appliance-modal"));
+                  return;
+                }
+                if (activeCat.id === "salon" || activeCat.route?.includes("salon") || activeCat.route === "/category/25") {
+                  window.dispatchEvent(new CustomEvent("open-salon-modal"));
                   return;
                 }
                 navigate(activeCat.route);

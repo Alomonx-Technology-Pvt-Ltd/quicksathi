@@ -1,74 +1,53 @@
 import SectionHeader from "./SectionHeader";
+import { ChevronDown } from "lucide-react";
 
-const FAQSection = ({ faqs, openFaq, setOpenFaq }) => {
+const FAQSection = ({ faqs = [], openFaq, setOpenFaq }) => {
   if (!faqs?.length) return null;
 
   return (
-    <div>
-      <SectionHeader title="Frequently Asked Questions" />
+    <div id="faq-section" className="scroll-mt-24">
+      <SectionHeader
+        title="Frequently Asked Questions"
+        subtitle="Answers to common queries regarding this service"
+      />
 
-      <div className="flex flex-col gap-3">
-        {faqs.map((faq, index) => (
-          <div
-            key={index}
-            className="rounded-2xl border overflow-hidden"
-            style={{
-              backgroundColor: "var(--color-bg-white)",
-              borderColor: "var(--color-border)",
-            }}
-          >
-            <button
-              onClick={() => setOpenFaq(openFaq === index ? null : index)}
-              className="w-full text-left flex items-center justify-between px-5 py-4 border-0 cursor-pointer"
-              style={{
-                backgroundColor: "transparent",
-                fontFamily: "var(--font-body)",
-              }}
+      <div className="flex flex-col gap-2.5">
+        {faqs.map((faq, index) => {
+          const isOpen = openFaq === index;
+          return (
+            <div
+              key={index}
+              className={`rounded-2xl border transition-all duration-200 overflow-hidden ${
+                isOpen
+                  ? "border-purple-200 bg-purple-50/20 shadow-xs"
+                  : "border-slate-200/80 bg-white hover:border-slate-300"
+              }`}
             >
-              <span
-                className="font-semibold text-sm"
-                style={{
-                  color: "var(--color-text-dark)",
-                }}
+              <button
+                type="button"
+                onClick={() => setOpenFaq(isOpen ? null : index)}
+                className="w-full text-left flex items-center justify-between px-5 py-4 border-0 cursor-pointer bg-transparent"
               >
-                {faq.question}
-              </span>
+                <span className="font-bold text-xs sm:text-sm text-slate-800 pr-4">
+                  {faq.question}
+                </span>
 
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                style={{
-                  color: "var(--color-text-mid)",
-                  transform:
-                    openFaq === index ? "rotate(180deg)" : "rotate(0deg)",
-                  transition: "0.25s",
-                }}
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
+                <ChevronDown
+                  size={16}
+                  className={`text-slate-400 shrink-0 transition-transform duration-200 ${
+                    isOpen ? "rotate-180 text-purple-600" : ""
+                  }`}
+                />
+              </button>
 
-            {openFaq === index && (
-              <div className="px-5 pb-4">
-                <p
-                  className="text-sm italic leading-relaxed m-0"
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    color: "var(--color-text-mid)",
-                  }}
-                >
-                  {faq.answer}
-                </p>
-              </div>
-            )}
-          </div>
-        ))}
+              {isOpen && (
+                <div className="px-5 pb-4 pt-1 border-t border-slate-100/80 text-xs sm:text-sm text-slate-600 leading-relaxed">
+                  <p className="m-0">{faq.answer}</p>
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

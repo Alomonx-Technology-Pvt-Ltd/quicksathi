@@ -53,6 +53,17 @@ const bookingSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
+    originalAmount: {
+      type: Number,
+    },
+    couponCode: {
+      type: String,
+      default: "",
+    },
+    discountAmount: {
+      type: Number,
+      default: 0,
+    },
     paymentMethod: {
       type: String,
       enum: ["razorpay", "cod"],

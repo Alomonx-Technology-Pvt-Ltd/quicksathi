@@ -76,7 +76,8 @@ router.get("/", async (req, res) => {
 
     const services = await Service.find(filter)
       .limit(parseInt(limit))
-      .sort("-featured -rating");
+      .sort("-featured -rating")
+      .lean();
 
     // Cache at CDN edge for 60s, serve stale for 5min while revalidating
     if (!req.headers.authorization) {

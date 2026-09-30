@@ -36,8 +36,8 @@ const categoriesData = [
         active: true
       },
       {
-        name: "Outstation & Airport Cab Rental",
-        description: "Reliable outstation cabs and airport transfers with verified drivers — Sedans and 7-seater SUVs.",
+        name: "Daily Car Rental",
+        description: "Reliable daily car rentals and airport transfers with verified drivers — Sedans and 7-seater SUVs.",
         vertical: "VEHICLE_RENTAL",
         type: "PRODUCT_ONLY",
         imageUrl: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/outstation-airport-cab.jpg",
@@ -685,8 +685,8 @@ const servicesData = [
   },
   {
     slug: "outstation-car-rental",
-    name: "Outstation & Airport Cab Rental",
-    shortDescription: "One-way and round trips with verified commercial drivers and clean AC cabs",
+    name: "Daily Car Rental",
+    shortDescription: "Daily and outstation car rentals with verified commercial drivers and clean AC cabs",
     fullDescription: "Inter-city and local travel with fixed transparent rates, zero toll confusion, and 24/7 roadside assistance. Clean AC sedans and spacious 7-seater SUVs with professional chauffeurs.",
     categoryGroup: "Vehicle Rental",
     vertical: "VEHICLE_RENTAL",

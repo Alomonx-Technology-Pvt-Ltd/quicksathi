@@ -1,226 +1,265 @@
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import Stars from "./Stars";
-import { motion } from "framer-motion";
+import {
+  MapPin,
+  ChevronDown,
+  Check,
+  Star,
+  Users,
+  ShieldCheck,
+  Sparkles,
+  Clock,
+  Shield,
+} from "lucide-react";
+import { useLocation } from "../../context/LocationContext";
 
-const HeroBanner = ({ service, allImages, activeImg, setActiveImg }) => {
+const HeroBanner = ({ service, allImages = [], activeImg = 0, setActiveImg }) => {
+  const {
+    city,
+    street,
+    road,
+    locality,
+    fullLocation,
+    detecting,
+    setCity,
+    cityOptions = [],
+  } = useLocation();
+
+  const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
+
+  // Format real-time location matching AC page
+  const realTimeLocation = useMemo(() => {
+    if (street && locality && street !== locality) return `${street}, ${locality}`;
+    if (road && locality && road !== locality) return `${road}, ${locality}`;
+    if (locality && city && locality !== city) return `${locality}, ${city}`;
+    if (locality) return locality;
+    if (street) return street;
+    if (road) return road;
+    if (city) return city;
+    if (fullLocation) {
+      const parts = fullLocation.split(",").map((p) => p.trim()).filter(Boolean);
+      return parts.slice(0, 2).join(", ");
+    }
+    return null;
+  }, [street, road, locality, city, fullLocation]);
+
+  const currentImg = allImages[activeImg] || service.bannerImage || service.thumbnail;
+
   return (
-    <div
-      className="relative w-full overflow-hidden sm:min-h-[460px]"
-      style={{ height: "65vh", minHeight: "380px" }}
-    >
-      <motion.img
-        src={allImages[activeImg]}
-        alt={service.name}
-        className="w-full h-full object-cover"
-        initial={{
-          scale: 1.1,
-          opacity: 0,
-        }}
-        animate={{
-          scale: 1,
-          opacity: 1,
-        }}
-        transition={{
-          duration: 1,
-          ease: "easeOut",
-        }}
-      />
+    <div className="w-full bg-white border-b border-slate-100 pt-4 sm:pt-6 pb-6 sm:pb-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-10">
+        {/* ── Top Bar: Location + City Dropdown + Breadcrumbs ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          {/* Real-time Location Pill & City Picker */}
+          <div className="flex items-center gap-2 flex-wrap text-xs">
+            {/* Real-time located user location */}
+            <div className="inline-flex items-center gap-1.5 font-semibold text-slate-800 bg-purple-50/80 border border-purple-100/90 px-2.5 py-1 rounded-full shadow-2xs">
+              <MapPin size={13} className="text-purple-600 shrink-0" />
+              <span>
+                {detecting
+                  ? "Locating in real-time..."
+                  : realTimeLocation || "Current Location"}
+              </span>
+              {detecting && (
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-ping inline-block ml-0.5" />
+              )}
+            </div>
 
-      <div
-        className="absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(to top, rgba(0,0,0,0.82) 25%, rgba(0,0,0,0.10) 65%, transparent 100%)",
-        }}
-      />
+            {/* Select city dropdown */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsCityDropdownOpen((prev) => !prev)}
+                className="inline-flex items-center gap-1 text-slate-500 hover:text-purple-700 font-medium px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors border-0 bg-transparent cursor-pointer text-xs"
+              >
+                <span>{city ? `City: ${city}` : "Select city"}</span>
+                <ChevronDown
+                  size={12}
+                  className={`transition-transform duration-200 ${
+                    isCityDropdownOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
 
-      {/* Breadcrumb */}
-      <motion.nav
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6 }}
-        className="absolute top-16 sm:top-20 left-4 sm:left-10 flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs z-10 max-w-[60%]"
-        style={{ fontFamily: "var(--font-body)" }}
-      >
-        <Link
-          to="/"
-          className="no-underline hover:opacity-70 flex-shrink-0"
-          style={{ color: "rgba(255,255,255,0.50)" }}
-        >
-          Home
-        </Link>
+              {isCityDropdownOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setIsCityDropdownOpen(false)}
+                  />
+                  <div className="absolute top-full left-0 mt-1 z-50 w-48 max-h-60 overflow-y-auto bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 no-scrollbar">
+                    <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                      Select City
+                    </div>
+                    {cityOptions.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => {
+                          setCity(c);
+                          setIsCityDropdownOpen(false);
+                        }}
+                        className={`w-full text-left px-3 py-1.5 text-xs hover:bg-purple-50 hover:text-purple-700 border-0 bg-transparent cursor-pointer flex items-center justify-between transition-colors ${
+                          city === c
+                            ? "font-bold text-purple-700 bg-purple-50/50"
+                            : "text-slate-700"
+                        }`}
+                      >
+                        <span>{c}</span>
+                        {city === c && <Check size={12} className="text-purple-600" />}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
 
-        <span style={{ color: "rgba(255,255,255,0.30)" }}>/</span>
-
-        <Link
-          to={`/category/${service.categoryId}`}
-          className="no-underline hover:opacity-70 truncate hidden sm:inline"
-          style={{ color: "rgba(255,255,255,0.50)" }}
-        >
-          {service.categoryName}
-        </Link>
-
-        <span
-          style={{ color: "rgba(255,255,255,0.30)" }}
-          className="hidden sm:inline"
-        >
-          /
-        </span>
-
-        <span
-          className="font-semibold truncate"
-          style={{ color: "rgba(255,255,255,0.85)" }}
-        >
-          {service.name}
-        </span>
-      </motion.nav>
-
-      {/* Gallery */}
-      {allImages.length > 1 && (
-        <motion.div
-          initial={{ opacity: 0, x: 30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.6 }}
-          className="absolute top-16 sm:top-20 right-4 sm:right-10 z-10 flex gap-1.5 sm:gap-2 overflow-x-auto max-w-[35%] sm:max-w-none"
-        >
-          {allImages.map((img, i) => (
-            <button
-              key={i}
-              onClick={() => setActiveImg(i)}
-              className="rounded-lg sm:rounded-xl overflow-hidden border-2 transition-all duration-200 flex-shrink-0"
-              style={{
-                width: "40px",
-                height: "30px",
-                padding: 0,
-                cursor: "pointer",
-                borderColor:
-                  i === activeImg
-                    ? "rgba(255,255,255,0.95)"
-                    : "rgba(255,255,255,0.30)",
-              }}
-            >
-              <img src={img} alt="" className="w-full h-full object-cover" />
-            </button>
-          ))}
-        </motion.div>
-      )}
-
-      {/* Bottom Left — name, tags, meta */}
-      <motion.div
-        initial={{
-          opacity: 0,
-          y: 30,
-        }}
-        animate={{
-          opacity: 1,
-          y: 0,
-        }}
-        transition={{
-          duration: 0.6,
-          ease: "easeOut",
-        }}
-        className="absolute bottom-24 sm:bottom-8 left-4 sm:left-10 right-4 sm:right-auto z-10"
-      >
-        <div className="flex gap-2 mb-2 sm:mb-3 flex-wrap">
-          {service.tags?.map((tag) => (
-            <span
-              key={tag}
-              className="px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-semibold border border-white/25 backdrop-blur-sm"
-              style={{
-                fontFamily: "var(--font-body)",
-                backgroundColor: "rgba(255,255,255,0.13)",
-                color: "rgba(255,255,255,0.85)",
-              }}
-            >
-              {tag}
+          {/* Breadcrumbs */}
+          <nav className="flex items-center gap-1.5 text-xs text-slate-500 font-medium overflow-x-auto whitespace-nowrap">
+            <Link to="/" className="text-slate-500 hover:text-purple-600 no-underline transition-colors">
+              Home
+            </Link>
+            <span className="text-slate-300">/</span>
+            {service.categoryId && (
+              <>
+                <Link
+                  to={`/category/${service.categoryId}`}
+                  className="text-slate-500 hover:text-purple-600 no-underline transition-colors truncate max-w-[140px]"
+                >
+                  {service.categoryName || "Category"}
+                </Link>
+                <span className="text-slate-300">/</span>
+              </>
+            )}
+            <span className="text-slate-900 font-semibold truncate max-w-[180px]">
+              {service.name}
             </span>
-          ))}
+          </nav>
         </div>
 
-        <h1
-          className="text-white font-normal leading-tight mb-2"
-          style={{
-            fontFamily: "var(--font-display)",
-            fontSize: "clamp(24px, 6vw, 64px)",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          {service.name}
-        </h1>
+        {/* ── Main Header Title & Metadata ── */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-5">
+          <div>
+            {/* Tags row */}
+            {service.tags && service.tags.length > 0 && (
+              <div className="flex items-center gap-1.5 mb-2.5 flex-wrap">
+                {service.tags.slice(0, 5).map((tag, idx) => (
+                  <span
+                    key={idx}
+                    className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600 border border-slate-200/60"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
 
-        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
-          <Stars rating={service.rating} />
+            {/* Service Name */}
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight m-0">
+              {service.name}
+            </h1>
 
-          <span
-            className="text-white/60 text-xs sm:text-sm"
-            style={{ fontFamily: "var(--font-body)" }}
-          >
-            {service.rating} · {service.totalReviews} reviews
-          </span>
+            {/* Trust Badges matching AC Category Page */}
+            <div className="flex items-center gap-2 sm:gap-2.5 mt-3 flex-wrap text-xs">
+              {/* Star Rating */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 font-semibold border border-slate-200/60 shadow-xs">
+                <Star size={12} className="fill-amber-400 text-amber-400" />
+                <span>{service.rating || 4.8} Rating</span>
+                <span className="text-slate-500 font-normal">
+                  ({(service.totalReviews || 2890).toLocaleString("en-IN")} reviews)
+                </span>
+              </div>
 
-          <span className="text-white/40 hidden sm:inline">·</span>
+              {/* 200+ Happy Customers */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 font-semibold border border-slate-200/60 shadow-xs">
+                <Users size={12} className="text-purple-600" />
+                <span>200+ Happy Customers</span>
+              </div>
 
-          <span
-            className="text-white/60 text-xs sm:text-sm hidden sm:inline"
-            style={{ fontFamily: "var(--font-body)" }}
-          >
-            {service.experience} experience
-          </span>
+              {/* Verified Experts */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 font-semibold border border-slate-200/60 shadow-xs">
+                <ShieldCheck size={12} className="text-emerald-600" />
+                <span>Verified Experts</span>
+              </div>
 
-          <span className="text-white/40 hidden sm:inline">·</span>
+              {/* Experience or Warranty badge */}
+              {service.experience && (
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-800 font-semibold border border-purple-100 shadow-xs">
+                  <Sparkles size={12} className="text-purple-600" />
+                  <span>{service.experience} Experience</span>
+                </div>
+              )}
+            </div>
+          </div>
 
-          <span
-            className="text-[10px] sm:text-xs font-semibold px-2 sm:px-2.5 py-1 rounded-full"
-            style={{
-              fontFamily: "var(--font-body)",
-              backgroundColor: service.available
-                ? "rgba(34,197,94,0.25)"
-                : "rgba(239,68,68,0.25)",
-              color: service.available ? "#4ade80" : "#f87171",
-            }}
-          >
-            {service.available ? "Available Now" : "Unavailable"}
-          </span>
+          {/* Right: Starting Price Banner */}
+          <div className="flex items-baseline md:flex-col md:items-end gap-1.5 shrink-0 bg-slate-50 md:bg-transparent p-3 md:p-0 rounded-2xl border md:border-0 border-slate-200/60">
+            <span className="text-xs text-slate-500 font-medium">Starting from</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                ₹{(service.startingPrice || 349).toLocaleString("en-IN")}
+              </span>
+              {service.priceUnit && (
+                <span className="text-xs text-slate-500 font-normal">
+                  /{service.priceUnit}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
-      </motion.div>
 
-      {/* Price — moves below name block on mobile, side-by-side on desktop */}
-      <motion.div
-        initial={{
-          opacity: 0,
-          x: 40,
-        }}
-        animate={{
-          opacity: 1,
-          x: 0,
-        }}
-        transition={{
-          duration: 0.7,
-          delay: 0.5,
-        }}
-        className="absolute bottom-8 sm:bottom-8 right-4 sm:right-10 z-10 text-right"
-      >
-        <p
-          className="text-white/50 text-[10px] sm:text-xs mb-0.5 sm:mb-1"
-          style={{ fontFamily: "var(--font-body)" }}
-        >
-          Starting from
-        </p>
+        {/* ── Modern Media Showcase / Image Card (No outdated dark full-bleed) ── */}
+        <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-900 shadow-md border border-slate-200/80">
+          <div className="relative w-full aspect-[21/9] min-h-[220px] sm:min-h-[280px] max-h-[420px] overflow-hidden">
+            <img
+              src={currentImg}
+              alt={service.name}
+              className="w-full h-full object-cover transition-transform duration-700 hover:scale-103"
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src =
+                  "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=1200&auto=format&fit=crop";
+              }}
+            />
 
-        <p
-          className="text-white font-bold text-xl sm:text-3xl m-0"
-          style={{ fontFamily: "var(--font-display)" }}
-        >
-          ₹{service.startingPrice?.toLocaleString()}
-        </p>
+            {/* Gradient Scrim for subtle bottom readability */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
 
-        <p
-          className="text-white/50 text-[10px] sm:text-xs mt-0.5 sm:mt-1"
-          style={{ fontFamily: "var(--font-body)" }}
-        >
-          {service.priceUnit}
-        </p>
-      </motion.div>
+            {/* Left bottom badge */}
+            <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-5 z-10 flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-slate-900 text-xs font-bold shadow-md">
+                <ShieldCheck size={14} className="text-emerald-600" />
+                <span>TiptoBook Guaranteed</span>
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-medium">
+                <Clock size={12} className="text-amber-400" />
+                <span>30-Day Warranty</span>
+              </span>
+            </div>
+
+            {/* Right bottom gallery thumbnail switcher */}
+            {allImages.length > 1 && (
+              <div className="absolute bottom-3 sm:bottom-4 right-3 sm:right-5 z-10 flex items-center gap-1.5 sm:gap-2 bg-black/50 backdrop-blur-md p-1.5 rounded-2xl">
+                {allImages.map((img, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setActiveImg && setActiveImg(idx)}
+                    className={`relative w-9 h-7 sm:w-12 sm:h-9 rounded-lg overflow-hidden border-2 p-0 cursor-pointer transition-all ${
+                      idx === activeImg
+                        ? "border-purple-400 scale-105 shadow-md"
+                        : "border-transparent opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

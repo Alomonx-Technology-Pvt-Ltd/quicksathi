@@ -43,6 +43,8 @@ const AdminUsers = lazy(() => import("./admin/pages/AdminUsers"));
 const AdminServiceRequests = lazy(() => import("./admin/pages/AdminServiceRequests"));
 const AdminNotifications = lazy(() => import("./admin/pages/AdminNotifications"));
 const AdminContacts = lazy(() => import("./admin/pages/AdminContacts"));
+const AdminBanners = lazy(() => import("./admin/pages/AdminBanners"));
+const AdminCoupons = lazy(() => import("./admin/pages/AdminCoupons"));
 
 // ── Loading fallback ──
 const PageLoader = () => (
@@ -141,6 +143,8 @@ function App() {
             }
           >
             <Route index element={<AdminDashboard />} />
+            <Route path="banners" element={<AdminBanners />} />
+            <Route path="coupons" element={<AdminCoupons />} />
             <Route path="services" element={<AdminServices />} />
             <Route path="categories" element={<AdminCategories />} />
             <Route path="providers" element={<AdminProviders />} />

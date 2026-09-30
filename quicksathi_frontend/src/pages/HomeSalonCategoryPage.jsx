@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Star,
-  Shield,
   ChevronRight,
   X,
   CheckCircle2,
@@ -17,149 +16,279 @@ import {
 import api from "../config/api";
 import SEO from "../components/SEO";
 import { useLocation } from "../context/LocationContext";
-import { mockCategories } from "../data/mockCategories";
-import { mockServices } from "../data/mockServices";
-import ACCategoryPage from "./ACCategoryPage";
-import HomeSalonCategoryPage from "./HomeSalonCategoryPage";
 import CategorySpotlightBanner from "../components/CategorySpotlightBanner";
 
-// Helper to extract clean bullet points from service data
-const getServiceBullets = (service) => {
-  if (service.bullets && service.bullets.length > 0) return service.bullets;
-  const bullets = [];
-  if (service.shortDescription) {
-    bullets.push(service.shortDescription);
-  }
-  if (service.packages && service.packages.length > 0) {
-    const firstPkg = service.packages[0];
-    if (firstPkg.features && firstPkg.features.length > 0) {
-      bullets.push(...firstPkg.features.slice(0, 2));
-    }
-  }
-  if (bullets.length === 0 && service.description) {
-    const sentences = service.description.split(".").filter(Boolean);
-    bullets.push(...sentences.slice(0, 2).map((s) => s.trim() + "."));
-  }
-  if (bullets.length === 0) {
-    bullets.push("Verified background-checked specialists.");
-    bullets.push("Upfront pricing with 100% satisfaction assurance.");
-  }
-  return bullets.slice(0, 3);
-};
+// ── Sub-category quick-selection tiles ──
+const SUB_CATEGORIES = [
+  {
+    id: "hair-styling-care",
+    name: "Hair Styling & Care",
+    image:
+      "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=300&auto=format&fit=crop",
+    keywords: ["hair", "haircut", "blow dry", "keratin", "smoothening", "color"],
+  },
+  {
+    id: "facial-cleanup",
+    name: "Facial & Cleanup",
+    image:
+      "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=300&auto=format&fit=crop",
+    keywords: ["facial", "cleanup", "glow", "skin", "whitening", "de-tan"],
+  },
+  {
+    id: "bridal-party-makeup",
+    name: "Bridal & Party Makeup",
+    image:
+      "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=300&auto=format&fit=crop",
+    keywords: ["bridal", "makeup", "party", "airbrush", "hd makeup", "saree draping"],
+  },
+  {
+    id: "manicure-pedicure",
+    name: "Manicure & Pedicure",
+    image:
+      "https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=300&auto=format&fit=crop",
+    keywords: ["manicure", "pedicure", "nail", "spa", "gel polish"],
+  },
+  {
+    id: "waxing-threading",
+    name: "Waxing & Threading",
+    image:
+      "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=300&auto=format&fit=crop",
+    keywords: ["waxing", "threading", "rica", "roll-on", "body care"],
+  },
+  {
+    id: "mens-salon-spa",
+    name: "Men's Salon & Spa",
+    image:
+      "https://images.unsplash.com/photo-1621605815971-fbc98d665033?q=80&w=300&auto=format&fit=crop",
+    keywords: ["men", "men's", "male", "beard", "grooming", "facial for men"],
+  },
+];
 
-// Helper to find services belonging to a subcategory
-// Uses strict vertical-first matching to prevent cross-category pollution
-const getServicesForSub = (sub, allServices, categoryVertical) => {
-  const subName = (sub.name || "").toLowerCase();
-  const subKeywords = (sub.keywords || []).map((k) => k.toLowerCase());
-  const targetVert = (categoryVertical || "").toLowerCase();
+// ── Fallback services (shown instantly before API response) ──
+const FALLBACK_SALON_SERVICES = [
+  {
+    _id: "hair-styling-care",
+    slug: "hair-styling-care",
+    name: "Hair Styling & Care",
+    section: "Hair Styling & Care",
+    rating: 4.9,
+    totalReviews: 2100,
+    startingPrice: 499,
+    priceUnit: "service",
+    thumbnail:
+      "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=600&auto=format&fit=crop",
+    bullets: [
+      "Expert haircut, blow dry & nourishing hair spa at home.",
+      "Certified beauticians with single-use disposable kits.",
+    ],
+    fullDescription:
+      "Transform your look with our certified hairstylists. Services include precision haircut, blow dry, deep conditioning hair spa, keratin, hair coloring, and smoothening treatments using premium salon products — all delivered at your doorstep.",
+    packages: [
+      {
+        title: "Haircut & Blow Dry",
+        price: 499,
+        features: ["Styling consultation", "Precision haircut", "Blow dry styling"],
+      },
+      {
+        title: "Nourishing Hair Spa & Cut",
+        price: 1299,
+        features: ["Scalp massage", "Deep moisture mask", "Steam treatment", "Haircut & blow dry"],
+      },
+    ],
+    faqs: [
+      {
+        question: "Do salon professionals bring their own products?",
+        answer: "Yes, our beauty professionals carry complete single-use disposable kits and branded products.",
+      },
+      {
+        question: "Is hair coloring available at home?",
+        answer: "Yes, we offer all coloring services including global color, highlights, balayage, and root touch-up.",
+      },
+    ],
+  },
+  {
+    _id: "facial-cleanup",
+    slug: "facial-cleanup",
+    name: "Facial & Cleanup",
+    section: "Facial & Cleanup",
+    rating: 4.8,
+    totalReviews: 1750,
+    startingPrice: 799,
+    priceUnit: "session",
+    thumbnail:
+      "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=600&auto=format&fit=crop",
+    bullets: [
+      "Glow & rejuvenation facials by expert beauticians.",
+      "O3+, Lotus Herbal & deep cleansing cleanups.",
+    ],
+    fullDescription:
+      "Restore natural radiance with customized facials: O3+ Whitening, Lotus Herbal, Cheryl's Glow, and Deep Cleansing cleanups tailored for your skin type — performed by trained professionals at your home.",
+    packages: [
+      {
+        title: "Fruit Cleanup & De-Tan",
+        price: 799,
+        features: ["Face scrub", "Steam & blackhead removal", "De-tan pack"],
+      },
+      {
+        title: "O3+ Radiant Glow Facial",
+        price: 1899,
+        features: ["Skin analysis", "O3+ D-tan", "Micro-massage", "Vitamin C serum", "Glow mask"],
+      },
+    ],
+    faqs: [
+      {
+        question: "How long does the facial session take?",
+        answer: "A standard cleanup takes 45 mins while an advanced facial takes 75 mins.",
+      },
+    ],
+  },
+  {
+    _id: "bridal-party-makeup",
+    slug: "bridal-party-makeup",
+    name: "Bridal & Party Makeup",
+    section: "Bridal & Party Makeup",
+    rating: 4.9,
+    totalReviews: 1400,
+    startingPrice: 2500,
+    priceUnit: "event",
+    thumbnail:
+      "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=600&auto=format&fit=crop",
+    bullets: [
+      "HD Airbrush bridal makeup and party glam at your doorstep.",
+      "Trial sessions available for bridal packages.",
+    ],
+    fullDescription:
+      "Look stunning on your special occasion with celebrity makeup artists. HD Bridal Makeup, Engagement Look, Party Glam, Saree Draping, and Hair Artistry — all delivered at home.",
+    packages: [
+      {
+        title: "Party Glam Makeup",
+        price: 2500,
+        features: ["HD face makeup", "Hair styling", "Saree/dupatta draping", "Eyelashes"],
+      },
+      {
+        title: "Royal Bridal Airbrush Package",
+        price: 12000,
+        features: ["Airbrush HD makeup", "Trial session", "Bridal hairstyle", "Jewelry & outfit draping", "Premium lashes"],
+      },
+    ],
+    faqs: [
+      {
+        question: "Do you offer makeup trial sessions?",
+        answer: "Yes, trial sessions are included in premium bridal packages.",
+      },
+    ],
+  },
+  {
+    _id: "manicure-pedicure",
+    slug: "manicure-pedicure",
+    name: "Manicure & Pedicure",
+    section: "Manicure & Pedicure",
+    rating: 4.7,
+    totalReviews: 1200,
+    startingPrice: 699,
+    priceUnit: "session",
+    thumbnail:
+      "https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=600&auto=format&fit=crop",
+    bullets: [
+      "Luxurious spa manicure & pedicure at home.",
+      "Gel nail art, foot reflexology & hygiene pedicure.",
+    ],
+    fullDescription:
+      "Pamper your hands and feet with relaxing spa manicure, foot reflexology massage, nail shaping, cuticle care, and gel polish — by trained beauticians at your home.",
+    packages: [
+      {
+        title: "Classic Mani-Pedi Combo",
+        price: 699,
+        features: ["Soak & scrub", "Nail shaping", "Cuticle care", "Massage & polish"],
+      },
+      {
+        title: "Ice Cream Spa Mani-Pedi",
+        price: 1299,
+        features: ["Aroma soak", "Exfoliating scrub", "Creme mask", "Deep reflexology massage", "Gel polish"],
+      },
+    ],
+    faqs: [
+      {
+        question: "Is warm water required for Mani-Pedi?",
+        answer: "Yes, the professional will use warm water from your home.",
+      },
+    ],
+  },
+  {
+    _id: "waxing-threading",
+    slug: "waxing-threading",
+    name: "Waxing & Threading",
+    section: "Waxing & Threading",
+    rating: 4.8,
+    totalReviews: 1900,
+    startingPrice: 399,
+    priceUnit: "session",
+    thumbnail:
+      "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=600&auto=format&fit=crop",
+    bullets: [
+      "Hygienic RICA & Roll-On waxing at home.",
+      "Pain-free threading & body polishing.",
+    ],
+    fullDescription:
+      "Gentle, pain-free waxing services using RICA and Liposoluble wax for full body, legs, arms, and underarms with threading — performed by certified beauticians at your doorstep.",
+    packages: [
+      {
+        title: "Full Arms + Full Legs Waxing",
+        price: 599,
+        features: ["RICA peel-off wax", "Pre-wax oil", "Post-wax gel lotion"],
+      },
+      {
+        title: "Full Body RICA Waxing Package",
+        price: 1499,
+        features: ["Full arms", "Full legs", "Underarms", "Full back & stomach", "Free threading"],
+      },
+    ],
+    faqs: [
+      {
+        question: "Is RICA wax suitable for sensitive skin?",
+        answer: "Yes, RICA colophony-free wax is specially recommended for sensitive skin.",
+      },
+    ],
+  },
+  {
+    _id: "mens-salon-spa",
+    slug: "mens-salon-spa",
+    name: "Men's Salon & Spa",
+    section: "Men's Salon & Spa",
+    rating: 4.8,
+    totalReviews: 980,
+    startingPrice: 349,
+    priceUnit: "service",
+    thumbnail:
+      "https://images.unsplash.com/photo-1621605815971-fbc98d665033?q=80&w=600&auto=format&fit=crop",
+    bullets: [
+      "Professional grooming for men — haircut, beard styling & face care.",
+      "Relaxing spa & de-stress services at your doorstep.",
+    ],
+    fullDescription:
+      "Expert men's grooming at home — includes precision haircut, beard shaping, clean shave, de-tan facials, hair coloring, and body grooming by certified professionals.",
+    packages: [
+      {
+        title: "Haircut & Beard Styling",
+        price: 349,
+        features: ["Precision haircut", "Beard line-up & shape", "Cool towel finish"],
+      },
+      {
+        title: "Men's Grooming Combo",
+        price: 799,
+        features: ["Haircut", "Beard trimming", "De-tan cleanup", "Head & shoulder massage"],
+      },
+    ],
+    faqs: [
+      {
+        question: "Do you bring your own salon tools?",
+        answer: "Yes, professionals arrive with sanitized, individual-use clippers, scissors, and grooming products.",
+      },
+    ],
+  },
+];
 
-  // 1. STRICT: Filter services that belong to THIS vertical only
-  const categoryServices = allServices.filter((s) => {
-    const sCatName = (s.categoryName || "").toLowerCase();
-    const sVert = (s.vertical || "").toLowerCase();
-    const sCatId = s.categoryId;
-
-    if (!targetVert) return false;
-
-    // Match by vertical field (exact)
-    if (sVert && sVert === targetVert) return true;
-
-    // Match by categoryId if sub has a known id
-    if (sub.id && sCatId === sub.id) return true;
-    if (sub._id && sCatId === sub._id) return true;
-
-    // Match by categoryName using the category vertical converted to readable form
-    const vertReadable = targetVert.replace(/_/g, " ");
-    if (sCatName === vertReadable) return true;
-
-    return false;
-  });
-
-  // 2. Within category services, find services matching this subcategory
-  const matched = categoryServices.filter((s) => {
-    const sName = (s.name || "").toLowerCase();
-    const sSection = (s.section || s.subCategoryName || "").toLowerCase();
-    const sTags = (s.tags || []).map((t) => t.toLowerCase());
-
-    // Exact section match (most reliable)
-    if (sSection && sSection === subName) return true;
-
-    // Exact name match
-    if (sName === subName) return true;
-
-    // Keyword match against section/tags (not description, to avoid false positives)
-    if (subKeywords.some((kw) => sSection.includes(kw) || sTags.includes(kw))) return true;
-
-    // Substring match on name (both directions), but only within the category
-    if (sName.includes(subName) || subName.includes(sName)) return true;
-
-    return false;
-  });
-
-  if (matched.length > 0) return matched;
-
-  // 3. Looser fallback: any category service with overlapping name tokens
-  const looseMatch = categoryServices.filter((s) => {
-    const sName = (s.name || "").toLowerCase();
-    return subKeywords.some((kw) => kw.length > 3 && sName.includes(kw));
-  });
-
-  if (looseMatch.length > 0) return looseMatch;
-
-  // 4. If we have category services but no sub-match, return all category services
-  //    (fallback that still respects the vertical boundary)
-  if (categoryServices.length > 0) return categoryServices;
-
-  // 5. Generate structured fallback from the subcategory object itself
-  return [
-    {
-      _id: sub._id || sub.id || subName.replace(/\s+/g, "-"),
-      slug: sub.slug || subName.replace(/\s+/g, "-"),
-      name: sub.name,
-      rating: 4.8,
-      totalReviews: 1200,
-      startingPrice: sub.startingPrice || 499,
-      priceUnit: sub.priceUnit || "service",
-      thumbnail:
-        sub.imageUrl ||
-        sub.image ||
-        "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop",
-      bullets: [
-        sub.description || "Expert doorstep assistance by verified professionals.",
-        "Quality guarantee with upfront transparent pricing.",
-      ],
-      fullDescription:
-        sub.description ||
-        `${sub.name} by verified background-checked experts on TiptoBook. Complete satisfaction guaranteed.`,
-      packages: [
-        {
-          title: `Standard ${sub.name}`,
-          price: sub.startingPrice || 499,
-          features: ["Verified Professional", "Standard Service", "Safety Assurance"],
-        },
-        {
-          title: `Premium ${sub.name}`,
-          price: Math.round((sub.startingPrice || 499) * 1.8),
-          features: ["Top-Rated Specialist", "Deep Service & Inspection", "Extended Warranty"],
-        },
-      ],
-      faqs: [
-        {
-          question: "How do I book this service?",
-          answer: "Click 'BOOK' to select your preferred package, date, and address.",
-        },
-        {
-          question: "Are your professionals verified?",
-          answer: "Yes, all service partners undergo strict background checks and skill verification.",
-        },
-      ],
-    },
-  ];
-};
-
-const Category = () => {
-  const { id } = useParams();
+const HomeSalonCategoryPage = ({ category: propCategory }) => {
   const navigate = useNavigate();
   const {
     city,
@@ -168,24 +297,36 @@ const Category = () => {
     road,
     fullLocation,
     detecting,
-    detectExactLocation,
     setCity,
     cityOptions = [],
   } = useLocation();
 
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("all");
+  const [selectedServiceForModal, setSelectedServiceForModal] = useState(null);
+  const [liveServices, setLiveServices] = useState(FALLBACK_SALON_SERVICES);
+  const sectionRefs = useRef({});
+
+  // Escape key & background scroll lock for detail modal
+  useEffect(() => {
+    if (!selectedServiceForModal) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setSelectedServiceForModal(null);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [selectedServiceForModal]);
 
   // Real-time location formatting
   const realTimeLocation = useMemo(() => {
-    if (street && locality && street !== locality) {
-      return `${street}, ${locality}`;
-    }
-    if (road && locality && road !== locality) {
-      return `${road}, ${locality}`;
-    }
-    if (locality && city && locality !== city) {
-      return `${locality}, ${city}`;
-    }
+    if (street && locality && street !== locality) return `${street}, ${locality}`;
+    if (road && locality && road !== locality) return `${road}, ${locality}`;
+    if (locality && city && locality !== city) return `${locality}, ${city}`;
     if (locality) return locality;
     if (street) return street;
     if (road) return road;
@@ -197,139 +338,67 @@ const Category = () => {
     return null;
   }, [street, road, locality, city, fullLocation]);
 
-  // Instant render: find mock category for this id immediately
-  const findMock = (catId) => {
-    if (!catId) return null;
-    const cid = String(catId).toLowerCase();
-
-    let match = mockCategories.find(
-      (c) => (c.id || c._id)?.toString().toLowerCase() === cid
-    );
-    if (match) return match;
-
-    const cleanVert = cid.toUpperCase().replace(/-/g, "_");
-    match = mockCategories.find((c) => c.vertical?.toUpperCase() === cleanVert);
-    if (match) return match;
-
-    const aliasMap = {
-      wedding: 10,
-      weddings: 10,
-      "vehicle-rental": 6,
-      rental: 6,
-      "home-tuition": 15,
-      tuition: 15,
-      "house-help": 20,
-      help: 20,
-      "home-salon": 25,
-      salon: 25,
-      "house-services": 31,
-      repair: 31,
-      painting: 35,
-      cctv: 31,
-      "cctv-security": 31,
-      ac: 1,
-      "ac-appliances": 1,
-    };
-    if (aliasMap[cid]) {
-      match = mockCategories.find((c) => c.id === aliasMap[cid]);
-      if (match) return match;
-    }
-
-    const cleanName = cid.replace(/-/g, " ");
-    return (
-      mockCategories.find(
-        (c) =>
-          c.name?.toLowerCase() === cleanName ||
-          c.name?.toLowerCase().includes(cleanName) ||
-          cleanName.includes(c.name?.toLowerCase())
-      ) ?? null
-    );
-  };
-
-  const [category, setCategory] = useState(() => findMock(id));
-  const [services, setServices] = useState(() => mockServices);
-  const [activeSection, setActiveSection] = useState("all");
-  const [selectedServiceForModal, setSelectedServiceForModal] = useState(null);
-  const sectionRefs = useRef({});
-
-  // Background fetch — upgrades mock → real data
+  // Fetch live services from backend and merge with fallback
   useEffect(() => {
-    const fetchCategory = async () => {
+    const fetchServices = async () => {
       try {
-        const { data } = await api.get(`/categories/${id}`);
-        if (data) {
-          setCategory(data);
-          return;
+        const { data } = await api.get("/services");
+        if (data && data.length > 0) {
+          const salonSvcs = data.filter((s) => {
+            const catName = (s.categoryName || "").toLowerCase();
+            const vert = (s.vertical || "").toLowerCase();
+            return (
+              s.categoryId === 25 ||
+              catName.includes("salon") ||
+              catName.includes("beauty") ||
+              vert === "home_salon"
+            );
+          });
+
+          if (salonSvcs.length > 0) {
+            const merged = FALLBACK_SALON_SERVICES.map((fb) => {
+              const matchedLive = salonSvcs.find(
+                (ls) =>
+                  ls.slug === fb.slug ||
+                  ls.name.toLowerCase() === fb.name.toLowerCase()
+              );
+              if (matchedLive) {
+                return {
+                  ...fb,
+                  _id: matchedLive._id || fb._id,
+                  startingPrice: matchedLive.startingPrice || fb.startingPrice,
+                  rating: matchedLive.rating || fb.rating,
+                  totalReviews: matchedLive.totalReviews || fb.totalReviews,
+                  packages: matchedLive.packages?.length > 0 ? matchedLive.packages : fb.packages,
+                  faqs: matchedLive.faqs?.length > 0 ? matchedLive.faqs : fb.faqs,
+                };
+              }
+              return fb;
+            });
+            setLiveServices(merged);
+          }
         }
       } catch {
-        // fallback to full list
-      }
-      try {
-        const { data } = await api.get("/categories");
-        const found = data?.find((cat) => {
-          const catId = (cat._id || cat.id)?.toString();
-          const cleanParam = String(id).toLowerCase().replace(/-/g, "_");
-          return catId === String(id) || cat.vertical?.toLowerCase() === cleanParam;
-        });
-        if (found) setCategory(found);
-      } catch {
-        // Keep mock already displayed
+        // Keep fallback data silently
       }
     };
-    fetchCategory();
-  }, [id]);
-
-  // Fetch real-time services from backend
-  useEffect(() => {
-    api
-      .get("/services")
-      .then(({ data }) => {
-        if (data && data.length > 0) setServices(data);
-      })
-      .catch(() => {});
+    fetchServices();
   }, []);
 
-  // Delegate AC category to ACCategoryPage for tailored multi-package experience
-  if (
-    category?.vertical === "AC_APPLIANCES" ||
-    id === "ac" ||
-    id === "ac-appliances" ||
-    category?.name?.toLowerCase().includes("ac & appliances")
-  ) {
-    return <ACCategoryPage category={category} />;
-  }
+  // Group services by section
+  const groupedServices = useMemo(() => {
+    const groups = {};
+    SUB_CATEGORIES.forEach((sub) => {
+      groups[sub.name] = [];
+    });
+    liveServices.forEach((svc) => {
+      const sectionName = svc.section || "Hair Styling & Care";
+      if (!groups[sectionName]) groups[sectionName] = [];
+      groups[sectionName].push(svc);
+    });
+    return groups;
+  }, [liveServices]);
 
-  // Delegate Home Salon & Beauty to HomeSalonCategoryPage
-  if (
-    category?.vertical === "HOME_SALON" ||
-    id === "home-salon" ||
-    id === "25" ||
-    category?.name?.toLowerCase().includes("home salon")
-  ) {
-    return <HomeSalonCategoryPage category={category} />;
-  }
-
-  if (!category) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white text-slate-800 text-xl font-semibold">
-        Category not found
-      </div>
-    );
-  }
-
-  const subs = category.subCategories && category.subCategories.length > 0
-    ? category.subCategories
-    : [
-        {
-          _id: category._id || category.id,
-          id: category.id || category._id,
-          name: category.name,
-          imageUrl: category.imageUrl,
-          description: category.description,
-        },
-      ];
-
-  // Scroll to section handler matching AC page
   const handleScrollToSection = (sectionName) => {
     setActiveSection(sectionName);
     const element = sectionRefs.current[sectionName];
@@ -337,66 +406,39 @@ const Category = () => {
       const headerOffset = 80;
       const elementPosition = element.getBoundingClientRect().top;
       const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: "smooth",
-      });
+      window.scrollTo({ top: offsetPosition, behavior: "smooth" });
     }
   };
 
   const handleBookService = (service) => {
-    let packageTitle = "Standard";
-    let price = 0;
-    if (service.packages && service.packages.length > 0) {
-      packageTitle = service.packages[0].title;
-      price = service.packages[0].price;
-    } else if (service.startingPrice) {
-      price = service.startingPrice;
-    }
-    const params = new URLSearchParams({
-      name: service.name,
-      package: packageTitle,
-      price: price.toString(),
-    });
-    navigate(`/booking/${service.slug || service._id || service.id}?${params.toString()}`);
+    navigate(`/booking/${service.slug || service._id}`);
   };
-
-  const displayTitle = category.name.toLowerCase().endsWith("services")
-    ? `${category.name} near you`
-    : `${category.name} services near you`;
-
-  const canonicalSlug = category?.vertical
-    ? category.vertical.toLowerCase().replace(/_/g, "-")
-    : id;
 
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-20 overflow-x-hidden selection:bg-purple-100 selection:text-purple-900">
       <SEO
-        title={`${category?.name || "Local Services"} in Patna & Bihar — TiptoBook`}
-        description={`Explore and book verified ${category?.name || "local services"} in Patna, Bihar, and India on TiptoBook. Compare packages, read reviews, and book vetted professionals.`}
-        canonical={`https://www.tiptobook.com/category/${canonicalSlug}`}
-        keywords={`${category?.name}, ${category?.name} in Patna, ${category?.name} Bihar, online service booking, local service providers, TiptoBook`}
+        title="Home Salon & Beauty Services in Patna & Bihar — TiptoBook"
+        description="Book top-rated home salon services in Patna & Bihar — haircut, facial, bridal makeup, manicure, pedicure, waxing & men's grooming at your doorstep. Verified beauticians on TiptoBook."
+        canonical="https://www.tiptobook.com/category/home-salon"
+        keywords="home salon Patna, beauty services at home Bihar, bridal makeup home, facial at home, manicure pedicure home, waxing at home, men grooming Patna, TiptoBook"
       />
 
-      {/* ── Main Container: max-w-4xl for clean centered Urban Company feel ── */}
+      {/* ── Main Container ── */}
       <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8">
-        {/* ── Top City / Real-Time Location Selector Header ── */}
+
+        {/* ── Top City / Real-Time Location Header ── */}
         <div className="mb-4">
           <div className="flex items-center gap-2 mb-2 flex-wrap text-xs">
-            {/* Real-time located user location */}
             <div className="inline-flex items-center gap-1.5 font-semibold text-slate-800 bg-purple-50/70 border border-purple-100/90 px-2.5 py-1 rounded-full shadow-2xs">
               <MapPin size={13} className="text-purple-600 shrink-0" />
               <span>
-                {detecting
-                  ? "Locating in real-time..."
-                  : realTimeLocation || "Current Location"}
+                {detecting ? "Locating in real-time..." : realTimeLocation || "Current Location"}
               </span>
               {detecting && (
                 <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-ping inline-block ml-0.5" />
               )}
             </div>
 
-            {/* Select city option with dropdown selector */}
             <div className="relative">
               <button
                 type="button"
@@ -406,19 +448,13 @@ const Category = () => {
                 <span>{city ? `City: ${city}` : "Select city"}</span>
                 <ChevronDown
                   size={12}
-                  className={`transition-transform duration-200 ${
-                    isCityDropdownOpen ? "rotate-180" : ""
-                  }`}
+                  className={`transition-transform duration-200 ${isCityDropdownOpen ? "rotate-180" : ""}`}
                 />
               </button>
 
-              {/* Dropdown menu for selecting city */}
               {isCityDropdownOpen && (
                 <>
-                  <div
-                    className="fixed inset-0 z-40"
-                    onClick={() => setIsCityDropdownOpen(false)}
-                  />
+                  <div className="fixed inset-0 z-40" onClick={() => setIsCityDropdownOpen(false)} />
                   <div className="absolute top-full left-0 mt-1 z-50 w-48 max-h-60 overflow-y-auto bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 no-scrollbar">
                     <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                       Select City
@@ -427,14 +463,9 @@ const Category = () => {
                       <button
                         key={c}
                         type="button"
-                        onClick={() => {
-                          setCity(c);
-                          setIsCityDropdownOpen(false);
-                        }}
+                        onClick={() => { setCity(c); setIsCityDropdownOpen(false); }}
                         className={`w-full text-left px-3 py-1.5 text-xs hover:bg-purple-50 hover:text-purple-700 border-0 bg-transparent cursor-pointer flex items-center justify-between transition-colors ${
-                          city === c
-                            ? "font-bold text-purple-700 bg-purple-50/50"
-                            : "text-slate-700"
+                          city === c ? "font-bold text-purple-700 bg-purple-50/50" : "text-slate-700"
                         }`}
                       >
                         <span>{c}</span>
@@ -448,81 +479,57 @@ const Category = () => {
           </div>
 
           <h1 className="text-2xl sm:text-3xl md:text-[34px] font-extrabold text-slate-900 tracking-tight leading-tight m-0">
-            {displayTitle}
+            Home Salon & Beauty services near you
           </h1>
 
-          {/* Trust Badges: 200+ Happy Customers, 50+ Partners, 4.8 Rating */}
+          {/* Trust Badges */}
           <div className="flex items-center gap-2 sm:gap-2.5 mt-3 flex-wrap">
-            {/* 200+ happy customer */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 text-xs font-semibold border border-slate-200/60 shadow-xs">
               <Users size={12} className="text-purple-600" />
-              <span>200+ Happy Customers</span>
+              <span>500+ Happy Customers</span>
             </div>
-
-            {/* 50+ partner */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 text-xs font-semibold border border-slate-200/60 shadow-xs">
               <ShieldCheck size={12} className="text-emerald-600" />
-              <span>50+ Partners</span>
+              <span>80+ Partners</span>
             </div>
-
-            {/* 4.8 rating */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 text-xs font-semibold border border-slate-200/60 shadow-xs">
               <Star size={12} className="fill-amber-400 text-amber-400" />
-              <span>4.8 Rating</span>
+              <span>4.9 Rating</span>
             </div>
           </div>
         </div>
 
-        {/* ── Coming Soon Banner (if toggled) ── */}
-        {category?.comingSoon && (
-          <div className="mt-6 flex items-center gap-3 rounded-2xl px-5 py-4 border bg-amber-50/70 border-amber-200 text-amber-900">
-            <span style={{ fontSize: "20px" }}>⏳</span>
-            <div>
-              <p className="m-0 text-sm font-bold">{category.name} is launching soon!</p>
-              <p className="m-0 text-xs text-amber-800/80">
-                We're currently onboarding top verified providers. Booking will open shortly!
-              </p>
-            </div>
-          </div>
-        )}
+        {/* ── Spotlight Banner ── */}
+        <CategorySpotlightBanner
+          category={propCategory || { vertical: "HOME_SALON", name: "Home Salon & Beauty" }}
+          id="home-salon"
+        />
 
-        {/* ── Category Spotlight Banner for all service pages ── */}
-        <CategorySpotlightBanner category={category} id={id} />
-
-        {/* ── "What service do you need ?" (Visual Grid Cards matching AC design) ── */}
+        {/* ── "What service do you need?" Grid ── */}
         <div className="mt-8 pt-6 border-t border-slate-100">
           <h2 className="text-base sm:text-lg font-bold text-slate-900 mb-4 tracking-tight m-0">
             What service do you need ?
           </h2>
 
-          <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-4">
-            {subs.map((sub) => (
+          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5 sm:gap-4">
+            {SUB_CATEGORIES.map((sub) => (
               <button
-                key={sub.id || sub._id || sub.name}
+                key={sub.id}
                 onClick={() => handleScrollToSection(sub.name)}
                 className="group flex flex-col items-center text-center bg-transparent border-0 cursor-pointer p-0 outline-none transition-transform duration-200 active:scale-95"
               >
-                {/* Visual Thumbnail Card */}
                 <div className="relative w-full aspect-square max-w-[105px] rounded-xl sm:rounded-2xl overflow-hidden bg-slate-100 border border-slate-200/70 shadow-xs group-hover:border-purple-300 group-hover:shadow-md transition-all">
                   <img
-                    src={
-                      sub.imageUrl ||
-                      sub.image ||
-                      category.imageUrl ||
-                      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=300&auto=format&fit=crop"
-                    }
+                    src={sub.image}
                     alt={sub.name}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-108"
+                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
                     loading="eager"
                     onError={(e) => {
-                      e.currentTarget.onerror = null;
                       e.currentTarget.src =
-                        "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=300&auto=format&fit=crop";
+                        "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=300&auto=format&fit=crop";
                     }}
                   />
                 </div>
-
-                {/* Sub-category Label */}
                 <span className="mt-2 text-[11px] sm:text-xs font-semibold text-slate-800 leading-tight group-hover:text-purple-700 transition-colors line-clamp-2 max-w-[100px]">
                   {sub.name}
                 </span>
@@ -533,11 +540,11 @@ const Category = () => {
 
         {/* ── Sticky Category Navigation Bar ── */}
         <div className="sticky top-[64px] z-30 bg-white/95 backdrop-blur-md py-3.5 mt-8 border-b border-slate-200 flex items-center gap-2 overflow-x-auto no-scrollbar">
-          {subs.map((sub) => {
+          {SUB_CATEGORIES.map((sub) => {
             const isSelected = activeSection === sub.name;
             return (
               <button
-                key={sub.id || sub._id || sub.name}
+                key={sub.id}
                 onClick={() => handleScrollToSection(sub.name)}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
                   isSelected
@@ -551,33 +558,30 @@ const Category = () => {
           })}
         </div>
 
-        {/* ── Service Sections (Grouped matching AC reference) ── */}
+        {/* ── Service Sections ── */}
         <div className="mt-6 flex flex-col gap-10">
-          {subs.map((sub) => {
-            const servicesInSection = getServicesForSub(sub, services, category?.vertical);
+          {SUB_CATEGORIES.map((sub) => {
+            const servicesInSection = groupedServices[sub.name] || [];
             if (servicesInSection.length === 0) return null;
 
             return (
               <section
-                key={sub.id || sub._id || sub.name}
+                key={sub.id}
                 ref={(el) => (sectionRefs.current[sub.name] = el)}
                 className="scroll-mt-28"
               >
-                {/* Section Header */}
                 <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight pb-3 border-b border-slate-200 m-0">
                   {sub.name}
                 </h3>
 
-                {/* Service Cards in this Section */}
                 <div className="divide-y divide-slate-100">
                   {servicesInSection.map((service) => (
                     <article
-                      key={service._id || service.slug || service.id}
+                      key={service._id || service.slug}
                       className="py-6 sm:py-7 flex items-start justify-between gap-4 sm:gap-6 group"
                     >
-                      {/* Left: Info, Ratings, Bullets, Show More, Price & BOOK Button */}
+                      {/* Left: Info */}
                       <div className="flex-1 min-w-0 pr-2">
-                        {/* Title */}
                         <h4
                           onClick={() => setSelectedServiceForModal(service)}
                           className="text-base sm:text-lg font-bold text-slate-900 leading-snug m-0 cursor-pointer hover:text-purple-600 transition-colors"
@@ -585,23 +589,18 @@ const Category = () => {
                           {service.name}
                         </h4>
 
-                        {/* Rating */}
                         <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-600 font-medium">
                           <Star size={13} className="fill-amber-400 text-amber-400" />
-                          <span className="font-semibold text-slate-800">
-                            {service.rating || 4.8}
-                          </span>
+                          <span className="font-semibold text-slate-800">{service.rating || 4.8}</span>
                           <span className="text-slate-500">
-                            ({(service.totalReviews || 1240).toLocaleString("en-IN")} reviews)
+                            ({(service.totalReviews || 1000).toLocaleString("en-IN")} reviews)
                           </span>
                         </div>
 
-                        {/* Dashed Separator */}
                         <div className="w-full border-b border-dashed border-slate-200 my-2.5 max-w-md" />
 
-                        {/* Bullets */}
                         <ul className="m-0 p-0 list-none space-y-1 text-xs sm:text-[13px] text-slate-600 leading-relaxed max-w-md">
-                          {getServiceBullets(service).map((bullet, idx) => (
+                          {(service.bullets || []).map((bullet, idx) => (
                             <li key={idx} className="flex items-start gap-1.5">
                               <span className="text-slate-400 mt-1 select-none">•</span>
                               <span>{bullet}</span>
@@ -609,7 +608,6 @@ const Category = () => {
                           ))}
                         </ul>
 
-                        {/* Show more > link */}
                         <button
                           type="button"
                           onClick={() => setSelectedServiceForModal(service)}
@@ -619,11 +617,10 @@ const Category = () => {
                           <ChevronRight size={13} />
                         </button>
 
-                        {/* Price & BOOK Button Row */}
                         <div className="flex items-center justify-between mt-4 max-w-md pt-2">
                           <div className="flex items-baseline gap-1">
                             <span className="text-base sm:text-lg font-extrabold text-slate-900">
-                              ₹{(service.startingPrice || 499).toLocaleString("en-IN")}
+                              &#8377;{(service.startingPrice || 499).toLocaleString("en-IN")}
                             </span>
                             {service.priceUnit && (
                               <span className="text-[11px] text-slate-500 font-normal">
@@ -632,7 +629,6 @@ const Category = () => {
                             )}
                           </div>
 
-                          {/* BOOK Button */}
                           <button
                             type="button"
                             onClick={() => handleBookService(service)}
@@ -643,23 +639,17 @@ const Category = () => {
                         </div>
                       </div>
 
-                      {/* Right: Clean Service Image */}
+                      {/* Right: Image */}
                       <div className="relative shrink-0 w-28 h-28 sm:w-36 sm:h-36 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200/80 shadow-xs">
                         <img
-                          src={
-                            service.thumbnail ||
-                            service.imageUrl ||
-                            service.bannerImage ||
-                            sub.imageUrl ||
-                            "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=300&auto=format&fit=crop"
-                          }
+                          src={service.thumbnail}
                           alt={service.name}
                           loading="lazy"
                           className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
                           onError={(e) => {
                             e.currentTarget.onerror = null;
                             e.currentTarget.src =
-                              "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=300&auto=format&fit=crop";
+                              "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=300&auto=format&fit=crop";
                           }}
                         />
                       </div>
@@ -674,10 +664,10 @@ const Category = () => {
         {/* ── Bottom Support CTA ── */}
         <div className="mt-16 p-8 rounded-3xl bg-slate-50 border border-slate-200/80 text-center">
           <h3 className="text-xl font-bold text-slate-900 m-0 mb-2">
-            Need customized {category.name}?
+            Need a custom beauty package?
           </h3>
           <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto m-0 mb-6">
-            Speak directly with our dedicated customer support team for custom packages and instant bookings.
+            Speak directly with our support team for group bookings, bridal packages, and custom beauty sessions.
           </p>
           <Link
             to="/contact"
@@ -689,15 +679,23 @@ const Category = () => {
         </div>
       </div>
 
-      {/* ── Detail Drawer / Modal for "Show More >" ── */}
+      {/* ── Detail Modal / Popup Dialog ── */}
       <AnimatePresence>
         {selectedServiceForModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-scrollbar">
             <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 15 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedServiceForModal(null)}
+              className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 15 }}
-              className="bg-white rounded-3xl max-w-lg w-full max-h-[85vh] overflow-hidden flex flex-col shadow-2xl border border-slate-100"
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.22 }}
+              className="relative z-10 bg-white rounded-3xl max-w-lg w-full max-h-[85vh] overflow-hidden flex flex-col shadow-2xl border border-slate-100"
             >
               {/* Modal Header */}
               <div className="p-5 border-b border-slate-100 flex items-center justify-between">
@@ -711,7 +709,7 @@ const Category = () => {
                       {selectedServiceForModal.rating || 4.8}
                     </span>
                     <span>
-                      ({(selectedServiceForModal.totalReviews || 1200).toLocaleString("en-IN")} reviews)
+                      ({(selectedServiceForModal.totalReviews || 1000).toLocaleString("en-IN")} reviews)
                     </span>
                   </div>
                 </div>
@@ -727,17 +725,16 @@ const Category = () => {
 
               {/* Modal Body */}
               <div className="p-5 overflow-y-auto space-y-5 text-sm text-slate-700">
-                {/* Banner / Thumbnail */}
+                {/* Banner */}
                 <div className="aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100">
                   <img
-                    src={
-                      selectedServiceForModal.thumbnail ||
-                      selectedServiceForModal.imageUrl ||
-                      selectedServiceForModal.bannerImage ||
-                      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop"
-                    }
+                    src={selectedServiceForModal.thumbnail}
                     alt={selectedServiceForModal.name}
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src =
+                        "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=600&auto=format&fit=crop";
+                    }}
                   />
                 </div>
 
@@ -748,12 +745,11 @@ const Category = () => {
                   </h4>
                   <p className="text-xs sm:text-sm text-slate-600 leading-relaxed m-0">
                     {selectedServiceForModal.fullDescription ||
-                      selectedServiceForModal.description ||
                       selectedServiceForModal.bullets?.join(" ")}
                   </p>
                 </div>
 
-                {/* Packages available */}
+                {/* Packages */}
                 {selectedServiceForModal.packages?.length > 0 && (
                   <div>
                     <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-2.5">
@@ -770,7 +766,7 @@ const Category = () => {
                               {pkg.title}
                             </span>
                             <span className="font-bold text-sm text-purple-700">
-                              ₹{pkg.price.toLocaleString("en-IN")}
+                              &#8377;{pkg.price.toLocaleString("en-IN")}
                             </span>
                           </div>
                           {pkg.features && (
@@ -789,14 +785,14 @@ const Category = () => {
                   </div>
                 )}
 
-                {/* Key Benefits */}
+                {/* TiptoBook Assurance */}
                 <div className="p-3.5 rounded-2xl bg-purple-50/70 border border-purple-100 space-y-1.5 text-xs text-purple-900">
                   <div className="flex items-center gap-1.5 font-bold">
                     <Sparkles size={14} className="text-purple-600" />
-                    <span>TiptoBook Assurance</span>
+                    <span>TiptoBook Beauty Assurance</span>
                   </div>
                   <p className="m-0 leading-relaxed text-purple-800/90">
-                    Background-verified professionals • Transparent pricing • Post-service quality guarantee with dedicated support.
+                    Background-verified beauticians • Single-use disposable kits • 100% hygienic products • Post-service satisfaction guarantee.
                   </p>
                 </div>
 
@@ -829,12 +825,12 @@ const Category = () => {
                 )}
               </div>
 
-              {/* Modal Footer with BOOK button */}
+              {/* Modal Footer */}
               <div className="p-4 border-t border-slate-100 bg-white flex items-center justify-between">
                 <div>
                   <span className="text-[11px] text-slate-400 block font-medium">Starting from</span>
                   <span className="text-lg font-bold text-slate-900">
-                    ₹{(selectedServiceForModal.startingPrice || 499).toLocaleString("en-IN")}
+                    &#8377;{(selectedServiceForModal.startingPrice || 499).toLocaleString("en-IN")}
                   </span>
                 </div>
 
@@ -858,4 +854,4 @@ const Category = () => {
   );
 };
 
-export default Category;
+export default HomeSalonCategoryPage;

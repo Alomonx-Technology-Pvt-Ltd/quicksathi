@@ -21,12 +21,16 @@ import {
   Compass,
   Mail,
   Search,
-  MessageSquare
+  MessageSquare,
+  Image as ImageIcon,
+  Ticket,
 } from "lucide-react";
 import BrandLogo from "../../components/common/BrandLogo";
 
 const MENU = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
+  { to: "/admin/banners", label: "Banners", icon: ImageIcon },
+  { to: "/admin/coupons", label: "Coupons & Offers", icon: Ticket },
   { to: "/admin/services", label: "Services", icon: Wrench },
   { to: "/admin/categories", label: "Categories", icon: FolderOpen },
   { to: "/admin/providers", label: "Providers", icon: Briefcase },

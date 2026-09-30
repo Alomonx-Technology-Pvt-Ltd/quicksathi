@@ -174,9 +174,9 @@ export const mockCategories = [
       },
       {
         id: 8,
-        name: "Outstation & Airport Cab Rental",
+        name: "Daily Car Rental",
         description:
-          "Reliable outstation cabs and airport transfers with verified drivers — Sedans and 7-seater SUVs.",
+          "Reliable daily car rentals and airport transfers with verified drivers — Sedans and 7-seater SUVs.",
         vertical: "VEHICLE_RENTAL",
         type: "PRODUCT_ONLY",
         imageUrl: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/outstation-airport-cab.jpg",

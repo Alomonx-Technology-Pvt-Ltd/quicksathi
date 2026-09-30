@@ -1,6 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import cors from "cors";
+import compression from "compression";
 import connectDB from "./config/db.js";
 
 // Import routes
@@ -14,9 +15,14 @@ import paymentRoutes from "./routes/payments.js";
 import notificationRoutes from "./routes/notifications.js";
 import contactRoutes from "./routes/contact.js";
 import aiRoutes from "./routes/ai.js";
+import bannerRoutes from "./routes/banners.js";
+import couponRoutes from "./routes/coupons.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Enable gzip/brotli compression for optimized response speed & bandwidth
+app.use(compression());
 
 // ── CORS — allow local dev + production + all Vercel preview URLs ──
 const ALLOWED_ORIGINS = [
@@ -87,6 +93,8 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/banners", bannerRoutes);
+app.use("/api/coupons", couponRoutes);
 
 // ── Root route — friendly API info ──
 app.get("/", (req, res) => {

@@ -190,6 +190,21 @@ const ACCategoryPage = ({ category: propCategory }) => {
   const [liveServices, setLiveServices] = useState(FALLBACK_AC_SERVICES);
   const sectionRefs = useRef({});
 
+  // Escape key & background scroll lock for detail modal
+  useEffect(() => {
+    if (!selectedServiceForModal) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setSelectedServiceForModal(null);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [selectedServiceForModal]);
+
   // Real-time location formatting
   const realTimeLocation = useMemo(() => {
     if (street && locality && street !== locality) {
@@ -585,12 +600,20 @@ const ACCategoryPage = ({ category: propCategory }) => {
       {/* ── Detail Drawer / Modal for "Show More >" ── */}
       <AnimatePresence>
         {selectedServiceForModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-scrollbar">
             <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 15 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedServiceForModal(null)}
+              className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 15 }}
-              className="bg-white rounded-3xl max-w-lg w-full max-h-[85vh] overflow-hidden flex flex-col shadow-2xl border border-slate-100"
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              transition={{ duration: 0.22 }}
+              className="relative z-10 bg-white rounded-3xl max-w-lg w-full max-h-[85vh] overflow-hidden flex flex-col shadow-2xl border border-slate-100"
             >
               {/* Modal Header */}
               <div className="p-5 border-b border-slate-100 flex items-center justify-between">

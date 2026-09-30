@@ -1315,7 +1315,7 @@ const ProviderOnboarding = () => {
 
                 <div className="mt-5 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-purple-200">
                   <span>Questions?</span>
-                  <a href="tel:+919876543210" className="text-white font-bold no-underline hover:underline">
+                  <a href="tel:+919304531876" className="text-white font-bold no-underline hover:underline">
                     Call Partner Desk
                   </a>
                 </div>
