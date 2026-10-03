@@ -460,11 +460,11 @@ const ProviderOnboarding = () => {
               className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight m-0 text-white leading-tight"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              Grow Your Service Business with TiptoBook
+              Grow Your Service Business with QuickSathi
             </h1>
 
             <p className="mt-3 text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl">
-              Partner with Bihar's trusted home & vehicle services network. Enjoy verified customer bookings, automated scheduling, and direct bank payouts.
+              Partner with India's trusted home & on-demand services network. Enjoy verified customer bookings, automated scheduling, and direct bank payouts.
             </p>
 
             {/* Quick Stats Pill Strip */}
@@ -1259,7 +1259,7 @@ const ProviderOnboarding = () => {
                   <h4 className="text-sm font-bold text-slate-900 m-0">
                     Partner Earnings Potential
                   </h4>
-                  <span className="text-[11px] text-slate-400">Based on active Bihar professionals</span>
+                  <span className="text-[11px] text-slate-400">Based on active professionals across India</span>
                 </div>
               </div>
 

@@ -259,6 +259,20 @@ export const mockCategories = [
         parent: 10,
         subCategories: [],
       },
+      {
+        id: 140,
+        name: "Pandit for Puja & Occasions",
+        description:
+          "Experienced Vedic Pandits & Acharyas for Vivah Sanskar, Griha Pravesh, Hawan, Satyanarayan Katha, and all sacred occasions.",
+        vertical: "WEDDING",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1609358905581-e5381612486e?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?q=80&w=2070&auto=format&fit=crop",
+        displayOrder: 5,
+        active: true,
+        parent: 10,
+        subCategories: [],
+      },
     ],
   },
   {

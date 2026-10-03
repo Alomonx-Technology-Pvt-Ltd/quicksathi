@@ -92,7 +92,7 @@ const FALLBACK_KNOWLEDGE = [
       /\b(contact|support|phone|number|email|call|help center|customer care|address|office)\b/i,
     ],
     generate: () =>
-      `We're here to help you 24/7! 📞\n\n- **Email Support** — \`quicksathi9@gmail.com\` / \`TiptoBook9@gmail.com\`\n- **Live Chat** — Available right here in this chat window!\n- **Office Location** — Patna, Bihar, India.\n- **Support Hours** — 24 hours a day, 7 days a week.\n\nFeel free to ask any question or share your booking details!`,
+      `We're here to help you 24/7! 📞\n\n- **Email Support** — \`quicksathi9@gmail.com\`\n- **Live Chat** — Available right here in this chat window!\n- **Service Network** — Serving Major Cities Pan-India.\n- **Support Hours** — 24 hours a day, 7 days a week.\n\nFeel free to ask any question or share your booking details!`,
   },
 ];
 

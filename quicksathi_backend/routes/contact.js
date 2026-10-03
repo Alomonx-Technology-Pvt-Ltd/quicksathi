@@ -45,12 +45,6 @@ router.post("/", async (req, res) => {
     }
 
     // 4. Send Email notification to Admins
-    const smtpHost = process.env.SMTP_HOST;
-    const smtpPort = process.env.SMTP_PORT || 587;
-    const smtpUser = process.env.SMTP_USER;
-    const smtpPass = process.env.SMTP_PASS;
-    const smtpSender = process.env.SMTP_SENDER || `"TiptoBook Notifications" <no-reply@tiptobook.com>`;
-
     const adminEmails = (process.env.ADMIN_EMAILS || "")
       .split(",")
       .map(e => e.trim().toLowerCase())

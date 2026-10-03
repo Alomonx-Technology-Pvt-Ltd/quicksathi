@@ -122,19 +122,19 @@ const Footer = () => (
 
       {/* Address & Contact */}
       <div>
-        <p style={labelStyle}>Contact</p>
+        <p style={labelStyle}>Contact & Presence</p>
         <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           <p style={valueStyle}>
-            Patna, Bihar
+            Serving Major Cities Across India
             <br />
-            India — 800001
+            Pan-India On-Demand Service Network
           </p>
           <p style={valueStyle}>
-            <a href="mailto:tiptobook9@gmail.com" style={linkStyle}>
-              tiptobook9@gmail.com
+            <a href="mailto:quicksathi9@gmail.com" style={linkStyle}>
+              quicksathi9@gmail.com
             </a>
           </p>
-          <p style={valueStyle}>+91 98765 43210</p>
+          <p style={valueStyle}>+91 93045 31876</p>
         </div>
       </div>
 

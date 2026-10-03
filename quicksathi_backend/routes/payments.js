@@ -1,4 +1,5 @@
 import { Router } from "express";
+import mongoose from "mongoose";
 import Razorpay from "razorpay";
 import crypto from "crypto";
 import Booking from "../models/Booking.js";
@@ -18,6 +19,11 @@ const getRazorpay = () => {
 router.post("/create-order", protect, async (req, res) => {
   try {
     const { bookingId, amount } = req.body;
+
+    // Validate bookingId format before querying
+    if (!bookingId || !mongoose.Types.ObjectId.isValid(bookingId)) {
+      return res.status(400).json({ message: "Invalid or missing booking ID" });
+    }
 
     const booking = await Booking.findById(bookingId);
     if (!booking) {
@@ -59,6 +65,11 @@ router.post("/verify", protect, async (req, res) => {
   try {
     const { razorpay_order_id, razorpay_payment_id, razorpay_signature, bookingId } = req.body;
 
+    // Validate bookingId format
+    if (!bookingId || !mongoose.Types.ObjectId.isValid(bookingId)) {
+      return res.status(400).json({ message: "Invalid or missing booking ID" });
+    }
+
     // Verify signature
     const body = razorpay_order_id + "|" + razorpay_payment_id;
     const expectedSignature = crypto
@@ -91,6 +102,11 @@ router.post("/verify", protect, async (req, res) => {
 router.post("/cod-confirm", protect, async (req, res) => {
   try {
     const { bookingId } = req.body;
+
+    // Validate bookingId format
+    if (!bookingId || !mongoose.Types.ObjectId.isValid(bookingId)) {
+      return res.status(400).json({ message: "Invalid or missing booking ID" });
+    }
 
     const booking = await Booking.findById(bookingId);
     if (!booking) {

@@ -493,50 +493,6 @@ router.patch("/providers/:id/reject", protect, adminOnly, async (req, res) => {
   }
 });
 
-// ─── BOOKINGS ──────────────────────────────────────────
-
-// GET /api/admin/bookings — List all bookings
-router.get("/bookings", protect, adminOnly, async (req, res) => {
-  try {
-    const { status, limit = 50 } = req.query;
-    const filter = {};
-    if (status) filter.status = status;
-
-    const bookings = await Booking.find(filter)
-      .populate("user", "name email phone")
-      .populate("service", "name thumbnail")
-      .populate("provider", "businessName")
-      .sort("-createdAt")
-      .limit(parseInt(limit));
-
-    res.json(bookings);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// PATCH /api/admin/bookings/:id/status — Update booking status
-router.patch("/bookings/:id/status", protect, adminOnly, async (req, res) => {
-  try {
-    const { status } = req.body;
-    if (!["pending", "confirmed", "in_progress", "completed", "cancelled"].includes(status)) {
-      return res.status(400).json({ message: "Invalid status specified" });
-    }
-    const booking = await Booking.findById(req.params.id);
-    if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
-    }
-    booking.status = status;
-    if (status === "completed") {
-      booking.paymentStatus = "paid";
-    }
-    await booking.save();
-    res.json({ message: "Booking status updated successfully", booking });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
 // PATCH /api/admin/services/:id/assign-provider — Assign a provider to a service
 router.patch("/services/:id/assign-provider", protect, adminOnly, async (req, res) => {
   try {
@@ -705,72 +661,6 @@ router.delete("/users/:id", protect, adminOnly, async (req, res) => {
     }
     await user.deleteOne();
     res.json({ message: "User deleted successfully" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// ─── SERVICE REQUESTS (Provider facility listings) ─────
-
-// GET /api/admin/service-requests — List provider-submitted service listings
-router.get("/service-requests", protect, adminOnly, async (req, res) => {
-  try {
-    const { status } = req.query;
-    const filter = { provider: { $ne: null } }; // only provider-submitted
-    if (status) filter.approvalStatus = status;
-
-    const services = await Service.find(filter)
-      .populate("provider", "businessName user")
-      .sort("-createdAt");
-
-    res.json(services);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// PATCH /api/admin/service-requests/:id/approve — Approve a service listing
-router.patch("/service-requests/:id/approve", protect, adminOnly, async (req, res) => {
-  try {
-    const service = await Service.findByIdAndUpdate(
-      req.params.id,
-      {
-        approvalStatus: "approved",
-        approvedBy: req.user._id,
-        approvedAt: new Date(),
-        available: true,
-      },
-      { new: true }
-    );
-
-    if (!service) {
-      return res.status(404).json({ message: "Service not found" });
-    }
-
-    res.json({ message: "Service listing approved", service });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// PATCH /api/admin/service-requests/:id/reject — Reject a service listing
-router.patch("/service-requests/:id/reject", protect, adminOnly, async (req, res) => {
-  try {
-    const service = await Service.findByIdAndUpdate(
-      req.params.id,
-      {
-        approvalStatus: "rejected",
-        rejectionReason: req.body.reason || "",
-        available: false,
-      },
-      { new: true }
-    );
-
-    if (!service) {
-      return res.status(404).json({ message: "Service not found" });
-    }
-
-    res.json({ message: "Service listing rejected", service });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

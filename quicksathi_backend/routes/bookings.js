@@ -1,4 +1,5 @@
 import { Router } from "express";
+import mongoose from "mongoose";
 import Booking from "../models/Booking.js";
 import Service from "../models/Service.js";
 import Notification from "../models/Notification.js";
@@ -8,6 +9,39 @@ import { protect } from "../middleware/auth.js";
 import { sendBookingConfirmationEmail, sendBookingStatusEmail } from "../services/emailService.js";
 
 const router = Router();
+
+/**
+ * Resolve a serviceId that may be a MongoDB ObjectId, a slug string, or a service name.
+ * Returns the Service document or null.
+ */
+async function resolveService(serviceId) {
+  if (!serviceId) return null;
+
+  // 1. Try as ObjectId
+  if (mongoose.Types.ObjectId.isValid(serviceId)) {
+    const byId = await Service.findById(serviceId);
+    if (byId) return byId;
+  }
+
+  // 2. Try as slug or exact name (frontend often passes slug)
+  const bySlugOrName = await Service.findOne({
+    $or: [
+      { slug: serviceId.toLowerCase() },
+      { name: { $regex: new RegExp(`^${serviceId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") } },
+    ],
+  });
+  return bySlugOrName || null;
+}
+
+/**
+ * Safely cast a value to ObjectId. Returns ObjectId or undefined.
+ */
+function toObjectId(val) {
+  if (!val) return undefined;
+  if (val instanceof mongoose.Types.ObjectId) return val;
+  if (mongoose.Types.ObjectId.isValid(val)) return new mongoose.Types.ObjectId(val);
+  return undefined;
+}
 
 // POST /api/bookings — Create a booking
 router.post("/", protect, async (req, res) => {
@@ -24,9 +58,21 @@ router.post("/", protect, async (req, res) => {
       couponCode,
     } = req.body;
 
-    const service = await Service.findById(serviceId);
+    // ── Resolve service (supports ObjectId, slug, and name) ──
+    const service = await resolveService(serviceId);
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
+    }
+
+    // ── Validate scheduledDate ──
+    const parsedDate = new Date(scheduledDate);
+    if (!scheduledDate || isNaN(parsedDate.getTime())) {
+      return res.status(400).json({ message: "A valid scheduled date is required (e.g. 2025-12-31)" });
+    }
+
+    // ── Validate paymentMethod ──
+    if (!paymentMethod || !["razorpay", "cod"].includes(paymentMethod)) {
+      return res.status(400).json({ message: "Payment method must be 'razorpay' or 'cod'" });
     }
 
     const pkg = service.packages?.[packageIndex];
@@ -71,13 +117,16 @@ router.post("/", protect, async (req, res) => {
 
     const finalPayable = Math.max(0, basePrice - appliedDiscount);
 
+    // ── Safely cast provider to ObjectId ──
+    const providerOid = toObjectId(service.provider);
+
     const booking = await Booking.create({
       user: req.user._id,
-      service: serviceId,
-      provider: service.provider || undefined,
+      service: service._id,             // always use the resolved ObjectId
+      provider: providerOid,
       serviceName: service.name,
       packageTitle: pkg?.title || "",
-      scheduledDate,
+      scheduledDate: parsedDate,
       scheduledTime,
       location,
       notes,
@@ -116,6 +165,7 @@ router.post("/", protect, async (req, res) => {
 
     res.status(201).json(booking);
   } catch (error) {
+    console.error("Booking creation error:", error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -128,7 +178,7 @@ router.get("/", protect, async (req, res) => {
     if (status) filter.status = status;
 
     const bookings = await Booking.find(filter)
-      .populate("service", "name thumbnail startingPrice")
+      .populate("service", "name thumbnail startingPrice slug")
       .populate("provider", "businessName phone email")
       .sort("-createdAt");
 
@@ -141,6 +191,11 @@ router.get("/", protect, async (req, res) => {
 // GET /api/bookings/:id — Get single booking
 router.get("/:id", protect, async (req, res) => {
   try {
+    // ── Validate ObjectId to avoid CastError ──
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid booking ID format" });
+    }
+
     const booking = await Booking.findById(req.params.id)
       .populate("service")
       .populate("user", "name email phone");
@@ -163,6 +218,10 @@ router.get("/:id", protect, async (req, res) => {
 // PATCH /api/bookings/:id/cancel — Cancel a booking
 router.patch("/:id/cancel", protect, async (req, res) => {
   try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid booking ID format" });
+    }
+
     const booking = await Booking.findById(req.params.id);
 
     if (!booking) {
@@ -222,6 +281,10 @@ router.patch("/:id/status", protect, async (req, res) => {
   try {
     if (req.user.role !== "admin" && req.user.role !== "provider") {
       return res.status(403).json({ message: "Not authorized" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid booking ID format" });
     }
 
     const updateFields = { status: req.body.status };

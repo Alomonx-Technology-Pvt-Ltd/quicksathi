@@ -13,7 +13,16 @@ import {
   Eye,
   Search,
   Upload,
+  LayoutGrid,
+  Monitor,
+  FileText,
 } from "lucide-react";
+
+const SECTION_OPTIONS = [
+  { value: "carousel", label: "Carousel Banners", icon: LayoutGrid, desc: "Homepage Featured Services slider" },
+  { value: "spotlight", label: "Spotlight Promo", icon: Monitor, desc: "Homepage large promo section (Wedding / Tuition)" },
+  { value: "category_page", label: "Category Page", icon: FileText, desc: "Banner shown on individual category detail pages" },
+];
 
 const emptyBanner = {
   title: "",
@@ -34,6 +43,26 @@ const emptyBanner = {
     "linear-gradient(90deg, rgba(8, 28, 48, 0.85) 0%, rgba(12, 38, 64, 0.70) 52%, rgba(12, 38, 64, 0.25) 82%, rgba(12, 38, 64, 0.05) 100%)",
   order: 0,
   isActive: true,
+  section: "carousel",
+  category: "",
+  // Spotlight fields
+  tag: "",
+  tagBg: "rgba(14, 165, 233, 0.12)",
+  tagColor: "#0284c7",
+  headline: "",
+  subheadLabel: "",
+  subheadItems: "",
+  bullets: [],
+  ctaText: "",
+  ctaLink: "",
+  themeColor: "",
+  buttonShadow: "",
+  // Category page fields
+  badgeStyle: "",
+  matchKeywords: [],
+  borderColor: "",
+  overlayLeft: "rgba(255, 255, 255, 0.97)",
+  overlayMid: "rgba(248, 250, 252, 0.90)",
 };
 
 const AdminBanners = () => {
@@ -49,6 +78,7 @@ const AdminBanners = () => {
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [activeSection, setActiveSection] = useState("carousel");
 
   const cardStyle = {
     backgroundColor: "var(--admin-card-bg)",
@@ -114,7 +144,8 @@ const AdminBanners = () => {
     setEditingId(null);
     setForm({
       ...emptyBanner,
-      order: banners.length,
+      section: activeSection,
+      order: banners.filter((b) => (b.section || "carousel") === activeSection).length,
     });
     setShowModal(true);
   };
@@ -139,6 +170,26 @@ const AdminBanners = () => {
       overlayGradient: banner.overlayGradient || "",
       order: banner.order !== undefined ? banner.order : 0,
       isActive: banner.isActive !== undefined ? banner.isActive : true,
+      section: banner.section || "carousel",
+      category: banner.category || "",
+      // Spotlight
+      tag: banner.tag || "",
+      tagBg: banner.tagBg || "rgba(14, 165, 233, 0.12)",
+      tagColor: banner.tagColor || "#0284c7",
+      headline: banner.headline || "",
+      subheadLabel: banner.subheadLabel || "",
+      subheadItems: banner.subheadItems || "",
+      bullets: Array.isArray(banner.bullets) ? banner.bullets : [],
+      ctaText: banner.ctaText || "",
+      ctaLink: banner.ctaLink || "",
+      themeColor: banner.themeColor || "",
+      buttonShadow: banner.buttonShadow || "",
+      // Category page
+      badgeStyle: banner.badgeStyle || "",
+      matchKeywords: Array.isArray(banner.matchKeywords) ? banner.matchKeywords : [],
+      borderColor: banner.borderColor || "",
+      overlayLeft: banner.overlayLeft || "rgba(255, 255, 255, 0.97)",
+      overlayMid: banner.overlayMid || "rgba(248, 250, 252, 0.90)",
     });
     setShowModal(true);
   };
@@ -195,17 +246,39 @@ const AdminBanners = () => {
     }
   };
 
+  // Filter by section tab, search query, and status
   const filteredBanners = banners.filter((b) => {
+    const bannerSection = b.section || "carousel";
+    if (bannerSection !== activeSection) return false;
+
     const matchSearch =
       (b.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
       (b.subtitle || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
       (b.badge || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (b.category || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
       (b.link || "").toLowerCase().includes(searchQuery.toLowerCase());
 
     if (statusFilter === "active") return matchSearch && b.isActive;
     if (statusFilter === "inactive") return matchSearch && !b.isActive;
     return matchSearch;
   });
+
+  const sectionCounts = {
+    carousel: banners.filter((b) => (b.section || "carousel") === "carousel").length,
+    spotlight: banners.filter((b) => b.section === "spotlight").length,
+    category_page: banners.filter((b) => b.section === "category_page").length,
+  };
+
+  // Helper for bullets field (comma-separated string input)
+  const handleBulletsChange = (val) => {
+    const arr = val.split("\n").filter((s) => s.trim());
+    setForm((prev) => ({ ...prev, bullets: arr }));
+  };
+
+  const handleMatchKeywordsChange = (val) => {
+    const arr = val.split(",").map((s) => s.trim()).filter(Boolean);
+    setForm((prev) => ({ ...prev, matchKeywords: arr }));
+  };
 
   return (
     <div className="space-y-6">
@@ -219,7 +292,7 @@ const AdminBanners = () => {
             Banner Management
           </h1>
           <p className="text-sm mt-1 mb-0" style={{ color: "var(--admin-text-secondary)" }}>
-            Create and customize dynamic promo banners displayed across the platform homepage.
+            Manage all banners across Homepage carousel, Spotlight promos, and Category pages.
           </p>
         </div>
 
@@ -245,6 +318,47 @@ const AdminBanners = () => {
         </div>
       )}
 
+      {/* ── Section Tabs ── */}
+      <div className="flex flex-wrap items-center gap-2">
+        {SECTION_OPTIONS.map((opt) => {
+          const Icon = opt.icon;
+          const count = sectionCounts[opt.value] || 0;
+          const isActive = activeSection === opt.value;
+          return (
+            <button
+              key={opt.value}
+              onClick={() => setActiveSection(opt.value)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold cursor-pointer border transition-all"
+              style={{
+                backgroundColor: isActive ? "var(--admin-primary)" : "transparent",
+                color: isActive ? "#ffffff" : "var(--admin-text-secondary)",
+                borderColor: isActive ? "var(--admin-primary)" : "var(--admin-border)",
+              }}
+            >
+              <Icon size={15} />
+              <span>{opt.label}</span>
+              <span
+                className="px-1.5 py-0.5 rounded-md text-[11px] font-bold"
+                style={{
+                  backgroundColor: isActive ? "rgba(255,255,255,0.2)" : "var(--admin-input-bg)",
+                  color: isActive ? "#ffffff" : "var(--admin-text-muted)",
+                }}
+              >
+                {count}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Section Description */}
+      <div className="p-3 rounded-xl text-xs" style={{ backgroundColor: "var(--admin-input-bg)", color: "var(--admin-text-secondary)" }}>
+        <strong className="font-bold" style={{ color: "var(--admin-text-primary)" }}>
+          {SECTION_OPTIONS.find((o) => o.value === activeSection)?.label}:
+        </strong>{" "}
+        {SECTION_OPTIONS.find((o) => o.value === activeSection)?.desc}
+      </div>
+
       {/* ── Search & Filter Controls ── */}
       <div className="p-4 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-4" style={cardStyle}>
         <div className="relative w-full sm:w-80">
@@ -255,7 +369,7 @@ const AdminBanners = () => {
           />
           <input
             type="text"
-            placeholder="Search by title, badge, or link..."
+            placeholder="Search by title, badge, category, or link..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-9 pr-4 py-2 rounded-xl text-sm outline-none transition-all"
@@ -291,10 +405,10 @@ const AdminBanners = () => {
         <div className="p-12 text-center rounded-2xl border" style={cardStyle}>
           <ImageIcon size={40} className="mx-auto mb-3 opacity-40" />
           <h3 className="text-base font-semibold m-0" style={{ color: "var(--admin-text-primary)" }}>
-            No Banners Found
+            No {SECTION_OPTIONS.find((o) => o.value === activeSection)?.label} Found
           </h3>
           <p className="text-xs mt-1" style={{ color: "var(--admin-text-secondary)" }}>
-            {searchQuery ? "Try changing your search keywords." : "Get started by adding your first platform banner."}
+            {searchQuery ? "Try changing your search keywords." : `Add your first ${SECTION_OPTIONS.find((o) => o.value === activeSection)?.label.toLowerCase()} banner.`}
           </p>
         </div>
       ) : (
@@ -325,23 +439,30 @@ const AdminBanners = () => {
                   }}
                 />
 
-                {/* Top Badge & Order */}
+                {/* Top Badge, Section & Order */}
                 <div className="relative z-10 flex items-center justify-between">
-                  {banner.badge ? (
-                    <span
-                      className="px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-sm"
-                      style={{
-                        backgroundColor: banner.badgeBg || "rgba(255,255,255,0.2)",
-                        color: banner.badgeColor || "#ffffff",
-                      }}
-                    >
-                      {banner.badge}
-                    </span>
-                  ) : <span />}
+                  <div className="flex items-center gap-2">
+                    {banner.badge ? (
+                      <span
+                        className="px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-sm"
+                        style={{
+                          backgroundColor: banner.badgeBg || "rgba(255,255,255,0.2)",
+                          color: banner.badgeColor || "#ffffff",
+                        }}
+                      >
+                        {banner.badge}
+                      </span>
+                    ) : <span />}
+                  </div>
 
-                  <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-black/50 text-white/90">
-                    Order #{banner.order}
-                  </span>
+                  <div className="flex items-center gap-1.5">
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-black/50 text-white/80 uppercase tracking-wider">
+                      {(banner.section || "carousel").replace("_", " ")}
+                    </span>
+                    <span className="px-2 py-0.5 rounded text-[11px] font-bold bg-black/50 text-white/90">
+                      #{banner.order}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Main Content */}
@@ -350,14 +471,14 @@ const AdminBanners = () => {
                     className="text-lg sm:text-xl font-bold tracking-tight m-0 leading-snug"
                     style={{ color: banner.textColor || "#ffffff" }}
                   >
-                    {banner.title}
+                    {banner.headline || banner.title}
                   </h3>
-                  {banner.subtitle && (
+                  {(banner.subtitle || banner.subheadItems) && (
                     <p
                       className="text-xs sm:text-sm mt-1 mb-3 line-clamp-2"
                       style={{ color: banner.subtitleColor || "rgba(255,255,255,0.85)" }}
                     >
-                      {banner.subtitle}
+                      {banner.subtitle || banner.subheadItems}
                     </p>
                   )}
 
@@ -367,7 +488,7 @@ const AdminBanners = () => {
                       color: banner.buttonText || "#ffffff",
                     }}
                   >
-                    <span>{banner.cta || "BOOK"}</span>
+                    <span>{banner.cta || banner.ctaText || "BOOK"}</span>
                     <ArrowRight size={13} />
                   </div>
                 </div>
@@ -379,7 +500,15 @@ const AdminBanners = () => {
               >
                 <div className="flex items-center gap-2 text-xs" style={{ color: "var(--admin-text-secondary)" }}>
                   <ExternalLink size={13} />
-                  <span className="font-mono max-w-[200px] truncate" style={{ color: "var(--admin-detail-text)" }}>{banner.link}</span>
+                  <span className="font-mono max-w-[200px] truncate" style={{ color: "var(--admin-detail-text)" }}>
+                    {banner.link || banner.ctaLink || "-"}
+                  </span>
+                  {banner.category && (
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
+                      style={{ backgroundColor: "var(--admin-input-bg)", color: "var(--admin-text-muted)" }}>
+                      {banner.category}
+                    </span>
+                  )}
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -432,10 +561,38 @@ const AdminBanners = () => {
               {editingId ? "Edit Banner" : "Create New Banner"}
             </h2>
             <p className="text-xs mb-6" style={{ color: "var(--admin-text-secondary)" }}>
-              Configure banner headlines, image, link, and styling.
+              Configure banner content, styling, and placement section.
             </p>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">
+              {/* Section Selector */}
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>
+                  Banner Section *
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {SECTION_OPTIONS.map((opt) => {
+                    const Icon = opt.icon;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setForm({ ...form, section: opt.value })}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold cursor-pointer border transition-all"
+                        style={{
+                          backgroundColor: form.section === opt.value ? "var(--admin-primary)" : "transparent",
+                          color: form.section === opt.value ? "#ffffff" : "var(--admin-text-secondary)",
+                          borderColor: form.section === opt.value ? "var(--admin-primary)" : "var(--admin-border)",
+                        }}
+                      >
+                        <Icon size={13} />
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               {/* Title & Badge */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="sm:col-span-2">
@@ -512,8 +669,21 @@ const AdminBanners = () => {
                 </div>
               </div>
 
-              {/* Link & CTA */}
+              {/* Category Key & Link */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>
+                    Category Key
+                  </label>
+                  <input
+                    type="text"
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    placeholder="e.g. wedding, salon, ac"
+                    className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none font-mono"
+                    style={inputStyle}
+                  />
+                </div>
                 <div className="sm:col-span-2">
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>
                     Target Link / Route
@@ -527,10 +697,194 @@ const AdminBanners = () => {
                     style={inputStyle}
                   />
                 </div>
+              </div>
 
+              {/* ── Spotlight & Category Page Extra Fields ── */}
+              {(form.section === "spotlight" || form.section === "category_page") && (
+                <div className="mt-2 p-4 rounded-xl space-y-4" style={{ backgroundColor: "var(--admin-input-bg)", border: "1px solid var(--admin-border)" }}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <Sparkles size={14} style={{ color: "var(--admin-primary)" }} />
+                    <span className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--admin-text-primary)" }}>
+                      {form.section === "spotlight" ? "Spotlight Promo Fields" : "Category Page Fields"}
+                    </span>
+                  </div>
+
+                  {/* Headline */}
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>
+                      Headline
+                    </label>
+                    <input
+                      type="text"
+                      value={form.headline}
+                      onChange={(e) => setForm({ ...form, headline: e.target.value })}
+                      placeholder="e.g. Plan Your Perfect Wedding."
+                      className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none"
+                      style={inputStyle}
+                    />
+                  </div>
+
+                  {/* Subhead Label & Items */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>
+                        Subhead Label
+                      </label>
+                      <input
+                        type="text"
+                        value={form.subheadLabel}
+                        onChange={(e) => setForm({ ...form, subheadLabel: e.target.value })}
+                        placeholder="e.g. Find trusted services for your special day:"
+                        className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none"
+                        style={inputStyle}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>
+                        Subhead Items
+                      </label>
+                      <input
+                        type="text"
+                        value={form.subheadItems}
+                        onChange={(e) => setForm({ ...form, subheadItems: e.target.value })}
+                        placeholder="Venues • Decorators • Photographers"
+                        className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none"
+                        style={inputStyle}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Bullets (one per line) */}
+                  <div>
+                    <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>
+                      Feature Bullets (one per line, include emoji)
+                    </label>
+                    <textarea
+                      value={(form.bullets || []).join("\n")}
+                      onChange={(e) => handleBulletsChange(e.target.value)}
+                      placeholder={"💍 Trusted Service Providers\n✨ Multiple Options\n📅 Easy Booking"}
+                      rows={3}
+                      className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none resize-y"
+                      style={inputStyle}
+                    />
+                  </div>
+
+                  {form.section === "spotlight" && (
+                    <>
+                      {/* Tag, CTA Text & CTA Link */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>
+                            Pill Tag Label
+                          </label>
+                          <input
+                            type="text"
+                            value={form.tag}
+                            onChange={(e) => setForm({ ...form, tag: e.target.value })}
+                            placeholder="e.g. Wedding & Celebration"
+                            className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none"
+                            style={inputStyle}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>
+                            CTA Button Text
+                          </label>
+                          <input
+                            type="text"
+                            value={form.ctaText}
+                            onChange={(e) => setForm({ ...form, ctaText: e.target.value })}
+                            placeholder="Book Wedding Services →"
+                            className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none"
+                            style={inputStyle}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>
+                            CTA Link
+                          </label>
+                          <input
+                            type="text"
+                            value={form.ctaLink}
+                            onChange={(e) => setForm({ ...form, ctaLink: e.target.value })}
+                            placeholder="/category/wedding"
+                            className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none font-mono"
+                            style={inputStyle}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Theme & Tag Colors */}
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>
+                            Theme Color
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input type="color" value={form.themeColor || "#0284c7"} onChange={(e) => setForm({ ...form, themeColor: e.target.value })} className="w-8 h-8 rounded cursor-pointer bg-transparent border-0" />
+                            <input type="text" value={form.themeColor} onChange={(e) => setForm({ ...form, themeColor: e.target.value })} className="flex-1 px-3 py-2 rounded-xl text-xs font-mono outline-none" style={inputStyle} />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>
+                            Tag Bg Color
+                          </label>
+                          <input type="text" value={form.tagBg} onChange={(e) => setForm({ ...form, tagBg: e.target.value })} placeholder="rgba(225, 29, 72, 0.1)" className="w-full px-3 py-2 rounded-xl text-xs font-mono outline-none" style={inputStyle} />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>
+                            Tag Text Color
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input type="color" value={form.tagColor || "#0284c7"} onChange={(e) => setForm({ ...form, tagColor: e.target.value })} className="w-8 h-8 rounded cursor-pointer bg-transparent border-0" />
+                            <input type="text" value={form.tagColor} onChange={(e) => setForm({ ...form, tagColor: e.target.value })} className="flex-1 px-3 py-2 rounded-xl text-xs font-mono outline-none" style={inputStyle} />
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {form.section === "category_page" && (
+                    <>
+                      {/* Match Keywords & Badge Style */}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>
+                            Match Keywords (comma-separated)
+                          </label>
+                          <input
+                            type="text"
+                            value={(form.matchKeywords || []).join(", ")}
+                            onChange={(e) => handleMatchKeywordsChange(e.target.value)}
+                            placeholder="ac, appliance, air conditioner"
+                            className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none font-mono"
+                            style={inputStyle}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>
+                            Badge CSS Classes
+                          </label>
+                          <input
+                            type="text"
+                            value={form.badgeStyle}
+                            onChange={(e) => setForm({ ...form, badgeStyle: e.target.value })}
+                            placeholder="bg-sky-100 text-sky-700 border-sky-200/80"
+                            className="w-full px-3.5 py-2.5 rounded-xl text-sm outline-none font-mono"
+                            style={inputStyle}
+                          />
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+              {/* Button CTA & Colors (Carousel) */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>
-                    Button CTA Text
+                    CTA Button Label
                   </label>
                   <input
                     type="text"
@@ -541,10 +895,7 @@ const AdminBanners = () => {
                     style={inputStyle}
                   />
                 </div>
-              </div>
 
-              {/* Button Color & Display Order */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--admin-text-secondary)" }}>
                     Button Color
@@ -552,7 +903,7 @@ const AdminBanners = () => {
                   <div className="flex items-center gap-3">
                     <input
                       type="color"
-                      value={form.buttonBg}
+                      value={form.buttonBg?.startsWith("#") ? form.buttonBg : "#0284c7"}
                       onChange={(e) => setForm({ ...form, buttonBg: e.target.value })}
                       className="w-10 h-10 rounded-lg cursor-pointer bg-transparent border-0"
                     />
@@ -590,7 +941,7 @@ const AdminBanners = () => {
                   className="w-4 h-4 rounded cursor-pointer accent-blue-600"
                 />
                 <label htmlFor="banner-active" className="text-sm font-medium cursor-pointer" style={{ color: "var(--admin-text-primary)" }}>
-                  Visible on Platform Homepage
+                  Visible on Platform
                 </label>
               </div>
 
@@ -626,7 +977,7 @@ const AdminBanners = () => {
               Delete Banner?
             </h3>
             <p className="text-sm mb-6" style={{ color: "var(--admin-text-secondary)" }}>
-              Are you sure you want to delete this banner? It will immediately disappear from the homepage carousel.
+              Are you sure you want to delete this banner? It will immediately disappear from the platform.
             </p>
             <div className="flex justify-end gap-3">
               <button

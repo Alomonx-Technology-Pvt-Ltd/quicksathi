@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
+import api from "../config/api";
 
 const BANNER_CONFIGS = {
   ac: {
@@ -147,16 +148,84 @@ const BANNER_CONFIGS = {
   },
 };
 
+const normalizeLiveConfig = (b) => ({
+  badge: b.badge || b.tag || "Verified Services",
+  badgeStyle: b.badgeStyle || "bg-sky-100 text-sky-700 border-sky-200/80",
+  headline: b.headline || b.title,
+  subheadLabel: b.subheadLabel || null,
+  subheadItems: b.subheadItems || b.subtitle || "",
+  bullets:
+    Array.isArray(b.bullets) && b.bullets.length > 0
+      ? b.bullets
+      : [
+          "⚡ 30-Day Service Warranty",
+          "🔧 Certified Expert Technicians",
+          "🏷️ Upfront Transparent Pricing",
+        ],
+  image: b.image || "/banners/repair_banner.webp",
+  fallbackBg: b.fallbackBg || b.bgFallback || "#f0f9ff",
+  borderColor: b.borderColor || "border-sky-100/90",
+  overlayLeft: b.overlayLeft || "rgba(255, 255, 255, 0.97)",
+  overlayMid: b.overlayMid || "rgba(240, 249, 255, 0.90)",
+});
+
 export default function CategorySpotlightBanner({ category, id }) {
+  const [liveBanners, setLiveBanners] = useState([]);
+
+  // Fetch real-time category page banners from Admin Panel
+  useEffect(() => {
+    let active = true;
+    api
+      .get("/banners?section=category_page")
+      .then(({ data }) => {
+        if (active && Array.isArray(data) && data.length > 0) {
+          setLiveBanners(data);
+        }
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const config = useMemo(() => {
-    const rawKey = String(id || "").toLowerCase();
+    const rawKey = String(id || category?.slug || category?._id || "").toLowerCase();
     const catName = String(category?.name || "").toLowerCase();
     const catVert = String(category?.vertical || "").toLowerCase();
 
-    // 1. Direct key match
+    // 1. Try matching from liveBanners (Admin-managed)
+    if (liveBanners.length > 0) {
+      // Direct category match (e.g. 'ac', 'wedding', 'salon', etc.)
+      const directMatch = liveBanners.find(
+        (b) =>
+          b.category &&
+          (b.category.toLowerCase() === rawKey ||
+            rawKey.includes(b.category.toLowerCase()) ||
+            catName.includes(b.category.toLowerCase()))
+      );
+      if (directMatch) return normalizeLiveConfig(directMatch);
+
+      // Match keywords array
+      const keywordMatch = liveBanners.find(
+        (b) =>
+          Array.isArray(b.matchKeywords) &&
+          b.matchKeywords.some((m) => {
+            const kw = String(m).toLowerCase().trim();
+            return (
+              kw &&
+              (rawKey.includes(kw) ||
+                catName.includes(kw) ||
+                catVert.includes(kw))
+            );
+          })
+      );
+      if (keywordMatch) return normalizeLiveConfig(keywordMatch);
+    }
+
+    // 2. Direct key match in static fallback configs
     if (BANNER_CONFIGS[rawKey]) return BANNER_CONFIGS[rawKey];
 
-    // 2. Iterate match keywords
+    // 3. Iterate static match keywords
     for (const [key, cfg] of Object.entries(BANNER_CONFIGS)) {
       if (
         cfg.match.some(
@@ -170,7 +239,7 @@ export default function CategorySpotlightBanner({ category, id }) {
       }
     }
 
-    // 3. Fallback for custom admin categories
+    // 4. Generic fallback for custom admin categories
     const displayName = category?.name || "Professional Services";
     return {
       badge: "Verified Local Services",
@@ -189,7 +258,7 @@ export default function CategorySpotlightBanner({ category, id }) {
       overlayLeft: "rgba(255, 255, 255, 0.97)",
       overlayMid: "rgba(248, 250, 252, 0.90)",
     };
-  }, [category, id]);
+  }, [category, id, liveBanners]);
 
   return (
     <div

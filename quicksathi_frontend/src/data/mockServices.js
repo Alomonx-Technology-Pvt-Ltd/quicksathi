@@ -74,10 +74,166 @@ export const mockServices = [
         name: "Royal Wedding Studio",
         rating: 4.9,
         experience: "10 Years",
-        location: "Patna",
+        location: "Pan-India",
         startingPrice: 18000,
         image:
           "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1974&auto=format&fit=crop",
+      },
+    ],
+  },
+
+  {
+    id: 105,
+    slug: "pandit-service",
+    name: "Pandit for Puja & Wedding Occasions",
+    shortDescription: "Experienced Vedic Pandits for weddings, Griha Pravesh, Hawan, and sacred ceremonies across India",
+    fullDescription:
+      "Book certified, learned Vedic Pandits & Acharyas for all sacred ceremonies and family occasions across India. From full Vedic wedding rituals (Vivah Sanskar), pre-wedding Haldi & Tilak, to Griha Pravesh, Satyanarayan Katha, Rudrabhishek, Hawan, and Navgrah Shanti. Complete ritual guidance with authentic Sanskrit Vedic mantras, detailed samagri checklist, and Shubh Muhurat consultation included.",
+    categoryId: 10,
+    categoryName: "Wedding & Party Services",
+    thumbnail: "https://images.unsplash.com/photo-1609358905581-e5381612486e?q=80&w=2070&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1609358905581-e5381612486e?q=80&w=2070&auto=format&fit=crop",
+    gallery: [
+      "https://images.unsplash.com/photo-1609358905581-e5381612486e?q=80&w=2070&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1545232979-8bf68ee9b1af?q=80&w=2070&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=2070&auto=format&fit=crop",
+    ],
+    startingPrice: 2100,
+    priceUnit: "per ceremony",
+    rating: 4.9,
+    totalReviews: 215,
+    experience: "12+ Years",
+    available: true,
+    serviceMode: "ON_SITE",
+    tags: ["Pandit", "Purohit", "Wedding", "Puja", "Hawan", "Griha Pravesh", "Satyanarayan Katha", "Vedic"],
+    featured: true,
+    packages: [
+      {
+        id: 1,
+        title: "Satyanarayan Katha & Hawan",
+        price: 2100,
+        features: [
+          "Complete Shri Satyanarayan Puja & 5 Chapter Katha",
+          "Hawan & Purnahuti Vedic Rituals",
+          "Aarti, Sankalp & Prasad blessing",
+          "1 Certified Vedic Pandit",
+          "Duration: ~2.5 - 3 Hours",
+        ],
+      },
+      {
+        id: 2,
+        title: "Griha Pravesh & Vastu Shanti",
+        price: 4500,
+        features: [
+          "Dwar Puja, Kalash Sthapana & Navgrah Puja",
+          "Vastu Dosh Nivaran & Shanti Hawan",
+          "Ganesh-Lakshmi Abhishek & Shankh Naad",
+          "First Cooking (Doodh Ubalna) blessing",
+          "Senior Vedic Acharya (~3.5 - 4 Hours)",
+        ],
+      },
+      {
+        id: 3,
+        title: "Pre-Wedding (Engagement / Roka / Tilak)",
+        price: 5100,
+        features: [
+          "Shubh Muhurat calculation & Gotra Sankalp",
+          "Ganesh & Gauri Puja, Tilak Vidhi",
+          "Ring Ceremony & Auspicious Blessing",
+          "Haldi / Mehendi Sanctification Rituals",
+          "Complete guidance for bride & groom families",
+        ],
+      },
+      {
+        id: 4,
+        title: "Wedding Ceremony (Full Vivah Sanskar)",
+        price: 11000,
+        features: [
+          "Full Vedic Vivah Vidhi (2 Experienced Pandits)",
+          "Mandap Sthapana, Dwar Puja, Jai Mala",
+          "Kanyadaan, Panigrahana & Hasta Melap",
+          "Agni Sthapana, Saptapadi (7 Pheras) & Laja Homa",
+          "Sindoor Daan, Mangalsutra & Elder Ashirwad Samaroh",
+        ],
+      },
+      {
+        id: 5,
+        title: "Rudrabhishek & Mahamrityunjaya Puja",
+        price: 3500,
+        features: [
+          "Laghu Rudri Path with Authentic Vedic Chanting",
+          "Panchamrit & Gangajal Shivling Abhishek",
+          "Bilva Patra & 108 Sacred Name Archana",
+          "Aarti, Hawan & Raksha Sutra blessing",
+          "Duration: ~2.5 Hours",
+        ],
+      },
+      {
+        id: 6,
+        title: "Namkaran / Mundan / Janeu Sanskar",
+        price: 3100,
+        features: [
+          "Traditional Sanskar as per Vedic astrology",
+          "Nakshatra & Rashi calculation for auspicious name",
+          "Ganesh Puja, Navgrah & Homa rituals",
+          "Ayushya Sukta & family Ashirwad",
+          "Duration: ~2 - 2.5 Hours",
+        ],
+      },
+    ],
+    faqs: [
+      {
+        question: "Will the Pandit bring the Puja Samagri?",
+        answer:
+          "We provide a comprehensive checklist of all necessary samagri well in advance. If preferred, an all-inclusive fresh puja samagri kit can also be arranged upon request.",
+      },
+      {
+        question: "Can we book a Pandit who follows our specific regional traditions?",
+        answer:
+          "Yes! We have verified Vedic Pandits proficient in North Indian, Bihari, Maithil, Bhojpuri, Marwari, Gujarati, Bengali, and South Indian customs and Vedic traditions.",
+      },
+      {
+        question: "Is Shubh Muhurat consultation included with this service?",
+        answer:
+          "Yes, after booking, our senior Acharya calculates and confirms the exact auspicious Shubh Muhurat based on your Gotra and Nakshatra at no extra cost.",
+      },
+    ],
+    reviews: [
+      {
+        id: 1,
+        user: "Vikramaditya Roy",
+        rating: 5,
+        comment:
+          "Pandit ji conducted our Griha Pravesh with complete Vedic authenticity and explained the spiritual meaning behind every mantra. Highly recommended!",
+      },
+      {
+        id: 2,
+        user: "Ananya Mishra",
+        rating: 5,
+        comment:
+          "Booked for our brother's wedding ceremony. The rituals were performed with utmost devotion and without any hurry. Wonderful experience!",
+      },
+    ],
+    providers: [
+      {
+        id: 1,
+        name: "Acharya Ramashray Shastri",
+        rating: 4.9,
+        experience: "15+ Years",
+        location: "Pan-India",
+        startingPrice: 2100,
+        image:
+          "https://images.unsplash.com/photo-1544717305-2782549b5136?q=80&w=1974&auto=format&fit=crop",
+      },
+      {
+        id: 2,
+        name: "Pt. Devendra Upadhyay",
+        rating: 4.8,
+        experience: "11+ Years",
+        location: "Pan-India",
+        startingPrice: 2100,
+        image:
+          "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop",
       },
     ],
   },

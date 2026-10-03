@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Star,
@@ -26,6 +26,7 @@ const SUB_CATEGORIES = [
     image:
       "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=300&auto=format&fit=crop",
     keywords: ["hair", "haircut", "blow dry", "keratin", "smoothening", "color"],
+    gender: "women",
   },
   {
     id: "facial-cleanup",
@@ -33,6 +34,7 @@ const SUB_CATEGORIES = [
     image:
       "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=300&auto=format&fit=crop",
     keywords: ["facial", "cleanup", "glow", "skin", "whitening", "de-tan"],
+    gender: "women",
   },
   {
     id: "bridal-party-makeup",
@@ -40,6 +42,7 @@ const SUB_CATEGORIES = [
     image:
       "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=300&auto=format&fit=crop",
     keywords: ["bridal", "makeup", "party", "airbrush", "hd makeup", "saree draping"],
+    gender: "women",
   },
   {
     id: "manicure-pedicure",
@@ -47,6 +50,7 @@ const SUB_CATEGORIES = [
     image:
       "https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=300&auto=format&fit=crop",
     keywords: ["manicure", "pedicure", "nail", "spa", "gel polish"],
+    gender: "women",
   },
   {
     id: "waxing-threading",
@@ -54,6 +58,7 @@ const SUB_CATEGORIES = [
     image:
       "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=300&auto=format&fit=crop",
     keywords: ["waxing", "threading", "rica", "roll-on", "body care"],
+    gender: "women",
   },
   {
     id: "mens-salon-spa",
@@ -61,6 +66,7 @@ const SUB_CATEGORIES = [
     image:
       "https://images.unsplash.com/photo-1621605815971-fbc98d665033?q=80&w=300&auto=format&fit=crop",
     keywords: ["men", "men's", "male", "beard", "grooming", "facial for men"],
+    gender: "men",
   },
 ];
 
@@ -290,6 +296,8 @@ const FALLBACK_SALON_SERVICES = [
 
 const HomeSalonCategoryPage = ({ category: propCategory }) => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const genderParam = searchParams.get("gender"); // "women" | "men" | null
   const {
     city,
     locality,
@@ -306,6 +314,31 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
   const [selectedServiceForModal, setSelectedServiceForModal] = useState(null);
   const [liveServices, setLiveServices] = useState(FALLBACK_SALON_SERVICES);
   const sectionRefs = useRef({});
+
+  // Filter sub-categories and services by gender param
+  const filteredSubCategories = useMemo(() => {
+    if (!genderParam) return SUB_CATEGORIES;
+    return SUB_CATEGORIES.filter((sub) => sub.gender === genderParam);
+  }, [genderParam]);
+
+  const filteredServices = useMemo(() => {
+    if (!genderParam) return liveServices;
+    const allowedSections = filteredSubCategories.map((sub) => sub.name);
+    return liveServices.filter((svc) => {
+      const sectionName = svc.section || "Hair Styling & Care";
+      return allowedSections.includes(sectionName);
+    });
+  }, [genderParam, liveServices, filteredSubCategories]);
+
+  const handleGenderSwitch = (gender) => {
+    if (gender === genderParam) {
+      // Clicking same tab = show all
+      searchParams.delete("gender");
+    } else {
+      searchParams.set("gender", gender);
+    }
+    setSearchParams(searchParams);
+  };
 
   // Escape key & background scroll lock for detail modal
   useEffect(() => {
@@ -385,19 +418,19 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
     fetchServices();
   }, []);
 
-  // Group services by section
+  // Group services by section (using filtered data)
   const groupedServices = useMemo(() => {
     const groups = {};
-    SUB_CATEGORIES.forEach((sub) => {
+    filteredSubCategories.forEach((sub) => {
       groups[sub.name] = [];
     });
-    liveServices.forEach((svc) => {
+    filteredServices.forEach((svc) => {
       const sectionName = svc.section || "Hair Styling & Care";
       if (!groups[sectionName]) groups[sectionName] = [];
       groups[sectionName].push(svc);
     });
     return groups;
-  }, [liveServices]);
+  }, [filteredServices, filteredSubCategories]);
 
   const handleScrollToSection = (sectionName) => {
     setActiveSection(sectionName);
@@ -417,10 +450,10 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-20 overflow-x-hidden selection:bg-purple-100 selection:text-purple-900">
       <SEO
-        title="Home Salon & Beauty Services in Patna & Bihar — TiptoBook"
-        description="Book top-rated home salon services in Patna & Bihar — haircut, facial, bridal makeup, manicure, pedicure, waxing & men's grooming at your doorstep. Verified beauticians on TiptoBook."
-        canonical="https://www.tiptobook.com/category/home-salon"
-        keywords="home salon Patna, beauty services at home Bihar, bridal makeup home, facial at home, manicure pedicure home, waxing at home, men grooming Patna, TiptoBook"
+        title="Home Salon & Beauty Services Across India — QuickSathi"
+        description="Book top-rated home salon services across India — haircut, facial, bridal makeup, manicure, pedicure, waxing & grooming at your doorstep with verified beauticians on QuickSathi."
+        canonical="https://www.quicksathi.com/category/home-salon"
+        keywords="home salon India, beauty services at home, bridal makeup home, facial at home, manicure pedicure home, waxing at home, grooming, QuickSathi"
       />
 
       {/* ── Main Container ── */}
@@ -479,8 +512,50 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
           </div>
 
           <h1 className="text-2xl sm:text-3xl md:text-[34px] font-extrabold text-slate-900 tracking-tight leading-tight m-0">
-            Home Salon & Beauty services near you
+            {genderParam === "women"
+              ? "Women's Salon & Beauty at Home"
+              : genderParam === "men"
+              ? "Men's Grooming & Salon at Home"
+              : "Home Salon & Beauty services near you"}
           </h1>
+
+          {/* Gender Toggle Tabs */}
+          <div className="flex items-center gap-2 mt-4">
+            <button
+              type="button"
+              onClick={() => handleGenderSwitch("women")}
+              className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border ${
+                genderParam === "women"
+                  ? "bg-pink-600 text-white border-pink-600 shadow-md"
+                  : "bg-white text-slate-700 border-slate-200 hover:bg-pink-50 hover:border-pink-200 hover:text-pink-700"
+              }`}
+            >
+              👩 Women
+            </button>
+            <button
+              type="button"
+              onClick={() => handleGenderSwitch("men")}
+              className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all cursor-pointer border ${
+                genderParam === "men"
+                  ? "bg-blue-600 text-white border-blue-600 shadow-md"
+                  : "bg-white text-slate-700 border-slate-200 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700"
+              }`}
+            >
+              👨 Men
+            </button>
+            {genderParam && (
+              <button
+                type="button"
+                onClick={() => {
+                  searchParams.delete("gender");
+                  setSearchParams(searchParams);
+                }}
+                className="px-3 py-2 rounded-full text-[11px] font-semibold text-slate-500 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 border-0 cursor-pointer transition-colors"
+              >
+                Show All ×
+              </button>
+            )}
+          </div>
 
           {/* Trust Badges */}
           <div className="flex items-center gap-2 sm:gap-2.5 mt-3 flex-wrap">
@@ -512,7 +587,7 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
           </h2>
 
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-2.5 sm:gap-4">
-            {SUB_CATEGORIES.map((sub) => (
+            {filteredSubCategories.map((sub) => (
               <button
                 key={sub.id}
                 onClick={() => handleScrollToSection(sub.name)}
@@ -540,7 +615,7 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
 
         {/* ── Sticky Category Navigation Bar ── */}
         <div className="sticky top-[64px] z-30 bg-white/95 backdrop-blur-md py-3.5 mt-8 border-b border-slate-200 flex items-center gap-2 overflow-x-auto no-scrollbar">
-          {SUB_CATEGORIES.map((sub) => {
+          {filteredSubCategories.map((sub) => {
             const isSelected = activeSection === sub.name;
             return (
               <button
@@ -560,7 +635,7 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
 
         {/* ── Service Sections ── */}
         <div className="mt-6 flex flex-col gap-10">
-          {SUB_CATEGORIES.map((sub) => {
+          {filteredSubCategories.map((sub) => {
             const servicesInSection = groupedServices[sub.name] || [];
             if (servicesInSection.length === 0) return null;
 

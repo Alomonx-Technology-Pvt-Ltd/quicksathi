@@ -1,28 +1,24 @@
-# TiptoBook
+# QuickSathi
 
-> TiptoBook (operated by Alomonx Technology Pvt. Ltd.) is an online service booking platform in India connecting customers with verified, trusted local service professionals.
+> QuickSathi (operated by Alomonx Technology Pvt. Ltd.) is an online service booking platform in India connecting customers with verified, trusted on-demand service professionals nationwide.
 
 ## Core Services & Offerings
-- **CCTV Security & Smart Locks**: Home and commercial HD CCTV camera installation, live remote monitoring, digital smart lock installation, and maintenance (starting ₹2,999).
-- **Vehicle & Car Rentals**: Everyday AC cars (5-seater and 7-seater), outstation cabs, and luxury decorated wedding cars with professional chauffeurs (starting ₹2,499/day).
-- **Wedding & Event Services**: Candid wedding photography, cinematic wedding films, drone shoots, floral stage decoration, catering counters, and bridal makeup (starting ₹15,000).
-- **Home Salon & Beauty**: At-home haircuts, facials, cleanups, bridal and party makeup, manicure, pedicure, and waxing (starting ₹799).
-- **House Help & Repairs**: Background-verified maids, full home deep cleaning, home cooks, babysitters, elder care attendants, AC repair, electricians, and plumbers (starting ₹199).
-- **Home Tuition & Coaching**: Personalized 1-on-1 home tuition for school academics (Class 1-10), senior secondary (Class 11-12), competitive exam preparation (JEE/NEET), and spoken English (starting ₹2,500/month).
+- **Wedding & Event Services**: Certified Vedic Pandits & Acharyas for Vivah Sanskar, Griha Pravesh, Hawan, candid wedding photography, cinematic wedding films, drone shoots, stage decoration, catering, and bridal makeup.
+- **AC & Appliance Repairs**: Doorstep split and window AC repair, deep foam jet servicing, gas refilling, refrigerator, washing machine, and geyser repairs.
+- **Vehicle & Car Rentals**: Everyday AC cars (5-seater and 7-seater), outstation cabs, and luxury decorated wedding cars with professional chauffeurs.
+- **Home Salon & Beauty**: At-home haircuts, facials, cleanups, bridal and party makeup, manicure, pedicure, and waxing.
+- **House Help & Repairs**: Background-verified maids, full home deep cleaning, home cooks, babysitters, elder care attendants, electricians, and plumbers.
+- **Home Tuition & Coaching**: Personalized 1-on-1 home tuition for school academics (Class 1-10), senior secondary (Class 11-12), and competitive exams.
 
 ## Service Areas
-- Patna, Bihar
-- Delhi NCR
-- Mumbai, Maharashtra
-- Bengaluru, Karnataka
-- And expanding across India
+- Pan-India Service Network across Major Metros and Tier-1/2 Cities (Delhi NCR, Mumbai, Bengaluru, Hyderabad, Kolkata, Pune, Patna, Lucknow, Ahmedabad, and expanding nationwide).
 
 ## Important Links
-- Website: https://www.tiptobook.com/
-- Services: https://www.tiptobook.com/services
-- About Us: https://www.tiptobook.com/about-us
-- Contact & Support: https://www.tiptobook.com/contact
-- Become a Partner: https://www.tiptobook.com/provider/onboarding
+- Website: https://www.quicksathi.com/
+- Services: https://www.quicksathi.com/services
+- About Us: https://www.quicksathi.com/about-us
+- Contact & Support: https://www.quicksathi.com/contact
+- Become a Partner: https://www.quicksathi.com/provider/onboarding
 
 ## Official Social Channels
 - Facebook: https://www.facebook.com/share/19PhRio3So/?mibextid=wwXIfr

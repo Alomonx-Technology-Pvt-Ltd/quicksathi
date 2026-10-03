@@ -165,8 +165,8 @@ const Contact = () => {
           >
             {[
               {
-                label: "Office Address",
-                value: "Exhibition Road, Patna\nBihar, India — 800001",
+                label: "Corporate Office & Presence",
+                value: "India (Pan-India Service Network)\nServing Metro Hubs & Cities Nationwide",
                 icon: (
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
@@ -176,8 +176,8 @@ const Contact = () => {
               },
               {
                 label: "Email Support",
-                value: "support@TiptoBook.in",
-                href: "mailto:support@TiptoBook.in",
+                value: "quicksathi9@gmail.com",
+                href: "mailto:quicksathi9@gmail.com",
                 icon: (
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />

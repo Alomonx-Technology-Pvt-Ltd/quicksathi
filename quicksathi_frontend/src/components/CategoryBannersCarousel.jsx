@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import api from "../config/api";
@@ -187,21 +187,51 @@ const CATEGORY_BANNERS = [
   },
 ];
 
+const DEFAULT_CAROUSEL_GRADIENT =
+  "linear-gradient(90deg, rgba(8, 20, 42, 0.90) 0%, rgba(12, 30, 62, 0.75) 50%, rgba(12, 30, 62, 0.25) 80%, rgba(12, 30, 62, 0.05) 100%)";
+
+const normalizeCarouselBanner = (b) => ({
+  id: b._id || b.id || b.category || b.title,
+  _id: b._id || b.id,
+  badge: b.badge || "Special Deal",
+  badgeBg: b.badgeBg || "rgba(255, 255, 255, 0.22)",
+  badgeColor: b.badgeColor || "#ffffff",
+  title: b.title || "",
+  subtitle: b.subtitle || "",
+  cta: b.cta || "BOOK",
+  link: b.link || "/services",
+  textColor: b.textColor || "#ffffff",
+  subtitleColor: b.subtitleColor || "rgba(255, 255, 255, 0.92)",
+  buttonBg: b.buttonBg || "#0284c7",
+  buttonText: b.buttonText || "#ffffff",
+  image: b.image || "/images/ac/foam-jet.webp",
+  imageAlt: b.imageAlt || b.title || "Featured service banner",
+  imagePosition: b.imagePosition || "center right",
+  overlayGradient:
+    b.overlayGradient && b.overlayGradient.trim()
+      ? b.overlayGradient
+      : DEFAULT_CAROUSEL_GRADIENT,
+  bgFallback: b.bgFallback || "#0d2b45",
+});
+
 export default function CategoryBannersCarousel() {
   const scrollRef = useRef(null);
-  const [banners, setBanners] = useState(CATEGORY_BANNERS);
+  const [banners, setBanners] = useState(() => CATEGORY_BANNERS.map(normalizeCarouselBanner));
   const [scrollProgress, setScrollProgress] = useState(0);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isInteracting, setIsInteracting] = useState(false);
+  const interactionTimerRef = useRef(null);
 
   // Fetch real-time banners created from Admin Panel
   useEffect(() => {
     let active = true;
     api
-      .get("/banners")
+      .get("/banners?section=carousel")
       .then(({ data }) => {
         if (active && Array.isArray(data) && data.length > 0) {
-          setBanners(data);
+          setBanners(data.map(normalizeCarouselBanner));
         }
       })
       .catch(() => {
@@ -212,7 +242,7 @@ export default function CategoryBannersCarousel() {
     };
   }, []);
 
-  const updateScrollState = () => {
+  const updateScrollState = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
     const { scrollLeft, scrollWidth, clientWidth } = el;
@@ -222,7 +252,7 @@ export default function CategoryBannersCarousel() {
     if (maxScroll > 0) {
       setScrollProgress(Math.min(1, Math.max(0, scrollLeft / maxScroll)));
     }
-  };
+  }, []);
 
   useEffect(() => {
     const el = scrollRef.current;
@@ -234,15 +264,46 @@ export default function CategoryBannersCarousel() {
       el.removeEventListener("scroll", updateScrollState);
       window.removeEventListener("resize", updateScrollState);
     };
+  }, [updateScrollState]);
+
+  const markUserInteracting = useCallback(() => {
+    setIsInteracting(true);
+    if (interactionTimerRef.current) clearTimeout(interactionTimerRef.current);
+    interactionTimerRef.current = setTimeout(() => {
+      setIsInteracting(false);
+    }, 4500); // Resume auto-scroll after 4.5 seconds of inactivity
   }, []);
 
-  const scrollByAmount = (direction) => {
+  const scrollByAmount = useCallback((direction) => {
     const el = scrollRef.current;
     if (!el) return;
-    const cardWidth = el.querySelector(".category-banner-card")?.offsetWidth || 380;
-    const scrollOffset = direction === "left" ? -(cardWidth + 16) : cardWidth + 16;
-    el.scrollBy({ left: scrollOffset, behavior: "smooth" });
-  };
+    const card = el.querySelector(".category-banner-card");
+    const cardWidth = card ? card.offsetWidth + 16 : 396;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+
+    if (direction === "right") {
+      if (el.scrollLeft >= maxScroll - 20) {
+        el.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        el.scrollBy({ left: cardWidth, behavior: "smooth" });
+      }
+    } else {
+      if (el.scrollLeft <= 20) {
+        el.scrollTo({ left: maxScroll, behavior: "smooth" });
+      } else {
+        el.scrollBy({ left: -cardWidth, behavior: "smooth" });
+      }
+    }
+  }, []);
+
+  // Smooth Auto-scroll effect: advances every 3.8s, pauses on hover or user touch/scroll
+  useEffect(() => {
+    if (isHovered || isInteracting || banners.length <= 1) return;
+    const timer = setInterval(() => {
+      scrollByAmount("right");
+    }, 3800);
+    return () => clearInterval(timer);
+  }, [isHovered, isInteracting, banners.length, scrollByAmount]);
 
   return (
     <section className="relative w-full max-w-full overflow-hidden pt-5 pb-7 sm:pt-6 sm:pb-8 bg-white select-none">
@@ -270,14 +331,30 @@ export default function CategoryBannersCarousel() {
         </div>
 
         {/* ── Carousel Track & Arrows Relative Container ── */}
-        <div className="relative">
+        <div
+          className="relative"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          onTouchStart={() => {
+            setIsHovered(true);
+            markUserInteracting();
+          }}
+          onTouchEnd={() => {
+            setIsHovered(false);
+            markUserInteracting();
+          }}
+          onWheel={() => markUserInteracting()}
+        >
           {/* Navigation Arrow Left (Desktop) */}
           {canScrollLeft && (
             <button
               type="button"
-              onClick={() => scrollByAmount("left")}
+              onClick={() => {
+                markUserInteracting();
+                scrollByAmount("left");
+              }}
               aria-label="Previous banners"
-              className="hidden md:flex absolute -left-4 lg:-left-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/95 text-gray-800 shadow-xl border border-gray-200/80 items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110 hover:bg-white active:scale-95"
+              className="hidden md:flex absolute -left-4 lg:-left-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white text-gray-800 shadow-xl border border-gray-200/80 items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110 hover:bg-white active:scale-95"
             >
               <ChevronLeft size={20} strokeWidth={2.5} />
             </button>
@@ -287,15 +364,18 @@ export default function CategoryBannersCarousel() {
           {canScrollRight && (
             <button
               type="button"
-              onClick={() => scrollByAmount("right")}
+              onClick={() => {
+                markUserInteracting();
+                scrollByAmount("right");
+              }}
               aria-label="Next banners"
-              className="hidden md:flex absolute -right-4 lg:-right-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/95 text-gray-800 shadow-xl border border-gray-200/80 items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110 hover:bg-white active:scale-95"
+              className="hidden md:flex absolute -right-4 lg:-right-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white text-gray-800 shadow-xl border border-gray-200/80 items-center justify-center cursor-pointer transition-all duration-200 hover:scale-110 hover:bg-white active:scale-95"
             >
               <ChevronRight size={20} strokeWidth={2.5} />
             </button>
           )}
 
-          {/* Scrollable Track: Preserves proper side gap (NO -mx-4 edge sticking) */}
+          {/* Scrollable Track */}
           <div
             ref={scrollRef}
             className="flex items-center gap-3.5 sm:gap-4 overflow-x-auto no-scrollbar snap-x snap-mandatory py-2 px-0.5 scroll-pl-1 sm:scroll-pl-0"
@@ -305,9 +385,9 @@ export default function CategoryBannersCarousel() {
               WebkitOverflowScrolling: "touch",
             }}
           >
-            {banners.map((banner) => (
+            {banners.map((banner, index) => (
               <Link
-                key={banner._id || banner.id}
+                key={banner._id || banner.id || index}
                 to={banner.link}
                 onClick={(e) => {
                   if (banner.id === "ac" || banner.link === "/services/ac") {
@@ -318,103 +398,116 @@ export default function CategoryBannersCarousel() {
                     window.dispatchEvent(new CustomEvent("open-salon-modal"));
                   }
                 }}
-                className="category-banner-card snap-start flex-shrink-0 no-underline block rounded-2xl sm:rounded-3xl overflow-hidden relative transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 active:scale-[0.99] group"
+                className="category-banner-card snap-start flex-shrink-0 no-underline block rounded-2xl sm:rounded-3xl overflow-hidden relative transition-shadow duration-300 hover:shadow-xl active:scale-[0.99] group"
                 style={{
                   width: "clamp(315px, 84vw, 390px)",
                   height: "195px",
-                  backgroundColor: banner.bgFallback,
-                  color: banner.textColor,
+                  backgroundColor: banner.bgFallback || "#0d2b45",
+                  color: banner.textColor || "#ffffff",
                   boxShadow: "0 6px 20px rgba(0,0,0,0.08)",
+                  WebkitTransform: "translateZ(0)",
+                  transform: "translateZ(0)",
+                  WebkitBackfaceVisibility: "hidden",
+                  backfaceVisibility: "hidden",
+                  contain: "paint",
                 }}
               >
-              {/* ── Full Card Photographic Imagery (Rendered across full card) ── */}
-              <div className="absolute inset-0 overflow-hidden">
-                <img
-                  src={banner.image}
-                  alt={banner.imageAlt}
-                  loading="lazy"
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                {/* ── Full Card Photographic Imagery (Rendered across full card) ── */}
+                <div className="absolute inset-0 overflow-hidden bg-slate-900">
+                  <img
+                    src={banner.image}
+                    alt={banner.imageAlt}
+                    loading={index < 3 ? "eager" : "lazy"}
+                    decoding="async"
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                    style={{
+                      objectPosition: banner.imagePosition || "center right",
+                      WebkitTransform: "translateZ(0)",
+                      transform: "translateZ(0)",
+                    }}
+                  />
+                </div>
+
+                {/* ── Soft Semi-Transparent Tint Behind Text (Rock-solid gradient without backdrop-filter repaint glitches) ── */}
+                <div
+                  className="absolute inset-0 pointer-events-none"
                   style={{
-                    objectPosition: banner.imagePosition || "center right",
+                    background: banner.overlayGradient,
+                    WebkitTransform: "translateZ(0)",
+                    transform: "translateZ(0)",
                   }}
                 />
-              </div>
 
-              {/* ── Soft Semi-Transparent Tint Behind Text (allows image to subtly shine through) ── */}
-              <div
-                className="absolute inset-0 pointer-events-none transition-opacity duration-300"
-                style={{
-                  background: banner.overlayGradient,
-                  backdropFilter: "blur(0.5px)",
-                }}
-              />
+                {/* ── Left Column: Clean Text & CTA ── */}
+                <div
+                  className="absolute inset-y-0 left-0 flex flex-col justify-between p-4 sm:p-5 z-10"
+                  style={{
+                    width: "65%",
+                    WebkitTransform: "translateZ(0)",
+                    transform: "translateZ(0)",
+                  }}
+                >
+                  <div>
+                    {/* Badge */}
+                    {banner.badge ? (
+                      <span
+                        className="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider mb-2"
+                        style={{
+                          backgroundColor: banner.badgeBg,
+                          color: banner.badgeColor,
+                          fontFamily: "var(--font-body)",
+                          boxShadow: "0 1px 4px rgba(0,0,0,0.2)",
+                        }}
+                      >
+                        {banner.badge}
+                      </span>
+                    ) : (
+                      <div className="h-2" />
+                    )}
 
-              {/* ── Left Column: Clean Text & CTA ── */}
-              <div
-                className="absolute inset-y-0 left-0 flex flex-col justify-between p-4 sm:p-5 z-10"
-                style={{ width: "65%" }}
-              >
-                <div>
-                  {/* Badge */}
-                  {banner.badge ? (
-                    <span
-                      className="inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider mb-2 backdrop-blur-sm"
+                    {/* Title */}
+                    <h3
+                      className="text-[15px] sm:text-base font-extrabold leading-[1.25] line-clamp-2 m-0 drop-shadow-sm"
                       style={{
-                        backgroundColor: banner.badgeBg,
-                        color: banner.badgeColor,
-                        fontFamily: "var(--font-body)",
-                        boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
+                        fontFamily: "var(--font-display)",
+                        letterSpacing: "-0.01em",
+                        color: banner.textColor,
                       }}
                     >
-                      {banner.badge}
+                      {banner.title}
+                    </h3>
+
+                    {/* Subtitle */}
+                    <p
+                      className="text-[11.5px] sm:text-xs leading-snug mt-1.5 m-0 line-clamp-2 drop-shadow-xs"
+                      style={{
+                        fontFamily: "var(--font-body)",
+                        color: banner.subtitleColor,
+                      }}
+                    >
+                      {banner.subtitle}
+                    </p>
+                  </div>
+
+                  {/* Unified CTA Button: always "BOOK" */}
+                  <div className="pt-2">
+                    <span
+                      className="inline-flex items-center justify-center px-4 sm:px-5 py-2 rounded-xl text-xs font-bold tracking-wider uppercase transition-transform duration-200 group-hover:scale-105"
+                      style={{
+                        fontFamily: "var(--font-body)",
+                        backgroundColor: banner.buttonBg,
+                        color: banner.buttonText,
+                        boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
+                      }}
+                    >
+                      BOOK
                     </span>
-                  ) : (
-                    <div className="h-2" />
-                  )}
-
-                  {/* Title */}
-                  <h3
-                    className="text-[15px] sm:text-base font-extrabold leading-[1.25] line-clamp-2 m-0 drop-shadow-sm"
-                    style={{
-                      fontFamily: "var(--font-display)",
-                      letterSpacing: "-0.01em",
-                      color: banner.textColor,
-                    }}
-                  >
-                    {banner.title}
-                  </h3>
-
-                  {/* Subtitle */}
-                  <p
-                    className="text-[11.5px] sm:text-xs leading-snug mt-1.5 m-0 line-clamp-2 drop-shadow-xs"
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      color: banner.subtitleColor,
-                    }}
-                  >
-                    {banner.subtitle}
-                  </p>
+                  </div>
                 </div>
-
-                {/* Unified CTA Button: always "BOOK" */}
-                <div className="pt-2">
-                  <span
-                    className="inline-flex items-center justify-center px-4 sm:px-5 py-2 rounded-xl text-xs font-bold tracking-wider uppercase transition-all duration-200 group-hover:scale-105"
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      backgroundColor: banner.buttonBg,
-                      color: banner.buttonText,
-                      boxShadow: "0 2px 10px rgba(0,0,0,0.3)",
-                    }}
-                  >
-                    BOOK
-                  </span>
-                </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))}
+          </div>
         </div>
-      </div>
 
         {/* Minimalist Slider Indicator (matches reference image: active dark dash + inactive gray dash) */}
         <div className="flex items-center justify-center gap-1.5 mt-3 sm:mt-4">

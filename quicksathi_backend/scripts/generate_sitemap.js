@@ -1,12 +1,12 @@
 import "dotenv/config";
 import mongoose from "mongoose";
+import connectDB from "../config/db.js";
 import Service from "../models/Service.js";
 import Category from "../models/Category.js";
 import fs from "fs";
 
 async function run() {
-  await mongoose.connect(process.env.MONGODB_URI);
-  console.log("Connected to MongoDB for sitemap generation...");
+  await connectDB();
 
   const services = await Service.find({ available: true }).sort("slug");
   const categories = await Category.find({ active: true }).sort("displayOrder");
@@ -96,9 +96,10 @@ async function run() {
 
   xml += `</urlset>\n`;
 
-  const targetPath = "../quicksathi_frontend/public/sitemap.xml";
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  const targetPath = path.resolve(__dirname, "../../quicksathi_frontend/public/sitemap.xml");
   fs.writeFileSync(targetPath, xml, "utf-8");
-  console.log(`Generated sitemap with ${seenSlugs.size + categorySlugs.length + categories.length + 6} URLs written to ${targetPath}`);
+  console.log(`Generated sitemap with ${seenSlugs.size + categorySlugs.length + 6} URLs written to ${targetPath}`);
 
   await mongoose.disconnect();
 }

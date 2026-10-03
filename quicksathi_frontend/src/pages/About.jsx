@@ -41,7 +41,7 @@ const values = [
   {
     icon: Handshake,
     title: "Locally Vetted & Vested",
-    desc: "We are proudly Bihar-grown. Every booking supports local businesses and highly skilled professionals.",
+    desc: "We are built for India. Every booking supports vetted local businesses and highly skilled professionals nationwide.",
   },
 ];
 
@@ -53,20 +53,20 @@ const About = () => {
       style={{ backgroundColor: "var(--color-bg)" }}
     >
       <SEO
-        title="TiptoBook – Online Service Booking Platform in India"
-        description="Find and book trusted local services with TiptoBook. Explore home services, wedding services, car rentals, tutors, house help and more in one place."
-        canonical="https://www.tiptobook.com/about-us"
-        keywords="online service booking platform, service booking platform in India, book services online, local service providers, local services in India, home services, wedding services, car rental services, tutors near me, house help services, service providers in Patna, services in Bihar"
+        title="QuickSathi – Online Service Booking Platform in India"
+        description="Find and book trusted services with QuickSathi. Explore home services, pandits for puja, wedding services, car rentals, tutors, house help and more in one place."
+        canonical="https://www.quicksathi.com/about-us"
+        keywords="online service booking platform, service booking platform in India, book services online India, local service providers, services in India, home services, wedding services, pandit for puja, car rental services, QuickSathi"
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "AboutPage",
-          "name": "About TiptoBook – Online Service Booking Platform",
-          "url": "https://www.tiptobook.com/about-us",
-          "description": "Find and book trusted local services with TiptoBook. Explore home services, wedding services, car rentals, tutors, house help and more in one place.",
+          "name": "About QuickSathi – Online Service Booking Platform",
+          "url": "https://www.quicksathi.com/about-us",
+          "description": "Find and book trusted services across India with QuickSathi. Explore home services, wedding services, car rentals, tutors, and repairs.",
           "mainEntity": {
             "@type": "Organization",
-            "name": "TiptoBook",
-            "url": "https://www.tiptobook.com",
+            "name": "QuickSathi",
+            "url": "https://www.quicksathi.com",
             "sameAs": [
               "https://www.facebook.com/share/19PhRio3So/?mibextid=wwXIfr",
               "https://www.linkedin.com/company/tiptobook/",
@@ -149,7 +149,7 @@ const About = () => {
               }}
             >
               <Sparkles size={13} className="text-orange-400" />
-              <span>EMPOWERING HOMES & SERVICES ACROSS BIHAR</span>
+              <span>EMPOWERING HOMES & SERVICES ACROSS INDIA</span>
             </motion.div>
 
             <motion.h1
@@ -163,7 +163,7 @@ const About = () => {
                 letterSpacing: "-0.025em",
               }}
             >
-              About TiptoBook –
+              About QuickSathi –
               <br />
               <span
                 style={{
@@ -183,7 +183,7 @@ const About = () => {
               className="text-slate-200 text-base sm:text-lg leading-relaxed m-0 mb-8 max-w-xl"
               style={{ fontFamily: "var(--font-body)", opacity: 0.92 }}
             >
-              Find and book trusted local services with TiptoBook. We connect customers across Patna, Bihar, and all over India with verified local service providers for home services, wedding services, car rental services, tutors near me, and house help services.
+              Find and book trusted on-demand services across India with QuickSathi. We connect customers nationwide with verified service professionals for home services, pandits for puja & weddings, car rental services, tutors, and repair experts.
             </motion.p>
 
             <motion.div
@@ -273,7 +273,7 @@ const About = () => {
                     4.9 / 5.0 Average Rating
                   </h4>
                   <p className="text-slate-300 text-xs m-0 mt-0.5" style={{ fontFamily: "var(--font-body)" }}>
-                    Rated across 10,000+ local customers in Bihar.
+                    Rated across 10,000+ happy customers across India.
                   </p>
                 </div>
               </div>
@@ -383,17 +383,17 @@ const About = () => {
               }}
             >
               From a simple problem, <br />
-              <span style={{ opacity: 0.5 }}>to Bihar's premier portal.</span>
+              <span style={{ opacity: 0.5 }}>to India's premier services platform.</span>
             </h2>
             <div
               className="text-sm sm:text-base leading-relaxed flex flex-col gap-4"
               style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
             >
               <p>
-                TiptoBook was founded with a clear realization: finding trustworthy local service providers in India is far too complicated. Whether you are searching for dependable home services, reliable car rental services, wedding services, tutors near me, or house help services, customers in Patna and across Bihar often faced inconsistent service quality, opaque pricing, and delays.
+                QuickSathi was founded with a clear realization: finding trustworthy service providers in India is far too complicated. Whether you are searching for dependable home services, reliable car rentals, wedding ceremonies and pandits, or appliance repair, customers across India often face inconsistent quality, opaque pricing, and delays.
               </p>
               <p>
-                As a modern online service booking platform, we built TiptoBook to put trust and transparency first. We established direct partnerships with vetted service providers in Patna and across Bihar, automated the scheduling process, and mandated upfront, itemized quotes. The result is a seamless destination to book services online with complete confidence.
+                As a modern online service booking platform, we built QuickSathi to put trust and transparency first. We established direct partnerships with vetted service providers across India, automated the scheduling process, and mandated upfront, itemized quotes. The result is a seamless destination to book services online with complete confidence.
               </p>
             </div>
           </div>

@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import api from "../config/api";
 
 const PROMO_BANNERS = [
   {
@@ -48,25 +49,94 @@ const PROMO_BANNERS = [
   },
 ];
 
+const parseBullet = (bullet) => {
+  if (typeof bullet === "object" && bullet !== null && bullet.text) return bullet;
+  if (typeof bullet === "string") {
+    const match = bullet.match(/^(\p{Extended_Pictographic}|\S+)\s+(.+)$/u);
+    if (match) {
+      return { icon: match[1], text: match[2] };
+    }
+    return { icon: "✓", text: bullet };
+  }
+  return { icon: "✓", text: String(bullet || "") };
+};
+
+const normalizeBanner = (b) => ({
+  id: b._id || b.id || b.category || b.title,
+  tag: b.tag || b.badge || "Featured Highlight",
+  tagBg: b.tagBg || "rgba(225, 29, 72, 0.1)",
+  tagColor: b.tagColor || "#e11d48",
+  headline: b.headline || b.title,
+  subheadLabel: b.subheadLabel || null,
+  subheadItems: b.subheadItems || b.subtitle || "",
+  bullets:
+    Array.isArray(b.bullets) && b.bullets.length > 0
+      ? b.bullets.map(parseBullet)
+      : [
+          { icon: "✨", text: "Trusted Service Providers" },
+          { icon: "⚡", text: "Instant Doorstep Booking" },
+          { icon: "🛡️", text: "100% Satisfaction Guarantee" },
+        ],
+  ctaText: b.ctaText || (b.cta ? `${b.cta} →` : "Book Now →"),
+  ctaLink: b.ctaLink || b.link || "/services",
+  bgImage: b.image || b.bgImage || "/banners/wedding_banner.webp",
+  fallbackBg: b.fallbackBg || b.bgFallback || "#fdf8f5",
+  themeColor: b.themeColor || "#be123c",
+  buttonBg:
+    b.buttonBg ||
+    (b.themeColor
+      ? `linear-gradient(135deg, ${b.themeColor} 0%, ${b.themeColor}dd 100%)`
+      : "linear-gradient(135deg, #e11d48 0%, #be123c 100%)"),
+  buttonShadow: b.buttonShadow || "0 6px 20px rgba(0, 0, 0, 0.25)",
+});
+
 export default function SpotlightPromoBanners() {
+  const [banners, setBanners] = useState(PROMO_BANNERS.map(normalizeBanner));
   const [activeIndex, setActiveIndex] = useState(0);
+
+  // Fetch real-time spotlight promo banners created/managed in Admin Panel
+  useEffect(() => {
+    let active = true;
+    api
+      .get("/banners?section=spotlight")
+      .then(({ data }) => {
+        if (active && Array.isArray(data) && data.length > 0) {
+          setBanners(data.map(normalizeBanner));
+        }
+      })
+      .catch(() => {
+        // Keep initial fallback PROMO_BANNERS if offline/network error
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Safe activeIndex bounds check
+  useEffect(() => {
+    if (activeIndex >= banners.length) {
+      setActiveIndex(0);
+    }
+  }, [banners.length, activeIndex]);
 
   // Auto advance every 6 seconds
   useEffect(() => {
+    if (banners.length <= 1) return;
     const timer = setInterval(() => {
-      setActiveIndex((prev) => (prev + 1) % PROMO_BANNERS.length);
+      setActiveIndex((prev) => (prev + 1) % banners.length);
     }, 6000);
     return () => clearInterval(timer);
-  }, []);
+  }, [banners.length]);
 
-  const current = PROMO_BANNERS[activeIndex];
+  const current = banners[activeIndex] || banners[0];
+  if (!current) return null;
 
   const handlePrev = () => {
-    setActiveIndex((prev) => (prev === 0 ? PROMO_BANNERS.length - 1 : prev - 1));
+    setActiveIndex((prev) => (prev === 0 ? banners.length - 1 : prev - 1));
   };
 
   const handleNext = () => {
-    setActiveIndex((prev) => (prev + 1) % PROMO_BANNERS.length);
+    setActiveIndex((prev) => (prev + 1) % banners.length);
   };
 
   return (
@@ -89,9 +159,9 @@ export default function SpotlightPromoBanners() {
           {/* Tab Selector & Controls */}
           <div className="flex items-center gap-2">
             <div className="hidden xs:flex items-center bg-gray-100 p-1 rounded-xl">
-              {PROMO_BANNERS.map((banner, idx) => (
+              {banners.map((banner, idx) => (
                 <button
-                  key={banner.id}
+                  key={banner.id || idx}
                   type="button"
                   onClick={() => setActiveIndex(idx)}
                   className={`px-3 sm:px-4 py-1.5 rounded-lg text-xs font-bold transition-all border-0 cursor-pointer ${
@@ -100,7 +170,7 @@ export default function SpotlightPromoBanners() {
                       : "bg-transparent text-gray-500 hover:text-gray-900"
                   }`}
                 >
-                  {banner.id === "wedding" ? "💍 Wedding" : "📚 Tuition"}
+                  {banner.tag || banner.headline || `Promo ${idx + 1}`}
                 </button>
               ))}
             </div>
@@ -226,7 +296,7 @@ export default function SpotlightPromoBanners() {
 
           {/* Bottom Progress Indicator Dots */}
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-            {PROMO_BANNERS.map((_, idx) => (
+            {banners.map((_, idx) => (
               <button
                 key={idx}
                 type="button"

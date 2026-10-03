@@ -319,10 +319,10 @@ const ACCategoryPage = ({ category: propCategory }) => {
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-20 overflow-x-hidden selection:bg-purple-100 selection:text-purple-900">
       <SEO
-        title="AC Services & Repair in Patna & Bihar — TiptoBook"
-        description="Book top-rated AC repair, foam jet deep service, gas refill, and installation in Patna & Bihar. Verified technicians, upfront pricing & 30-day warranty on TiptoBook."
-        canonical="https://www.tiptobook.com/services/ac"
-        keywords="AC repair Patna, AC service Patna, AC gas refill Bihar, Split AC installation Patna, Window AC repair, TiptoBook"
+        title="AC Services & Repair Across India — QuickSathi"
+        description="Book top-rated AC repair, foam jet deep service, gas refill, and installation across India. Verified technicians, upfront pricing & warranty on QuickSathi."
+        canonical="https://www.quicksathi.com/services/ac"
+        keywords="AC repair India, AC service India, AC gas refill, Split AC installation, Window AC repair, QuickSathi"
       />
 
       {/* ── Main Container: max-w-4xl for clean centered Urban Company feel ── */}

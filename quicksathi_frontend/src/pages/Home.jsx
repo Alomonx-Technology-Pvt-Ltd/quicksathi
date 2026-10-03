@@ -143,19 +143,19 @@ const Home = () => {
   return (
     <div className="bg-white min-h-screen w-full max-w-full overflow-x-hidden">
       <SEO
-        title="TiptoBook – Book Home Services, AC Repair & Car Rental in Patna & Bihar"
-        description="Book trusted local services in Patna & Bihar on TiptoBook. AC repair, wedding photography & catering, car rental, home salon, tuition, and cleaning at transparent prices."
-        canonical="https://www.tiptobook.com/"
-        keywords="home services in Patna, AC repair Patna, wedding services Patna, car rental in Patna, home salon Patna, home tuition Patna, house cleaning Patna, book services online Bihar, local services Patna, TiptoBook"
+        title="QuickSathi – India's Trusted Online Service Booking Platform | Home, Wedding & Rentals"
+        description="Book trusted on-demand home & event services across India on QuickSathi. AC repair, pandits for puja, wedding services, car rental, home salon, and home repairs."
+        canonical="https://www.quicksathi.com/"
+        keywords="online service booking platform, home services in India, book services online India, pandit for puja, wedding services, AC repair India, car rental India, home salon, electrician, QuickSathi"
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "WebSite",
-          "name": "TiptoBook",
-          "url": "https://www.tiptobook.com/",
-          "description": "Book trusted local services in Patna & Bihar on TiptoBook. AC repair, wedding photography, car rental, home salon, tuition, and cleaning at transparent prices.",
+          "name": "QuickSathi",
+          "url": "https://www.quicksathi.com/",
+          "description": "Book trusted on-demand home, wedding, and car rental services across India on QuickSathi at transparent prices.",
           "potentialAction": {
             "@type": "SearchAction",
-            "target": "https://www.tiptobook.com/services?q={search_term_string}",
+            "target": "https://www.quicksathi.com/services?q={search_term_string}",
             "query-input": "required name=search_term_string"
           }
         }}
