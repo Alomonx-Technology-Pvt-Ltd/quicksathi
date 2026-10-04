@@ -372,10 +372,10 @@ const Category = () => {
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-20 overflow-x-hidden selection:bg-purple-100 selection:text-purple-900">
       <SEO
-        title={`${category?.name || "Services"} Across India — QuickSathi`}
-        description={`Explore and book verified ${category?.name || "services"} across India on QuickSathi. Compare packages, read reviews, and book vetted professionals.`}
-        canonical={`https://www.quicksathi.com/category/${canonicalSlug}`}
-        keywords={`${category?.name}, book ${category?.name} India, online service booking, QuickSathi`}
+        title={`${category?.name || "Services"} Across India — TiptoBook`}
+        description={`Explore and book verified ${category?.name || "services"} across India on TiptoBook. Compare packages, read reviews, and book vetted professionals.`}
+        canonical={`https://www.tiptobook.com/category/${canonicalSlug}`}
+        keywords={`${category?.name}, book ${category?.name} India, online service booking, TiptoBook`}
       />
 
       {/* ── Main Container: max-w-4xl for clean centered Urban Company feel ── */}

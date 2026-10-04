@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 
-const BRAND_NAME = "QuickSathi";
+const BRAND_NAME = "TiptoBook";
 const BRAND_PRIMARY = "#f97316"; // Modern Vibrant Orange
 const BRAND_DARK = "#0f172a";
 const BRAND_BG = "#f8fafc";
@@ -209,7 +209,7 @@ export async function sendWelcomeEmail({ to, name }) {
                     <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #fff7ed; border-left: 4px solid ${BRAND_PRIMARY}; border-radius: 8px; margin: 24px 0; padding: 16px 20px;">
                       <tr>
                         <td>
-                          <h4 style="margin: 0 0 8px 0; color: #9a3412; font-size: 14px;">Why QuickSathi?</h4>
+                          <h4 style="margin: 0 0 8px 0; color: #9a3412; font-size: 14px;">Why TiptoBook?</h4>
                           <ul style="margin: 0; padding-left: 20px; color: #7c2d12; font-size: 13px; line-height: 1.6;">
                             <li>Verified, background-checked service partners</li>
                             <li>Upfront transparent pricing with instant coupons</li>
@@ -231,7 +231,7 @@ export async function sendWelcomeEmail({ to, name }) {
                 <tr>
                   <td style="background-color: #f1f5f9; padding: 20px 40px; text-align: center; border-top: 1px solid #e2e8f0;">
                     <p style="margin: 0; color: #64748b; font-size: 12px;">
-                      Need help? Reach out to our 24/7 support at <a href="mailto:support@quicksathi.com" style="color: ${BRAND_PRIMARY}; text-decoration: none;">support@quicksathi.com</a>
+                      Need help? Reach out to our 24/7 support at <a href="mailto:quicksathi9@gmail.com" style="color: ${BRAND_PRIMARY}; text-decoration: none;">quicksathi9@gmail.com</a>
                     </p>
                     <p style="margin: 6px 0 0 0; color: #94a3b8; font-size: 11px;">
                       © ${new Date().getFullYear()} ${BRAND_NAME}. All rights reserved.
@@ -449,7 +449,7 @@ export async function sendTestEmail({ to }) {
     to: recipient,
     subject: `⚡ ${BRAND_NAME} Email Test - Real-Time Active`,
     html,
-    text: `QuickSathi Email Test: Your transactional email configuration is active at ${new Date().toISOString()}`,
+    text: `TiptoBook Email Test: Your transactional email configuration is active at ${new Date().toISOString()}`,
   });
 }
 

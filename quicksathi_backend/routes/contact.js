@@ -70,7 +70,7 @@ router.post("/", async (req, res) => {
                  <hr style="border: 0; border-top: 1px dashed #c4a882; margin: 20px 0;" />
                  <p style="white-space: pre-line; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e8ddd4;">${message}</p>
                  <hr style="border: 0; border-top: 1px solid #e8ddd4; margin: 20px 0;" />
-                 <p style="font-size: 11px; color: #9a8478; text-align: center; margin: 0;">This email was sent automatically from QuickSathi's system dispatcher.</p>
+                 <p style="font-size: 11px; color: #9a8478; text-align: center; margin: 0;">This email was sent automatically from TiptoBook's system dispatcher.</p>
                </div>`,
       }).catch((err) => console.error("Contact email dispatch error:", err?.message || err));
     }

@@ -460,7 +460,7 @@ const ProviderOnboarding = () => {
               className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight m-0 text-white leading-tight"
               style={{ fontFamily: "var(--font-display)" }}
             >
-              Grow Your Service Business with QuickSathi
+              Grow Your Service Business with TiptoBook
             </h1>
 
             <p className="mt-3 text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl">

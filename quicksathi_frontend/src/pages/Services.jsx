@@ -264,16 +264,16 @@ const Services = () => {
       style={{ backgroundColor: "var(--color-bg)" }}
     >
       <SEO
-        title="Verified Services Across India — Home, Wedding, Car Rental & Repairs | QuickSathi"
-        description="Browse 40+ verified on-demand services across India on QuickSathi. Book pandit for puja, AC repair, wedding photography & catering, car rental, home salon, electrician, plumbing & tutors."
-        canonical="https://www.quicksathi.com/services"
-        keywords="services in India, home services India, pandit for puja, wedding services India, car rental India, AC service India, electrician, plumbing, QuickSathi catalog"
+        title="Verified Services Across India — Home, Wedding, Car Rental & Repairs | TiptoBook"
+        description="Browse 40+ verified on-demand services across India on TiptoBook. Book pandit for puja, AC repair, wedding photography & catering, car rental, home salon, electrician, plumbing & tutors."
+        canonical="https://www.tiptobook.com/services"
+        keywords="services in India, home services India, pandit for puja, wedding services India, car rental India, AC service India, electrician, plumbing, TiptoBook catalog"
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "CollectionPage",
-          "name": "Verified Services Across India — QuickSathi",
-          "url": "https://www.quicksathi.com/services",
-          "description": "Browse 40+ verified services across India on QuickSathi — AC repairs, cleaning, pandits, weddings, car rentals, and more."
+          "name": "Verified Services Across India — TiptoBook",
+          "url": "https://www.tiptobook.com/services",
+          "description": "Browse 40+ verified services across India on TiptoBook — AC repairs, cleaning, pandits, weddings, car rentals, and more."
         }}
       />
       {/* ============ HERO SECTION ============ */}

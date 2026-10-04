@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import api from "../config/api";
 
-// ── Only Real Working Platform Services in QuickSathi ─────────────────────────
+// ── Only Real Working Platform Services in TiptoBook ─────────────────────────
 const CATEGORY_BANNERS = [
   {
     id: "ac",
@@ -390,12 +390,33 @@ export default function CategoryBannersCarousel() {
                 key={banner._id || banner.id || index}
                 to={banner.link}
                 onClick={(e) => {
-                  if (banner.id === "ac" || banner.link === "/services/ac") {
+                  const bId = (banner.id || "").toLowerCase();
+                  const link = (banner.link || "").toLowerCase();
+
+                  if (bId === "ac" || link === "/services/ac" || link.includes("ac")) {
                     e.preventDefault();
                     window.dispatchEvent(new CustomEvent("open-appliance-modal"));
-                  } else if (banner.id === "salon" || banner.link?.includes("home-salon") || banner.link?.includes("salon")) {
+                  } else if (bId === "salon" || link.includes("home-salon") || link.includes("salon")) {
                     e.preventDefault();
                     window.dispatchEvent(new CustomEvent("open-salon-modal"));
+                  } else if (bId === "rental" || link.includes("rental") || link.includes("vehicle") || link.includes("car")) {
+                    e.preventDefault();
+                    window.dispatchEvent(new CustomEvent("open-rental-modal"));
+                  } else if (bId === "weddings" || bId === "wedding" || link.includes("wedding")) {
+                    e.preventDefault();
+                    window.dispatchEvent(new CustomEvent("open-wedding-modal"));
+                  } else if (bId === "help" || link.includes("house-help") || link.includes("help") || link.includes("maid")) {
+                    e.preventDefault();
+                    window.dispatchEvent(new CustomEvent("open-help-modal"));
+                  } else if (bId === "repair" || link.includes("house-services") || link.includes("repair")) {
+                    e.preventDefault();
+                    window.dispatchEvent(new CustomEvent("open-repair-modal"));
+                  } else if (bId === "tuition" || link.includes("tuition") || link.includes("tutor")) {
+                    e.preventDefault();
+                    window.dispatchEvent(new CustomEvent("open-tuition-modal"));
+                  } else if (bId === "painting" || link.includes("painting")) {
+                    e.preventDefault();
+                    window.dispatchEvent(new CustomEvent("open-painting-modal"));
                   }
                 }}
                 className="category-banner-card snap-start flex-shrink-0 no-underline block rounded-2xl sm:rounded-3xl overflow-hidden relative transition-shadow duration-300 hover:shadow-xl active:scale-[0.99] group"

@@ -9,8 +9,16 @@ import api from "../../config/api";
 import { Bell, Trash2, MapPin } from "lucide-react";
 import BrandLogo from "../common/BrandLogo";
 import { motion, AnimatePresence } from "framer-motion";
-import ApplianceCategoryModal from "../modals/ApplianceCategoryModal";
-import HomeSalonCategoryModal from "../modals/HomeSalonCategoryModal";
+import {
+  ApplianceCategoryModal,
+  HomeSalonCategoryModal,
+  VehicleRentalCategoryModal,
+  WeddingCategoryModal,
+  HouseHelpCategoryModal,
+  HouseServicesCategoryModal,
+  HomeTuitionCategoryModal,
+  PaintingCategoryModal,
+} from "../modals";
 
 /* ── Compact City Picker (used inside navbar) ── */
 const CityPicker = ({ isFullBleed, isMobile }) => {
@@ -924,10 +932,15 @@ const Layout = () => {
       <BottomNav />
       {/* TiptoBook AI Chatbot — floating bottom-right */}
       <ChatBot />
-      {/* Global Appliance Category Quick-Picker Modal */}
+      {/* Global Category Quick-Picker Modals */}
       <ApplianceCategoryModal />
-      {/* Global Home Salon Category Quick-Picker Modal */}
       <HomeSalonCategoryModal />
+      <VehicleRentalCategoryModal />
+      <WeddingCategoryModal />
+      <HouseHelpCategoryModal />
+      <HouseServicesCategoryModal />
+      <HomeTuitionCategoryModal />
+      <PaintingCategoryModal />
     </div>
   );
 };

@@ -186,14 +186,14 @@ const ServiceDetail = () => {
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-20 sm:pb-28 overflow-x-hidden selection:bg-purple-100 selection:text-purple-900">
       <SEO
-        title={`${service.name} — Book Online Across India | QuickSathi`}
+        title={`${service.name} — Book Online Across India | TiptoBook`}
         description={
           service.shortDescription ||
           service.description ||
-          `Book verified ${service.name} professionals in India on QuickSathi. Upfront pricing, vetted experts, and instant booking.`
+          `Book verified ${service.name} professionals in India on TiptoBook. Upfront pricing, vetted experts, and instant booking.`
         }
-        canonical={`https://www.quicksathi.com/service/${service.slug || service._id || service.id || id}`}
-        keywords={`${service.name}, book ${service.name} online, ${service.name} India, online service booking, QuickSathi`}
+        canonical={`https://www.tiptobook.com/service/${service.slug || service._id || service.id || id}`}
+        keywords={`${service.name}, book ${service.name} online, ${service.name} India, online service booking, TiptoBook`}
       />
 
       {/* ── Modern Urban Company style Header & Media Showcase ── */}

@@ -78,32 +78,36 @@ const HomeSalonCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }) =>
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
-          {/* Backdrop with subtle blur */}
+          {/* Backdrop with optimized GPU compositing */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
+            transition={{ duration: 0.16, ease: "easeOut" }}
             onClick={handleClose}
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-md"
+            className="fixed inset-0 bg-slate-950/50 backdrop-blur-xs"
+            style={{ willChange: "opacity" }}
             aria-hidden="true"
           />
 
-          {/* Modal Container */}
+          {/* Modal Container: Optimized GPU Promoted Sheet */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.94, y: 15 }}
+            initial={{ opacity: 0, scale: 0.96, y: 10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.94, y: 15 }}
-            transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+            exit={{ opacity: 0, scale: 0.96, y: 8 }}
+            transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
             className="relative w-full max-w-[420px] bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden z-10 my-auto p-5 sm:p-7"
             style={{
-              boxShadow: "0 25px 70px -12px rgba(15, 23, 42, 0.25)",
+              boxShadow: "0 25px 70px -12px rgba(15, 23, 42, 0.22)",
+              transform: "translateZ(0)",
+              willChange: "transform, opacity",
+              backfaceVisibility: "hidden",
             }}
           >
             {/* Header */}
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-pink-100/80 text-pink-600 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-xl bg-pink-100/80 text-pink-600 flex items-center justify-center shrink-0">
                   <Sparkles size={17} />
                 </div>
                 <div>
@@ -143,30 +147,22 @@ const HomeSalonCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }) =>
                   key={option.id}
                   type="button"
                   whileHover={{ scale: 1.015, y: -2 }}
-                  whileTap={{ scale: 0.97 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => handleSelectGender(option.route)}
-                  className="group relative w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-2xl border border-slate-200/70 bg-white hover:border-transparent cursor-pointer outline-none transition-all duration-250"
-                  style={{
-                    boxShadow: "0 2px 10px -2px rgba(0,0,0,0.06)",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = option.gradient;
-                    e.currentTarget.style.borderColor = "transparent";
-                    e.currentTarget.style.boxShadow = `0 8px 24px -4px ${option.accentColor}22`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "white";
-                    e.currentTarget.style.borderColor = "rgba(226,232,240,0.7)";
-                    e.currentTarget.style.boxShadow = "0 2px 10px -2px rgba(0,0,0,0.06)";
-                  }}
+                  className={`group relative w-full flex items-center gap-4 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 bg-white hover:border-transparent cursor-pointer outline-none transition-all duration-200 shadow-xs hover:shadow-lg will-change-transform ${
+                    option.id === "women"
+                      ? "hover:bg-gradient-to-br hover:from-pink-50 hover:to-rose-100/60 hover:shadow-pink-500/10"
+                      : "hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-100/60 hover:shadow-blue-500/10"
+                  }`}
                 >
                   {/* Image */}
-                  <div className="relative w-20 h-20 sm:w-[88px] sm:h-[88px] rounded-2xl overflow-hidden flex-shrink-0 border border-slate-100 shadow-sm">
+                  <div className="relative w-20 h-20 sm:w-[88px] sm:h-[88px] rounded-2xl overflow-hidden flex-shrink-0 border border-slate-100 shadow-sm pointer-events-none">
                     <img
                       src={option.image}
                       alt={option.label}
                       loading="eager"
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      decoding="async"
+                      className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                       onError={(e) => {
                         e.currentTarget.onerror = null;
                         e.currentTarget.src = "/icons/categories/home-salon.png";
@@ -175,20 +171,19 @@ const HomeSalonCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }) =>
                   </div>
 
                   {/* Text */}
-                  <div className="flex-1 text-left min-w-0">
+                  <div className="flex-1 text-left min-w-0 pointer-events-none">
                     <h4
-                      className="text-base sm:text-lg font-bold m-0 text-slate-900 tracking-tight group-hover:text-opacity-100 transition-colors"
-                      style={{ "--hover-color": option.accentColor }}
+                      className="text-base sm:text-lg font-bold m-0 text-slate-900 tracking-tight transition-colors"
                     >
                       {option.label}
                     </h4>
-                    <p className="text-[11.5px] sm:text-xs text-slate-500 m-0 mt-1 leading-relaxed line-clamp-2 group-hover:text-slate-600 transition-colors">
+                    <p className="text-[11.5px] sm:text-xs text-slate-500 m-0 mt-1 leading-relaxed line-clamp-2 transition-colors">
                       {option.subtitle}
                     </p>
 
                     {/* CTA hint */}
                     <span
-                      className="inline-flex items-center gap-1 mt-2.5 text-[11px] font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                      className="inline-flex items-center gap-1 mt-2.5 text-[11px] font-bold uppercase tracking-wider opacity-0 group-hover:opacity-100 transition-opacity duration-150"
                       style={{ color: option.accentColor }}
                     >
                       Explore Services →
@@ -196,21 +191,6 @@ const HomeSalonCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }) =>
                   </div>
                 </motion.button>
               ))}
-            </div>
-
-            {/* Modal Footer Note */}
-            <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-              <span className="flex items-center gap-1.5 text-pink-600 font-medium">
-                <ShieldCheck size={13} className="text-pink-600 shrink-0" />
-                100% Sealed Single-Use Kits
-              </span>
-              <button
-                type="button"
-                onClick={() => handleSelectGender("/category/home-salon")}
-                className="text-pink-600 font-semibold hover:underline bg-transparent border-none p-0 cursor-pointer"
-              >
-                Full Salon Menu →
-              </button>
             </div>
           </motion.div>
         </div>

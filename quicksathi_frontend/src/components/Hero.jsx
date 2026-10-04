@@ -881,12 +881,37 @@ const Hero = ({ categories, services, onBookNow }) => {
                 key={activeCat.id}
                 cat={activeCat}
                 onNavigate={(route) => {
-                  if (route === "/services/ac") {
+                  const r = (route || "").toLowerCase();
+                  if (r.includes("/services/ac") || r.includes("appliance")) {
                     window.dispatchEvent(new CustomEvent("open-appliance-modal"));
                     return;
                   }
-                  if (route.includes("salon") || route === "/category/25" || route.includes("home-salon")) {
+                  if (r.includes("salon") || r.includes("/category/25") || r.includes("home-salon")) {
                     window.dispatchEvent(new CustomEvent("open-salon-modal"));
+                    return;
+                  }
+                  if (r.includes("rental") || r.includes("vehicle")) {
+                    window.dispatchEvent(new CustomEvent("open-rental-modal"));
+                    return;
+                  }
+                  if (r.includes("wedding")) {
+                    window.dispatchEvent(new CustomEvent("open-wedding-modal"));
+                    return;
+                  }
+                  if (r.includes("help") || r.includes("/category/20")) {
+                    window.dispatchEvent(new CustomEvent("open-help-modal"));
+                    return;
+                  }
+                  if (r.includes("house-services") || r.includes("repair") || r.includes("/category/30") || r.includes("/category/31")) {
+                    window.dispatchEvent(new CustomEvent("open-repair-modal"));
+                    return;
+                  }
+                  if (r.includes("tuition") || r.includes("/category/15")) {
+                    window.dispatchEvent(new CustomEvent("open-tuition-modal"));
+                    return;
+                  }
+                  if (r.includes("painting") || r.includes("/category/35")) {
+                    window.dispatchEvent(new CustomEvent("open-painting-modal"));
                     return;
                   }
                   navigate(route);
@@ -913,12 +938,38 @@ const Hero = ({ categories, services, onBookNow }) => {
             </div>
             <button
               onClick={() => {
-                if (activeCat.route === "/services/ac") {
+                const r = (activeCat.route || "").toLowerCase();
+                const id = (activeCat.id || "").toLowerCase();
+                if (r.includes("/services/ac") || id.includes("ac")) {
                   window.dispatchEvent(new CustomEvent("open-appliance-modal"));
                   return;
                 }
-                if (activeCat.id === "salon" || activeCat.route?.includes("salon") || activeCat.route === "/category/25") {
+                if (id === "salon" || r.includes("salon") || r.includes("/category/25")) {
                   window.dispatchEvent(new CustomEvent("open-salon-modal"));
+                  return;
+                }
+                if (id === "rental" || r.includes("rental") || r.includes("vehicle")) {
+                  window.dispatchEvent(new CustomEvent("open-rental-modal"));
+                  return;
+                }
+                if (id === "weddings" || r.includes("wedding")) {
+                  window.dispatchEvent(new CustomEvent("open-wedding-modal"));
+                  return;
+                }
+                if (id === "help" || r.includes("help") || r.includes("/category/20")) {
+                  window.dispatchEvent(new CustomEvent("open-help-modal"));
+                  return;
+                }
+                if (id === "house-services" || r.includes("repair") || r.includes("/category/30") || r.includes("/category/31")) {
+                  window.dispatchEvent(new CustomEvent("open-repair-modal"));
+                  return;
+                }
+                if (id === "tuition" || r.includes("tuition") || r.includes("/category/15")) {
+                  window.dispatchEvent(new CustomEvent("open-tuition-modal"));
+                  return;
+                }
+                if (id === "painting" || r.includes("painting") || r.includes("/category/35")) {
+                  window.dispatchEvent(new CustomEvent("open-painting-modal"));
                   return;
                 }
                 navigate(activeCat.route);

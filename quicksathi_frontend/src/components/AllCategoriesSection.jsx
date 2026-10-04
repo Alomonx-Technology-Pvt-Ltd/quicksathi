@@ -10,6 +10,7 @@ const DEFAULT_CATEGORIES = [
     route: "/category/vehicle-rental",
     iconImage: "/icons/categories/car-rental.png",
     matchKeywords: ["vehicle", "car", "rental"],
+    isModalTrigger: true,
     bgColor: "#FEF7DA",
     bgHover: "#FEEFBD",
     borderColor: "rgba(245, 158, 11, 0.16)",
@@ -22,6 +23,7 @@ const DEFAULT_CATEGORIES = [
     route: "/category/wedding",
     iconImage: "/icons/categories/wedding-events.png",
     matchKeywords: ["wedding", "party", "events"],
+    isModalTrigger: true,
     bgColor: "#FDF1F7",
     bgHover: "#FCE4F2",
     borderColor: "rgba(236, 72, 153, 0.16)",
@@ -34,6 +36,7 @@ const DEFAULT_CATEGORIES = [
     route: "/category/house-help",
     iconImage: "/icons/categories/house-help.png",
     matchKeywords: ["house help", "maid", "cook"],
+    isModalTrigger: true,
     bgColor: "#EDFBF7",
     bgHover: "#D6F6EC",
     borderColor: "rgba(16, 185, 129, 0.16)",
@@ -46,6 +49,7 @@ const DEFAULT_CATEGORIES = [
     route: "/category/house-services",
     iconImage: "/icons/categories/home-repair.png",
     matchKeywords: ["repair", "plumbing", "electrician", "carpentry", "house services", "house services repair", "house services & repair"],
+    isModalTrigger: true,
     bgColor: "#F4F4F8",
     bgHover: "#EAEBF2",
     borderColor: "rgba(100, 116, 139, 0.16)",
@@ -71,6 +75,7 @@ const DEFAULT_CATEGORIES = [
     route: "/category/home-tuition",
     iconImage: "/icons/categories/home-tuition.png",
     matchKeywords: ["tuition", "tutor", "tution"],
+    isModalTrigger: true,
     bgColor: "#EFF2FE",
     bgHover: "#DFE5FE",
     borderColor: "rgba(99, 102, 241, 0.16)",
@@ -96,6 +101,7 @@ const DEFAULT_CATEGORIES = [
     route: "/category/painting",
     iconImage: "/icons/categories/painting.png",
     matchKeywords: ["painting", "paint"],
+    isModalTrigger: true,
     bgColor: "#FFF8E7",
     bgHover: "#FEF0C7",
     borderColor: "rgba(245, 158, 11, 0.16)",
@@ -106,14 +112,6 @@ const DEFAULT_CATEGORIES = [
 
 const AllCategoriesSection = ({ categories = [] }) => {
   const navigate = useNavigate();
-  const [isApplianceModalOpen, setIsApplianceModalOpen] = useState(false);
-
-  // Listen for global event to open appliance modal from any component
-  useEffect(() => {
-    const handleOpen = () => setIsApplianceModalOpen(true);
-    window.addEventListener("open-appliance-modal", handleOpen);
-    return () => window.removeEventListener("open-appliance-modal", handleOpen);
-  }, []);
 
   // Merge real-time backend categories with icon metadata and dynamic routing
   const displayCategories = useMemo(() => {
@@ -144,16 +142,57 @@ const AllCategoriesSection = ({ categories = [] }) => {
   }, [categories]);
 
   const handleCategoryClick = (e, cat) => {
-    if (cat.id === "ac" || cat.title?.toLowerCase().includes("appliance")) {
-      e.preventDefault();
+    e.preventDefault();
+    const id = (cat.id || "").toString().toLowerCase();
+    const title = (cat.title || "").toLowerCase();
+
+    if (id === "ac" || title.includes("appliance")) {
       window.dispatchEvent(new CustomEvent("open-appliance-modal"));
     } else if (
-      cat.id === "salon" ||
-      cat.title?.toLowerCase().includes("salon") ||
-      cat.title?.toLowerCase().includes("beauty")
+      id === "salon" ||
+      title.includes("salon") ||
+      title.includes("beauty")
     ) {
-      e.preventDefault();
       window.dispatchEvent(new CustomEvent("open-salon-modal"));
+    } else if (
+      id === "rental" ||
+      title.includes("vehicle") ||
+      title.includes("rental") ||
+      title.includes("car")
+    ) {
+      window.dispatchEvent(new CustomEvent("open-rental-modal"));
+    } else if (
+      id === "weddings" ||
+      id === "wedding" ||
+      title.includes("wedding") ||
+      title.includes("party")
+    ) {
+      window.dispatchEvent(new CustomEvent("open-wedding-modal"));
+    } else if (
+      id === "help" ||
+      title.includes("house help") ||
+      title.includes("maid")
+    ) {
+      window.dispatchEvent(new CustomEvent("open-help-modal"));
+    } else if (
+      id === "repair" ||
+      title.includes("repair") ||
+      title.includes("house services")
+    ) {
+      window.dispatchEvent(new CustomEvent("open-repair-modal"));
+    } else if (
+      id === "tuition" ||
+      title.includes("tuition") ||
+      title.includes("tutor")
+    ) {
+      window.dispatchEvent(new CustomEvent("open-tuition-modal"));
+    } else if (
+      id === "painting" ||
+      title.includes("paint")
+    ) {
+      window.dispatchEvent(new CustomEvent("open-painting-modal"));
+    } else {
+      navigate(cat.route);
     }
   };
 
@@ -226,28 +265,15 @@ const AllCategoriesSection = ({ categories = [] }) => {
                     backgroundColor: cat.bgColor,
                     border: `1px solid ${cat.bgColor}`,
                     boxShadow: "0 4px 14px -2px rgba(0, 0, 0, 0.07), 0 2px 6px -1px rgba(0, 0, 0, 0.04)",
-                    transition: "all 0.28s cubic-bezier(0.16, 1, 0.3, 1)",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = cat.bgHover;
-                    e.currentTarget.style.borderColor = cat.bgHover;
-                    e.currentTarget.style.transform = "translateY(-4px)";
-                    e.currentTarget.style.boxShadow = `0 12px 24px -4px ${cat.shadowColor}`;
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = cat.bgColor;
-                    e.currentTarget.style.borderColor = cat.bgColor;
-                    e.currentTarget.style.transform = "translateY(0)";
-                    e.currentTarget.style.boxShadow = "0 4px 14px -2px rgba(0, 0, 0, 0.07), 0 2px 6px -1px rgba(0, 0, 0, 0.04)";
                   }}
                 >
                   <img
                     src={cat.iconImage}
                     alt={cat.title}
                     loading="eager"
-                    decoding="sync"
+                    decoding="async"
                     fetchPriority="high"
-                    className="w-full h-full object-contain select-none pointer-events-none transition-transform duration-300 ease-out group-hover:scale-108 drop-shadow-[0_2px_4px_rgba(0,0,0,0.04)]"
+                    className="w-full h-full object-contain select-none pointer-events-none transition-transform duration-200 ease-out group-hover:scale-105 drop-shadow-[0_2px_4px_rgba(0,0,0,0.04)]"
                     onError={(e) => {
                       if (!e.target.dataset.triedFallback) {
                         e.target.dataset.triedFallback = "true";
@@ -259,7 +285,7 @@ const AllCategoriesSection = ({ categories = [] }) => {
 
                 {/* ── Balanced Category Label ── */}
                 <span
-                  className="mt-2 sm:mt-2.5 text-center leading-[1.2] sm:leading-[1.25] transition-colors duration-200 font-semibold text-[11px] xs:text-xs sm:text-[13px] md:text-[13.5px] max-w-[78px] xs:max-w-[88px] sm:max-w-[115px] md:max-w-[130px] mx-auto text-slate-800"
+                  className="cat-title-label mt-2 sm:mt-2.5 text-center leading-[1.2] sm:leading-[1.25] transition-colors duration-200 font-semibold text-[11px] xs:text-xs sm:text-[13px] md:text-[13.5px] max-w-[78px] xs:max-w-[88px] sm:max-w-[115px] md:max-w-[130px] mx-auto text-slate-800"
                   style={{
                     textWrap: "balance",
                     color: "#1e293b",

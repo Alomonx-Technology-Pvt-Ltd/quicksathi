@@ -210,7 +210,7 @@ const AdminCoupons = () => {
             </span>
           </div>
           <p className="text-sm mt-1 mb-0" style={{ color: "var(--admin-text-secondary)" }}>
-            Create discount vouchers. QuickSathi strictly enforces that each customer can only redeem any given coupon once.
+            Create discount vouchers. TiptoBook strictly enforces that each customer can only redeem any given coupon once.
           </p>
         </div>
 

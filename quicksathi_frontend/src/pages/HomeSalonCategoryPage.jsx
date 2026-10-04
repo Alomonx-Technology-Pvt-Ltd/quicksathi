@@ -450,10 +450,10 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-20 overflow-x-hidden selection:bg-purple-100 selection:text-purple-900">
       <SEO
-        title="Home Salon & Beauty Services Across India — QuickSathi"
-        description="Book top-rated home salon services across India — haircut, facial, bridal makeup, manicure, pedicure, waxing & grooming at your doorstep with verified beauticians on QuickSathi."
-        canonical="https://www.quicksathi.com/category/home-salon"
-        keywords="home salon India, beauty services at home, bridal makeup home, facial at home, manicure pedicure home, waxing at home, grooming, QuickSathi"
+        title="Home Salon & Beauty Services Across India — TiptoBook"
+        description="Book top-rated home salon services across India — haircut, facial, bridal makeup, manicure, pedicure, waxing & grooming at your doorstep with verified beauticians on TiptoBook."
+        canonical="https://www.tiptobook.com/category/home-salon"
+        keywords="home salon India, beauty services at home, bridal makeup home, facial at home, manicure pedicure home, waxing at home, grooming, TiptoBook"
       />
 
       {/* ── Main Container ── */}

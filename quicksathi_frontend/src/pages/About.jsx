@@ -53,20 +53,20 @@ const About = () => {
       style={{ backgroundColor: "var(--color-bg)" }}
     >
       <SEO
-        title="QuickSathi – Online Service Booking Platform in India"
-        description="Find and book trusted services with QuickSathi. Explore home services, pandits for puja, wedding services, car rentals, tutors, house help and more in one place."
-        canonical="https://www.quicksathi.com/about-us"
-        keywords="online service booking platform, service booking platform in India, book services online India, local service providers, services in India, home services, wedding services, pandit for puja, car rental services, QuickSathi"
+        title="TiptoBook – Online Service Booking Platform in India"
+        description="Find and book trusted services with TiptoBook. Explore home services, pandits for puja, wedding services, car rentals, tutors, house help and more in one place."
+        canonical="https://www.tiptobook.com/about-us"
+        keywords="online service booking platform, service booking platform in India, book services online India, local service providers, services in India, home services, wedding services, pandit for puja, car rental services, TiptoBook"
         jsonLd={{
           "@context": "https://schema.org",
           "@type": "AboutPage",
-          "name": "About QuickSathi – Online Service Booking Platform",
-          "url": "https://www.quicksathi.com/about-us",
-          "description": "Find and book trusted services across India with QuickSathi. Explore home services, wedding services, car rentals, tutors, and repairs.",
+          "name": "About TiptoBook – Online Service Booking Platform",
+          "url": "https://www.tiptobook.com/about-us",
+          "description": "Find and book trusted services across India with TiptoBook. Explore home services, wedding services, car rentals, tutors, and repairs.",
           "mainEntity": {
             "@type": "Organization",
-            "name": "QuickSathi",
-            "url": "https://www.quicksathi.com",
+            "name": "TiptoBook",
+            "url": "https://www.tiptobook.com",
             "sameAs": [
               "https://www.facebook.com/share/19PhRio3So/?mibextid=wwXIfr",
               "https://www.linkedin.com/company/tiptobook/",
@@ -163,7 +163,7 @@ const About = () => {
                 letterSpacing: "-0.025em",
               }}
             >
-              About QuickSathi –
+              About TiptoBook –
               <br />
               <span
                 style={{
@@ -183,7 +183,7 @@ const About = () => {
               className="text-slate-200 text-base sm:text-lg leading-relaxed m-0 mb-8 max-w-xl"
               style={{ fontFamily: "var(--font-body)", opacity: 0.92 }}
             >
-              Find and book trusted on-demand services across India with QuickSathi. We connect customers nationwide with verified service professionals for home services, pandits for puja & weddings, car rental services, tutors, and repair experts.
+              Find and book trusted on-demand services across India with TiptoBook. We connect customers nationwide with verified service professionals for home services, pandits for puja & weddings, car rental services, tutors, and repair experts.
             </motion.p>
 
             <motion.div
@@ -390,10 +390,10 @@ const About = () => {
               style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
             >
               <p>
-                QuickSathi was founded with a clear realization: finding trustworthy service providers in India is far too complicated. Whether you are searching for dependable home services, reliable car rentals, wedding ceremonies and pandits, or appliance repair, customers across India often face inconsistent quality, opaque pricing, and delays.
+                TiptoBook was founded with a clear realization: finding trustworthy service providers in India is far too complicated. Whether you are searching for dependable home services, reliable car rentals, wedding ceremonies and pandits, or appliance repair, customers across India often face inconsistent quality, opaque pricing, and delays.
               </p>
               <p>
-                As a modern online service booking platform, we built QuickSathi to put trust and transparency first. We established direct partnerships with vetted service providers across India, automated the scheduling process, and mandated upfront, itemized quotes. The result is a seamless destination to book services online with complete confidence.
+                As a modern online service booking platform, we built TiptoBook to put trust and transparency first. We established direct partnerships with vetted service providers across India, automated the scheduling process, and mandated upfront, itemized quotes. The result is a seamless destination to book services online with complete confidence.
               </p>
             </div>
           </div>

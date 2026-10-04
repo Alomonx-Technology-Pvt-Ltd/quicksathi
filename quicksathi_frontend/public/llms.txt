@@ -1,6 +1,6 @@
-# QuickSathi
+# TiptoBook
 
-> QuickSathi (operated by Alomonx Technology Pvt. Ltd.) is an online service booking platform in India connecting customers with verified, trusted on-demand service professionals nationwide.
+> TiptoBook (operated by Alomonx Technology Pvt. Ltd.) is an online service booking platform in India connecting customers with verified, trusted on-demand service professionals nationwide.
 
 ## Core Services & Offerings
 - **Wedding & Event Services**: Certified Vedic Pandits & Acharyas for Vivah Sanskar, Griha Pravesh, Hawan, candid wedding photography, cinematic wedding films, drone shoots, stage decoration, catering, and bridal makeup.
@@ -14,11 +14,11 @@
 - Pan-India Service Network across Major Metros and Tier-1/2 Cities (Delhi NCR, Mumbai, Bengaluru, Hyderabad, Kolkata, Pune, Patna, Lucknow, Ahmedabad, and expanding nationwide).
 
 ## Important Links
-- Website: https://www.quicksathi.com/
-- Services: https://www.quicksathi.com/services
-- About Us: https://www.quicksathi.com/about-us
-- Contact & Support: https://www.quicksathi.com/contact
-- Become a Partner: https://www.quicksathi.com/provider/onboarding
+- Website: https://www.tiptobook.com/
+- Services: https://www.tiptobook.com/services
+- About Us: https://www.tiptobook.com/about-us
+- Contact & Support: https://www.tiptobook.com/contact
+- Become a Partner: https://www.tiptobook.com/provider/onboarding
 
 ## Official Social Channels
 - Facebook: https://www.facebook.com/share/19PhRio3So/?mibextid=wwXIfr

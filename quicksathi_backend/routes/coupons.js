@@ -10,7 +10,7 @@ const DEFAULT_COUPONS = [
   {
     code: "WELCOME50",
     title: "Flat ₹50 OFF on First Booking",
-    description: "Special welcome offer for new QuickSathi users on any service.",
+    description: "Special welcome offer for new TiptoBook users on any service.",
     discountType: "fixed",
     discountValue: 50,
     minOrderAmount: 199,

@@ -1,54 +1,51 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Sparkles } from "lucide-react";
+import { X, Car } from "lucide-react";
 
-const APPLIANCE_SERVICES = [
+const VEHICLE_SERVICES = [
   {
-    section: "AC & APPLIANCE REPAIR",
+    section: "VEHICLE RENTAL SERVICES",
     items: [
       {
-        id: "ac-repair",
-        name: "AC Repair & Services",
-        icon: "/icons/appliances/ac-repair.png",
-        route: "/services/ac",
+        id: "wedding-car",
+        name: "Wedding Car Rental",
         badge: "Popular",
+        image:
+          "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=300&auto=format&fit=crop",
+        fallbackIcon: "/icons/categories/car-rental.png",
+        route: "/category/vehicle-rental",
       },
       {
-        id: "washing-machine",
-        name: "Washing Machine Repair",
-        icon: "/icons/appliances/washing-machine.png",
-        route: "/service/washing-machine-repair",
+        id: "daily-car",
+        name: "Daily Car Rental",
+        image:
+          "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/outstation-airport-cab.jpg",
+        fallbackIcon: "/icons/categories/car-rental.png",
+        route: "/category/vehicle-rental",
       },
       {
-        id: "refrigerator",
-        name: "Refrigerator Repair & Services",
-        icon: "/icons/appliances/refrigerator.png",
-        route: "/service/refrigerator-repair",
+        id: "airport-cabs",
+        name: "Outstation & Airport Cab",
+        image:
+          "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=300&auto=format&fit=crop",
+        fallbackIcon: "/icons/categories/car-rental.png",
+        route: "/category/vehicle-rental",
       },
       {
-        id: "tv-repair",
-        name: "TV Repair & Services",
-        icon: "/icons/appliances/tv-repair.png",
-        route: "/service/tv-repair",
-      },
-    ],
-  },
-  {
-    section: "OTHER APPLIANCES",
-    items: [
-      {
-        id: "geyser-repair",
-        name: "Geyser Repair & Services",
-        icon: "/icons/appliances/geyser-repair.png",
-        route: "/service/geyser-repair",
-        badge: "Essential",
+        id: "self-drive",
+        name: "Self-Drive Car Fleet",
+        badge: "Zero Deposit",
+        image:
+          "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=300&auto=format&fit=crop",
+        fallbackIcon: "/icons/categories/car-rental.png",
+        route: "/category/vehicle-rental",
       },
     ],
   },
 ];
 
-const ApplianceCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
+const VehicleRentalCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
   const navigate = useNavigate();
   const [internalOpen, setInternalOpen] = useState(false);
 
@@ -60,11 +57,15 @@ const ApplianceCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }) =>
     setInternalOpen(false);
   };
 
-  // Listen for global open event
+  // Listen for global open events
   useEffect(() => {
     const handleGlobalOpen = () => setInternalOpen(true);
-    window.addEventListener("open-appliance-modal", handleGlobalOpen);
-    return () => window.removeEventListener("open-appliance-modal", handleGlobalOpen);
+    window.addEventListener("open-rental-modal", handleGlobalOpen);
+    window.addEventListener("open-vehicle-rental-modal", handleGlobalOpen);
+    return () => {
+      window.removeEventListener("open-rental-modal", handleGlobalOpen);
+      window.removeEventListener("open-vehicle-rental-modal", handleGlobalOpen);
+    };
   }, []);
 
   // Close on Escape key press & prevent background body scrolling
@@ -121,15 +122,15 @@ const ApplianceCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }) =>
             {/* Header: Title and Close Button */}
             <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-purple-100/70 text-purple-700 flex items-center justify-center shrink-0">
-                  <Sparkles size={16} />
+                <div className="w-8 h-8 rounded-xl bg-amber-100/80 text-amber-700 flex items-center justify-center shrink-0">
+                  <Car size={16} />
                 </div>
                 <div>
                   <h3 className="text-lg sm:text-xl font-bold text-slate-900 m-0 tracking-tight">
-                    Appliance Repair
+                    Vehicle Rental
                   </h3>
                   <p className="text-[11.5px] text-slate-500 m-0 leading-none mt-0.5">
-                    Select your appliance for instant verified booking
+                    Select your vehicle service for instant booking
                   </p>
                 </div>
               </div>
@@ -145,19 +146,21 @@ const ApplianceCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }) =>
               </button>
             </div>
 
-            {/* Sections Content — Scrollbars hidden cleanly */}
+            {/* Sections Content — 3-Column Clean Icon Grid matching AC popup */}
             <div className="mt-4 flex flex-col gap-5 max-h-[70vh] overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden pr-0.5">
-              {APPLIANCE_SERVICES.map((sec) => (
+              {VEHICLE_SERVICES.map((sec) => (
                 <div key={sec.section}>
                   {/* Section Label */}
-                  <div className="flex items-center gap-2 mb-2.5">
-                    <span className="text-[10.5px] font-bold tracking-wider uppercase text-slate-400">
-                      {sec.section}
-                    </span>
-                    <div className="flex-1 h-px bg-slate-100" />
-                  </div>
+                  {sec.section && (
+                    <div className="flex items-center gap-2 mb-2.5">
+                      <span className="text-[10.5px] font-bold tracking-wider uppercase text-slate-400">
+                        {sec.section}
+                      </span>
+                      <div className="flex-1 h-px bg-slate-100" />
+                    </div>
+                  )}
 
-                  {/* 3-Column Clean Icon Grid: NO card background, seamless unified popup */}
+                  {/* 3-Column Clean Grid */}
                   <div className="grid grid-cols-3 gap-2 sm:gap-3.5">
                     {sec.items.map((item) => (
                       <motion.button
@@ -170,31 +173,31 @@ const ApplianceCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }) =>
                         className="group flex flex-col items-center text-center p-2 sm:p-2.5 rounded-2xl bg-transparent hover:bg-slate-50/80 transition-colors duration-150 cursor-pointer outline-none relative border-0"
                         style={{ transform: "translateZ(0)" }}
                       >
-                        {/* Popular / Essential Badge */}
+                        {/* Optional Badge */}
                         {item.badge && (
                           <span className="absolute top-0.5 right-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-purple-600 text-white tracking-wide shadow-xs z-10 pointer-events-none">
                             {item.badge}
                           </span>
                         )}
 
-                        {/* Clean High-res Appliance Icon Tile */}
+                        {/* Clean High-res Vehicle Image Thumbnail */}
                         <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center relative p-1 shrink-0 aspect-square">
                           <img
-                            src={item.icon}
+                            src={item.image}
                             alt={item.name}
                             loading="eager"
                             decoding="async"
                             draggable="false"
-                            className="w-full h-full object-contain drop-shadow-xs group-hover:scale-108 transition-transform duration-200 ease-out select-none pointer-events-none"
+                            className="w-full h-full object-cover rounded-2xl drop-shadow-xs group-hover:scale-108 transition-transform duration-200 ease-out select-none pointer-events-none"
                             onError={(e) => {
                               e.currentTarget.onerror = null;
-                              e.currentTarget.src = "/icons/categories/ac-appliances.png";
+                              e.currentTarget.src = item.fallbackIcon;
                             }}
                           />
                         </div>
 
-                        {/* Title */}
-                        <span className="mt-2 text-[11px] sm:text-[12px] font-semibold text-slate-800 group-hover:text-purple-700 leading-snug line-clamp-2 transition-colors duration-150">
+                        {/* Title Only */}
+                        <span className="mt-2 text-[11px] sm:text-[12px] font-semibold text-slate-800 group-hover:text-amber-700 leading-snug line-clamp-2 transition-colors duration-150">
                           {item.name}
                         </span>
                       </motion.button>
@@ -210,4 +213,4 @@ const ApplianceCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }) =>
   );
 };
 
-export default ApplianceCategoryModal;
+export default VehicleRentalCategoryModal;

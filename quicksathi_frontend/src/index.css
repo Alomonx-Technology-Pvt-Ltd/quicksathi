@@ -463,3 +463,26 @@ input:focus, select:focus, textarea:focus {
 .no-scrollbar::-webkit-scrollbar {
   display: none;                /* Chrome / Safari / Opera */
 }
+
+/* ─────────────────────────────────────────
+   6. Optimized GPU Category Squircle Transitions
+   Zero-lag, 120 FPS compositor-thread hover
+───────────────────────────────────────── */
+.cat-squircle-tile {
+  transform: translateZ(0);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, box-shadow 0.22s ease, border-color 0.2s ease;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+.group:hover .cat-squircle-tile {
+  transform: translateY(-4px) translateZ(0);
+  background-color: var(--cat-bg-hover, #f8fafc) !important;
+  border-color: var(--cat-bg-hover, #f8fafc) !important;
+  box-shadow: 0 12px 24px -4px var(--cat-shadow, rgba(0,0,0,0.12)) !important;
+}
+
+.group:hover .cat-title-label {
+  color: var(--cat-text-hover, #0b4fd8) !important;
+}
+

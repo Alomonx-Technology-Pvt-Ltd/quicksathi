@@ -725,10 +725,10 @@ router.post("/send-email", protect, adminOnly, async (req, res) => {
     if (channels.includes("email")) {
       const emailHtml = `
         <div style="font-family: sans-serif; padding: 24px; color: #334155; line-height: 1.6; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
-          <h2 style="color: #f97316; margin-top: 0;">QuickSathi Platform Announcement</h2>
+          <h2 style="color: #f97316; margin-top: 0;">TiptoBook Platform Announcement</h2>
           <p style="white-space: pre-line; font-size: 15px; color: #1e293b;">${body}</p>
           <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-top: 24px;" />
-          <p style="font-size: 12px; color: #94a3b8; text-align: center;">You received this notification from the QuickSathi Administrator.</p>
+          <p style="font-size: 12px; color: #94a3b8; text-align: center;">You received this notification from the TiptoBook Administrator.</p>
         </div>
       `;
 
