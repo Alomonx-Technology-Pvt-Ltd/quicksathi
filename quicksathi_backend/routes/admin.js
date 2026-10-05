@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { sendMail, sendTestEmail } from "../services/emailService.js";
+import { sendMail, sendTestEmail, escapeHtml } from "../services/emailService.js";
 import User from "../models/User.js";
 import Provider from "../models/Provider.js";
 import Booking from "../models/Booking.js";
@@ -689,7 +689,10 @@ router.post("/upload", protect, adminOnly, async (req, res) => {
 // POST /api/admin/send-email — Send notifications to users via Email or In-Website
 router.post("/send-email", protect, adminOnly, async (req, res) => {
   try {
-    const { recipientType, email, subject, body, channels = ["email"] } = req.body;
+    const { recipientType, email } = req.body;
+    const body = typeof req.body.body === "string" ? req.body.body : "";
+    const subject = typeof req.body.subject === "string" ? req.body.subject.replace(/[\r\n]+/g, " ").trim() : "";
+    const channels = Array.isArray(req.body.channels) ? req.body.channels : ["email"];
     if (!subject || !body) {
       return res.status(400).json({ message: "Subject and Body are required" });
     }
@@ -705,10 +708,12 @@ router.post("/send-email", protect, adminOnly, async (req, res) => {
       const users = await User.find({ role: "user" }, "email");
       recipients = users.map(u => u.email);
     } else if (recipientType === "individual") {
-      if (!email) {
-        return res.status(400).json({ message: "Individual email recipient is required" });
+      // Only registered accounts can be messaged: this endpoint must not be a mail relay to arbitrary addresses.
+      const target = typeof email === "string" ? await User.findOne({ email: email.trim().toLowerCase() }, "email") : null;
+      if (!target) {
+        return res.status(400).json({ message: "No registered user with that email address" });
       }
-      recipients = [email];
+      recipients = [target.email];
     } else {
       return res.status(400).json({ message: "Invalid recipient type" });
     }
@@ -721,29 +726,32 @@ router.post("/send-email", protect, adminOnly, async (req, res) => {
     let isMock = true;
     let webSent = false;
     let webCount = 0;
+    let emailOk = 0;
+    let emailFailed = 0;
 
     // --- Channel 1: Email ---
     if (channels.includes("email")) {
       const emailHtml = `
         <div style="font-family: sans-serif; padding: 24px; color: #334155; line-height: 1.6; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
           <h2 style="color: #f97316; margin-top: 0;">TiptoBook Platform Announcement</h2>
-          <p style="white-space: pre-line; font-size: 15px; color: #1e293b;">${body}</p>
+          <p style="white-space: pre-line; font-size: 15px; color: #1e293b;">${escapeHtml(body)}</p>
           <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-top: 24px;" />
           <p style="font-size: 12px; color: #94a3b8; text-align: center;">You received this notification from the TiptoBook Administrator.</p>
         </div>
       `;
 
-      for (const recipient of recipients) {
-        sendMail({
-          to: recipient,
-          subject,
-          text: body,
-          html: emailHtml,
-        }).catch((err) => console.error("Admin broadcast send error:", err?.message || err));
+      // Awaited, in small batches, so one broadcast can't open hundreds of mail connections at once.
+      for (let i = 0; i < recipients.length; i += 10) {
+        const results = await Promise.all(
+          recipients.slice(i, i + 10).map((recipient) =>
+            sendMail({ to: recipient, subject, text: body, html: emailHtml }).catch((err) => ({ success: false, error: err?.message }))
+          )
+        );
+        for (const r of results) (r?.success ? (emailOk += 1) : (emailFailed += 1));
       }
 
       isMock = !process.env.BREVO_API_KEY && !process.env.SMTP_USER;
-      emailSent = true;
+      emailSent = emailOk > 0;
     }
 
     // --- Channel 2: In-Website Alerts ---
@@ -765,13 +773,16 @@ router.post("/send-email", protect, adminOnly, async (req, res) => {
 
     res.json({
       success: true,
-      message: `Notification broadcasted successfully. Channels: ${channels.join(", ")}.`,
+      message: `Notification broadcasted. Channels: ${channels.join(", ")}.`,
       count: recipients.length,
       emailSent,
+      emailDelivered: emailOk,
+      emailFailed,
       webSent,
       webCount,
       mock: isMock,
-      recipients: recipients
+      // Individual sends echo the (admin-typed) address; bulk sends never return the user list.
+      ...(recipientType === "individual" ? { recipients } : {}),
     });
   } catch (error) {
     console.error("Send notification error:", error);

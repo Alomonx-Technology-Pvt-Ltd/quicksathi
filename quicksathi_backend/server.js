@@ -3,6 +3,8 @@ import express from "express";
 import cors from "cors";
 import compression from "compression";
 import connectDB from "./config/db.js";
+import helmet from "helmet";
+import { apiLimiter, credentialLimiter, authLimiter, contactLimiter, aiLimiter, couponLimiter } from "./middleware/rateLimits.js";
 
 // Import routes
 import authRoutes from "./routes/auth.js";
@@ -20,6 +22,11 @@ import couponRoutes from "./routes/coupons.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Behind Render's proxy: trust one hop so rate limits see the real client IP.
+app.set("trust proxy", 1);
+app.disable("x-powered-by");
+app.use(helmet());
 
 // Enable gzip/brotli compression for optimized response speed & bandwidth
 app.use(compression());
@@ -83,7 +90,17 @@ app.options("/*path", cors(corsOptions));
 // Razorpay webhook needs the exact raw bytes to verify its signature, so it is parsed
 // before (and instead of) the JSON body parser.
 app.use("/api/payments/webhook", express.raw({ type: "application/json", limit: "1mb" }));
-app.use(express.json({ limit: "10mb" }));
+// Large bodies only where base64 uploads happen (admin image upload, provider KYC); everything else is capped at 100 KB.
+const bigJson = express.json({ limit: "10mb" });
+app.use("/api/admin/upload", bigJson);
+app.use("/api/providers/register", bigJson);
+app.use(express.json({ limit: "100kb" }));
+app.use("/api", apiLimiter);
+app.use(["/api/auth/login", "/api/auth/provider-login", "/api/auth/admin-login"], credentialLimiter);
+app.use("/api/auth", authLimiter);
+app.use("/api/contact", (req, res, next) => (req.method === "POST" ? contactLimiter(req, res, next) : next()));
+app.use("/api/ai", aiLimiter);
+app.use("/api/coupons/validate", couponLimiter);
 
 // ── Routes ──
 app.use("/api/auth", authRoutes);
@@ -137,6 +154,11 @@ app.use((err, req, res, next) => {
   // Return CORS errors as 403
   if (err.message?.startsWith("CORS:")) {
     return res.status(403).json({ message: err.message });
+  }
+  // Client errors raised by middleware (body too large, malformed JSON, ...) keep their own 4xx status.
+  const status = err.status || err.statusCode;
+  if (status >= 400 && status < 500) {
+    return res.status(status).json({ message: err.type === "entity.too.large" ? "Request body too large" : "Invalid request" });
   }
   console.error("Server error:", err);
   res.status(500).json({

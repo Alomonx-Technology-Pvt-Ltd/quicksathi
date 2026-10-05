@@ -5,6 +5,16 @@ const BRAND_PRIMARY = "#f97316"; // Modern Vibrant Orange
 const BRAND_DARK = "#0f172a";
 const BRAND_BG = "#f8fafc";
 
+
+// Everything that originates from a user (name, address, notes, titles) must pass through this
+// before being placed in HTML, otherwise emails can carry phishing links under our sender.
+export const escapeHtml = (value) =>
+  String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 /**
  * Singleton cached pooled transporter for low latency SMTP sends.
  */
@@ -60,9 +70,7 @@ function getTransporter() {
     port,
     secure: port === 465,
     auth: { user, pass },
-    tls: {
-      rejectUnauthorized: false,
-    },
+    // TLS certificates are verified (never set rejectUnauthorized: false).
   });
 
   return cachedTransporter;
@@ -163,6 +171,11 @@ export async function sendMail({ to, subject, html, text }) {
   console.log(`NOTE: Add BREVO_API_KEY or SMTP_USER & SMTP_PASS in .env for live dispatch.`);
   console.log(`========================================================================\n`);
 
+  // Mock mode is for local development only. In production a missing mail provider is a real failure.
+  if (process.env.NODE_ENV === "production") {
+    console.error("❌ No email provider configured (set BREVO_API_KEY or SMTP_USER/SMTP_PASS); email NOT sent.");
+    return { success: false, error: "No email provider configured" };
+  }
   return { success: true, mock: true };
 }
 
@@ -200,7 +213,7 @@ export async function sendWelcomeEmail({ to, name }) {
                 <tr>
                   <td style="padding: 40px;">
                     <h2 style="margin: 0 0 16px 0; color: #0f172a; font-size: 20px; font-weight: 700;">
-                      Welcome aboard, ${displayName}! 👋
+                      Welcome aboard, ${escapeHtml(displayName)}! 👋
                     </h2>
                     <p style="line-height: 1.6; margin: 0 0 20px 0; color: #475569; font-size: 15px;">
                       We're thrilled to have you with us! Whether you need expert appliance repair, AC servicing, home cleaning, wedding & event photography, or reliable car rentals — <strong>${BRAND_NAME}</strong> connects you with trusted verified professionals in minutes.
@@ -300,26 +313,26 @@ export async function sendBookingConfirmationEmail({ to, name, booking }) {
                 <tr>
                   <td style="padding: 36px 40px;">
                     <p style="margin: 0 0 20px 0; color: #475569; font-size: 15px; line-height: 1.5;">
-                      Hi <strong>${displayName}</strong>, we've received your booking! A verified expert has been assigned and will arrive at your scheduled slot.
+                      Hi <strong>${escapeHtml(displayName)}</strong>, we've received your booking! A verified expert has been assigned and will arrive at your scheduled slot.
                     </p>
 
                     <table width="100%" cellpadding="0" cellspacing="0" style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 24px;">
                       <tr>
                         <td style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0;">
                           <strong style="color: #64748b; font-size: 12px; text-transform: uppercase;">Service Booked</strong>
-                          <div style="font-size: 16px; font-weight: 700; color: #0f172a; margin-top: 4px;">${serviceName} ${booking.packageTitle ? `(${booking.packageTitle})` : ""}</div>
+                          <div style="font-size: 16px; font-weight: 700; color: #0f172a; margin-top: 4px;">${escapeHtml(serviceName)} ${booking.packageTitle ? `(${escapeHtml(booking.packageTitle)})` : ""}</div>
                         </td>
                       </tr>
                       <tr>
                         <td style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0;">
                           <strong style="color: #64748b; font-size: 12px; text-transform: uppercase;">Scheduled Slot</strong>
-                          <div style="font-size: 14px; color: #0f172a; margin-top: 4px; font-weight: 600;">📅 ${scheduledDate} • ⏰ ${scheduledTime}</div>
+                          <div style="font-size: 14px; color: #0f172a; margin-top: 4px; font-weight: 600;">📅 ${scheduledDate} • ⏰ ${escapeHtml(scheduledTime)}</div>
                         </td>
                       </tr>
                       <tr>
                         <td style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0;">
                           <strong style="color: #64748b; font-size: 12px; text-transform: uppercase;">Service Location</strong>
-                          <div style="font-size: 14px; color: #0f172a; margin-top: 4px;">📍 ${address}</div>
+                          <div style="font-size: 14px; color: #0f172a; margin-top: 4px;">📍 ${escapeHtml(address)}</div>
                         </td>
                       </tr>
                       <tr>
@@ -327,7 +340,7 @@ export async function sendBookingConfirmationEmail({ to, name, booking }) {
                           <strong style="color: #64748b; font-size: 12px; text-transform: uppercase;">Total Payable</strong>
                           <div style="font-size: 18px; font-weight: 800; color: #15803d; margin-top: 4px;">
                             ${amount}
-                            ${discount ? `<span style="font-size: 12px; color: #ea580c; font-weight: normal; margin-left: 8px;">(Saved ${discount} with coupon ${booking.couponCode})</span>` : ""}
+                            ${discount ? `<span style="font-size: 12px; color: #ea580c; font-weight: normal; margin-left: 8px;">(Saved ${discount} with coupon ${escapeHtml(booking.couponCode)})</span>` : ""}
                           </div>
                           <div style="font-size: 12px; color: #64748b; margin-top: 2px;">
                             Payment: ${booking.paymentMethod?.toUpperCase() || "COD"} • Status: <strong>${booking.paymentStatus?.toUpperCase() || "PENDING"}</strong>
@@ -402,10 +415,10 @@ export async function sendBookingStatusEmail({ to, name, booking, status }) {
                 </tr>
                 <tr>
                   <td style="padding: 32px 40px;">
-                    <p style="font-size: 15px; line-height: 1.5;">Hi <strong>${displayName}</strong>,</p>
+                    <p style="font-size: 15px; line-height: 1.5;">Hi <strong>${escapeHtml(displayName)}</strong>,</p>
                     <p style="font-size: 14px; line-height: 1.6; color: #475569;">
-                      The status of your booking for <strong>${serviceName}</strong> (Order #${bookingId}) has been updated to:
-                      <strong style="color: ${curr.color}; text-transform: uppercase;"> ${status.replace("_", " ")}</strong>.
+                      The status of your booking for <strong>${escapeHtml(serviceName)}</strong> (Order #${bookingId}) has been updated to:
+                      <strong style="color: ${curr.color}; text-transform: uppercase;"> ${escapeHtml(String(status).replace("_", " "))}</strong>.
                     </p>
                     <div style="text-align: center; margin-top: 24px;">
                       <a href="${process.env.CLIENT_URL || "http://localhost:5173"}/my-bookings" style="display: inline-block; background: ${curr.color}; color: #ffffff; text-decoration: none; padding: 10px 24px; border-radius: 8px; font-weight: 600; font-size: 14px;">
