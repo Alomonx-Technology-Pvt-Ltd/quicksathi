@@ -123,3 +123,5 @@ Error boundary with automatic one-time reload on stale chunks after a deploy; a 
 5. Server-side rental route/distance.
 6. Prerendering for SEO; a full CSP.
 7. Quality: ~120 pre-existing lint errors, giant components (`Services.jsx`, `Hero.jsx`, `Layout.jsx`, `ProviderOnboarding.jsx`), eight near-identical category modals, 52 MB of unused images in `public/images/ac/`, accessibility (labels, focus management, reduced motion).
+
+The structural refactors (error handling, provider lifecycle, booking transitions, category pop-ups, etc.) are written up, with evidence and suggested order, in [architecture-backlog.md](./architecture-backlog.md). That is a deliberate second pass: do it after you are comfortable with everything above.
