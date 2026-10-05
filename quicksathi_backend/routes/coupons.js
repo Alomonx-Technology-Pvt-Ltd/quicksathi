@@ -38,7 +38,8 @@ const DEFAULT_COUPONS = [
   },
 ];
 
-const ensureDefaultCoupons = async () => {
+// Dev-only: called from seed/seedData.js. Never run at import time (it resurrected coupons an admin had deleted).
+export const ensureDefaultCoupons = async () => {
   try {
     const count = await Coupon.countDocuments();
     if (count === 0) {
@@ -49,7 +50,7 @@ const ensureDefaultCoupons = async () => {
     console.warn("⚠️ Coupon auto-seed skipped:", err.message);
   }
 };
-ensureDefaultCoupons();
+// (intentionally not invoked here)
 
 // Bad input from an admin form is a 400, not a 500.
 const failure = (res, error) => {

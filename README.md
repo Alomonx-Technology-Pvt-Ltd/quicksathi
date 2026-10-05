@@ -63,14 +63,14 @@ Ensure you have [Node.js](https://nodejs.org/) (v18+) and [MongoDB](https://www.
    npm install
    ```
 3. Create a `.env` file in the `quicksathi_backend/` folder based on `.env.example` (see [Environment Variables Config](#-environment-variables-config)).
-4. **Seed the database** with initial categories and services:
+4. **Seed a development database** with categories and services. **This deletes and recreates the catalog**, so it only runs when `NODE_ENV` is not `production` and the database name is on the dev allowlist (`quicksathi_dev`, `quicksathi_test`, `quicksathi_local`, or names in `SEED_DB_ALLOWLIST`). Point `MONGODB_URI` at a dev database, never production:
    ```bash
-   npm run seed
+   npm run seed:dev
    ```
-5. **Manage roles and test promotions (Optional)**:
-   * Validate user roles: `node seed/checkRoles.js`
-   * Onboard/verify providers: `node seed/manageProviders.js`
-   * Verify promotional features: `node seed/testPromotion.js`
+5. **Roles and admins (optional)**:
+   * Count users per role: `node seed/checkRoles.js`
+   * Grant admin to a user who has signed in with Google: `node scripts/grant-admin.mjs you@example.com --yes`
+   * Run the backend test suite (uses an in-memory database): `npm test`
 6. Start the development server:
    ```bash
    npm run dev
