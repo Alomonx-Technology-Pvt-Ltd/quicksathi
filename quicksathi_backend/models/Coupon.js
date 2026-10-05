@@ -37,6 +37,7 @@ const couponSchema = new mongoose.Schema(
     maxDiscountAmount: {
       type: Number,
       default: null, // Cap for percentage discount (e.g. 20% up to ₹500)
+      min: [0, "Maximum discount cannot be negative"],
     },
     validFrom: {
       type: Date,
@@ -53,6 +54,7 @@ const couponSchema = new mongoose.Schema(
     usageLimit: {
       type: Number,
       default: null, // Total platform usage limit across all users
+      min: [1, "Usage limit must be at least 1"],
     },
     usedCount: {
       type: Number,
@@ -85,6 +87,16 @@ const couponSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+couponSchema.pre("validate", function (next) {
+  if (this.discountType === "percentage" && this.discountValue > 100) {
+    this.invalidate("discountValue", "A percentage discount can't exceed 100");
+  }
+  if (this.validFrom && this.validUntil && this.validUntil <= this.validFrom) {
+    this.invalidate("validUntil", "Expiry must be after the start date");
+  }
+  next();
+});
 
 // High-speed indices for active coupons and user redemption checks (code index is handled by unique: true)
 couponSchema.index({ isActive: 1, validUntil: 1 });

@@ -2,6 +2,7 @@ import { Router } from "express";
 import Coupon from "../models/Coupon.js";
 import { protect } from "../middleware/auth.js";
 import { adminOnly } from "../middleware/admin.js";
+import { quote, PricingError } from "../services/pricing.js";
 
 const router = Router();
 
@@ -50,13 +51,40 @@ const ensureDefaultCoupons = async () => {
 };
 ensureDefaultCoupons();
 
+// Bad input from an admin form is a 400, not a 500.
+const failure = (res, error) => {
+  if (error?.name === "ValidationError" || error?.name === "CastError") {
+    return res.status(400).json({ message: error.message });
+  }
+  return res.status(500).json({ message: error.message });
+};
+
+// "2026-10-04" (date-only from <input type="date">) means the END of that day in IST.
+const parseDateInput = (value, { endOfDay = false } = {}) => {
+  if (value === null || value === "" || value === undefined) return null;
+  const text = String(value);
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(text)
+    ? new Date(`${text}T${endOfDay ? "23:59:59.999" : "00:00:00.000"}+05:30`)
+    : new Date(text);
+  if (Number.isNaN(date.getTime())) {
+    const err = new Error("Invalid date");
+    err.name = "ValidationError";
+    throw err;
+  }
+  return date;
+};
+
 // ── GET /api/coupons/active — Public list of available offers ──
 router.get("/active", async (req, res) => {
   try {
     const now = new Date();
     const coupons = await Coupon.find({
       isActive: true,
-      $or: [{ validUntil: null }, { validUntil: { $gte: now } }],
+      validFrom: { $lte: now },
+      $and: [
+        { $or: [{ validUntil: null }, { validUntil: { $gte: now } }] },
+        { $or: [{ usageLimit: null }, { $expr: { $lt: ["$usedCount", "$usageLimit"] } }] },
+      ],
     })
       .select("code title description discountType discountValue minOrderAmount maxDiscountAmount validUntil")
       .lean();
@@ -67,87 +95,34 @@ router.get("/active", async (req, res) => {
   }
 });
 
-// ── POST /api/coupons/validate — Validate and apply coupon for authenticated user ──
-// Strictly enforces ONE-TIME-PER-USER rule
+// ── POST /api/coupons/validate — Preview a coupon for a specific booking ──
+// Same rules and price as booking creation (services/pricing.js); nothing is redeemed here.
 router.post("/validate", protect, async (req, res) => {
   try {
-    const { code, orderAmount = 0 } = req.body;
-    const userId = req.user._id.toString();
-
-    if (!code || !code.trim()) {
+    const { code, serviceId, packageIndex, packageTitle, distanceKm } = req.body;
+    if (!code || typeof code !== "string" || !code.trim()) {
       return res.status(400).json({ message: "Please enter a valid coupon code." });
     }
 
-    const cleanCode = code.trim().toUpperCase();
-    const coupon = await Coupon.findOne({ code: cleanCode });
-
-    if (!coupon) {
-      return res.status(404).json({ message: `Coupon code '${cleanCode}' does not exist.` });
-    }
-
-    if (!coupon.isActive) {
-      return res.status(400).json({ message: "This coupon is currently inactive or disabled." });
-    }
-
-    // Check expiry
-    if (coupon.validUntil && new Date(coupon.validUntil) < new Date()) {
-      return res.status(400).json({ message: "This coupon has expired." });
-    }
-
-    // Check overall platform usage limit
-    if (coupon.usageLimit && coupon.usedCount >= coupon.usageLimit) {
-      return res.status(400).json({ message: "This coupon has reached its maximum global usage limit." });
-    }
-
-    // ── STRICT AUTH CHECK: One user can apply a coupon only ONE time ──
-    const alreadyUsed = coupon.usedBy?.some(
-      (entry) => entry.user && entry.user.toString() === userId
-    );
-
-    if (alreadyUsed) {
-      return res.status(400).json({
-        message: "You have already used this coupon code. Each coupon can only be applied once per user.",
-        alreadyUsed: true,
-      });
-    }
-
-    // Check minimum order value
-    const amountNum = Number(orderAmount) || 0;
-    if (coupon.minOrderAmount && amountNum < coupon.minOrderAmount) {
-      return res.status(400).json({
-        message: `Minimum booking amount of ₹${coupon.minOrderAmount.toLocaleString()} required to use this coupon.`,
-      });
-    }
-
-    // Calculate discount
-    let discountAmount = 0;
-    if (coupon.discountType === "percentage") {
-      discountAmount = Math.round((amountNum * coupon.discountValue) / 100);
-      if (coupon.maxDiscountAmount && discountAmount > coupon.maxDiscountAmount) {
-        discountAmount = coupon.maxDiscountAmount;
-      }
-    } else {
-      // Fixed amount discount
-      discountAmount = Math.min(coupon.discountValue, amountNum);
-    }
-
-    const finalAmount = Math.max(0, amountNum - discountAmount);
+    const q = await quote({ serviceId, packageIndex, packageTitle, distanceKm, couponCode: code, userId: req.user._id });
 
     res.json({
       valid: true,
       coupon: {
-        id: coupon._id,
-        code: coupon.code,
-        title: coupon.title,
-        description: coupon.description,
-        discountType: coupon.discountType,
-        discountValue: coupon.discountValue,
+        id: q.coupon._id,
+        code: q.coupon.code,
+        title: q.coupon.title,
+        description: q.coupon.description,
+        discountType: q.coupon.discountType,
+        discountValue: q.coupon.discountValue,
       },
-      discountAmount,
-      finalAmount,
-      savingsMessage: `You save ₹${discountAmount.toLocaleString()} with ${coupon.code}!`,
+      originalAmount: q.originalAmount,
+      discountAmount: q.discountAmount,
+      finalAmount: q.amount,
+      savingsMessage: `You save ₹${q.discountAmount.toLocaleString("en-IN")} with ${q.coupon.code}!`,
     });
   } catch (error) {
+    if (error instanceof PricingError) return res.status(error.status).json({ message: error.message, ...error.extra });
     res.status(500).json({ message: error.message });
   }
 });
@@ -199,7 +174,7 @@ router.post("/", protect, adminOnly, async (req, res) => {
       return res.status(400).json({ message: "Code, Title, and Discount Value are required." });
     }
 
-    const cleanCode = code.trim().toUpperCase();
+    const cleanCode = String(code).trim().toUpperCase();
 
     // Check if code already exists
     const existing = await Coupon.findOne({ code: cleanCode });
@@ -209,21 +184,21 @@ router.post("/", protect, adminOnly, async (req, res) => {
 
     const coupon = await Coupon.create({
       code: cleanCode,
-      title: title.trim(),
+      title: String(title).trim(),
       description: description || "",
       discountType: discountType || "fixed",
       discountValue: Number(discountValue),
       minOrderAmount: Number(minOrderAmount) || 0,
       maxDiscountAmount: maxDiscountAmount ? Number(maxDiscountAmount) : null,
-      validFrom: validFrom ? new Date(validFrom) : new Date(),
-      validUntil: validUntil ? new Date(validUntil) : null,
+      validFrom: parseDateInput(validFrom) || new Date(),
+      validUntil: parseDateInput(validUntil, { endOfDay: true }),
       isActive: isActive !== false,
       usageLimit: usageLimit ? Number(usageLimit) : null,
     });
 
     res.status(201).json(coupon);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    failure(res, error);
   }
 });
 
@@ -238,6 +213,7 @@ router.put("/:id", protect, adminOnly, async (req, res) => {
       discountValue,
       minOrderAmount,
       maxDiscountAmount,
+      validFrom,
       validUntil,
       isActive,
       usageLimit,
@@ -249,7 +225,7 @@ router.put("/:id", protect, adminOnly, async (req, res) => {
     }
 
     if (code) {
-      const cleanCode = code.trim().toUpperCase();
+      const cleanCode = String(code).trim().toUpperCase();
       if (cleanCode !== coupon.code) {
         const conflict = await Coupon.findOne({ code: cleanCode, _id: { $ne: coupon._id } });
         if (conflict) {
@@ -259,7 +235,7 @@ router.put("/:id", protect, adminOnly, async (req, res) => {
       }
     }
 
-    if (title) coupon.title = title.trim();
+    if (title) coupon.title = String(title).trim();
     if (description !== undefined) coupon.description = description;
     if (discountType) coupon.discountType = discountType;
     if (discountValue !== undefined) coupon.discountValue = Number(discountValue);
@@ -267,9 +243,8 @@ router.put("/:id", protect, adminOnly, async (req, res) => {
     if (maxDiscountAmount !== undefined) {
       coupon.maxDiscountAmount = maxDiscountAmount ? Number(maxDiscountAmount) : null;
     }
-    if (validUntil !== undefined) {
-      coupon.validUntil = validUntil ? new Date(validUntil) : null;
-    }
+    if (validFrom !== undefined) coupon.validFrom = parseDateInput(validFrom) || new Date();
+    if (validUntil !== undefined) coupon.validUntil = parseDateInput(validUntil, { endOfDay: true });
     if (isActive !== undefined) coupon.isActive = Boolean(isActive);
     if (usageLimit !== undefined) {
       coupon.usageLimit = usageLimit ? Number(usageLimit) : null;
@@ -278,7 +253,7 @@ router.put("/:id", protect, adminOnly, async (req, res) => {
     await coupon.save();
     res.json(coupon);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    failure(res, error);
   }
 });
 
