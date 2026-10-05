@@ -66,7 +66,7 @@ router.get("/:id", async (req, res) => {
     }
 
     if (!category) {
-      const cleanName = rawId.replace(/-/g, " ");
+      const cleanName = rawId.replace(/-/g, " ").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       category = await Category.findOne({
         $or: [
           { name: new RegExp(`^${cleanName}$`, "i") },

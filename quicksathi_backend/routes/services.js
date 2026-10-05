@@ -6,6 +6,10 @@ import { adminOnly } from "../middleware/admin.js";
 
 const router = Router();
 
+// Only approved, available services are public. Drafts / disabled / pending ones are never served here.
+const VISIBLE = { available: true, approvalStatus: "approved" };
+const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 // GET /api/services/cities — Get all distinct cities across services
 router.get("/cities", async (req, res) => {
   try {
@@ -23,8 +27,12 @@ router.get("/cities", async (req, res) => {
 // GET /api/services — Get all services (with optional filters)
 router.get("/", async (req, res) => {
   try {
-    const { category, featured, search, city, limit = 200 } = req.query;
-    const filter = { available: true, approvalStatus: "approved" };
+    const { featured, city } = req.query;
+    // Query params can arrive as arrays (?a=1&a=2); only accept plain strings.
+    const category = typeof req.query.category === "string" ? req.query.category : "";
+    const search = typeof req.query.search === "string" ? req.query.search : "";
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 200, 1), 200);
+    const filter = { ...VISIBLE };
 
     if (category) {
       if (mongoose.Types.ObjectId.isValid(category)) {
@@ -35,17 +43,17 @@ router.get("/", async (req, res) => {
         // and also match on the denormalised categoryName field as a fallback
         const Category = (await import("../models/Category.js")).default;
         const cat = await Category.findOne({
-          name: { $regex: new RegExp(`^${category.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") },
+          name: { $regex: new RegExp(`^${escapeRegex(category)}$`, "i") },
         });
 
         if (cat) {
           filter.$or = [
             { category: cat._id },
-            { categoryName: { $regex: new RegExp(category, "i") } },
+            { categoryName: { $regex: new RegExp(escapeRegex(category), "i") } },
           ];
         } else {
           // No matching category ObjectId found — fall back to categoryName string match
-          filter.categoryName = { $regex: new RegExp(category, "i") };
+          filter.categoryName = { $regex: new RegExp(escapeRegex(category), "i") };
         }
       }
     }
@@ -75,7 +83,7 @@ router.get("/", async (req, res) => {
     }
 
     const services = await Service.find(filter)
-      .limit(parseInt(limit))
+      .limit(limit)
       .sort("-featured -rating")
       .lean();
 
@@ -97,13 +105,14 @@ router.get("/:id", async (req, res) => {
 
     // 1. Try finding by Service ObjectId
     if (mongoose.Types.ObjectId.isValid(id)) {
-      service = await Service.findById(id);
+      service = await Service.findOne({ _id: id, ...VISIBLE });
     }
 
     // 2. Try finding by slug or exact name
     if (!service) {
-      const escapedId = id.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const escapedId = escapeRegex(id);
       service = await Service.findOne({
+        ...VISIBLE,
         $or: [
           { slug: id.toLowerCase() },
           { name: { $regex: new RegExp(`^${escapedId}$`, "i") } },
@@ -124,6 +133,7 @@ router.get("/:id", async (req, res) => {
         const escapedSearchName = searchName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
         service = await Service.findOne({
+          ...VISIBLE,
           $or: [
             { name: { $regex: new RegExp(escapedSearchName, "i") } },
             { categoryName: { $regex: new RegExp(escapedSearchName, "i") } },
@@ -147,7 +157,7 @@ router.get("/:id", async (req, res) => {
 // GET /api/services/slug/:slug — Get service by slug
 router.get("/slug/:slug", async (req, res) => {
   try {
-    const service = await Service.findOne({ slug: req.params.slug });
+    const service = await Service.findOne({ slug: String(req.params.slug).toLowerCase(), ...VISIBLE });
     if (!service) {
       return res.status(404).json({ message: "Service not found" });
     }
