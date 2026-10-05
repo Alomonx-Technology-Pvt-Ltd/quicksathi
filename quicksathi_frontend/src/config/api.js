@@ -68,10 +68,15 @@ api.interceptors.response.use(
       localStorage.removeItem("qs_user");
       localStorage.removeItem("qs_provider");
       const path = window.location.pathname;
+      // Pages that need an account send you to sign in; public pages (home, services…) just reload as a
+      // signed-out visitor instead of throwing you onto the login screen.
+      const needsAccount = /^\/(my-bookings|booking|payment|profile|account|provider\/(dashboard|onboarding))/.test(path);
       if (path.startsWith("/admin")) {
         window.location.href = "/admin";
-      } else if (!path.includes("/login")) {
+      } else if (needsAccount) {
         window.location.href = `/login?redirect=${encodeURIComponent(path)}`;
+      } else if (!path.includes("/login")) {
+        window.location.reload();
       }
     }
     return Promise.reject(error);
