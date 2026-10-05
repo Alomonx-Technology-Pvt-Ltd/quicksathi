@@ -49,6 +49,9 @@ build/
 # ── Deploy artifacts (generated, not source) ──
 quicksathi_deploy/
 
+# ── Motion Graphics / Ad Studio (separate project) ──
+quicksathi_motion_ad/
+
 # ── Uploaded / generated files ──
 uploads/
 coverage/

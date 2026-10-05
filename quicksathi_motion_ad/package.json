@@ -1,7 +1,0 @@
-{
-  "name": "quicksathi-motion-ad",
-  "type": "module",
-  "dependencies": {
-    "puppeteer-core": "^25.12.0"
-  }
-}
