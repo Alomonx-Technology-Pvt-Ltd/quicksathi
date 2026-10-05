@@ -1,5 +1,7 @@
 import "dotenv/config";
+import "./config/validateEnv.js"; // exits in production if configuration is missing/unsafe
 import express from "express";
+import mongoose from "mongoose";
 import cors from "cors";
 import compression from "compression";
 import connectDB from "./config/db.js";
@@ -21,7 +23,7 @@ import bannerRoutes from "./routes/banners.js";
 import couponRoutes from "./routes/coupons.js";
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5050; // 5000 is taken by macOS AirPlay Receiver on developer machines
 
 // Behind Render's proxy: trust one hop so rate limits see the real client IP.
 app.set("trust proxy", 1);
@@ -137,8 +139,11 @@ app.get("/", (req, res) => {
 
 // ── Health check ──
 app.get("/api/health", (req, res) => {
-  res.json({
-    status: "ok",
+  // 503 while the database is not connected, so the host's health check restarts/avoids this instance.
+  const dbUp = mongoose.connection.readyState === 1;
+  res.status(dbUp ? 200 : 503).json({
+    status: dbUp ? "ok" : "degraded",
+    db: dbUp ? "connected" : "disconnected",
     timestamp: new Date().toISOString(),
     env: process.env.NODE_ENV || "development",
   });

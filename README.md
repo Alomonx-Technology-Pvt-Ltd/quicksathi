@@ -75,7 +75,7 @@ Ensure you have [Node.js](https://nodejs.org/) (v18+) and [MongoDB](https://www.
    ```bash
    npm run dev
    ```
-   *The backend will run on `http://localhost:5000`.*
+   *The backend will run on `http://localhost:5050`.*
 
 ---
 
@@ -102,7 +102,7 @@ Ensure you have [Node.js](https://nodejs.org/) (v18+) and [MongoDB](https://www.
 ### Backend (`quicksathi_backend/.env`)
 Create a `.env` file inside the `quicksathi_backend` directory with the following contents:
 ```env
-PORT=5000
+PORT=5050
 NODE_ENV=development
 MONGODB_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret_phrase
@@ -128,7 +128,7 @@ RAZORPAY_KEY_SECRET=your_razorpay_key_secret
 ### Frontend (`quicksathi_frontend/.env`)
 Create a `.env` file inside the `quicksathi_frontend` directory with the following contents:
 ```env
-VITE_API_URL=http://localhost:5000/api
+VITE_API_URL=http://localhost:5050/api
 
 # Firebase Web Client Config
 VITE_FIREBASE_API_KEY=your_firebase_api_key

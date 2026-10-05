@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend tests and audit
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: quicksathi_backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: quicksathi_backend/package-lock.json
+      - run: npm ci
+      # Tests boot the real server against an in-memory MongoDB (downloads a mongod binary on first run).
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/mongodb-binaries
+          key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('quicksathi_backend/package-lock.json') }}
+      - run: npm test
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+  frontend:
+    name: Frontend build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: quicksathi_frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: quicksathi_frontend/package-lock.json
+      - run: npm ci
+      - run: npm run build
+      # The codebase still has pre-existing lint errors; they are reported but do not block merges yet.
+      # Remove continue-on-error once `npm run lint` is clean.
+      - run: npm run lint
+        continue-on-error: true
