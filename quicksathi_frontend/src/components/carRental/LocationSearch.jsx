@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { MapPin, X, Loader2, Crosshair, Navigation } from "lucide-react";
 import { useLocation } from "../../context/LocationContext";
-import { searchGooglePlaces, isGoogleMapsAvailable } from "../../utils/googleMapsLoader";
+import api from "../../config/api";
 
 /**
  * LocationSearch — Autocomplete address input using OpenStreetMap Nominatim with
@@ -16,7 +16,7 @@ import { searchGooglePlaces, isGoogleMapsAvailable } from "../../utils/googleMap
  *   accentColor  – optional accent colour string
  *   showGpsBtn   – boolean to show 1-click GPS target button (default true)
  */
-const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
+// Address search goes through our backend proxy (routes/geo.js): caching, throttling and a real User-Agent.
 const DEBOUNCE_MS = 350;
 
 const LocationSearch = ({
@@ -66,41 +66,7 @@ const LocationSearch = ({
       debounceRef.current = setTimeout(async () => {
         setLoading(true);
         try {
-          // 1. Try Google Places Autocomplete first if Google Maps is activated
-          if (isGoogleMapsAvailable()) {
-            const googleResults = await searchGooglePlaces(q);
-            if (googleResults && googleResults.length > 0) {
-              setResults(
-                googleResults.map((item) => ({
-                  name: item.displayName || item.label,
-                  shortName: item.street || item.road || item.locality || item.displayName,
-                  road: item.road,
-                  locality: item.locality,
-                  city: item.city,
-                  state: item.state,
-                  lat: item.lat,
-                  lon: item.lon,
-                  isGoogle: true,
-                }))
-              );
-              setOpen(true);
-              setLoading(false);
-              return;
-            }
-          }
-
-          // 2. Seamless fallback to OpenStreetMap (Nominatim)
-          const params = new URLSearchParams({
-            q,
-            format: "json",
-            addressdetails: "1",
-            limit: "7",
-            countrycodes: "in", // Prioritize India
-          });
-          const res = await fetch(`${NOMINATIM_URL}?${params}`, {
-            headers: { "Accept-Language": "en" },
-          });
-          const data = await res.json();
+          const { data } = await api.get("/geo/nominatim/search", { params: { q, limit: 7 } });
           setResults(
             (data || []).map((item) => {
               const addr = item.address || {};

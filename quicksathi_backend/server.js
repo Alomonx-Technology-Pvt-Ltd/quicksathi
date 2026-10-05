@@ -6,7 +6,7 @@ import cors from "cors";
 import compression from "compression";
 import connectDB from "./config/db.js";
 import helmet from "helmet";
-import { apiLimiter, credentialLimiter, authLimiter, contactLimiter, aiLimiter, couponLimiter } from "./middleware/rateLimits.js";
+import { apiLimiter, credentialLimiter, authLimiter, contactLimiter, aiLimiter, couponLimiter, geoLimiter } from "./middleware/rateLimits.js";
 
 // Import routes
 import authRoutes from "./routes/auth.js";
@@ -21,6 +21,7 @@ import contactRoutes from "./routes/contact.js";
 import aiRoutes from "./routes/ai.js";
 import bannerRoutes from "./routes/banners.js";
 import couponRoutes from "./routes/coupons.js";
+import geoRoutes from "./routes/geo.js";
 
 const app = express();
 const PORT = process.env.PORT || 5050; // 5000 is taken by macOS AirPlay Receiver on developer machines
@@ -103,6 +104,7 @@ app.use("/api/auth", authLimiter);
 app.use("/api/contact", (req, res, next) => (req.method === "POST" ? contactLimiter(req, res, next) : next()));
 app.use("/api/ai", aiLimiter);
 app.use("/api/coupons/validate", couponLimiter);
+app.use("/api/geo", geoLimiter);
 
 // ── Routes ──
 app.use("/api/auth", authRoutes);
@@ -117,6 +119,7 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/banners", bannerRoutes);
 app.use("/api/coupons", couponRoutes);
+app.use("/api/geo", geoRoutes);
 
 // ── Root route — friendly API info ──
 app.get("/", (req, res) => {
