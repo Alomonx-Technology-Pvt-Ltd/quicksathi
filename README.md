@@ -1,153 +1,84 @@
-# QuickSathi — Premium Local Service Booking Platform
+# TiptoBook (QuickSathi)
 
-QuickSathi is a premium, high-end platform for exploring and booking local services including **Wedding Services & Planning, Luxury Car Rentals, and Smart CCTV Security Monitoring**. It is designed with a modern dark-mode aesthetic, dynamic Framer Motion animations, interactive location-aware elements, an integrated chatbot assistant, and a full-featured admin and provider ecosystem.
+A marketplace for local services in India: home repair and AC, salon, weddings, car rental, tuition, pandit and more. Customers book and pay online (Razorpay) or in cash; verified providers do the job; admins run the catalog and approve providers.
 
-This project is organized as a **monorepo** containing both the React frontend and Node.js backend.
+Monorepo:
 
----
+| Folder | What | Stack | Hosted on |
+|---|---|---|---|
+| `quicksathi_frontend/` | customer app, provider dashboard, admin panel | React 19, Vite, Tailwind 4, React Router 7 | Vercel |
+| `quicksathi_backend/` | REST API, payments, auth | Node ≥ 20, Express 5, Mongoose 8 | Render |
+| MongoDB Atlas, Firebase Auth, Razorpay, Cloudinary, Groq, Brevo | managed services | | |
 
-## 📁 Repository Structure
+## Documentation
 
-```text
-QuickSathi/
-├── quicksathi_frontend/     # React + Vite Client (Vercel / Netlify)
-│   ├── public/              # Static assets and logo
-│   └── src/
-│       ├── admin/           # Administrative layout, dashboards, and management pages
-│       ├── components/      # Chatbot, Layout, and common UI components (e.g. LocationBanner)
-│       ├── context/         # Location and application state contexts
-│       └── pages/           # Customer pages (Home, Services, About, Contact, etc.)
-└── quicksathi_backend/      # Express + MongoDB + Firebase Admin Server (Render)
-    ├── models/              # Mongoose database schemas (Service, Booking, Contact, Notification, etc.)
-    ├── routes/              # Express API routers (admin, services, bookings, contact, notifications)
-    ├── seed/                # Database seeding and helper scripts
-    └── server.js            # Express application entrypoint
+| Read this | For |
+|---|---|
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | how the system works: request flow, auth, booking and payment, data model, env vars, known limits |
+| [CONTEXT.md](./CONTEXT.md) | the project's vocabulary (booking, quote, provider application, …) |
+| [docs/adr/](./docs/adr/) | why the important decisions were made |
+| [docs/developer-walkthrough.md](./docs/developer-walkthrough.md) | the security/reliability overhaul, area by area, with a deploy checklist |
+| [docs/code-review-2026-10-04.md](./docs/code-review-2026-10-04.md), [docs/fix-plan-p0-p1.md](./docs/fix-plan-p0-p1.md) | original findings and the plan that fixed them |
+
+## Quickstart
+
+Prerequisites: Node 20+ and a MongoDB database. **Use a dedicated development database (name it `quicksathi_dev`); never point a local `.env` at production.**
+
+```bash
+# Backend
+cd quicksathi_backend
+npm ci
+cp .env.example .env        # fill MONGODB_URI (dev database), JWT_SECRET, Firebase, etc.
+npm run seed:dev            # builds the dev catalog; refuses production and non-dev databases
+npm run dev                 # http://localhost:5050
+
+# Frontend (works without a .env; Google/phone login need the VITE_FIREBASE_* values)
+cd ../quicksathi_frontend
+npm ci
+npm run dev                 # http://localhost:5173
 ```
 
----
+### Tests
 
-## ✨ Features
-
-- 🌟 **Premium User Interface**: Modern dark/cream premium aesthetic, fluid hover micro-animations, and smooth page transitions using Framer Motion.
-- 📍 **Location-Aware Experience**: Integrated `LocationBanner` and `LocationContext` that allows users to select, save, and dynamically view services available in their area.
-- 💬 **Interactive AI Assistant**: An on-demand chatbot component providing immediate guidance, helping users find services, answering FAQs, and assisting in navigation.
-- 📬 **Inquiry & Feedback Loop**: Dedicated contact backend models, API routes, and a corresponding Admin Contact panel to manage and respond to customer queries.
-- 🔔 **Notification Engine**: System-wide notifications system utilizing MongoDB models (`Notification.js`) and administrative control interface (`AdminNotifications.jsx`) to push and manage notifications.
-- 🛍️ **Multi-Vertical Services**:
-  - **Wedding Services**: Custom packages for venues, photography, makeup, catering, and floral arrangements.
-  - **Car Rentals**: Hourly/daily rates for premium cars (Tesla, Range Rover, Audi, etc.) with custom checkout routes.
-  - **CCTV Security**: Commercial and residential surveillance package matching and setups.
-- 📅 **Dynamic Checkout & Booking**: Multi-step calendar schedule, package pickers, and live pricing calculations.
-- 💳 **Razorpay Payment Integration**: Secure local checkout handling (Test mode).
-- 🔐 **Firebase Auth Integration**: Secure client-side email login, state persistence, and backend JWT access validation.
-- 🛠️ **Admin & Provider Management**:
-  * **Super Admin Panel**: Manage services, view bookings, control user roles, process service provider requests, publish system announcements/notifications, and view contact submissions.
-  * **Provider Dashboard**: For service experts to onboard, manage incoming bookings, and track service analytics.
-
----
-
-## 🚀 Local Quickstart
-
-### 1. Prerequisites
-Ensure you have [Node.js](https://nodejs.org/) (v18+) and [MongoDB](https://www.mongodb.com/) installed and running locally (or a MongoDB Atlas connection string).
-
----
-
-### 2. Backend Setup
-1. Navigate to the backend directory:
-   ```bash
-   cd quicksathi_backend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Create a `.env` file in the `quicksathi_backend/` folder based on `.env.example` (see [Environment Variables Config](#-environment-variables-config)).
-4. **Seed a development database** with categories and services. **This deletes and recreates the catalog**, so it only runs when `NODE_ENV` is not `production` and the database name is on the dev allowlist (`quicksathi_dev`, `quicksathi_test`, `quicksathi_local`, or names in `SEED_DB_ALLOWLIST`). Point `MONGODB_URI` at a dev database, never production:
-   ```bash
-   npm run seed:dev
-   ```
-5. **Roles and admins (optional)**:
-   * Count users per role: `node seed/checkRoles.js`
-   * Grant admin to a user who has signed in with Google: `node scripts/grant-admin.mjs you@example.com --yes`
-   * Run the backend test suite (uses an in-memory database): `npm test`
-6. Start the development server:
-   ```bash
-   npm run dev
-   ```
-   *The backend will run on `http://localhost:5050`.*
-
----
-
-### 3. Frontend Setup
-1. Navigate to the frontend directory:
-   ```bash
-   cd ../quicksathi_frontend
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Create a `.env` file in the `quicksathi_frontend/` folder based on `.env.example` (see [Environment Variables Config](#-environment-variables-config)).
-4. Start the frontend development server:
-   ```bash
-   npm run dev
-   ```
-   *The client will open on `http://localhost:5173`.*
-
----
-
-## 🔑 Environment Variables Config
-
-### Backend (`quicksathi_backend/.env`)
-Create a `.env` file inside the `quicksathi_backend` directory with the following contents:
-```env
-PORT=5050
-NODE_ENV=development
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET=your_jwt_secret_phrase
-JWT_EXPIRES_IN=7d
-CLIENT_URL=http://localhost:5173
-ADMIN_EMAILS=admin@quicksathi.com
-
-# Firebase Admin SDK Credentials
-FIREBASE_PROJECT_ID=your_project_id
-FIREBASE_CLIENT_EMAIL=your_client_email
-FIREBASE_PRIVATE_KEY="your_private_key_string"
-
-# Cloudinary Integration (Image Uploads)
-CLOUDINARY_CLOUD_NAME=your_cloud_name
-CLOUDINARY_API_KEY=your_api_key
-CLOUDINARY_API_SECRET=your_api_secret
-
-# Razorpay Config (Payments)
-RAZORPAY_KEY_ID=your_razorpay_key_id
-RAZORPAY_KEY_SECRET=your_razorpay_key_secret
+```bash
+cd quicksathi_backend && npm test
 ```
+Runs the real server against an in-memory MongoDB and ignores `.env` (nothing external is contacted). The first run downloads a `mongod` binary. CI (`.github/workflows/ci.yml`) runs the same suite plus `npm audit`.
 
-### Frontend (`quicksathi_frontend/.env`)
-Create a `.env` file inside the `quicksathi_frontend` directory with the following contents:
+### Admins and roles
+
+Admin is never derived from an email address. A person signs in once with Google, then:
+
+```bash
+cd quicksathi_backend
+node scripts/grant-admin.mjs person@example.com --yes
+node seed/checkRoles.js        # role counts only
+```
+Providers become providers when an admin approves their application in the admin panel.
+
+## Configuration
+
+Backend variables are documented in [`quicksathi_backend/.env.example`](./quicksathi_backend/.env.example) and summarised in [ARCHITECTURE.md §9](./ARCHITECTURE.md#9-environments-and-configuration). In production the server **refuses to start** if `MONGODB_URI`, `JWT_SECRET` (32+ random characters), `CLIENT_URL`, the Razorpay key/secret/**webhook secret**, or Firebase Admin credentials are missing.
+
+Frontend (`quicksathi_frontend/.env`):
+
 ```env
 VITE_API_URL=http://localhost:5050/api
-
-# Firebase Web Client Config
-VITE_FIREBASE_API_KEY=your_firebase_api_key
-VITE_FIREBASE_AUTH_DOMAIN=your_auth_domain
-VITE_FIREBASE_PROJECT_ID=your_project_id
-VITE_FIREBASE_STORAGE_BUCKET=your_storage_bucket
-VITE_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-VITE_FIREBASE_APP_ID=your_app_id
+VITE_FIREBASE_API_KEY=...
+VITE_FIREBASE_AUTH_DOMAIN=...
+VITE_FIREBASE_PROJECT_ID=...
+VITE_FIREBASE_STORAGE_BUCKET=...
+VITE_FIREBASE_MESSAGING_SENDER_ID=...
+VITE_FIREBASE_APP_ID=...
 ```
 
----
+## Deployment
 
-## ☁️ Deployment
+- **Frontend → Vercel**: build `npm run build`, output `dist`. Set `VITE_API_URL` and the `VITE_FIREBASE_*` values. Security headers and SPA rewrites are in `vercel.json`.
+- **Backend → Render** (`render.yaml`): build `npm ci`, start `npm start`. Set every variable marked `sync: false`. `PORT` is injected by Render. Configure the Razorpay webhook to `POST https://<api-host>/api/payments/webhook` (events `payment.captured`, `payment.failed`, `order.paid`) and put its secret in `RAZORPAY_WEBHOOK_SECRET`.
+- First deploy of the unique-phone change: `node scripts/migrations/001-user-unique-indexes.mjs` (dry run), then `--apply`.
+- Full checklist: [developer walkthrough §10](./docs/developer-walkthrough.md#10-deploy-checklist).
 
-### Frontend (Netlify / Vercel)
-- **Settings**: Build command `npm run build`, publish directory `dist`.
-- **Environment Variables**: Add `VITE_API_URL` pointing to your deployed backend (e.g., `https://api.quicksathi.com/api`).
-- **Routing**: Redirect configs (`netlify.toml` and `_redirects`) are pre-configured in `public/` to support React client-side routing.
+## Project status
 
-### Backend (Render / Railway / Heroku)
-- **Settings**: Build command `npm install`, start command `npm start`.
-- **Environment Variables**: Set `CLIENT_URL` to your production frontend domain (e.g. `https://quicksathi.vercel.app`), set `NODE_ENV` to `production`, and configure all backend API keys.
+The platform has been through a security and reliability overhaul (auth, pricing, payments, provider/KYC privacy, booking lifecycle, hardening, ops). See the walkthrough for what changed and [ARCHITECTURE.md §11](./ARCHITECTURE.md#11-known-limitations-honest-list) for what is still open.

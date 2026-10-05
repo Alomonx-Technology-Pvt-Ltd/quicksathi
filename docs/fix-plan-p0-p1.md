@@ -337,7 +337,9 @@ _Branches are stacked and local-only; `wp-11-frontend-safety` contains everythin
 | WP-5/8/9 | `wp-5-booking-lifecycle` | P1-7/14/16-21/23c + 10 extra green | State machine, cash-collected, soft delete, paginated users, KYC image-only, unique phone |
 | WP-11 (part) | `wp-11-frontend-safety` | manual | Error boundary, safe 401, null-safe provider status, fake MRP removed |
 
-**Suite: 86/86 passing** (`cd quicksathi_backend && npm test`). Browser smoke (hermetic stack): a tampered `?price=1` payment URL shows the catalog price; WELCOME50 on ₹450 stores 450 / 50 / 400 (was double-discounted) and the COD booking is `pending`/`pending`.
+**Suite: 102/102 passing** (`cd quicksathi_backend && npm test`). Browser smoke (hermetic stack): a tampered `?price=1` payment URL shows the catalog price; WELCOME50 on ₹450 stores 450 / 50 / 400 (was double-discounted) and the COD booking is `pending`/`pending`.
+
+**Second round (WP-10 frontend, WP-11, WP-12, WP-6 leftovers, WP-13) is done and merged into `aditya-fixes-and-improvement`:** mock catalog removed (`useCatalog`), banner mapping/validation, CI, boot-time env validation, DB-aware health, port 5050, sitemap generator, IST revenue, geocoding proxy and no GPS prompt on load, one-command idempotent `seed:dev`, and the docs (`ARCHITECTURE.md`, `CONTEXT.md`, `docs/adr/`, `docs/developer-walkthrough.md`, README).
 
 ### Not verified / needs a human
 - **Razorpay end to end.** `create-order` against Razorpay returned `401 Authentication failed` with the keys in the local `.env`, so a real checkout was never run. Re-issue test keys (Dashboard → API keys), create the webhook (`POST /api/payments/webhook`, events `payment.captured`, `payment.failed`, `order.paid`) and set `RAZORPAY_WEBHOOK_SECRET`, then pay with a test card.
@@ -345,5 +347,4 @@ _Branches are stacked and local-only; `wp-11-frontend-safety` contains everythin
 - **Production deploy order**: run `scripts/migrations/001-user-unique-indexes.mjs` (dry run first), set `RAZORPAY_WEBHOOK_SECRET`, confirm Firebase env vars on Render (the server now exits if they're missing), rotate `JWT_SECRET`, give existing admins a password or Google sign-in (`ADMIN_PASSWORD` login is gone).
 
 ### Still open (not yet done)
-- WP-0 (owner actions), `P1-13` mock catalog removal, `P1-15` money as integer paise, `P1-8` automatic Razorpay refunds (cancelled paid bookings are flagged `refund_pending` only), KYC files still use public Cloudinary URLs (private/signed delivery not done), banner `includes()` heuristic and `HomeFeaturedServices` city overwrite, geolocation/Nominatim, CI, env validation at boot, admin revenue timezone, full CSP (only `frame-ancestors/base-uri/object-src/form-action` enforced), frontend `firebase` advisory (grpc, not reachable from the browser; the suggested fix is a downgrade, so left alone).
-- WP-13 docs (ARCHITECTURE.md, ADRs, developer walkthrough).
+- WP-0 (owner actions), `P1-15` money as integer paise, automatic Razorpay refunds (cancelled paid bookings are flagged `refund_pending` only), private KYC files with signed URLs, full CSP (only `frame-ancestors/base-uri/object-src/form-action` enforced), password change/reset, server-side rental distance, prerendering for SEO, a central error handler, the frontend `firebase` advisory (grpc, not reachable from the browser; the suggested fix is a downgrade, so left alone), and the code-quality backlog (lint errors, giant components, duplicate modals, unused images).
