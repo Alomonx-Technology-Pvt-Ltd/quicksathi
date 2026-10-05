@@ -44,6 +44,11 @@ try {
 } catch (error) {
   console.error("❌ Firebase Admin SDK initialization failed:", error.message);
   console.info("   Make sure you have FIREBASE env vars set OR config/firebase-service-account.json exists.");
+  // Without Firebase every Google/phone sign-in would be unverifiable. Never run production like that.
+  if (process.env.NODE_ENV === "production") {
+    console.error("❌ Refusing to start in production without Firebase Admin configured.");
+    process.exit(1);
+  }
 }
 
 export { firebaseAuth };
