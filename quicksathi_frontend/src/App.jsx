@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Suspense, lazy } from "react";
-import { HelmetProvider } from "react-helmet-async";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "./context/AuthContext";
 import { LocationProvider } from "./context/LocationContext";
 import Layout from "./components/layout/Layout";
@@ -111,6 +111,10 @@ function App() {
               path="*"
               element={
                 <div className="text-center p-20 text-2xl font-bold">
+                  <Helmet>
+                    <title>Page not found | TiptoBook</title>
+                    <meta name="robots" content="noindex" />
+                  </Helmet>
                   404 - Page Not Found
                 </div>
               }

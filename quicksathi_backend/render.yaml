@@ -27,8 +27,7 @@ services:
       - key: NODE_ENV
         value: production
 
-      - key: PORT
-        value: 5000
+      # PORT is injected by Render; do not set it here.
 
       # MongoDB Atlas connection string
       # ⚠️  Include the database name before '?':

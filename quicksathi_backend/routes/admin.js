@@ -25,14 +25,17 @@ cloudinary.config({
 // GET /api/admin/stats — Dashboard stats (real data from MongoDB)
 router.get("/stats", protect, adminOnly, async (req, res) => {
   try {
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
-    sixMonthsAgo.setDate(1);
-    sixMonthsAgo.setHours(0,0,0,0);
-
-    const startOfWeek = new Date();
-    startOfWeek.setDate(startOfWeek.getDate() - 6);
-    startOfWeek.setHours(0,0,0,0);
+    // All dashboard buckets are in India time (the server runs in UTC on Render).
+    const IST_MS = 5.5 * 3600 * 1000;
+    const istNow = new Date(Date.now() + IST_MS);
+    const istYear = istNow.getUTCFullYear();
+    const istMonth = istNow.getUTCMonth();
+    const monthStartIst = (offset) => new Date(Date.UTC(istYear, istMonth - offset, 1) - IST_MS);
+    const sixMonthsAgo = monthStartIst(5);
+    const startOfWeek = new Date(Date.UTC(istYear, istMonth, istNow.getUTCDate() - 6) - IST_MS);
+    const TZ = "Asia/Kolkata";
+    // Revenue = money actually received: paid bookings that weren't cancelled or refunded.
+    const paidMatch = { paymentStatus: "paid", status: { $ne: "cancelled" } };
 
     const [
       totalUsers,
@@ -52,21 +55,21 @@ router.get("/stats", protect, adminOnly, async (req, res) => {
       Service.countDocuments(),
       Category.countDocuments(),
       Booking.aggregate([
-        { $match: { $or: [{ paymentStatus: "paid" }, { status: "completed" }] } },
+        { $match: paidMatch },
         { $group: { _id: null, total: { $sum: "$amount" } } },
       ]),
       Booking.aggregate([
         { 
           $match: { 
-            $or: [{ paymentStatus: "paid" }, { status: "completed" }],
+            ...paidMatch,
             createdAt: { $gte: sixMonthsAgo }
           } 
         },
         {
           $group: {
             _id: {
-              year: { $year: "$createdAt" },
-              month: { $month: "$createdAt" }
+              year: { $year: { date: "$createdAt", timezone: TZ } },
+              month: { $month: { date: "$createdAt", timezone: TZ } }
             },
             revenue: { $sum: "$amount" }
           }
@@ -81,7 +84,7 @@ router.get("/stats", protect, adminOnly, async (req, res) => {
         },
         {
           $group: {
-            _id: { $dayOfWeek: "$createdAt" },
+          _id: { $dayOfWeek: { date: "$createdAt", timezone: TZ } },
             count: { $sum: 1 }
           }
         }
@@ -92,11 +95,10 @@ router.get("/stats", protect, adminOnly, async (req, res) => {
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const monthlyRevenue = [];
     for (let i = 5; i >= 0; i--) {
-      const d = new Date();
-      d.setMonth(d.getMonth() - i);
-      const year = d.getFullYear();
-      const month = d.getMonth() + 1;
-      const label = monthNames[d.getMonth()];
+      const d = new Date(Date.UTC(istYear, istMonth - i, 1));
+      const year = d.getUTCFullYear();
+      const month = d.getUTCMonth() + 1;
+      const label = monthNames[d.getUTCMonth()];
       
       const match = monthlyRevenueAgg.find(r => r._id.year === year && r._id.month === month);
       monthlyRevenue.push({
@@ -109,10 +111,9 @@ router.get("/stats", protect, adminOnly, async (req, res) => {
     const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const weeklyBookings = [];
     for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dayOfWeek = d.getDay() + 1; // MongoDB $dayOfWeek is 1-indexed (Sunday = 1)
-      const label = dayNames[d.getDay()];
+      const d = new Date(istNow.getTime() - i * 24 * 3600 * 1000); // shifted clock: use UTC getters for IST fields
+      const dayOfWeek = d.getUTCDay() + 1; // MongoDB $dayOfWeek is 1-indexed (Sunday = 1)
+      const label = dayNames[d.getUTCDay()];
       
       const match = dailyBookingsAgg.find(b => b._id === dayOfWeek);
       weeklyBookings.push({

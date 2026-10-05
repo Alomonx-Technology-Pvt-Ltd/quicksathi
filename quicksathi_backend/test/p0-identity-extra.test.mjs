@@ -14,8 +14,12 @@ const makeLocalUser = async (role, password) => {
 };
 
 test("WP-1: production refuses to boot without Firebase Admin configured", async () => {
-  const run = await s.runScript("server.js", { NODE_ENV: "production", PORT: "0" }, 15_000);
+  // A fully valid production config except Firebase, so Firebase is the reason it exits.
+  const validProd = { NODE_ENV: "production", PORT: "0", JWT_SECRET: "j".repeat(48), RAZORPAY_WEBHOOK_SECRET: "whsec_x" };
+  const run = await s.runScript("server.js", validProd, 15_000);
   assert.equal(run.code, 1, `server should exit 1, got ${run.code}\n${run.out.slice(0, 300)}`);
+  assert.match(run.out, /Firebase/);
+  assert.doesNotMatch(run.out, /invalid production configuration/);
 });
 
 test("WP-1: an existing admin can sign in with their own password", async () => {

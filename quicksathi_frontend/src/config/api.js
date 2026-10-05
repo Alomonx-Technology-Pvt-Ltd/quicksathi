@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5050/api";
 
 // ── In-memory response cache ─────────────────────────────────────────────────
 // Caches GET responses for CACHE_TTL_MS so repeat navigations are instant.
