@@ -500,7 +500,7 @@ router.post("/", protect, adminOnly, async (req, res) => {
 
     res.status(201).json(banner);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(error.name === "ValidationError" ? 400 : 500).json({ message: error.message });
   }
 });
 
@@ -553,7 +553,7 @@ router.put("/:id", protect, adminOnly, async (req, res) => {
 
     res.json(banner);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(error.name === "ValidationError" || error.name === "CastError" ? 400 : 500).json({ message: error.message });
   }
 });
 
