@@ -55,11 +55,13 @@ const providerSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    // KYC documents are private: excluded from every query unless explicitly requested
+    // with .select("+documents.idProof +documents.businessRegistration +documents.selfiePhoto +documents.other").
     documents: {
-      idProof: { type: String, default: "" },
-      businessRegistration: { type: String, default: "" },
-      selfiePhoto: { type: String, default: "" },
-      other: [{ type: String }],
+      idProof: { type: String, default: "", select: false },
+      businessRegistration: { type: String, default: "", select: false },
+      selfiePhoto: { type: String, default: "", select: false },
+      other: { type: [String], select: false },
     },
     approvalStatus: {
       type: String,
