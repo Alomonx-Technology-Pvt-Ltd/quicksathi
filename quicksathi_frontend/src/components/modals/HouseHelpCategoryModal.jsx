@@ -8,11 +8,29 @@ const HOUSE_HELP_SERVICES = [
     section: "HOUSE HELP SERVICES",
     items: [
       {
-        id: "maid-cleaning",
-        name: "Maid & Deep Cleaning",
+        id: "maid-services",
+        name: "Maid Services (Monthly/Daily)",
         badge: "Popular",
         image:
           "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=300&auto=format&fit=crop",
+        fallbackIcon: "/icons/categories/house-help.png",
+        route: "/category/house-help",
+      },
+      {
+        id: "laundry-ironing",
+        name: "Laundry & Ironing Services",
+        badge: "New",
+        image:
+          "https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?q=80&w=300&auto=format&fit=crop",
+        fallbackIcon: "/icons/categories/house-help.png",
+        route: "/category/house-help",
+      },
+      {
+        id: "elder-care",
+        name: "Elder Care Services",
+        badge: "Coming Soon",
+        image:
+          "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=300&auto=format&fit=crop",
         fallbackIcon: "/icons/categories/house-help.png",
         route: "/category/house-help",
       },
@@ -29,15 +47,6 @@ const HOUSE_HELP_SERVICES = [
         name: "Babysitting / Nanny",
         image:
           "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=300&auto=format&fit=crop",
-        fallbackIcon: "/icons/categories/house-help.png",
-        route: "/category/house-help",
-      },
-      {
-        id: "elder-care",
-        name: "Elder & Patient Care",
-        badge: "24/7",
-        image:
-          "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=300&auto=format&fit=crop",
         fallbackIcon: "/icons/categories/house-help.png",
         route: "/category/house-help",
       },

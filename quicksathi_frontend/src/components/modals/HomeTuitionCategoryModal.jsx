@@ -5,38 +5,41 @@ import { X, GraduationCap } from "lucide-react";
 
 const TUITION_SERVICES = [
   {
-    section: "HOME TUITION & COACHING",
+    section: "SCHOOL & ACADEMIC TUITION",
     items: [
       {
-        id: "school-tuition",
-        name: "School Tuition (1–12)",
-        badge: "Popular",
+        id: "nursery-to-class-5",
+        name: "Nursery to Class 5",
+        badge: "Foundation",
         image:
           "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=300&auto=format&fit=crop",
         fallbackIcon: "/icons/categories/home-tuition.png",
         route: "/category/home-tuition",
       },
       {
-        id: "competitive-exams",
-        name: "Competitive Exams",
+        id: "classes-6-8",
+        name: "Classes 6–8",
+        badge: "Middle School",
+        image:
+          "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=300&auto=format&fit=crop",
+        fallbackIcon: "/icons/categories/home-tuition.png",
+        route: "/category/home-tuition",
+      },
+      {
+        id: "classes-9-10",
+        name: "Classes 9–10",
+        badge: "Board Prep",
         image:
           "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=300&auto=format&fit=crop",
         fallbackIcon: "/icons/categories/home-tuition.png",
         route: "/category/home-tuition",
       },
       {
-        id: "online-tuition",
-        name: "Online 1-on-1 Classes",
+        id: "classes-11-12",
+        name: "Classes 11–12",
+        badge: "Competitive",
         image:
-          "https://images.unsplash.com/photo-1588702547919-26089e690ecc?q=80&w=300&auto=format&fit=crop",
-        fallbackIcon: "/icons/categories/home-tuition.png",
-        route: "/category/home-tuition",
-      },
-      {
-        id: "language-classes",
-        name: "Language & Skill Classes",
-        image:
-          "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=300&auto=format&fit=crop",
+          "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=300&auto=format&fit=crop",
         fallbackIcon: "/icons/categories/home-tuition.png",
         route: "/category/home-tuition",
       },

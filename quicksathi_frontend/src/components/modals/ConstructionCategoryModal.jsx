@@ -1,60 +1,60 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Wrench } from "lucide-react";
+import { X, Building2 } from "lucide-react";
 
-const REPAIR_SERVICES = [
+const CONSTRUCTION_SERVICES = [
   {
-    section: "HOME SERVICES & REPAIR",
+    section: "CONSTRUCTION & DESIGN",
     items: [
       {
-        id: "cctv-installation",
-        name: "CCTV Installation",
-        badge: "Security",
+        id: "new-home-construction",
+        name: "New Home Construction",
+        badge: "Turnkey",
         image:
-          "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/cctv-main.jpg",
-        fallbackIcon: "/icons/categories/home-repair.png",
-        route: "/services?q=cctv",
+          "https://images.unsplash.com/photo-1541888946425-d0fbb18615f8?q=80&w=300&auto=format&fit=crop",
+        fallbackIcon: "/icons/categories/construction.png",
+        route: "/services?q=construction",
       },
       {
-        id: "plumbing",
-        name: "Plumbing",
+        id: "renovation-remodeling",
+        name: "Renovation & Remodeling",
         badge: "Popular",
         image:
-          "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?q=80&w=300&auto=format&fit=crop",
-        fallbackIcon: "/icons/categories/home-repair.png",
-        route: "/category/house-services",
+          "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=300&auto=format&fit=crop",
+        fallbackIcon: "/icons/categories/construction.png",
+        route: "/services?q=renovation",
       },
       {
-        id: "electrician",
-        name: "Electrician",
+        id: "interior-design",
+        name: "Interior Design",
+        badge: "Luxury",
         image:
-          "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=300&auto=format&fit=crop",
-        fallbackIcon: "/icons/categories/home-repair.png",
-        route: "/category/house-services",
+          "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=300&auto=format&fit=crop",
+        fallbackIcon: "/icons/categories/construction.png",
+        route: "/services?q=interior",
       },
       {
-        id: "carpentry",
-        name: "Carpentry",
+        id: "false-ceiling-lighting",
+        name: "False Ceiling & Lighting",
         image:
-          "https://images.unsplash.com/photo-1504148455328-c376907d081c?q=80&w=300&auto=format&fit=crop",
-        fallbackIcon: "/icons/categories/home-repair.png",
-        route: "/category/house-services",
+          "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=300&auto=format&fit=crop",
+        fallbackIcon: "/icons/categories/construction.png",
+        route: "/services?q=ceiling",
       },
       {
-        id: "painting",
-        name: "Painting Services",
-        badge: "Popular",
+        id: "design-planning-2d-3d",
+        name: "2D/3D Design & Planning",
         image:
-          "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=300&auto=format&fit=crop",
-        fallbackIcon: "/icons/categories/painting.png",
-        route: "/category/painting",
+          "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=300&auto=format&fit=crop",
+        fallbackIcon: "/icons/categories/construction.png",
+        route: "/services?q=planning",
       },
     ],
   },
 ];
 
-const HouseServicesCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
+const ConstructionCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }) => {
   const navigate = useNavigate();
   const [internalOpen, setInternalOpen] = useState(false);
 
@@ -69,11 +69,9 @@ const HouseServicesCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }
   // Listen for global open events
   useEffect(() => {
     const handleGlobalOpen = () => setInternalOpen(true);
-    window.addEventListener("open-repair-modal", handleGlobalOpen);
-    window.addEventListener("open-house-services-modal", handleGlobalOpen);
+    window.addEventListener("open-construction-modal", handleGlobalOpen);
     return () => {
-      window.removeEventListener("open-repair-modal", handleGlobalOpen);
-      window.removeEventListener("open-house-services-modal", handleGlobalOpen);
+      window.removeEventListener("open-construction-modal", handleGlobalOpen);
     };
   }, []);
 
@@ -131,15 +129,15 @@ const HouseServicesCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }
             {/* Header: Title and Close Button */}
             <div className="flex items-center justify-between pb-3 sm:pb-4 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-slate-100 text-slate-800 flex items-center justify-center shrink-0">
-                  <Wrench size={16} />
+                <div className="w-8 h-8 rounded-xl bg-amber-100/80 text-amber-700 flex items-center justify-center shrink-0">
+                  <Building2 size={16} />
                 </div>
                 <div>
                   <h3 className="text-lg sm:text-xl font-bold text-slate-900 m-0 tracking-tight">
-                    Home Services & Repair
+                    Construction & Interior Design
                   </h3>
                   <p className="text-[11.5px] text-slate-500 m-0 leading-none mt-0.5">
-                    Select your service for verified doorstep repair
+                    Select your construction service for consultation & booking
                   </p>
                 </div>
               </div>
@@ -149,15 +147,15 @@ const HouseServicesCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }
                 type="button"
                 onClick={handleClose}
                 aria-label="Close dialog"
-                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-90 text-slate-500 hover:text-slate-800 transition-all duration-150 flex items-center justify-center border-none cursor-pointer p-0"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 transition-colors flex items-center justify-center border-none cursor-pointer p-0"
               >
                 <X size={18} />
               </button>
             </div>
 
-            {/* Sections Content — 3-Column Clean Icon Grid matching AC popup */}
+            {/* Sections Content — 3-Column Clean Icon Grid */}
             <div className="mt-4 flex flex-col gap-5 max-h-[70vh] overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden pr-0.5">
-              {REPAIR_SERVICES.map((sec) => (
+              {CONSTRUCTION_SERVICES.map((sec) => (
                 <div key={sec.section}>
                   {/* Section Label */}
                   {sec.section && (
@@ -176,28 +174,25 @@ const HouseServicesCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }
                         key={item.id}
                         type="button"
                         whileHover={{ y: -2, scale: 1.02 }}
-                        whileTap={{ scale: 0.96 }}
-                        transition={{ duration: 0.12, ease: "easeOut" }}
+                        whileTap={{ scale: 0.97 }}
                         onClick={() => handleSelectService(item.route)}
-                        className="group flex flex-col items-center text-center p-2 sm:p-2.5 rounded-2xl bg-transparent hover:bg-slate-50/80 transition-colors duration-150 cursor-pointer outline-none relative border-0"
-                        style={{ transform: "translateZ(0)" }}
+                        className="group flex flex-col items-center text-center p-2 sm:p-2.5 rounded-2xl bg-transparent hover:bg-slate-50/80 transition-colors duration-150 cursor-pointer outline-none relative border-0 will-change-transform"
                       >
                         {/* Optional Badge */}
                         {item.badge && (
-                          <span className="absolute top-0.5 right-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-indigo-600 text-white tracking-wide shadow-xs z-10 pointer-events-none">
+                          <span className="absolute top-0.5 right-1 text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-amber-600 text-white tracking-wide shadow-xs z-10 pointer-events-none">
                             {item.badge}
                           </span>
                         )}
 
                         {/* Clean High-res Image Thumbnail */}
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center relative p-1 shrink-0 aspect-square">
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center relative p-1">
                           <img
                             src={item.image}
                             alt={item.name}
                             loading="eager"
                             decoding="async"
-                            draggable="false"
-                            className="w-full h-full object-cover rounded-2xl drop-shadow-xs group-hover:scale-108 transition-transform duration-200 ease-out select-none pointer-events-none"
+                            className="w-full h-full object-cover rounded-2xl drop-shadow-xs group-hover:scale-105 transition-transform duration-200 select-none pointer-events-none"
                             onError={(e) => {
                               e.currentTarget.onerror = null;
                               e.currentTarget.src = item.fallbackIcon;
@@ -206,7 +201,7 @@ const HouseServicesCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }
                         </div>
 
                         {/* Title Only */}
-                        <span className="mt-2 text-[11px] sm:text-[12px] font-semibold text-slate-800 group-hover:text-indigo-600 leading-snug line-clamp-2 transition-colors duration-150">
+                        <span className="mt-2 text-[11px] sm:text-[12px] font-semibold text-slate-800 group-hover:text-amber-700 leading-snug line-clamp-2 transition-colors">
                           {item.name}
                         </span>
                       </motion.button>
@@ -222,4 +217,4 @@ const HouseServicesCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }
   );
 };
 
-export default HouseServicesCategoryModal;
+export default ConstructionCategoryModal;

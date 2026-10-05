@@ -17,6 +17,15 @@ const PAINTING_SERVICES = [
         route: "/category/painting",
       },
       {
+        id: "room-by-room-painting",
+        name: "Room-by-Room Painting",
+        badge: "Flexible",
+        image:
+          "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=300&auto=format&fit=crop",
+        fallbackIcon: "/icons/categories/painting.png",
+        route: "/category/painting",
+      },
+      {
         id: "interior-painting",
         name: "Interior Wall Painting",
         image:

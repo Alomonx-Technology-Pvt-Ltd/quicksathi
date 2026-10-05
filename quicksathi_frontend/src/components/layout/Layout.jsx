@@ -18,6 +18,7 @@ import {
   HouseServicesCategoryModal,
   HomeTuitionCategoryModal,
   PaintingCategoryModal,
+  ConstructionCategoryModal,
 } from "../modals";
 
 /* ── Compact City Picker (used inside navbar) ── */
@@ -941,6 +942,7 @@ const Layout = () => {
       <HouseServicesCategoryModal />
       <HomeTuitionCategoryModal />
       <PaintingCategoryModal />
+      <ConstructionCategoryModal />
     </div>
   );
 };

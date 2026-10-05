@@ -6,8 +6,8 @@ import { X, Sparkles, ShieldCheck } from "lucide-react";
 const GENDER_OPTIONS = [
   {
     id: "women",
-    label: "Women",
-    subtitle: "Hair, Facial, Bridal Makeup, Waxing & more",
+    label: "Women's Beauty Services",
+    subtitle: "Haircut, Styling, Facial, Bleach, De-Tan, Waxing, Makeup, Manicure & Pedicure",
     image:
       "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=480&auto=format&fit=crop",
     route: "/category/home-salon?gender=women",
@@ -18,8 +18,8 @@ const GENDER_OPTIONS = [
   },
   {
     id: "men",
-    label: "Men",
-    subtitle: "Haircut, Beard Styling, Grooming & Spa",
+    label: "Men's Grooming",
+    subtitle: "Haircut & Styling, Beard Trimming, Facial, Face Bleach, De-Tan & Face Scrub",
     image:
       "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?q=80&w=480&auto=format&fit=crop",
     route: "/category/home-salon?gender=men",
@@ -111,9 +111,14 @@ const HomeSalonCategoryModal = ({ isOpen: propIsOpen, onClose: propOnClose }) =>
                   <Sparkles size={17} />
                 </div>
                 <div>
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 m-0 tracking-tight">
-                    Home Salon & Beauty
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg sm:text-xl font-bold text-slate-900 m-0 tracking-tight">
+                      Home Salon & Beauty
+                    </h3>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-600 border border-rose-200">
+                      Coming Soon
+                    </span>
+                  </div>
                   <p className="text-[11.5px] text-slate-500 m-0 leading-none mt-0.5">
                     Certified beauticians at your doorstep
                   </p>

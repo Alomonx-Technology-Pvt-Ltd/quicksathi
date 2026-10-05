@@ -914,6 +914,10 @@ const Hero = ({ categories, services, onBookNow }) => {
                     window.dispatchEvent(new CustomEvent("open-painting-modal"));
                     return;
                   }
+                  if (r.includes("construction") || r.includes("interior")) {
+                    window.dispatchEvent(new CustomEvent("open-construction-modal"));
+                    return;
+                  }
                   navigate(route);
                 }}
               />
@@ -970,6 +974,10 @@ const Hero = ({ categories, services, onBookNow }) => {
                 }
                 if (id === "painting" || r.includes("painting") || r.includes("/category/35")) {
                   window.dispatchEvent(new CustomEvent("open-painting-modal"));
+                  return;
+                }
+                if (id === "construction" || r.includes("construction") || r.includes("interior")) {
+                  window.dispatchEvent(new CustomEvent("open-construction-modal"));
                   return;
                 }
                 navigate(activeCat.route);

@@ -203,6 +203,16 @@ const categoriesData = [
         secondaryImageUrl: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/cctv-main.jpg",
         displayOrder: 4,
         active: true
+      },
+      {
+        name: "Painting & Waterproofing",
+        description: "Full home painting, room-by-room painting, interior walls, exterior weatherproofing, and designer textures.",
+        vertical: "HOUSE_SERVICES",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
+        displayOrder: 5,
+        active: true
       }
     ]
   },
@@ -397,13 +407,23 @@ const categoriesData = [
         active: true
       },
       {
+        name: "Room-by-Room Painting",
+        description: "Affordable room-wise painting for single bedrooms, living rooms, or kitchens with fast 1-day turnaround.",
+        vertical: "PAINTING",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=2070&auto=format&fit=crop",
+        displayOrder: 2,
+        active: true
+      },
+      {
         name: "Interior Wall Painting",
         description: "Refresh your living room, bedrooms, and kitchen walls with vibrant colors, smooth finish, and zero odor.",
         vertical: "PAINTING",
         type: "SERVICE_ONLY",
         imageUrl: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=2036&auto=format&fit=crop",
         secondaryImageUrl: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=2070&auto=format&fit=crop",
-        displayOrder: 2,
+        displayOrder: 3,
         active: true
       },
       {
@@ -413,7 +433,7 @@ const categoriesData = [
         type: "SERVICE_ONLY",
         imageUrl: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=2069&auto=format&fit=crop",
         secondaryImageUrl: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=2069&auto=format&fit=crop",
-        displayOrder: 3,
+        displayOrder: 4,
         active: true
       },
       {
@@ -423,7 +443,70 @@ const categoriesData = [
         type: "SERVICE_ONLY",
         imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop",
         secondaryImageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=2070&auto=format&fit=crop",
+        displayOrder: 5,
+        active: true
+      }
+    ]
+  },
+  {
+    name: "Construction & Interior Design",
+    description: "Turnkey home construction, luxury interior design, renovation, false ceiling, and expert 2D/3D architectural planning.",
+    vertical: "CONSTRUCTION",
+    type: "BOTH",
+    imageUrl: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2070&auto=format&fit=crop",
+    secondaryImageUrl: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2070&auto=format&fit=crop",
+    iconUrl: "/icons/categories/construction.png",
+    displayOrder: 9,
+    active: true,
+    subCategories: [
+      {
+        name: "New Home Construction",
+        description: "End-to-end residential and commercial building construction with quality materials and structural guarantees.",
+        vertical: "CONSTRUCTION",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1541888946425-d0fbb18615f8?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1541888946425-d0fbb18615f8?q=80&w=2070&auto=format&fit=crop",
+        displayOrder: 1,
+        active: true
+      },
+      {
+        name: "Renovation & Remodeling",
+        description: "Complete home transformation, kitchen remodels, bathroom revamps, and structural restoration.",
+        vertical: "CONSTRUCTION",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2070&auto=format&fit=crop",
+        displayOrder: 2,
+        active: true
+      },
+      {
+        name: "Interior Design",
+        description: "Bespoke modern interiors, custom woodwork, space styling, and turnkey residential aesthetics.",
+        vertical: "CONSTRUCTION",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2070&auto=format&fit=crop",
+        displayOrder: 3,
+        active: true
+      },
+      {
+        name: "False Ceiling & Lighting",
+        description: "Designer gypsum and POP false ceilings, ambient profile lighting, and energy-efficient LED concepts.",
+        vertical: "CONSTRUCTION",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=2069&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=2069&auto=format&fit=crop",
         displayOrder: 4,
+        active: true
+      },
+      {
+        name: "2D/3D Design & Planning",
+        description: "Architectural floor blueprints, 3D elevation renders, structural drafting, and municipal approval layouts.",
+        vertical: "CONSTRUCTION",
+        type: "SERVICE_ONLY",
+        imageUrl: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2070&auto=format&fit=crop",
+        secondaryImageUrl: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2070&auto=format&fit=crop",
+        displayOrder: 5,
         active: true
       }
     ]

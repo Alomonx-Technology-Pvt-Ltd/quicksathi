@@ -8,8 +8,8 @@ const WEDDING_SERVICES = [
     section: "WEDDING & EVENT SERVICES",
     items: [
       {
-        id: "photography",
-        name: "Wedding Photography",
+        id: "photography-videography",
+        name: "Photography & Videography",
         badge: "Popular",
         image:
           "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=300&auto=format&fit=crop",
@@ -17,16 +17,33 @@ const WEDDING_SERVICES = [
         route: "/service/photography",
       },
       {
-        id: "decoration",
-        name: "Stage & Decoration",
+        id: "wedding-decoration",
+        name: "Wedding Decoration",
         image:
           "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=300&auto=format&fit=crop",
         fallbackIcon: "/icons/categories/wedding-events.png",
         route: "/category/wedding",
       },
       {
-        id: "pandit-service",
-        name: "Pandit for Puja & Weddings",
+        id: "venue-booking",
+        name: "Venue Booking",
+        badge: "New",
+        image:
+          "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=300&auto=format&fit=crop",
+        fallbackIcon: "/icons/categories/wedding-events.png",
+        route: "/category/wedding",
+      },
+      {
+        id: "catering-services",
+        name: "Catering Services",
+        image:
+          "https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=300&auto=format&fit=crop",
+        fallbackIcon: "/icons/categories/wedding-events.png",
+        route: "/category/wedding",
+      },
+      {
+        id: "pandit-booking",
+        name: "Pandit Booking",
         badge: "Vedic",
         image:
           "https://images.unsplash.com/photo-1609358905581-e5381612486e?q=80&w=300&auto=format&fit=crop",
@@ -34,20 +51,13 @@ const WEDDING_SERVICES = [
         route: "/service/pandit-service",
       },
       {
-        id: "catering",
-        name: "Catering & Buffets",
+        id: "wedding-car-rental",
+        name: "Wedding Car Rental",
+        badge: "Luxury",
         image:
-          "https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=300&auto=format&fit=crop",
-        fallbackIcon: "/icons/categories/wedding-events.png",
-        route: "/category/wedding",
-      },
-      {
-        id: "bridal-makeup",
-        name: "Bridal & Party Makeup",
-        image:
-          "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=300&auto=format&fit=crop",
-        fallbackIcon: "/icons/categories/wedding-events.png",
-        route: "/category/wedding",
+          "https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=300&auto=format&fit=crop",
+        fallbackIcon: "/icons/categories/car-rental.png",
+        route: "/category/vehicle-rental",
       },
     ],
   },

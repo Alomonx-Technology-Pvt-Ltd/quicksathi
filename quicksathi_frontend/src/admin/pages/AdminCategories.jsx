@@ -2,13 +2,25 @@ import { useState, useEffect } from "react";
 import api from "../../config/api";
 import { Pencil, Power, Trash2, Layers, Hash, Hourglass } from "lucide-react";
 
-const VERTICALS = ["WEDDING", "VEHICLE_RENTAL", "CCTV_SECURITY", "HOME_TUITION", "HOUSE_HELP"];
+const PLATFORM_VERTICALS = [
+  { value: "CONSTRUCTION", label: "Construction & Interior Design", desc: "Civil works, remodeling, false ceiling, architectural design" },
+  { value: "HOUSE_SERVICES", label: "Home Services & Repair", desc: "Plumbing, electrical, carpentry, painting & waterproofing" },
+  { value: "AC_APPLIANCES", label: "AC & Home Appliances", desc: "AC repair, gas refill, refrigerator, washing machine" },
+  { value: "VEHICLE_RENTAL", label: "Vehicle Rental", desc: "Car & bike rentals, wedding convoys, commercial fleet" },
+  { value: "WEDDING", label: "Wedding & Event", desc: "Venues, photography, catering, decoration, pandit" },
+  { value: "HOUSE_HELP", label: "House Help", desc: "Full-time / part-time maids, cooks, babysitters, laundry" },
+  { value: "HOME_TUITION", label: "Home Tuition", desc: "Academic coaching by grade tiers (KG to Class 12)" },
+  { value: "HOME_SALON", label: "Home Salon & Beauty", desc: "At-home beauty, grooming, spa & styling" },
+  { value: "CCTV_SECURITY", label: "CCTV & Smart Security", desc: "Camera installation, smart locks, intercoms" },
+  { value: "CUSTOM", label: "+ Custom / New Vertical (Create custom module)", desc: "Define a brand-new service module" },
+];
+
 const TYPES = ["SERVICE_ONLY", "PRODUCT_ONLY", "BOTH"];
 
 const emptyCategory = {
   name: "",
   description: "",
-  vertical: "WEDDING",
+  vertical: "CONSTRUCTION",
   type: "BOTH",
   imageUrl: "",
   secondaryImageUrl: "",
@@ -38,6 +50,11 @@ const AdminCategories = () => {
   const [form, setForm] = useState({ ...emptyCategory });
   const [saving, setSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
+
+  // Custom vertical support & smart auto-detection
+  const [isCustomVertical, setIsCustomVertical] = useState(false);
+  const [customVerticalCode, setCustomVerticalCode] = useState("");
+  const [userSelectedVertical, setUserSelectedVertical] = useState(false);
 
   // Subcategory form
   const [newSub, setNewSub] = useState({ ...emptySubCategory });
@@ -106,16 +123,28 @@ const AdminCategories = () => {
 
   const openAddForm = () => {
     setEditingId(null);
-    setForm({ ...emptyCategory });
+    setForm({ ...emptyCategory, vertical: "CONSTRUCTION" });
+    setIsCustomVertical(false);
+    setCustomVerticalCode("");
+    setUserSelectedVertical(false);
     setShowForm(true);
   };
 
   const openEditForm = (cat) => {
     setEditingId(cat._id);
+    const isPreset = PLATFORM_VERTICALS.some((p) => p.value === cat.vertical && p.value !== "CUSTOM");
+    if (isPreset) {
+      setIsCustomVertical(false);
+      setCustomVerticalCode("");
+    } else {
+      setIsCustomVertical(true);
+      setCustomVerticalCode(cat.vertical || "");
+    }
+    setUserSelectedVertical(true);
     setForm({
       name: cat.name || "",
       description: cat.description || "",
-      vertical: cat.vertical || "WEDDING",
+      vertical: isPreset ? cat.vertical : "CUSTOM",
       type: cat.type || "BOTH",
       imageUrl: cat.imageUrl || "",
       secondaryImageUrl: cat.secondaryImageUrl || "",
@@ -131,17 +160,68 @@ const AdminCategories = () => {
     setEditingId(null);
     setForm({ ...emptyCategory });
     setNewSub({ ...emptySubCategory });
+    setIsCustomVertical(false);
+    setCustomVerticalCode("");
+    setUserSelectedVertical(false);
+  };
+
+  // Smart vertical auto-detection when admin types Category Name
+  const handleNameChange = (val) => {
+    setForm((prev) => {
+      const updated = { ...prev, name: val };
+      if (!userSelectedVertical && !editingId) {
+        const lower = val.toLowerCase();
+        if (/construct|interior|renovat|civil|build|false ceiling|architect/i.test(lower)) {
+          updated.vertical = "CONSTRUCTION";
+          setIsCustomVertical(false);
+        } else if (/salon|beauty|makeup|hair|spa|grooming/i.test(lower)) {
+          updated.vertical = "HOME_SALON";
+          setIsCustomVertical(false);
+        } else if (/tuition|tutor|class|coaching|teach|school/i.test(lower)) {
+          updated.vertical = "HOME_TUITION";
+          setIsCustomVertical(false);
+        } else if (/wedding|event|party|cater|stage|mandap/i.test(lower)) {
+          updated.vertical = "WEDDING";
+          setIsCustomVertical(false);
+        } else if (/vehicle|car|bike|rental|cab|taxi|driver/i.test(lower)) {
+          updated.vertical = "VEHICLE_RENTAL";
+          setIsCustomVertical(false);
+        } else if (/ac|air condition|appliance|fridge|washing|microwave/i.test(lower)) {
+          updated.vertical = "AC_APPLIANCES";
+          setIsCustomVertical(false);
+        } else if (/repair|plumb|electric|carpenter|paint|waterproof/i.test(lower)) {
+          updated.vertical = "HOUSE_SERVICES";
+          setIsCustomVertical(false);
+        } else if (/maid|cook|house help|cleaning|babysitt|nanny|laundry|iron/i.test(lower)) {
+          updated.vertical = "HOUSE_HELP";
+          setIsCustomVertical(false);
+        } else if (/cctv|camera|security|lock/i.test(lower)) {
+          updated.vertical = "CCTV_SECURITY";
+          setIsCustomVertical(false);
+        }
+      }
+      return updated;
+    });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
+      const finalVertical = isCustomVertical
+        ? (customVerticalCode.trim() || form.name.trim().toUpperCase().replace(/[^A-Z0-9]+/g, "_") || "OTHER").toUpperCase()
+        : form.vertical;
+
+      const payload = {
+        ...form,
+        vertical: finalVertical,
+      };
+
       if (editingId) {
-        await api.put(`/admin/categories/${editingId}`, form);
+        await api.put(`/admin/categories/${editingId}`, payload);
         showMessage("Category updated successfully!");
       } else {
-        await api.post("/admin/categories", form);
+        await api.post("/admin/categories", payload);
         showMessage("Category created successfully!");
       }
       closeForm();
@@ -370,14 +450,69 @@ const AdminCategories = () => {
               {/* Name & Vertical */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={labelStyle}>Category Name *</label>
-                  <input type="text" value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} required style={inputStyle} className="w-full px-3 py-2.5 rounded-xl text-sm border-0 outline-none" placeholder="e.g. Wedding & Party Services" />
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1" style={labelStyle}>
+                    Category Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                    required
+                    style={inputStyle}
+                    className="w-full px-3 py-2.5 rounded-xl text-sm border-0 outline-none"
+                    placeholder="e.g. Construction & Interior Design"
+                  />
+                  <p className="text-[11px] mt-1 m-0" style={{ color: "var(--admin-text-muted)" }}>
+                    Public name shown across the website & mobile app.
+                  </p>
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={labelStyle}>Vertical *</label>
-                  <select value={form.vertical} onChange={(e) => setForm((p) => ({ ...p, vertical: e.target.value }))} required style={inputStyle} className="w-full px-3 py-2.5 rounded-xl text-sm border-0 outline-none">
-                    {VERTICALS.map((v) => <option key={v} value={v}>{v.replace(/_/g, " ")}</option>)}
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1" style={labelStyle}>
+                    Service Vertical (Business Module) *
+                  </label>
+                  <select
+                    value={isCustomVertical ? "CUSTOM" : form.vertical}
+                    onChange={(e) => {
+                      setUserSelectedVertical(true);
+                      if (e.target.value === "CUSTOM") {
+                        setIsCustomVertical(true);
+                        setForm((p) => ({ ...p, vertical: "CUSTOM" }));
+                      } else {
+                        setIsCustomVertical(false);
+                        setForm((p) => ({ ...p, vertical: e.target.value }));
+                      }
+                    }}
+                    required
+                    style={inputStyle}
+                    className="w-full px-3 py-2.5 rounded-xl text-sm border-0 outline-none"
+                  >
+                    {PLATFORM_VERTICALS.map((v) => (
+                      <option key={v.value} value={v.value}>
+                        {v.label}
+                      </option>
+                    ))}
                   </select>
+
+                  {isCustomVertical ? (
+                    <div className="mt-2">
+                      <input
+                        type="text"
+                        value={customVerticalCode}
+                        onChange={(e) => setCustomVerticalCode(e.target.value.toUpperCase().replace(/\s+/g, "_"))}
+                        placeholder="e.g. SOLAR_ENERGY, PET_CARE"
+                        style={inputStyle}
+                        className="w-full px-3 py-2 rounded-xl text-xs border-0 outline-none"
+                        required
+                      />
+                      <p className="text-[10px] mt-1 m-0" style={{ color: "var(--admin-text-muted)" }}>
+                        Internal uppercase key for routing & provider matching.
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-[11px] mt-1.5 m-0 leading-tight" style={{ color: "var(--admin-text-muted)" }}>
+                      ↳ {PLATFORM_VERTICALS.find((v) => v.value === form.vertical)?.desc || "Platform service vertical"}
+                    </p>
+                  )}
                 </div>
               </div>
 

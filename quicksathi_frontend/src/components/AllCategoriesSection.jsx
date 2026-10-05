@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import ApplianceCategoryModal from "./modals/ApplianceCategoryModal";
 
-// ── Default 8 Platform Categories Designed in Soft Pastel Squircle Style ──
+// ── 9 Official Platform Categories Matching Complete Services Catalogue ──
 const DEFAULT_CATEGORIES = [
   {
     id: "rental",
@@ -19,10 +19,10 @@ const DEFAULT_CATEGORIES = [
   },
   {
     id: "weddings",
-    title: "Wedding & Party Services",
+    title: "Wedding & Event",
     route: "/category/wedding",
     iconImage: "/icons/categories/wedding-events.png",
-    matchKeywords: ["wedding", "party", "events"],
+    matchKeywords: ["wedding", "party", "events", "event"],
     isModalTrigger: true,
     bgColor: "#FDF1F7",
     bgHover: "#FCE4F2",
@@ -35,7 +35,7 @@ const DEFAULT_CATEGORIES = [
     title: "House Help",
     route: "/category/house-help",
     iconImage: "/icons/categories/house-help.png",
-    matchKeywords: ["house help", "maid", "cook"],
+    matchKeywords: ["house help", "maid", "cook", "laundry"],
     isModalTrigger: true,
     bgColor: "#EDFBF7",
     bgHover: "#D6F6EC",
@@ -45,10 +45,10 @@ const DEFAULT_CATEGORIES = [
   },
   {
     id: "repair",
-    title: "House Services Repair",
+    title: "Home Services & Repair",
     route: "/category/house-services",
     iconImage: "/icons/categories/home-repair.png",
-    matchKeywords: ["repair", "plumbing", "electrician", "carpentry", "house services", "house services repair", "house services & repair"],
+    matchKeywords: ["repair", "plumbing", "electrician", "carpentry", "cctv", "painting", "paint", "house services", "home services", "home services & repair"],
     isModalTrigger: true,
     bgColor: "#F4F4F8",
     bgHover: "#EAEBF2",
@@ -59,9 +59,10 @@ const DEFAULT_CATEGORIES = [
   {
     id: "salon",
     title: "Home Salon & Beauty",
+    badge: "Coming Soon",
     route: "/category/home-salon",
     iconImage: "/icons/categories/home-salon.png",
-    matchKeywords: ["salon", "beauty"],
+    matchKeywords: ["salon", "beauty", "grooming"],
     isModalTrigger: true,
     bgColor: "#FFF0F3",
     bgHover: "#FEDDE4",
@@ -84,10 +85,10 @@ const DEFAULT_CATEGORIES = [
   },
   {
     id: "ac",
-    title: "AC & Appliances",
+    title: "AC & Home Appliance",
     route: "/services/ac",
     iconImage: "/icons/categories/ac-appliances.png",
-    matchKeywords: ["ac", "appliance", "air conditioner"],
+    matchKeywords: ["ac", "appliance", "air conditioner", "geyser", "refrigerator", "washing machine", "tv"],
     isModalTrigger: true,
     bgColor: "#EDF7FE",
     bgHover: "#D9EDFE",
@@ -96,17 +97,17 @@ const DEFAULT_CATEGORIES = [
     textHoverColor: "#0369a1",
   },
   {
-    id: "painting",
-    title: "Painting",
-    route: "/category/painting",
-    iconImage: "/icons/categories/painting.png",
-    matchKeywords: ["painting", "paint"],
+    id: "construction",
+    title: "Construction & Interior Design",
+    route: "/services?q=construction",
+    iconImage: "/icons/categories/construction.png",
+    matchKeywords: ["construction", "interior", "interior design", "renovation", "remodeling", "ceiling"],
     isModalTrigger: true,
-    bgColor: "#FFF8E7",
-    bgHover: "#FEF0C7",
-    borderColor: "rgba(245, 158, 11, 0.16)",
-    shadowColor: "rgba(245, 158, 11, 0.22)",
-    textHoverColor: "#b45309",
+    bgColor: "#FFF5E9",
+    bgHover: "#FFE8D1",
+    borderColor: "rgba(234, 88, 12, 0.16)",
+    shadowColor: "rgba(234, 88, 12, 0.22)",
+    textHoverColor: "#c2410c",
   },
 ];
 
@@ -128,6 +129,7 @@ const AllCategoriesSection = ({ categories = [] }) => {
       return {
         id: matched?._id || matched?.id || def.id,
         title: def.title,
+        badge: def.badge,
         route: def.route,
         iconImage: def.iconImage,
         rawCategory: matched,
@@ -177,7 +179,8 @@ const AllCategoriesSection = ({ categories = [] }) => {
     } else if (
       id === "repair" ||
       title.includes("repair") ||
-      title.includes("house services")
+      title.includes("house services") ||
+      title.includes("home services")
     ) {
       window.dispatchEvent(new CustomEvent("open-repair-modal"));
     } else if (
@@ -186,6 +189,12 @@ const AllCategoriesSection = ({ categories = [] }) => {
       title.includes("tutor")
     ) {
       window.dispatchEvent(new CustomEvent("open-tuition-modal"));
+    } else if (
+      id === "construction" ||
+      title.includes("construction") ||
+      title.includes("interior")
+    ) {
+      window.dispatchEvent(new CustomEvent("open-construction-modal"));
     } else if (
       id === "painting" ||
       title.includes("paint")
@@ -237,7 +246,7 @@ const AllCategoriesSection = ({ categories = [] }) => {
           </button>
         </div>
 
-        {/* ── 8 Category Grid (4 per row, squircle icons matching attached reference) ── */}
+        {/* ── 8 Category Grid (4 per row, matching classic squircle style) ── */}
         <div className="w-full flex justify-center">
           <div
             className="grid grid-cols-4 justify-items-center gap-y-6 sm:gap-y-8 md:gap-y-10 gap-x-2 sm:gap-x-6 md:gap-x-10 w-full max-w-3xl sm:max-w-4xl md:max-w-5xl mx-auto"
@@ -267,6 +276,11 @@ const AllCategoriesSection = ({ categories = [] }) => {
                     boxShadow: "0 4px 14px -2px rgba(0, 0, 0, 0.07), 0 2px 6px -1px rgba(0, 0, 0, 0.04)",
                   }}
                 >
+                  {cat.badge && (
+                    <span className="absolute -top-1.5 -right-1 text-[8px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-rose-500 text-white shadow-xs z-10 pointer-events-none whitespace-nowrap">
+                      {cat.badge}
+                    </span>
+                  )}
                   <img
                     src={cat.iconImage}
                     alt={cat.title}

@@ -46,6 +46,9 @@ const LEGACY_CATEGORY_MAP = {
   "cctv-security": "CCTV_SECURITY",
   "35": "PAINTING",
   "painting": "PAINTING",
+  "40": "CONSTRUCTION",
+  "construction": "CONSTRUCTION",
+  "construction-interior": "CONSTRUCTION",
 };
 
 // GET /api/categories/:id — Get single category (by ObjectId, slug, vertical, or name)

@@ -6,3 +6,4 @@ export { default as HouseHelpCategoryModal } from "./HouseHelpCategoryModal";
 export { default as HouseServicesCategoryModal } from "./HouseServicesCategoryModal";
 export { default as HomeTuitionCategoryModal } from "./HomeTuitionCategoryModal";
 export { default as PaintingCategoryModal } from "./PaintingCategoryModal";
+export { default as ConstructionCategoryModal } from "./ConstructionCategoryModal";
