@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import api from "../config/api";
 
 // ── Supported Cities (kept for backward compatibility with admin/provider panels) ──
 export const CITY_OPTIONS = [
@@ -23,7 +24,15 @@ export const CITY_OPTIONS = [
 ];
 
 const STORAGE_KEY = "qs_location";
-const CACHE_TTL = 30 * 60 * 1000; // cached location is considered stale after 30 minutes
+// A location found by GPS goes stale (people move); one the visitor typed or picked is kept until they change it.
+const GPS_TTL = 24 * 60 * 60 * 1000;
+
+// Geocoding goes through our backend (cache, throttling, proper User-Agent): see backend routes/geo.js.
+const geoGet = (path, params, fallback) =>
+  api
+    .get(`/geo/${path}`, { params })
+    .then((r) => r.data)
+    .catch(() => fallback);
 const LocationContext = createContext(null);
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -38,18 +47,8 @@ export const useLocation = () => {
 export async function reverseGeocode(lat, lon, accuracy = null) {
   try {
     const [nomRes, phoRes] = await Promise.all([
-      fetch(
-        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`,
-        { headers: { "Accept-Language": "en", "User-Agent": "TiptoBook/2.0" } }
-      )
-        .then((r) => (r.ok ? r.json() : null))
-        .catch(() => null),
-      fetch(
-        `https://photon.komoot.io/reverse?lon=${lon}&lat=${lat}&limit=6`,
-        { headers: { "Accept-Language": "en", "User-Agent": "TiptoBook/2.0" } }
-      )
-        .then((r) => (r.ok ? r.json() : null))
-        .catch(() => null),
+      geoGet("nominatim/reverse", { lat, lon }, null),
+      geoGet("photon/reverse", { lat, lon, limit: 6 }, null),
     ]);
 
     const addr = nomRes?.address || {};
@@ -226,22 +225,8 @@ export async function searchLocation(query) {
 
   try {
     const [nomData, photonData] = await Promise.all([
-      fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-          q
-        )}&format=json&addressdetails=1&limit=8&countrycodes=in`,
-        { headers: { "Accept-Language": "en" } }
-      )
-        .then((r) => (r.ok ? r.json() : []))
-        .catch(() => []),
-      fetch(
-        `https://photon.komoot.io/api/?q=${encodeURIComponent(
-          q
-        )}&limit=8`,
-        { headers: { "Accept-Language": "en" } }
-      )
-        .then((r) => (r.ok ? r.json() : { features: [] }))
-        .catch(() => ({ features: [] })),
+      geoGet("nominatim/search", { q, limit: 8 }, []),
+      geoGet("photon/search", { q, limit: 8 }, { features: [] }),
     ]);
 
     const results = [];
@@ -339,19 +324,17 @@ export const LocationProvider = ({ children }) => {
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
-        // Require version 2 and precise street/road to avoid stale broad "Digha, Patna, Bihar"
+        // A location the visitor typed/picked is kept until they change it. A GPS-derived one must have
+        // a specific street and be recent (people move).
+        const isManual = parsed?.source === "manual" && (parsed?.city || parsed?.fullLocation);
         const hasSpecificStreet =
           parsed?.street &&
           parsed.street !== parsed?.city &&
-          parsed.street !== parsed?.locality &&
-          !["Digha, Patna, Bihar", "Patna", "Patna, Bihar"].includes(parsed.fullLocation);
+          parsed.street !== parsed?.locality;
+        const isFreshGps =
+          parsed?.version === 2 && hasSpecificStreet && parsed?.timestamp && Date.now() - parsed.timestamp < GPS_TTL;
 
-        if (
-          parsed?.version === 2 &&
-          hasSpecificStreet &&
-          parsed?.timestamp &&
-          Date.now() - parsed.timestamp < CACHE_TTL
-        ) {
+        if (isManual || isFreshGps) {
           return parsed;
         }
       } catch {
@@ -380,7 +363,7 @@ export const LocationProvider = ({ children }) => {
   // Backward-compatible setCity
   const setCity = useCallback((newCity) => {
     if (newCity) {
-      setLocationData({ fullLocation: newCity, city: newCity, timestamp: Date.now() });
+      setLocationData({ fullLocation: newCity, city: newCity, version: 2, source: "manual", timestamp: Date.now() });
     } else {
       setLocationData(null);
     }
@@ -527,6 +510,7 @@ export const LocationProvider = ({ children }) => {
         road: clean,
         gully: clean,
         fullLocation: full,
+        source: "manual",
         timestamp: Date.now(),
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
@@ -534,13 +518,19 @@ export const LocationProvider = ({ children }) => {
     });
   }, []);
 
-  // Auto-detect once on load — only if there is no fresh cached location.
+  // Never open the browser's location prompt on page load (it hurts trust and browsers auto-block sites that
+  // do). Only re-detect silently when the visitor has ALREADY granted permission; otherwise they use
+  // "Use my location".
   useEffect(() => {
     if (autoDetectRan.current) return;
     autoDetectRan.current = true;
-    if (!locationData) {
-      detectExactLocation();
-    }
+    if (locationData || !navigator.permissions?.query) return;
+    navigator.permissions
+      .query({ name: "geolocation" })
+      .then((status) => {
+        if (status.state === "granted") detectExactLocation();
+      })
+      .catch(() => {});
   }, [locationData, detectExactLocation]);
 
   return (

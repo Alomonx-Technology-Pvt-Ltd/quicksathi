@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { MapPin, X, Loader2, Crosshair, Navigation } from "lucide-react";
 import { useLocation } from "../../context/LocationContext";
+import api from "../../config/api";
 
 /**
  * LocationSearch — Autocomplete address input using OpenStreetMap Nominatim with
@@ -15,7 +16,7 @@ import { useLocation } from "../../context/LocationContext";
  *   accentColor  – optional accent colour string
  *   showGpsBtn   – boolean to show 1-click GPS target button (default true)
  */
-const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
+// Address search goes through our backend proxy (routes/geo.js): caching, throttling and a real User-Agent.
 const DEBOUNCE_MS = 350;
 
 const LocationSearch = ({
@@ -65,17 +66,7 @@ const LocationSearch = ({
       debounceRef.current = setTimeout(async () => {
         setLoading(true);
         try {
-          const params = new URLSearchParams({
-            q,
-            format: "json",
-            addressdetails: "1",
-            limit: "7",
-            countrycodes: "in", // Prioritize India
-          });
-          const res = await fetch(`${NOMINATIM_URL}?${params}`, {
-            headers: { "Accept-Language": "en" },
-          });
-          const data = await res.json();
+          const { data } = await api.get("/geo/nominatim/search", { params: { q, limit: 7 } });
           setResults(
             (data || []).map((item) => {
               const addr = item.address || {};

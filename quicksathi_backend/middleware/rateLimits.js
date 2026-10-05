@@ -31,3 +31,4 @@ export const authLimiter = make({ windowMs: MINUTE, limit: 30, message: "Too man
 export const contactLimiter = make({ windowMs: HOUR, limit: 5, message: "Too many messages. Please try again later." });
 export const aiLimiter = make({ windowMs: HOUR, limit: 20, message: "Chat limit reached. Please try again later." });
 export const couponLimiter = make({ windowMs: MINUTE, limit: 10, message: "Too many coupon attempts. Please wait a minute." });
+export const geoLimiter = make({ windowMs: MINUTE, limit: 60, message: "Too many location lookups. Please slow down." });
