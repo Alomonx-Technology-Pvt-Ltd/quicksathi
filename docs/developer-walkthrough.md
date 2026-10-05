@@ -100,7 +100,7 @@ Error boundary with automatic one-time reload on stale chunks after a deploy; a 
 1. Atlas: backups on; a separate **dev** database for developers.
 2. Render env: `JWT_SECRET` (new, ≥ 32 random chars — this logs everyone out), Firebase trio, Razorpay key/secret/**webhook secret**, `CLIENT_URL`, mail provider, Cloudinary. The server will not start without the required ones.
 3. Run the unique-index migration (dry run → apply).
-4. Give each existing admin a way in: sign in with Google once (then they keep the role), or keep using their own password. The shared `ADMIN_PASSWORD` no longer works.
+4. Give each existing admin a way in. The shared `ADMIN_EMAILS`/`ADMIN_PASSWORD` pair no longer works as a pair: an admin can sign in with the password stored on **their own account** (it exists only if they logged in with the old shared password at least once, because the old code copied it onto their account), or with Google (the account must already exist with role `admin`). If an admin account does not exist, or nobody knows its password, run `node scripts/admin-account.mjs <email> --yes` (hidden password prompt, 12+ chars) to create it or reset the password. **The old shared password was circulated in chat: treat it as compromised and never reuse it.**
 5. Razorpay: create the webhook, then run one real test-mode payment (success, failure, closed window, webhook delivered).
 6. Reconcile any old bookings marked `paid` without a `razorpayPaymentId`.
 7. Run `scripts/generate_sitemap.js` against production data and commit the result.
