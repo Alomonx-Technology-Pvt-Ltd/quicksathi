@@ -15,7 +15,6 @@ import {
   Check,
 } from "lucide-react";
 import api from "../config/api";
-import { mockServices } from "../data/mockServices";
 import AboutSection from "../components/serviceDetail/AboutSection";
 import HeroBanner from "../components/serviceDetail/HeroBanner";
 import PackagesSection from "../components/serviceDetail/PackagesSection";
@@ -29,24 +28,8 @@ const ServiceDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const findInitialService = (targetId) => {
-    if (!targetId) return null;
-    const tid = String(targetId).toLowerCase();
-    return (
-      mockServices.find(
-        (s) =>
-          String(s.id) === tid ||
-          String(s._id) === tid ||
-          s.slug?.toLowerCase() === tid ||
-          s.name?.toLowerCase() === tid ||
-          s.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-") === tid
-      ) || null
-    );
-  };
-
-  const initialService = findInitialService(id);
-  const [service, setService] = useState(initialService);
-  const [loading, setLoading] = useState(!initialService);
+  const [service, setService] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeImg, setActiveImg] = useState(0);
   const [openFaq, setOpenFaq] = useState(null);
@@ -55,42 +38,39 @@ const ServiceDetail = () => {
   const [selectedPkgForModal, setSelectedPkgForModal] = useState(null);
   const [activeNavTab, setActiveNavTab] = useState("packages");
 
-  // Fetch real-time service data
+  // Fetch the service from the API (the only source of truth for prices and availability)
   useEffect(() => {
+    let cancelled = false;
     const fetchService = async () => {
       try {
-        if (!service) setLoading(true);
+        setLoading(true);
         setError(null);
+        setService(null);
 
         const { data } = await api.get(`/services/${id}`);
-
-        if (data) {
-          setService(data);
-        }
+        if (cancelled) return;
+        setService(data);
 
         setCategoryComingSoon(false);
         if (data?.category) {
           try {
             const { data: cat } = await api.get(`/categories/${data.category}`);
-            setCategoryComingSoon(!!cat?.comingSoon);
+            if (!cancelled) setCategoryComingSoon(!!cat?.comingSoon);
           } catch {
             // non-fatal
           }
         }
       } catch (err) {
-        console.warn("Backend failed, checking mock data");
-        const match = findInitialService(id);
-        if (match) {
-          setService(match);
-        } else if (!service) {
-          setError(err.response?.data?.message || "Service not found");
+        if (!cancelled) {
+          setError(err.response?.status === 404 ? "This service is not available." : err.response?.data?.message || "We couldn't load this service. Please try again.");
         }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchService();
+    return () => { cancelled = true; };
   }, [id]);
 
   // Escape key & background scroll lock for detail modal

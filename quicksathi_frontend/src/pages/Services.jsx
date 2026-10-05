@@ -25,21 +25,19 @@ import serviceHeroImg from "../assets/serviceHeroImg.avif";
 
 import { useLocation } from "../context/LocationContext";
 import WorkProcess from "../components/servicePage/Workprocess";
-import { mockServices } from "../data/mockServices";
-import { mockCategories } from "../data/mockCategories";
+import { useCatalog } from "../hooks/useCatalog";
 
 const Services = () => {
   const [searchParams] = useSearchParams();
   const [searchQuery, setSearchQuery] = useState(() => searchParams.get("q") || "");
   const [searchInput, setSearchInput] = useState(() => searchParams.get("q") || "");
   const [selectedFilter, setSelectedFilter] = useState("ALL");
-  const [categories, setCategories] = useState([]);
-  const [services, setServices] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  // Categories and services come only from the API (no mock fallback).
   const filterSectionRef = useRef(null);
   const resultsSectionRef = useRef(null);
   const { city } = useLocation();
+  const { categories, services, loading, error: loadError, retry: fetchData } = useCatalog({ city });
+  const error = loadError || null;
 
   // Sync with URL query parameter when navigating from Hero or other pages
   useEffect(() => {
@@ -55,38 +53,7 @@ const Services = () => {
     }
   }, [searchParams]);
 
-  // Fetch categories and services from backend — refetch when city changes
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const cityParam = city ? `?city=${encodeURIComponent(city)}` : "";
-      const [catRes, svcRes] = await Promise.all([
-        api.get("/categories"),
-        api.get(`/services${cityParam}`),
-      ]);
-
-      if (catRes.data?.length > 0) {
-        setCategories(catRes.data);
-      } else {
-        throw new Error("No categories returned from backend");
-      }
-
-      setServices(svcRes.data?.length > 0 ? svcRes.data : mockServices);
-    } catch (err) {
-      console.warn(
-        "Backend unreachable, falling back to local mock data:",
-        err,
-      );
-      setCategories(mockCategories);
-      setServices(mockServices);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [city]);
+  // (data loading lives in useCatalog)
 
   // Build a service link using the service's _id from the backend
   const getServiceLink = (name, mongoId, subId) => {
@@ -121,13 +88,15 @@ const Services = () => {
     }
   };
 
-  const findMatchedService = (subName) =>
-    services.find(
-      (s) =>
-        s.name.toLowerCase() === subName.toLowerCase() ||
-        s.name.toLowerCase().includes(subName.toLowerCase()) ||
-        subName.toLowerCase().includes(s.name.toLowerCase()),
-    );
+  // Exact (case-insensitive) name match wins; otherwise accept a partial match only when it is unambiguous,
+  // so a sub-category never borrows another service's price.
+  const findMatchedService = (subName) => {
+    const wanted = subName.toLowerCase();
+    const exact = services.find((s) => s.name.toLowerCase() === wanted);
+    if (exact) return exact;
+    const partial = services.filter((s) => s.name.toLowerCase().includes(wanted) || wanted.includes(s.name.toLowerCase()));
+    return partial.length === 1 ? partial[0] : undefined;
+  };
 
   const allSubCategories = [
     ...categories.flatMap((cat) =>
@@ -185,7 +154,7 @@ const Services = () => {
           mongoServiceId: s.slug || s._id,
           startingPrice: s.startingPrice || 0,
           priceUnit: s.priceUnit || "per service",
-          rating: s.rating || 5.0,
+          rating: s.rating || null,
         };
       })
   ];
@@ -982,14 +951,18 @@ const Services = () => {
                           opacity: 0.75,
                         }}
                       >
-                        <span className="inline-flex items-center gap-1">
-                          <Star
-                            size={12}
-                            strokeWidth={2}
-                            style={{ color: "var(--color-primary)" }}
-                          />
-                          {item.rating ?? "4.9"}
-                        </span>
+                        {item.rating ? (
+                          <span className="inline-flex items-center gap-1">
+                            <Star
+                              size={12}
+                              strokeWidth={2}
+                              style={{ color: "var(--color-primary)" }}
+                            />
+                            {item.rating}
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1">New</span>
+                        )}
                         <span className="inline-flex items-center gap-1">
                           <BadgeCheck
                             size={12}

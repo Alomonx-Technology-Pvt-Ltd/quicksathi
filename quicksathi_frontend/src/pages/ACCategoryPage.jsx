@@ -20,7 +20,6 @@ import {
 import api from "../config/api";
 import SEO from "../components/SEO";
 import { useLocation } from "../context/LocationContext";
-import { mockServices } from "../data/mockServices";
 import CategorySpotlightBanner from "../components/CategorySpotlightBanner";
 
 // ── Sub-category quick selection tiles matching reference ──
@@ -187,7 +186,8 @@ const ACCategoryPage = ({ category: propCategory }) => {
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("all");
   const [selectedServiceForModal, setSelectedServiceForModal] = useState(null);
-  const [liveServices, setLiveServices] = useState(FALLBACK_AC_SERVICES);
+  const [liveServices, setLiveServices] = useState([]);
+  const [loadState, setLoadState] = useState("loading"); // loading | ready | error
   const sectionRefs = useRef({});
 
   // Escape key & background scroll lock for detail modal
@@ -228,55 +228,46 @@ const ACCategoryPage = ({ category: propCategory }) => {
   }, [street, road, locality, city, fullLocation]);
 
   // Fetch live services from backend
+  // The list is exactly what the API returns. FALLBACK_AC_SERVICES only supplies presentation extras
+  // (section, bullets) for services that exist in the database; it never adds a service or a price.
   useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        const { data } = await api.get("/services");
-        if (data && data.length > 0) {
-          // Filter for AC services
-          const acSvcs = data.filter((s) => {
-            const name = (s.name || "").toLowerCase();
-            const catName = (s.categoryName || "").toLowerCase();
-            const tags = (s.tags || []).map((t) => t.toLowerCase());
-            return (
-              name.includes("ac") ||
-              name.includes("air conditioner") ||
-              catName.includes("ac") ||
-              catName.includes("appliance") ||
-              tags.includes("ac")
+    let cancelled = false;
+    api
+      .get("/services")
+      .then(({ data }) => {
+        if (cancelled) return;
+        const acSvcs = (data || []).filter((s) => {
+          const name = (s.name || "").toLowerCase();
+          const catName = (s.categoryName || "").toLowerCase();
+          const tags = (s.tags || []).map((t) => t.toLowerCase());
+          return (
+            /\bac\b/.test(name) ||
+            name.includes("air conditioner") ||
+            /\bac\b/.test(catName) ||
+            catName.includes("appliance") ||
+            tags.includes("ac")
+          );
+        });
+        setLiveServices(
+          acSvcs.map((ls) => {
+            const fb = FALLBACK_AC_SERVICES.find(
+              (f) => f.slug === ls.slug || f.name.toLowerCase() === (ls.name || "").toLowerCase()
             );
-          });
-
-          if (acSvcs.length > 0) {
-            // Map live services to our structure, filling in any display fields from fallback
-            const merged = FALLBACK_AC_SERVICES.map((fb) => {
-              const matchedLive = acSvcs.find(
-                (ls) =>
-                  ls.slug === fb.slug ||
-                  ls.name.toLowerCase() === fb.name.toLowerCase()
-              );
-              if (matchedLive) {
-                return {
-                  ...fb,
-                  _id: matchedLive._id || fb._id,
-                  startingPrice: matchedLive.startingPrice || fb.startingPrice,
-                  rating: matchedLive.rating || fb.rating,
-                  totalReviews: matchedLive.totalReviews || fb.totalReviews,
-                  packages: matchedLive.packages?.length > 0 ? matchedLive.packages : fb.packages,
-                  faqs: matchedLive.faqs?.length > 0 ? matchedLive.faqs : fb.faqs,
-                };
-              }
-              return fb;
-            });
-            setLiveServices(merged);
-          }
-        }
-      } catch (err) {
-        // Keep fallback data
-      }
-    };
-
-    fetchServices();
+            return {
+              ...(fb || {}),
+              ...ls,
+              section: ls.section || fb?.section,
+              packages: ls.packages?.length > 0 ? ls.packages : fb?.packages || [],
+              faqs: ls.faqs?.length > 0 ? ls.faqs : fb?.faqs || [],
+            };
+          })
+        );
+        setLoadState("ready");
+      })
+      .catch(() => {
+        if (!cancelled) setLoadState("error");
+      });
+    return () => { cancelled = true; };
   }, []);
 
   // Group services by section
@@ -485,6 +476,13 @@ const ACCategoryPage = ({ category: propCategory }) => {
 
         {/* ── Service Sections (Grouped matching reference screenshot) ── */}
         <div className="mt-6 flex flex-col gap-10">
+          {loadState !== "loading" && liveServices.length === 0 && (
+            <p role="status" className="text-center text-slate-500 py-12">
+              {loadState === "error"
+                ? "We couldn't load AC services right now. Please refresh and try again."
+                : "AC services aren't available yet. Please check back soon."}
+            </p>
+          )}
           {SUB_CATEGORIES.map((sub) => {
             const servicesInSection = groupedServices[sub.name] || [];
             if (servicesInSection.length === 0) return null;
@@ -521,10 +519,10 @@ const ACCategoryPage = ({ category: propCategory }) => {
                         <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-600 font-medium">
                           <Star size={13} className="fill-amber-400 text-amber-400" />
                           <span className="font-semibold text-slate-800">
-                            {service.rating || 4.7}
+                            {service.rating > 0 ? service.rating : "New"}
                           </span>
                           <span className="text-slate-500">
-                            ({(service.totalReviews || 8800).toLocaleString("en-IN")} reviews)
+                            ({(service.totalReviews ?? 0).toLocaleString("en-IN")} reviews)
                           </span>
                         </div>
 
@@ -555,7 +553,7 @@ const ACCategoryPage = ({ category: propCategory }) => {
                         <div className="flex items-center justify-between mt-4 max-w-md pt-2">
                           <div className="flex items-baseline gap-1">
                             <span className="text-base sm:text-lg font-extrabold text-slate-900">
-                              ₹{(service.startingPrice || 299).toLocaleString("en-IN")}
+                              ₹{(service.startingPrice ?? 0).toLocaleString("en-IN")}
                             </span>
                             {service.priceUnit && (
                               <span className="text-[11px] text-slate-500 font-normal">
@@ -740,7 +738,7 @@ const ACCategoryPage = ({ category: propCategory }) => {
                 <div>
                   <span className="text-[11px] text-slate-400 block font-medium">Starting from</span>
                   <span className="text-lg font-bold text-slate-900">
-                    ₹{(selectedServiceForModal.startingPrice || 299).toLocaleString("en-IN")}
+                    ₹{(selectedServiceForModal.startingPrice ?? 0).toLocaleString("en-IN")}
                   </span>
                 </div>
 

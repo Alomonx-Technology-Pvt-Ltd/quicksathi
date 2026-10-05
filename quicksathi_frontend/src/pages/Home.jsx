@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
+
 import { motion } from "framer-motion";
 import { ShieldCheck, Gem, CreditCard } from "lucide-react";
-import api, { getCached } from "../config/api";
+import { useCatalog } from "../hooks/useCatalog";
 
 import Hero from "../components/Hero";
 import { Link, useNavigate } from "react-router-dom";
-import { mockCategories } from "../data/mockCategories";
-import { mockServices } from "../data/mockServices";
+
 
 import { useLocation } from "../context/LocationContext";
 
@@ -22,95 +21,9 @@ const Home = () => {
   const navigate = useNavigate();
   const { city } = useLocation();
 
-  // ── Instant render: start with mock data so the page is visible immediately.
-  // API data silently hydrates the UI in the background once the server warms up.
-  const [categories, setCategories] = useState(() =>
-    mockCategories.map(cat => ({
-      ...cat,
-      id: cat.id || cat._id,
-      _id: cat._id || cat.id,
-      subCategories: cat.subCategories?.map(sub => ({
-        ...sub,
-        id: sub.id || sub._id,
-        _id: sub._id || sub.id,
-      })),
-    }))
-  );
-  const [services, setServices] = useState(() =>
-    mockServices.map(srv => ({ ...srv, id: srv.id || srv._id, _id: srv._id || srv.id }))
-  );
+  // Single source of truth: the API (shared with Hero / featured sections, one request each).
+  const { categories, services, loading, error, retry } = useCatalog({ city });
 
-  // Background fetch — no loading spinner, silently upgrades mock → real data
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        const cached = getCached("/categories");
-        if (cached && cached.length > 0) {
-          setCategories(cached.map(cat => ({
-            ...cat,
-            id: cat.id || cat._id,
-            _id: cat._id || cat.id,
-            subCategories: cat.subCategories?.map(sub => ({
-              ...sub,
-              id: sub.id || sub._id,
-              _id: sub._id || sub.id,
-            })),
-          })));
-          return;
-        }
-        const { data } = await api.get("/categories");
-        if (data && data.length > 0) {
-          setCategories(data.map(cat => ({
-            ...cat,
-            id: cat.id || cat._id,
-            _id: cat._id || cat.id,
-            subCategories: cat.subCategories?.map(sub => ({
-              ...sub,
-              id: sub.id || sub._id,
-              _id: sub._id || sub.id,
-            })),
-          })));
-        }
-      } catch (err) {
-        // Keep mock data on error — already showing
-        console.warn("Categories fetch failed, keeping mock data:", err?.message);
-      }
-    };
-    fetchCategories();
-  }, []);
-
-  // Fetch services — also non-blocking, already seeded with mock data above
-  useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        const cacheKey = `/services${city ? `?city=${encodeURIComponent(city)}` : ""}`;
-        const cached = getCached(cacheKey);
-        if (cached && cached.length > 0) {
-          setServices(cached.map(srv => ({ ...srv, id: srv.id || srv._id, _id: srv._id || srv.id })));
-          return;
-        }
-        const params = city ? `?city=${encodeURIComponent(city)}` : "";
-        const { data } = await api.get(`/services${params}`);
-        if (data && data.length > 0) {
-          setServices(data.map(srv => ({ ...srv, id: srv.id || srv._id, _id: srv._id || srv.id })));
-        }
-      } catch (err) {
-        console.warn("Services fetch failed, keeping mock data:", err?.message);
-      }
-    };
-    fetchServices();
-  }, [city]);
-
-  const getServiceLink = (name, subId) => {
-    const match = services?.find(
-      (s) =>
-        s.name.toLowerCase() === name.toLowerCase() ||
-        s.name.toLowerCase().includes(name.toLowerCase()) ||
-        name.toLowerCase().includes(s.name.toLowerCase())
-    );
-    if (match) return `/service/${match.slug || match._id || match.id}`;
-    return `/service/${subId}`;
-  };
 
   const handleBookNow = (name, subId) => {
     const match = services?.find(
@@ -160,6 +73,12 @@ const Home = () => {
           }
         }}
       />
+      {error && categories.length === 0 && services.length === 0 && !loading && (
+        <div role="alert" className="mx-4 sm:mx-8 lg:mx-16 mt-24 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex items-center justify-between gap-4">
+          <span>{error} Please check your connection.</span>
+          <button onClick={retry} className="px-4 py-1.5 rounded-full bg-red-600 text-white font-semibold border-0 cursor-pointer">Retry</button>
+        </div>
+      )}
       <Hero
         categories={categories}
         services={services}

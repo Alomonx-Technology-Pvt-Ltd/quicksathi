@@ -312,7 +312,8 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("all");
   const [selectedServiceForModal, setSelectedServiceForModal] = useState(null);
-  const [liveServices, setLiveServices] = useState(FALLBACK_SALON_SERVICES);
+  const [liveServices, setLiveServices] = useState([]);
+  const [loadState, setLoadState] = useState("loading"); // loading | ready | error
   const sectionRefs = useRef({});
 
   // Filter sub-categories and services by gender param
@@ -371,51 +372,39 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
     return null;
   }, [street, road, locality, city, fullLocation]);
 
-  // Fetch live services from backend and merge with fallback
+  // The list is exactly what the API returns; FALLBACK_SALON_SERVICES only supplies presentation extras
+  // (section, bullets) for services that exist in the database. It never adds a service or a price.
   useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        const { data } = await api.get("/services");
-        if (data && data.length > 0) {
-          const salonSvcs = data.filter((s) => {
-            const catName = (s.categoryName || "").toLowerCase();
-            const vert = (s.vertical || "").toLowerCase();
-            return (
-              s.categoryId === 25 ||
-              catName.includes("salon") ||
-              catName.includes("beauty") ||
-              vert === "home_salon"
+    let cancelled = false;
+    api
+      .get("/services")
+      .then(({ data }) => {
+        if (cancelled) return;
+        const salonSvcs = (data || []).filter((s) => {
+          const catName = (s.categoryName || "").toLowerCase();
+          const vert = (s.vertical || "").toLowerCase();
+          return catName.includes("salon") || catName.includes("beauty") || vert === "home_salon";
+        });
+        setLiveServices(
+          salonSvcs.map((ls) => {
+            const fb = FALLBACK_SALON_SERVICES.find(
+              (f) => f.slug === ls.slug || f.name.toLowerCase() === (ls.name || "").toLowerCase()
             );
-          });
-
-          if (salonSvcs.length > 0) {
-            const merged = FALLBACK_SALON_SERVICES.map((fb) => {
-              const matchedLive = salonSvcs.find(
-                (ls) =>
-                  ls.slug === fb.slug ||
-                  ls.name.toLowerCase() === fb.name.toLowerCase()
-              );
-              if (matchedLive) {
-                return {
-                  ...fb,
-                  _id: matchedLive._id || fb._id,
-                  startingPrice: matchedLive.startingPrice || fb.startingPrice,
-                  rating: matchedLive.rating || fb.rating,
-                  totalReviews: matchedLive.totalReviews || fb.totalReviews,
-                  packages: matchedLive.packages?.length > 0 ? matchedLive.packages : fb.packages,
-                  faqs: matchedLive.faqs?.length > 0 ? matchedLive.faqs : fb.faqs,
-                };
-              }
-              return fb;
-            });
-            setLiveServices(merged);
-          }
-        }
-      } catch {
-        // Keep fallback data silently
-      }
-    };
-    fetchServices();
+            return {
+              ...(fb || {}),
+              ...ls,
+              section: ls.section || fb?.section,
+              packages: ls.packages?.length > 0 ? ls.packages : fb?.packages || [],
+              faqs: ls.faqs?.length > 0 ? ls.faqs : fb?.faqs || [],
+            };
+          })
+        );
+        setLoadState("ready");
+      })
+      .catch(() => {
+        if (!cancelled) setLoadState("error");
+      });
+    return () => { cancelled = true; };
   }, []);
 
   // Group services by section (using filtered data)
@@ -635,6 +624,13 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
 
         {/* ── Service Sections ── */}
         <div className="mt-6 flex flex-col gap-10">
+          {loadState !== "loading" && liveServices.length === 0 && (
+            <p role="status" className="text-center text-slate-500 py-12">
+              {loadState === "error"
+                ? "We couldn't load salon services right now. Please refresh and try again."
+                : "Salon services aren't available yet. Please check back soon."}
+            </p>
+          )}
           {filteredSubCategories.map((sub) => {
             const servicesInSection = groupedServices[sub.name] || [];
             if (servicesInSection.length === 0) return null;
@@ -666,9 +662,9 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
 
                         <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-600 font-medium">
                           <Star size={13} className="fill-amber-400 text-amber-400" />
-                          <span className="font-semibold text-slate-800">{service.rating || 4.8}</span>
+                          <span className="font-semibold text-slate-800">{service.rating > 0 ? service.rating : "New"}</span>
                           <span className="text-slate-500">
-                            ({(service.totalReviews || 1000).toLocaleString("en-IN")} reviews)
+                            ({(service.totalReviews ?? 0).toLocaleString("en-IN")} reviews)
                           </span>
                         </div>
 
@@ -695,7 +691,7 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
                         <div className="flex items-center justify-between mt-4 max-w-md pt-2">
                           <div className="flex items-baseline gap-1">
                             <span className="text-base sm:text-lg font-extrabold text-slate-900">
-                              &#8377;{(service.startingPrice || 499).toLocaleString("en-IN")}
+                              &#8377;{(service.startingPrice ?? 0).toLocaleString("en-IN")}
                             </span>
                             {service.priceUnit && (
                               <span className="text-[11px] text-slate-500 font-normal">
@@ -781,10 +777,10 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
                   <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-600">
                     <Star size={12} className="fill-amber-400 text-amber-400" />
                     <span className="font-semibold text-slate-800">
-                      {selectedServiceForModal.rating || 4.8}
+                      {selectedServiceForModal.rating > 0 ? selectedServiceForModal.rating : "New"}
                     </span>
                     <span>
-                      ({(selectedServiceForModal.totalReviews || 1000).toLocaleString("en-IN")} reviews)
+                      ({(selectedServiceForModal.totalReviews ?? 0).toLocaleString("en-IN")} reviews)
                     </span>
                   </div>
                 </div>
@@ -905,7 +901,7 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
                 <div>
                   <span className="text-[11px] text-slate-400 block font-medium">Starting from</span>
                   <span className="text-lg font-bold text-slate-900">
-                    &#8377;{(selectedServiceForModal.startingPrice || 499).toLocaleString("en-IN")}
+                    &#8377;{(selectedServiceForModal.startingPrice ?? 0).toLocaleString("en-IN")}
                   </span>
                 </div>
 
