@@ -162,11 +162,35 @@ router.get("/status", protect, async (req, res) => {
 });
 
 // PUT /api/providers/me — Update provider profile
+const PROVIDER_EDITABLE_FIELDS = [
+  "businessName", "businessType", "description", "logo", "servicesOffered",
+  "experience", "location", "phone", "email", "isActive",
+];
+
 router.put("/me", protect, providerOnly, async (req, res) => {
   try {
+    // Allowlist only. approvalStatus, rating, totalBookings, documents, user, approvedBy... are never client-editable.
+    const updates = {};
+    for (const field of PROVIDER_EDITABLE_FIELDS) {
+      if (req.body?.[field] !== undefined) updates[field] = req.body[field];
+    }
+
+    const current = await Provider.findOne({ user: req.user._id }).select("approvalStatus");
+    if (!current) {
+      return res.status(404).json({ message: "Provider profile not found" });
+    }
+    if (updates.isActive !== undefined) {
+      if (typeof updates.isActive !== "boolean") {
+        return res.status(400).json({ message: "isActive must be true or false" });
+      }
+      if (current.approvalStatus !== "approved") {
+        return res.status(403).json({ message: "Only approved providers can change availability" });
+      }
+    }
+
     const provider = await Provider.findOneAndUpdate(
       { user: req.user._id },
-      req.body,
+      { $set: updates },
       { new: true, runValidators: true }
     );
     if (!provider) {
@@ -362,7 +386,7 @@ router.get("/", async (req, res) => {
     if (category) filter.categoryName = category;
 
     const providers = await Provider.find(filter)
-      .populate("user", "name avatar")
+      .select("businessName businessType description logo categoryName servicesOffered experience location.city rating totalBookings")
       .sort("-rating");
 
     res.json(providers);

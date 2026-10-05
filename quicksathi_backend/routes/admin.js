@@ -436,6 +436,7 @@ router.get("/providers", protect, adminOnly, async (req, res) => {
     if (status) filter.approvalStatus = status;
 
     const providers = await Provider.find(filter)
+      .select("+documents.idProof +documents.businessRegistration +documents.selfiePhoto +documents.other")
       .populate("user", "name email avatar phone")
       .sort("-createdAt");
 

@@ -6,6 +6,7 @@ import Notification from "../models/Notification.js";
 import Coupon from "../models/Coupon.js";
 import User from "../models/User.js";
 import { protect } from "../middleware/auth.js";
+import { adminOnly } from "../middleware/admin.js";
 import { sendBookingConfirmationEmail, sendBookingStatusEmail } from "../services/emailService.js";
 
 const router = Router();
@@ -276,12 +277,10 @@ router.patch("/:id/cancel", protect, async (req, res) => {
   }
 });
 
-// PATCH /api/bookings/:id/status — Update booking status (admin/provider)
-router.patch("/:id/status", protect, async (req, res) => {
+// PATCH /api/bookings/:id/status — Update any booking's status (ADMIN ONLY).
+// Providers use PATCH /api/providers/bookings/:id/status, which is scoped to their own bookings.
+router.patch("/:id/status", protect, adminOnly, async (req, res) => {
   try {
-    if (req.user.role !== "admin" && req.user.role !== "provider") {
-      return res.status(403).json({ message: "Not authorized" });
-    }
 
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(400).json({ message: "Invalid booking ID format" });
