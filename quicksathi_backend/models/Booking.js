@@ -71,7 +71,7 @@ const bookingSchema = new mongoose.Schema(
     },
     paymentStatus: {
       type: String,
-      enum: ["pending", "paid", "failed", "refunded"],
+      enum: ["pending", "paid", "failed", "refunded", "refund_pending"],
       default: "pending",
     },
     razorpayOrderId: {
@@ -97,41 +97,28 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    // ── Time-based service execution & Doorstep OTP verification ──
-    startOtp: {
-      type: String,
-      default: "",
-    },
-    durationMinutes: {
-      type: Number,
-      default: 60,
-    },
-    startedAt: {
-      type: Date,
-    },
-    expectedEndAt: {
-      type: Date,
-    },
-    completedAt: {
-      type: Date,
-    },
-    completionNotes: {
-      type: String,
-      default: "",
-    },
+    // Audit trail of every status change (who, from/to, when).
+    statusHistory: [
+      {
+        _id: false,
+        from: String,
+        to: String,
+        by: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        role: String,
+        at: { type: Date, default: Date.now },
+        note: String,
+      },
+    ],
   },
   {
     timestamps: true,
   }
 );
 
-// Generate booking ID and startOtp before saving
+// Generate booking ID before saving
 bookingSchema.pre("save", function (next) {
   if (!this.bookingId) {
     this.bookingId = "QS-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
-  }
-  if (!this.startOtp) {
-    this.startOtp = Math.floor(1000 + Math.random() * 9000).toString();
   }
   next();
 });

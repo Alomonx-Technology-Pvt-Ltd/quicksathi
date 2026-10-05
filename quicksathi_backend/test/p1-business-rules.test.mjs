@@ -149,7 +149,7 @@ test("P1-20: bookings cannot be assigned to a rejected provider", async () => {
   const res = await s.api("PATCH", `/admin/bookings/${booking._id}/assign`, { token: admin.token, body: { providerId: String(provider._id) } });
   const after = await s.db.collection("bookings").findOne({ _id: booking._id });
   assert.ok(res.status >= 400, `expected 4xx, got ${res.status}`);
-  assert.equal(after.provider, undefined);
+  assert.ok(after.provider == null, "booking was assigned to a rejected provider");
 });
 
 test("P1-21: provider registration rejects arbitrary URLs as KYC documents", async () => {

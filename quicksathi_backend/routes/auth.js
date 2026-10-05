@@ -4,6 +4,7 @@ import Provider from "../models/Provider.js";
 import { generateToken, protect } from "../middleware/auth.js";
 import { firebaseAuth } from "../config/firebase.js";
 import { sendWelcomeEmail } from "../services/emailService.js";
+import { normalizePhone } from "../services/phone.js";
 
 const router = Router();
 
@@ -22,6 +23,9 @@ const route = (handler) => async (req, res) => {
     await handler(req, res);
   } catch (error) {
     if (error instanceof HttpError) return res.status(error.status).json({ message: error.message });
+    if (error?.code === 11000) {
+      return res.status(409).json({ message: "An account with these details already exists" });
+    }
     res.status(500).json({ message: error.message });
   }
 };
@@ -101,7 +105,9 @@ router.post("/register", route(async (req, res) => {
   const name = asString(req.body.name).trim();
   const email = asString(req.body.email).trim().toLowerCase();
   const password = asString(req.body.password);
-  const phone = asString(req.body.phone).trim();
+  const rawPhone = asString(req.body.phone).trim();
+  const phone = normalizePhone(rawPhone);
+  if (rawPhone && !phone) throw new HttpError(400, "Please enter a valid phone number");
 
   if (!name || !email || !password) {
     throw new HttpError(400, "Name, email and password are required");

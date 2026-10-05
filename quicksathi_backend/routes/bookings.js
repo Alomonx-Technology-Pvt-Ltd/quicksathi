@@ -4,6 +4,7 @@ import Booking from "../models/Booking.js";
 import Service from "../models/Service.js";
 import Notification from "../models/Notification.js";
 import { quote, redeemCoupon, releaseCoupon, assertFutureSlot, PricingError } from "../services/pricing.js";
+import { changeStatus, BookingStateError } from "../services/bookingStatus.js";
 import User from "../models/User.js";
 import { protect } from "../middleware/auth.js";
 import { adminOnly } from "../middleware/admin.js";
@@ -175,13 +176,12 @@ router.patch("/:id/cancel", protect, async (req, res) => {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    if (["completed", "cancelled"].includes(booking.status)) {
-      return res.status(400).json({ message: "Cannot cancel this booking" });
-    }
-
-    booking.status = "cancelled";
-    booking.cancelledBy = req.user.role === "admin" ? "admin" : "user";
-    booking.cancelReason = req.body?.reason || "";
+    // Customers can only cancel before the job starts; admins can also cancel a job in progress.
+    changeStatus(booking, "cancelled", {
+      actorId: req.user._id,
+      role: req.user.role === "admin" ? "admin" : "customer",
+      reason: req.body?.reason,
+    });
     await booking.save();
 
     // Create In-Website Notification
@@ -215,57 +215,43 @@ router.patch("/:id/cancel", protect, async (req, res) => {
 
     res.json(booking);
   } catch (error) {
+    if (error instanceof BookingStateError) return res.status(error.status).json({ message: error.message });
     res.status(500).json({ message: error.message });
   }
 });
 
-// PATCH /api/bookings/:id/status — Update any booking's status (ADMIN ONLY).
+// Admin-only status change shared by PATCH /api/bookings/:id/status and PATCH /api/admin/bookings/:id/status.
 // Providers use PATCH /api/providers/bookings/:id/status, which is scoped to their own bookings.
-router.patch("/:id/status", protect, adminOnly, async (req, res) => {
+export const adminUpdateBookingStatus = async (req, res) => {
   try {
-
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(400).json({ message: "Invalid booking ID format" });
     }
-
-    const updateFields = { status: req.body.status };
-    if (req.body.status === "completed") {
-      updateFields.paymentStatus = "paid";
-    }
-
-    const booking = await Booking.findByIdAndUpdate(
-      req.params.id,
-      updateFields,
-      { new: true, runValidators: true }
-    );
-
+    const booking = await Booking.findById(req.params.id);
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    // Create In-Website Notification
+    const status = req.body?.status;
+    changeStatus(booking, status, { actorId: req.user._id, role: "admin", reason: req.body?.reason });
+    await booking.save();
+
     try {
       await Notification.create({
         recipient: booking.user,
-        title: `Booking Update: ${req.body.status.toUpperCase()} 🔄`,
-        message: `The status of your booking ${booking.bookingId || ""} for ${booking.serviceName} has been updated to "${req.body.status}".`,
+        title: `Booking Update: ${status.toUpperCase()} 🔄`,
+        message: `The status of your booking ${booking.bookingId || ""} for ${booking.serviceName} has been updated to "${status}".`,
         type: "booking",
       });
     } catch (notifError) {
       console.error("Failed to create status update notification:", notifError);
     }
 
-    // Send status update email notification asynchronously
     (async () => {
       try {
         const bookedUser = await User.findById(booking.user).select("name email");
         if (bookedUser?.email) {
-          await sendBookingStatusEmail({
-            to: bookedUser.email,
-            name: bookedUser.name,
-            booking,
-            status: req.body.status,
-          });
+          await sendBookingStatusEmail({ to: bookedUser.email, name: bookedUser.name, booking, status });
         }
       } catch (emailErr) {
         console.error("Booking status email error:", emailErr?.message || emailErr);
@@ -274,8 +260,10 @@ router.patch("/:id/status", protect, adminOnly, async (req, res) => {
 
     res.json(booking);
   } catch (error) {
+    if (error instanceof BookingStateError) return res.status(error.status).json({ message: error.message });
     res.status(500).json({ message: error.message });
   }
-});
+};
+router.patch("/:id/status", protect, adminOnly, adminUpdateBookingStatus);
 
 export default router;
