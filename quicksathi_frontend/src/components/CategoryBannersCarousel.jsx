@@ -187,6 +187,29 @@ const CATEGORY_BANNERS = [
   },
 ];
 
+// Banners open a category modal only for these exact ids / links (never by substring match).
+const BANNER_MODAL_BY_ID = {
+  ac: "open-appliance-modal",
+  salon: "open-salon-modal",
+  rental: "open-rental-modal",
+  weddings: "open-wedding-modal",
+  wedding: "open-wedding-modal",
+  help: "open-help-modal",
+  repair: "open-repair-modal",
+  tuition: "open-tuition-modal",
+  painting: "open-painting-modal",
+};
+const BANNER_MODAL_BY_LINK = {
+  "/services/ac": "open-appliance-modal",
+  "/category/home-salon": "open-salon-modal",
+  "/category/vehicle-rental": "open-rental-modal",
+  "/category/wedding": "open-wedding-modal",
+  "/category/house-help": "open-help-modal",
+  "/category/house-services": "open-repair-modal",
+  "/category/home-tuition": "open-tuition-modal",
+  "/category/painting": "open-painting-modal",
+};
+
 const DEFAULT_CAROUSEL_GRADIENT =
   "linear-gradient(90deg, rgba(8, 20, 42, 0.90) 0%, rgba(12, 30, 62, 0.75) 50%, rgba(12, 30, 62, 0.25) 80%, rgba(12, 30, 62, 0.05) 100%)";
 
@@ -390,33 +413,13 @@ export default function CategoryBannersCarousel() {
                 key={banner._id || banner.id || index}
                 to={banner.link}
                 onClick={(e) => {
+                  // Only exact, known category links open a modal. Everything else navigates normally.
                   const bId = (banner.id || "").toLowerCase();
-                  const link = (banner.link || "").toLowerCase();
-
-                  if (bId === "ac" || link === "/services/ac" || link.includes("ac")) {
+                  const link = (banner.link || "").toLowerCase().replace(/\/+$/, "");
+                  const eventName = BANNER_MODAL_BY_ID[bId] || BANNER_MODAL_BY_LINK[link];
+                  if (eventName) {
                     e.preventDefault();
-                    window.dispatchEvent(new CustomEvent("open-appliance-modal"));
-                  } else if (bId === "salon" || link.includes("home-salon") || link.includes("salon")) {
-                    e.preventDefault();
-                    window.dispatchEvent(new CustomEvent("open-salon-modal"));
-                  } else if (bId === "rental" || link.includes("rental") || link.includes("vehicle") || link.includes("car")) {
-                    e.preventDefault();
-                    window.dispatchEvent(new CustomEvent("open-rental-modal"));
-                  } else if (bId === "weddings" || bId === "wedding" || link.includes("wedding")) {
-                    e.preventDefault();
-                    window.dispatchEvent(new CustomEvent("open-wedding-modal"));
-                  } else if (bId === "help" || link.includes("house-help") || link.includes("help") || link.includes("maid")) {
-                    e.preventDefault();
-                    window.dispatchEvent(new CustomEvent("open-help-modal"));
-                  } else if (bId === "repair" || link.includes("house-services") || link.includes("repair")) {
-                    e.preventDefault();
-                    window.dispatchEvent(new CustomEvent("open-repair-modal"));
-                  } else if (bId === "tuition" || link.includes("tuition") || link.includes("tutor")) {
-                    e.preventDefault();
-                    window.dispatchEvent(new CustomEvent("open-tuition-modal"));
-                  } else if (bId === "painting" || link.includes("painting")) {
-                    e.preventDefault();
-                    window.dispatchEvent(new CustomEvent("open-painting-modal"));
+                    window.dispatchEvent(new CustomEvent(eventName));
                   }
                 }}
                 className="category-banner-card snap-start flex-shrink-0 no-underline block rounded-2xl sm:rounded-3xl overflow-hidden relative transition-shadow duration-300 hover:shadow-xl active:scale-[0.99] group"

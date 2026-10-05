@@ -1,5 +1,10 @@
 import mongoose from "mongoose";
 
+// Banner links/images are rendered on the homepage: only site paths or https URLs are allowed
+// (no javascript:, data:, protocol-relative //evil.com, or plain http).
+const safeLink = (v) => !v || /^\/(?!\/)/.test(v) || /^https:\/\/[^\s]+$/i.test(v);
+const safeImage = (v) => !v || /^\/(?!\/)/.test(v) || /^https:\/\/[^\s]+$/i.test(v);
+
 const bannerSchema = new mongoose.Schema(
   {
     // ── Common Fields (used by all banner sections) ──
@@ -29,6 +34,7 @@ const bannerSchema = new mongoose.Schema(
     image: {
       type: String,
       required: [true, "Banner image URL is required"],
+      validate: [safeImage, "Image must be an https:// URL or a site path"],
     },
     imageAlt: {
       type: String,
@@ -38,6 +44,7 @@ const bannerSchema = new mongoose.Schema(
       type: String,
       default: "/services",
       trim: true,
+      validate: [safeLink, "Link must be a site path like /services or an https:// URL"],
     },
     cta: {
       type: String,
@@ -134,6 +141,7 @@ const bannerSchema = new mongoose.Schema(
       type: String,
       default: "",
       trim: true,
+      validate: [safeLink, "Link must be a site path like /services or an https:// URL"],
     },
     themeColor: {
       type: String,
