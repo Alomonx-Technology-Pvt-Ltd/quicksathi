@@ -327,7 +327,8 @@ const DEFAULT_CATEGORY_PAGE_BANNERS = [
 ];
 
 // Seed default banners once if needed and ensure all sections have defaults
-const ensureDefaultBanners = async () => {
+// Dev-only: called from seed/seedData.js. Never run at import time (it resurrected banners an admin had deleted).
+export const ensureDefaultBanners = async () => {
   try {
     // If any legacy banner is missing section, default to carousel
     await Banner.updateMany({ section: { $exists: false } }, { $set: { section: "carousel" } });
@@ -356,7 +357,7 @@ const ensureDefaultBanners = async () => {
     console.warn("⚠️ Banner auto-seed skipped:", err.message);
   }
 };
-ensureDefaultBanners();
+// (intentionally not invoked here)
 
 // GET /api/banners — Public list of active banners (lean & fast)
 // Supports ?section=carousel|spotlight|category_page to filter by type

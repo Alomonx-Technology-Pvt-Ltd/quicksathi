@@ -6,6 +6,9 @@ import Category from "../models/Category.js";
 import Service from "../models/Service.js";
 import Booking from "../models/Booking.js";
 import Provider from "../models/Provider.js";
+import { assertSafeToSeed } from "./_guard.js";
+import { ensureDefaultBanners } from "../routes/banners.js";
+import { ensureDefaultCoupons } from "../routes/coupons.js";
 
 // Parse admin emails from .env (comma-separated)
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
@@ -1488,18 +1491,16 @@ const servicesData = [
 ];
 
 const seedData = async () => {
+  assertSafeToSeed("seed/seedData.js");
   await connectDB();
 
-  console.log("🧹 Cleaning database...\n");
+  console.log("🧹 Cleaning catalog (services & categories only; bookings, users and providers are never touched)...\n");
 
-  // Remove all dummy services and categories
   const deletedServices = await Service.deleteMany({});
   const deletedCategories = await Category.deleteMany({});
-  const deletedBookings = await Booking.deleteMany({});
 
   console.log(`   Removed ${deletedServices.deletedCount} services`);
   console.log(`   Removed ${deletedCategories.deletedCount} categories`);
-  console.log(`   Removed ${deletedBookings.deletedCount} bookings`);
 
   console.log("\n🌱 Seeding categories...\n");
   const seededCategories = await Category.insertMany(categoriesData);
@@ -1512,102 +1513,27 @@ const seedData = async () => {
   });
 
   console.log("\n🌱 Seeding services...\n");
-  const servicesToInsert = servicesData.map((svc) => {
-    const parentId = categoryMap[svc.categoryGroup];
-    if (!parentId) {
-      console.warn(`⚠️ Warning: Category group "${svc.categoryGroup}" not found for service "${svc.name}"`);
-    }
-    
-    // Remove temporary categoryGroup field and add categoryObjectID
-    const { categoryGroup, ...rest } = svc;
-    return {
-      ...rest,
-      category: parentId,
-      categoryName: svc.categoryGroup
-    };
-  });
+  const servicesToInsert = servicesData
+    .filter((svc) => {
+      if (categoryMap[svc.categoryGroup]) return true;
+      console.warn(`⚠️ Skipping "${svc.name}": category group "${svc.categoryGroup}" is not seeded`);
+      return false;
+    })
+    .map((svc) => {
+      // Remove temporary categoryGroup field and add categoryObjectID
+      const { categoryGroup, ...rest } = svc;
+      return { ...rest, category: categoryMap[categoryGroup], categoryName: categoryGroup };
+    });
 
   const seededServices = await Service.insertMany(servicesToInsert);
   console.log(`   Seeded ${seededServices.length} services successfully!`);
 
-  console.log("\n🌱 Seeding sample bookings...\n");
-  const sampleUser = (await User.findOne({ role: "user" })) || (await User.findOne({}));
-  const sampleProvider = await Provider.findOne({ approvalStatus: "approved" });
+  // Default banners and coupons (dev only; the server no longer creates them at boot).
+  await ensureDefaultBanners();
+  await ensureDefaultCoupons();
 
-  if (sampleUser && seededServices.length > 0) {
-    const photoService = seededServices.find((s) => s.slug === "photography") || seededServices[0];
-    const decorService = seededServices.find((s) => s.slug === "decoration") || seededServices[1];
-    const rentalService = seededServices.find((s) => s.slug === "car-rental") || seededServices[2];
-    const plumbingService = seededServices.find((s) => s.slug === "plumbing") || seededServices[3];
-
-    const sampleBookings = [
-      {
-        bookingId: "QS-PHOTO-" + Math.random().toString(36).substring(2, 7).toUpperCase(),
-        user: sampleUser._id,
-        service: photoService._id,
-        provider: sampleProvider?._id,
-        serviceName: photoService.name,
-        packageTitle: photoService.packages?.[0]?.title || "Basic Package",
-        scheduledDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-        scheduledTime: "10:00 AM",
-        location: { address: "Boring Road, Near Chauraha", city: "Patna", pincode: "800001" },
-        notes: "Wedding reception shoot",
-        amount: 15000,
-        paymentMethod: "cod",
-        paymentStatus: "paid",
-        status: "completed",
-      },
-      {
-        bookingId: "QS-DECOR-" + Math.random().toString(36).substring(2, 7).toUpperCase(),
-        user: sampleUser._id,
-        service: decorService._id,
-        provider: sampleProvider?._id,
-        serviceName: decorService.name,
-        packageTitle: decorService.packages?.[0]?.title || "Royal Thematic Decor",
-        scheduledDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-        scheduledTime: "02:00 PM",
-        location: { address: "Bailey Road, Saguna More", city: "Patna", pincode: "800014" },
-        notes: "Floral entrance and stage setup",
-        amount: 25000,
-        paymentMethod: "razorpay",
-        paymentStatus: "paid",
-        status: "completed",
-      },
-      {
-        bookingId: "QS-CAR-" + Math.random().toString(36).substring(2, 7).toUpperCase(),
-        user: sampleUser._id,
-        service: rentalService._id,
-        serviceName: rentalService.name,
-        packageTitle: "Daily Rental Package",
-        scheduledDate: new Date(),
-        scheduledTime: "09:00 AM",
-        location: { address: "Patna Airport to Hotel Maurya", city: "Patna", pincode: "800001" },
-        notes: "Airport pickup with driver",
-        amount: 2499,
-        paymentMethod: "razorpay",
-        paymentStatus: "paid",
-        status: "confirmed",
-      },
-      {
-        bookingId: "QS-PLUMB-" + Math.random().toString(36).substring(2, 7).toUpperCase(),
-        user: sampleUser._id,
-        service: plumbingService._id,
-        serviceName: plumbingService.name,
-        packageTitle: "Basic Repair Visit",
-        scheduledDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
-        scheduledTime: "11:30 AM",
-        location: { address: "Kankarbagh Main Road", city: "Patna", pincode: "800020" },
-        notes: "Kitchen tap leakage repair",
-        amount: 199,
-        paymentMethod: "cod",
-        paymentStatus: "pending",
-        status: "pending",
-      },
-    ];
-
-    const seededBookings = await Booking.insertMany(sampleBookings);
-    console.log(`   Seeded ${seededBookings.length} sample bookings successfully!`);
-  }
+  // Sample bookings used to be seeded onto the first real user/provider. Never do that:
+  // create fixtures explicitly in a test instead.
 
   // NOTE: admin rights are never granted from ADMIN_EMAILS. Use scripts/grant-admin.mjs.
 
