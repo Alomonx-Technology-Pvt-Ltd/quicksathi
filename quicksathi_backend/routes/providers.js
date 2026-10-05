@@ -9,6 +9,7 @@ import Booking from "../models/Booking.js";
 import Notification from "../models/Notification.js";
 import { protect } from "../middleware/auth.js";
 import { providerOnly } from "../middleware/admin.js";
+import { changeStatus, markCashCollected, BookingStateError } from "../services/bookingStatus.js";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -53,49 +54,38 @@ router.post("/register", protect, async (req, res) => {
       }
     }
 
-    // Upload selfie photo to Cloudinary if provided as base64 data
-    let selfieUrl = "";
-    if (selfiePhoto && selfiePhoto.startsWith("data:image")) {
-      try {
-        const uploadRes = await cloudinary.uploader.upload(selfiePhoto, {
-          folder: "TiptoBook/providers/selfies",
-        });
-        selfieUrl = uploadRes.secure_url;
-      } catch (err) {
-        console.error("Selfie Cloudinary upload failed:", err);
+    // KYC documents must be real image uploads (data URIs). Arbitrary URLs are rejected, and a failed
+    // upload fails the application instead of silently creating one with no documents.
+    const uploadKyc = async (value, folder, label) => {
+      if (!value) return "";
+      if (typeof value !== "string" || !/^data:image\/(png|jpe?g|webp);base64,/i.test(value)) {
+        const err = new Error(`${label} must be an image file (PNG, JPG or WebP)`);
+        err.status = 400;
+        throw err;
       }
-    } else if (selfiePhoto) {
-      selfieUrl = selfiePhoto;
-    }
+      if (value.length > 7 * 1024 * 1024) {
+        const err = new Error(`${label} is too large (max 5 MB)`);
+        err.status = 400;
+        throw err;
+      }
+      try {
+        const uploaded = await cloudinary.uploader.upload(value, { folder });
+        return uploaded.secure_url;
+      } catch (uploadErr) {
+        console.error(`${label} upload failed:`, uploadErr?.message || uploadErr);
+        const err = new Error(`Could not upload your ${label.toLowerCase()}. Please try again.`);
+        err.status = 502;
+        throw err;
+      }
+    };
 
-    // Upload ID Proof if provided as base64
-    let idProofUrl = "";
-    if (idProof && idProof.startsWith("data:image")) {
-      try {
-        const uploadRes = await cloudinary.uploader.upload(idProof, {
-          folder: "TiptoBook/providers/documents",
-        });
-        idProofUrl = uploadRes.secure_url;
-      } catch (err) {
-        console.error("ID Proof upload failed:", err);
-      }
-    } else if (idProof) {
-      idProofUrl = idProof;
-    }
-
-    // Upload Business Reg if provided as base64
-    let businessRegUrl = "";
-    if (businessReg && businessReg.startsWith("data:image")) {
-      try {
-        const uploadRes = await cloudinary.uploader.upload(businessReg, {
-          folder: "TiptoBook/providers/documents",
-        });
-        businessRegUrl = uploadRes.secure_url;
-      } catch (err) {
-        console.error("Business Reg upload failed:", err);
-      }
-    } else if (businessReg) {
-      businessRegUrl = businessReg;
+    let selfieUrl, idProofUrl, businessRegUrl;
+    try {
+      selfieUrl = await uploadKyc(selfiePhoto, "TiptoBook/providers/selfies", "Selfie photo");
+      idProofUrl = await uploadKyc(idProof, "TiptoBook/providers/documents", "ID proof");
+      businessRegUrl = await uploadKyc(businessReg, "TiptoBook/providers/documents", "Business registration");
+    } catch (uploadError) {
+      return res.status(uploadError.status || 500).json({ message: uploadError.message });
     }
 
     const provider = await Provider.create({
@@ -343,21 +333,17 @@ router.patch("/bookings/:id/status", protect, providerOnly, async (req, res) => 
     if (!provider) {
       return res.status(404).json({ message: "Provider profile not found" });
     }
-
-    const { status } = req.body;
-    if (!["pending", "confirmed", "in_progress", "completed", "cancelled"].includes(status)) {
-      return res.status(400).json({ message: "Invalid status" });
+    if (provider.approvalStatus !== "approved") {
+      return res.status(403).json({ message: "Your provider profile isn't approved yet" });
     }
 
+    const { status } = req.body;
     const booking = await Booking.findOne({ _id: req.params.id, provider: provider._id });
     if (!booking) {
       return res.status(404).json({ message: "Booking not found or not assigned to you" });
     }
 
-    booking.status = status;
-    if (status === "completed") {
-      booking.paymentStatus = "paid";
-    }
+    changeStatus(booking, status, { actorId: req.user._id, role: "provider", reason: req.body?.reason });
     await booking.save();
 
     // Create Notification for the client user
@@ -374,6 +360,27 @@ router.patch("/bookings/:id/status", protect, providerOnly, async (req, res) => 
 
     res.json({ message: "Booking status updated successfully", booking });
   } catch (error) {
+    if (error instanceof BookingStateError) return res.status(error.status).json({ message: error.message });
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// POST /api/providers/bookings/:id/cash-collected — provider confirms they received the cash for a COD job
+router.post("/bookings/:id/cash-collected", protect, providerOnly, async (req, res) => {
+  try {
+    const provider = await Provider.findOne({ user: req.user._id });
+    if (!provider || provider.approvalStatus !== "approved") {
+      return res.status(403).json({ message: "Your provider profile isn't approved" });
+    }
+    const booking = await Booking.findOne({ _id: req.params.id, provider: provider._id });
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found or not assigned to you" });
+    }
+    markCashCollected(booking, { actorId: req.user._id, role: "provider" });
+    await booking.save();
+    res.json({ message: "Marked as paid", booking });
+  } catch (error) {
+    if (error instanceof BookingStateError) return res.status(error.status).json({ message: error.message });
     res.status(500).json({ message: error.message });
   }
 });

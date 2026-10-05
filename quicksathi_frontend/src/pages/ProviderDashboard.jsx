@@ -122,13 +122,24 @@ const ProviderDashboard = () => {
     try {
       const { data } = await api.patch(`/providers/bookings/${bookingId}/status`, { status: newStatus });
       setBookings((prev) =>
-        prev.map((b) => (b._id === bookingId ? { ...b, status: newStatus } : b))
+        prev.map((b) => (b._id === bookingId ? { ...b, ...data.booking } : b))
       );
       setMessage(`Booking status updated to ${newStatus.replace("_", " ")}!`);
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
       console.error(err);
       setMessage(err.response?.data?.message || "Failed to update booking status");
+    }
+  };
+
+  const handleCashCollected = async (bookingId) => {
+    try {
+      const { data } = await api.post(`/providers/bookings/${bookingId}/cash-collected`);
+      setBookings((prev) => prev.map((b) => (b._id === bookingId ? { ...b, ...data.booking } : b)));
+      setMessage("Cash payment recorded.");
+      setTimeout(() => setMessage(""), 3000);
+    } catch (err) {
+      setMessage(err.response?.data?.message || "Could not record cash payment");
     }
   };
 
@@ -651,7 +662,7 @@ const ProviderDashboard = () => {
                             Accept Booking
                           </button>
                         )}
-                        {["pending", "confirmed"].includes(b.status) && (
+                        {b.status === "confirmed" && (
                           <button
                             onClick={() => handleBookingStatus(b._id, "in_progress")}
                             className="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase cursor-pointer border-0 bg-blue-500 hover:bg-blue-600 text-white transition"
@@ -667,7 +678,15 @@ const ProviderDashboard = () => {
                             Complete Work
                           </button>
                         )}
-                        {b.status !== "completed" && b.status !== "cancelled" && (
+                        {["in_progress", "completed"].includes(b.status) && b.paymentMethod === "cod" && b.paymentStatus !== "paid" && (
+                          <button
+                            onClick={() => handleCashCollected(b._id)}
+                            className="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase cursor-pointer border-0 bg-emerald-500 hover:bg-emerald-600 text-white transition"
+                          >
+                            Cash Collected
+                          </button>
+                        )}
+                        {["pending", "confirmed"].includes(b.status) && (
                           <button
                             onClick={() => handleBookingStatus(b._id, "cancelled")}
                             className="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase cursor-pointer border-0 bg-red-500 hover:bg-red-600 text-white transition"

@@ -71,7 +71,7 @@ const bookingSchema = new mongoose.Schema(
     },
     paymentStatus: {
       type: String,
-      enum: ["pending", "paid", "failed", "refunded"],
+      enum: ["pending", "paid", "failed", "refunded", "refund_pending"],
       default: "pending",
     },
     razorpayOrderId: {
@@ -97,6 +97,18 @@ const bookingSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    // Audit trail of every status change (who, from/to, when).
+    statusHistory: [
+      {
+        _id: false,
+        from: String,
+        to: String,
+        by: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        role: String,
+        at: { type: Date, default: Date.now },
+        note: String,
+      },
+    ],
   },
   {
     timestamps: true,

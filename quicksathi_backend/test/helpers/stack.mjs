@@ -69,7 +69,13 @@ export async function startStack({ env: extraEnv = {} } = {}) {
       try {
         const r = await fetch(`http://127.0.0.1:${port}/api/health`);
         if (r.status < 500) {
-          await new Promise((r2) => setTimeout(r2, 300)); // let import-time seeding settle
+          // Mongoose builds indexes in the background after boot; wait for the ones tests rely on.
+          for (let i = 0; i < 50; i++) {
+            const names = new Set((await db.collection("bookings").indexes().catch(() => [])).map((x) => x.name));
+            const userNames = new Set((await db.collection("users").indexes().catch(() => [])).map((x) => x.name));
+            if (names.has("razorpayPaymentId_1") && names.has("razorpayOrderId_1") && userNames.has("phone_unique")) break;
+            await new Promise((r2) => setTimeout(r2, 100));
+          }
           return;
         }
       } catch {}
