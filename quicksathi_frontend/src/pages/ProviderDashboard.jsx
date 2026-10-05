@@ -444,7 +444,7 @@ const ProviderDashboard = () => {
               style={{ backgroundColor: "var(--admin-bg-sidebar)", borderColor: "var(--admin-border)" }}
             >
               <AlertCircle size={40} className="mx-auto text-amber-500 mb-4 animate-pulse" />
-              <h2 className="text-lg font-bold mb-2">Account Status: {provider?.approvalStatus.toUpperCase()}</h2>
+              <h2 className="text-lg font-bold mb-2">Account Status: {provider?.approvalStatus?.toUpperCase() || "UNKNOWN"}</h2>
               {provider?.approvalStatus === "rejected" && provider?.rejectionReason ? (
                 <p className="text-sm text-red-400">Rejection Reason: {provider.rejectionReason}</p>
               ) : (

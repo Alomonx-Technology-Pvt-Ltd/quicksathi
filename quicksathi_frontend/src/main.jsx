@@ -2,6 +2,7 @@ import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
 
 // ── Backend wake-up — fires BEFORE React mounts ───────────────────────────────
 // This gives Render's free-tier backend the maximum warm-up time while the JS
@@ -14,6 +15,8 @@ if (apiBase && !apiBase.includes('localhost')) {
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 )

@@ -59,11 +59,19 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
+    // Only treat a 401 as "your session expired" when we actually sent a session token and the call
+    // wasn't a login attempt itself (a wrong password is also a 401 and must show its own message).
+    const sentToken = Boolean(error.config?.headers?.Authorization);
+    const isAuthCall = String(error.config?.url || "").startsWith("/auth/");
+    if (error.response?.status === 401 && sentToken && !isAuthCall) {
       localStorage.removeItem("qs_token");
       localStorage.removeItem("qs_user");
-      if (!window.location.pathname.includes("/login")) {
-        window.location.href = "/login";
+      localStorage.removeItem("qs_provider");
+      const path = window.location.pathname;
+      if (path.startsWith("/admin")) {
+        window.location.href = "/admin";
+      } else if (!path.includes("/login")) {
+        window.location.href = `/login?redirect=${encodeURIComponent(path)}`;
       }
     }
     return Promise.reject(error);
