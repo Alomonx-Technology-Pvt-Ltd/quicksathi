@@ -3,36 +3,13 @@ import mongoose from "mongoose";
 import Booking from "../models/Booking.js";
 import Service from "../models/Service.js";
 import Notification from "../models/Notification.js";
-import Coupon from "../models/Coupon.js";
+import { quote, redeemCoupon, releaseCoupon, assertFutureSlot, PricingError } from "../services/pricing.js";
 import User from "../models/User.js";
 import { protect } from "../middleware/auth.js";
 import { adminOnly } from "../middleware/admin.js";
 import { sendBookingConfirmationEmail, sendBookingStatusEmail } from "../services/emailService.js";
 
 const router = Router();
-
-/**
- * Resolve a serviceId that may be a MongoDB ObjectId, a slug string, or a service name.
- * Returns the Service document or null.
- */
-async function resolveService(serviceId) {
-  if (!serviceId) return null;
-
-  // 1. Try as ObjectId
-  if (mongoose.Types.ObjectId.isValid(serviceId)) {
-    const byId = await Service.findById(serviceId);
-    if (byId) return byId;
-  }
-
-  // 2. Try as slug or exact name (frontend often passes slug)
-  const bySlugOrName = await Service.findOne({
-    $or: [
-      { slug: serviceId.toLowerCase() },
-      { name: { $regex: new RegExp(`^${serviceId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") } },
-    ],
-  });
-  return bySlugOrName || null;
-}
 
 /**
  * Safely cast a value to ObjectId. Returns ObjectId or undefined.
@@ -44,115 +21,79 @@ function toObjectId(val) {
   return undefined;
 }
 
-// POST /api/bookings — Create a booking
-router.post("/", protect, async (req, res) => {
+// POST /api/bookings/quote — price a booking exactly as creation would (no side effects).
+router.post("/quote", protect, async (req, res) => {
   try {
-    const {
-      serviceId,
-      packageIndex,
-      scheduledDate,
-      scheduledTime,
-      location,
-      notes,
-      paymentMethod,
-      amount,
-      couponCode,
-    } = req.body;
+    const q = await quote({ ...pickQuoteInput(req.body), userId: req.user._id });
+    res.json({
+      originalAmount: q.originalAmount,
+      discountAmount: q.discountAmount,
+      amount: q.amount,
+      packageTitle: q.pkg?.title || "",
+      coupon: q.coupon ? { code: q.coupon.code, title: q.coupon.title } : null,
+    });
+  } catch (error) {
+    if (error instanceof PricingError) return res.status(error.status).json({ message: error.message, ...error.extra });
+    res.status(500).json({ message: error.message });
+  }
+});
 
-    // ── Resolve service (supports ObjectId, slug, and name) ──
-    const service = await resolveService(serviceId);
-    if (!service) {
-      return res.status(404).json({ message: "Service not found" });
-    }
+const pickQuoteInput = (body = {}) => ({
+  serviceId: body.serviceId,
+  packageIndex: body.packageIndex,
+  packageTitle: body.packageTitle,
+  distanceKm: body.distanceKm,
+  couponCode: body.couponCode,
+});
 
-    // ── Validate scheduledDate ──
-    const parsedDate = new Date(scheduledDate);
-    if (!scheduledDate || isNaN(parsedDate.getTime())) {
-      return res.status(400).json({ message: "A valid scheduled date is required (e.g. 2025-12-31)" });
-    }
+// POST /api/bookings — Create a booking. The price is computed here from the catalog;
+// any `amount` sent by the client is ignored.
+router.post("/", protect, async (req, res) => {
+  let redeemed = null;
+  try {
+    const { scheduledDate, scheduledTime, location, notes, paymentMethod } = req.body;
 
-    // ── Validate paymentMethod ──
     if (!paymentMethod || !["razorpay", "cod"].includes(paymentMethod)) {
       return res.status(400).json({ message: "Payment method must be 'razorpay' or 'cod'" });
     }
+    const parsedDate = assertFutureSlot(scheduledDate, scheduledTime);
 
-    const pkg = service.packages?.[packageIndex];
-    const basePrice = Number(amount) || pkg?.price || service.startingPrice || 0;
+    const q = await quote({ ...pickQuoteInput(req.body), userId: req.user._id });
+    const { service, pkg, coupon } = q;
 
-    let appliedDiscount = 0;
-    let validatedCoupon = null;
-
-    // Handle coupon application if couponCode was provided
-    if (couponCode && couponCode.trim()) {
-      const cleanCode = couponCode.trim().toUpperCase();
-      validatedCoupon = await Coupon.findOne({ code: cleanCode });
-
-      if (validatedCoupon && validatedCoupon.isActive) {
-        // Enforce ONE-TIME-PER-USER rule
-        const alreadyUsed = validatedCoupon.usedBy?.some(
-          (entry) => entry.user && entry.user.toString() === req.user._id.toString()
-        );
-
-        if (alreadyUsed) {
-          return res.status(400).json({
-            message: "You have already used this coupon code. Each coupon can only be applied once per user.",
-          });
-        }
-
-        // Check expiry and min order amount
-        const isExpired = validatedCoupon.validUntil && new Date(validatedCoupon.validUntil) < new Date();
-        const meetsMinAmount = !validatedCoupon.minOrderAmount || basePrice >= validatedCoupon.minOrderAmount;
-
-        if (!isExpired && meetsMinAmount) {
-          if (validatedCoupon.discountType === "percentage") {
-            appliedDiscount = Math.round((basePrice * validatedCoupon.discountValue) / 100);
-            if (validatedCoupon.maxDiscountAmount && appliedDiscount > validatedCoupon.maxDiscountAmount) {
-              appliedDiscount = validatedCoupon.maxDiscountAmount;
-            }
-          } else {
-            appliedDiscount = Math.min(validatedCoupon.discountValue, basePrice);
-          }
-        }
-      }
+    const bookingObjectId = new mongoose.Types.ObjectId();
+    if (coupon && q.discountAmount > 0) {
+      const ok = await redeemCoupon(coupon, { userId: req.user._id, bookingId: bookingObjectId, discountApplied: q.discountAmount });
+      if (!ok) return res.status(400).json({ message: "This coupon can't be used (already redeemed or fully used)." });
+      redeemed = coupon._id;
     }
 
-    const finalPayable = Math.max(0, basePrice - appliedDiscount);
-
-    // ── Safely cast provider to ObjectId ──
-    const providerOid = toObjectId(service.provider);
-
-    const booking = await Booking.create({
-      user: req.user._id,
-      service: service._id,             // always use the resolved ObjectId
-      provider: providerOid,
-      serviceName: service.name,
-      packageTitle: pkg?.title || "",
-      scheduledDate: parsedDate,
-      scheduledTime,
-      location,
-      notes,
-      originalAmount: basePrice,
-      amount: finalPayable,
-      couponCode: validatedCoupon ? validatedCoupon.code : "",
-      discountAmount: appliedDiscount,
-      paymentMethod,
-      paymentStatus: paymentMethod === "razorpay" ? "paid" : "pending",
-      status: paymentMethod === "razorpay" ? "confirmed" : "pending",
-    });
-
-    // Record coupon usage for this user
-    if (validatedCoupon && appliedDiscount > 0) {
-      await Coupon.findByIdAndUpdate(validatedCoupon._id, {
-        $inc: { usedCount: 1 },
-        $push: {
-          usedBy: {
-            user: req.user._id,
-            bookingId: booking._id,
-            discountApplied: appliedDiscount,
-            usedAt: new Date(),
-          },
-        },
+    let booking;
+    try {
+      booking = await Booking.create({
+        _id: bookingObjectId,
+        user: req.user._id,
+        service: service._id,
+        provider: toObjectId(service.provider),
+        serviceName: service.name,
+        packageTitle: pkg?.title || "",
+        scheduledDate: parsedDate,
+        scheduledTime,
+        location,
+        notes,
+        originalAmount: q.originalAmount,
+        amount: q.amount,
+        couponCode: coupon && q.discountAmount > 0 ? coupon.code : "",
+        discountAmount: q.discountAmount,
+        paymentMethod,
+        // Money is never marked received at creation. Online payments become "paid" only via
+        // verified Razorpay confirmation (see routes/payments.js).
+        paymentStatus: "pending",
+        status: "pending",
       });
+    } catch (err) {
+      if (redeemed) await releaseCoupon(redeemed, bookingObjectId);
+      throw err;
     }
 
     // Send confirmation email asynchronously (does not block HTTP response)
@@ -166,6 +107,7 @@ router.post("/", protect, async (req, res) => {
 
     res.status(201).json(booking);
   } catch (error) {
+    if (error instanceof PricingError) return res.status(error.status).json({ message: error.message, ...error.extra });
     console.error("Booking creation error:", error);
     res.status(500).json({ message: error.message });
   }

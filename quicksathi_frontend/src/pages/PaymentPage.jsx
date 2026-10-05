@@ -21,7 +21,8 @@ const PaymentPage = () => {
 
   const serviceName = searchParams.get("name") || "Service";
   const packageTitle = searchParams.get("package") || "";
-  const price = parseInt(searchParams.get("price") || "0", 10);
+  const urlPrice = parseInt(searchParams.get("price") || "0", 10); // display fallback only; the server prices the booking
+  const distanceKm = parseFloat(searchParams.get("distance") || "") || undefined;
   const date = searchParams.get("date") || "";
 
   const route = searchParams.get("route") || "";
@@ -52,6 +53,17 @@ const PaymentPage = () => {
     fetchOffers();
   }, []);
 
+  // The server is the only source of price. Re-quote when the coupon changes.
+  const [quoted, setQuoted] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .post("/bookings/quote", { serviceId, packageTitle, distanceKm, couponCode: appliedCoupon?.code || "" })
+      .then(({ data }) => { if (!cancelled) setQuoted(data); })
+      .catch(() => { if (!cancelled) setQuoted(null); });
+    return () => { cancelled = true; };
+  }, [serviceId, packageTitle, distanceKm, appliedCoupon]);
+
   const handleApplyCoupon = async (codeToApply) => {
     const targetCode = (codeToApply || couponInput).trim();
     if (!targetCode) {
@@ -66,7 +78,9 @@ const PaymentPage = () => {
     try {
       const { data } = await api.post("/coupons/validate", {
         code: targetCode,
-        orderAmount: price,
+        serviceId,
+        packageTitle,
+        distanceKm,
       });
 
       if (data.valid) {
@@ -94,6 +108,7 @@ const PaymentPage = () => {
     setCouponSuccess("");
   };
 
+  const price = quoted ? quoted.originalAmount : urlPrice;
   const finalAmount = Math.max(0, price - discountAmount);
 
   const handlePayment = async () => {
@@ -116,7 +131,8 @@ const PaymentPage = () => {
         },
         notes,
         paymentMethod,
-        amount: finalAmount,
+        packageTitle,
+        distanceKm,
         couponCode: appliedCoupon ? appliedCoupon.code : "",
       };
 
