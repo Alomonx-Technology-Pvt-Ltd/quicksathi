@@ -154,7 +154,8 @@ const Login = () => {
     setLoading(true);
     setError("");
     try {
-      await updateProfile({ name: profileData.name.trim(), email: profileData.email.trim() || undefined });
+      // Email is identity and can't be set from the profile form (verify it by signing in with Google).
+      await updateProfile({ name: profileData.name.trim() });
       navigate(redirectTo);
     } catch (err) {
       setError(err.response?.data?.message || err.message || "Failed to save profile");

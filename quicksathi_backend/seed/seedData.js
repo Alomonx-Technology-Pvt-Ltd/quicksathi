@@ -1609,27 +1609,7 @@ const seedData = async () => {
     console.log(`   Seeded ${seededBookings.length} sample bookings successfully!`);
   }
 
-  // Promote any existing users with admin emails to admin role
-  if (ADMIN_EMAILS.length > 0) {
-    console.log(`\n👑 Admin emails from .env: ${ADMIN_EMAILS.join(", ")}`);
-
-    for (const email of ADMIN_EMAILS) {
-      const user = await User.findOne({ email });
-      if (user) {
-        if (user.role !== "admin") {
-          user.role = "admin";
-          await user.save();
-          console.log(`   ✅ Promoted "${user.name}" (${email}) to admin`);
-        } else {
-          console.log(`   ℹ️  "${user.name}" (${email}) is already admin`);
-        }
-      } else {
-        console.log(`   ⏳ ${email} — not registered yet (will auto-promote on first login/signup)`);
-      }
-    }
-  } else {
-    console.log("\n⚠️  No ADMIN_EMAILS set in .env — no admin users configured.");
-  }
+  // NOTE: admin rights are never granted from ADMIN_EMAILS. Use scripts/grant-admin.mjs.
 
   console.log("\n🎉 Database seeded successfully! Live changes will now propagate.");
   

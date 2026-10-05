@@ -15,6 +15,10 @@ const userSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
     },
+    emailVerified: {
+      type: Boolean,
+      default: false, // true only when set from a verified Firebase token
+    },
     password: {
       type: String,
       minlength: 6,
