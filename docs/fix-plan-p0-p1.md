@@ -322,8 +322,28 @@ Do this after WP-1 to WP-6 so the docs describe the fixed system. Skills: `grill
 ---
 
 ## 4. Progress log
-_Add one row per WP as it lands._
+_Branches are stacked and local-only; `wp-11-frontend-safety` contains everything. Nothing has been pushed._
 
-| WP | Date | PR | Tests green | Notes |
-|---|---|---|---|---|
-| — | 2026-10-05 | — | 1/37 (P1-21 false pass) | Acceptance suite committed; all other tests red as expected |
+| WP | Branch | Tests | Notes |
+|---|---|---|---|
+| baseline | main | 1/37 | Acceptance suite committed; all else red as expected |
+| WP-1 identity | `wp-1-identity` | P0-1/2/3 + 6 extra green | Verified-token-only login; no email/`ADMIN_PASSWORD` admin; `scripts/grant-admin.mjs`; prod refuses to boot without Firebase |
+| WP-2 provider authz/KYC | `wp-2-provider-authz` | P0-4/5/6 + 4 extra green | Allowlisted `PUT /providers/me`; public list has no KYC/contact; `documents` `select:false` |
+| WP-3 pricing | `wp-3-pricing` | P0-7(part)/8/9, P1-9/10/11 + 8 extra green | `services/pricing.js`, `POST /bookings/quote`, atomic coupon redeem, IST scheduling |
+| WP-4 payments | `wp-4-payments` | P0-7/10 + 10 extra green | Razorpay Checkout + create-order/verify/webhook. **Only unit-tested; see "Not verified" below** |
+| WP-6 seed safety | `wp-6-seed-safety` | P0-11, P1-23d/e + 2 extra green | `seed:dev` guarded by NODE_ENV + DB allowlist; no boot-time seeding |
+| WP-7 hardening | `wp-7-hardening` | P1-1/2/6 + 6 extra green | helmet, rate limits, 100kb body, escaped emails, AI/contact/broadcast, nodemailer upgrade |
+| WP-10 (backend) | `wp-10-catalog-safety` | P1-23a/b green | Public services only approved; regex escaped |
+| WP-5/8/9 | `wp-5-booking-lifecycle` | P1-7/14/16-21/23c + 10 extra green | State machine, cash-collected, soft delete, paginated users, KYC image-only, unique phone |
+| WP-11 (part) | `wp-11-frontend-safety` | manual | Error boundary, safe 401, null-safe provider status, fake MRP removed |
+
+**Suite: 86/86 passing** (`cd quicksathi_backend && npm test`). Browser smoke (hermetic stack): a tampered `?price=1` payment URL shows the catalog price; WELCOME50 on ₹450 stores 450 / 50 / 400 (was double-discounted) and the COD booking is `pending`/`pending`.
+
+### Not verified / needs a human
+- **Razorpay end to end.** `create-order` against Razorpay returned `401 Authentication failed` with the keys in the local `.env`, so a real checkout was never run. Re-issue test keys (Dashboard → API keys), create the webhook (`POST /api/payments/webhook`, events `payment.captured`, `payment.failed`, `order.paid`) and set `RAZORPAY_WEBHOOK_SECRET`, then pay with a test card.
+- **Google / phone login against a real Firebase project** (tests run with Firebase unconfigured, the worst case).
+- **Production deploy order**: run `scripts/migrations/001-user-unique-indexes.mjs` (dry run first), set `RAZORPAY_WEBHOOK_SECRET`, confirm Firebase env vars on Render (the server now exits if they're missing), rotate `JWT_SECRET`, give existing admins a password or Google sign-in (`ADMIN_PASSWORD` login is gone).
+
+### Still open (not yet done)
+- WP-0 (owner actions), `P1-13` mock catalog removal, `P1-15` money as integer paise, `P1-8` automatic Razorpay refunds (cancelled paid bookings are flagged `refund_pending` only), KYC files still use public Cloudinary URLs (private/signed delivery not done), banner `includes()` heuristic and `HomeFeaturedServices` city overwrite, geolocation/Nominatim, CI, env validation at boot, admin revenue timezone, full CSP (only `frame-ancestors/base-uri/object-src/form-action` enforced), frontend `firebase` advisory (grpc, not reachable from the browser; the suggested fix is a downgrade, so left alone).
+- WP-13 docs (ARCHITECTURE.md, ADRs, developer walkthrough).
