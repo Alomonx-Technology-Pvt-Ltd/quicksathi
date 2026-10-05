@@ -52,6 +52,7 @@ Admin is never derived from an email address. A person signs in once with Google
 ```bash
 cd quicksathi_backend
 node scripts/grant-admin.mjs person@example.com --yes
+node scripts/admin-account.mjs person@example.com --yes   # create an admin / reset an admin's password (prompts for a new password)
 node seed/checkRoles.js        # role counts only
 ```
 Providers become providers when an admin approves their application in the admin panel.
