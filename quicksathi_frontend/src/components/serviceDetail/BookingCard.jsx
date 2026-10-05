@@ -39,7 +39,7 @@ const BookingCard = ({ service, pkg }) => {
   const distancePrice = Math.round(distanceKm * perKmRate);
   const basePkgPrice = pkg?.price ?? service?.startingPrice ?? 349;
   const tripTotal = isRental && distanceKm > 0 ? distancePrice : basePkgPrice;
-  const originalPrice = tripTotal ? Math.round(tripTotal * 1.25) : null;
+  // (No struck-through "original price": we only show real prices.)
 
   // Format duration
   const formatDuration = (min) => {
@@ -209,11 +209,7 @@ const BookingCard = ({ service, pkg }) => {
           <span className="text-3xl font-extrabold text-slate-900 tracking-tight">
             ₹{tripTotal.toLocaleString("en-IN")}
           </span>
-          {originalPrice && (
-            <span className="text-sm text-slate-400 line-through">
-              ₹{originalPrice.toLocaleString("en-IN")}
-            </span>
-          )}
+          {/* removed fabricated 1.25x strike-through price */}
           {service?.priceUnit && !isRental && (
             <span className="text-xs text-slate-500 font-normal">
               /{service.priceUnit}
