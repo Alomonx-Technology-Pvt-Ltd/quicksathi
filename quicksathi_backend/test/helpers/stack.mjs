@@ -46,7 +46,7 @@ let seq = 0;
 export const uid = (prefix = "x") => `${prefix}${Date.now().toString(36)}${(seq++).toString(36)}`;
 export const daysFromNow = (n) => new Date(Date.now() + n * 864e5);
 
-export async function startStack() {
+export async function startStack({ env: extraEnv = {} } = {}) {
   const mongo = await MongoMemoryServer.create();
   const uri = `${mongo.getUri()}qs_test`;
   const port = await freePort();
@@ -59,7 +59,7 @@ export async function startStack() {
     logs = "";
     child = spawn(process.execPath, ["server.js"], {
       cwd: BACKEND_DIR,
-      env: hermeticEnv({ PORT: String(port), MONGODB_URI: uri }),
+      env: hermeticEnv({ PORT: String(port), MONGODB_URI: uri, ...extraEnv }),
       stdio: ["ignore", "pipe", "pipe"],
     });
     child.stdout.on("data", (d) => (logs += d));

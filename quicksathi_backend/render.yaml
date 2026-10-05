@@ -94,6 +94,10 @@ services:
       - key: RAZORPAY_KEY_SECRET
         sync: false
 
+      # Razorpay webhook signing secret (Dashboard → Webhooks → your endpoint → Secret)
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
+
       # Groq AI
       - key: GROQ_API_KEY
         sync: false

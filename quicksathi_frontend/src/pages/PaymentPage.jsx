@@ -2,12 +2,17 @@ import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import api from "../config/api";
 import { Ticket, Check, X, Tag, Sparkles, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { payForBooking } from "../utils/razorpayCheckout";
 
 const PaymentPage = () => {
   const [searchParams] = useSearchParams();
   const [paymentMethod, setPaymentMethod] = useState("razorpay");
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
+  const { user } = useAuth();
+  const [createdBooking, setCreatedBooking] = useState(null); // booking saved on the server, awaiting payment
+  const [payError, setPayError] = useState("");
 
   // Coupon / Offer States
   const [couponInput, setCouponInput] = useState("");
@@ -113,42 +118,55 @@ const PaymentPage = () => {
 
   const handlePayment = async () => {
     setProcessing(true);
+    setPayError("");
 
     try {
-      // Common booking payload for both COD and online payment
-      const bookingData = {
-        serviceId,
-        scheduledDate: date,
-        scheduledTime: time,
-        location: {
-          address,
-          city,
-          pincode,
-          ...(latParam ? { lat: parseFloat(latParam) } : {}),
-          ...(lonParam ? { lon: parseFloat(lonParam) } : {}),
-          ...(road ? { road } : {}),
-          ...(accuracyParam ? { accuracy: parseFloat(accuracyParam) } : {}),
-        },
-        notes,
-        paymentMethod,
-        packageTitle,
-        distanceKm,
-        couponCode: appliedCoupon ? appliedCoupon.code : "",
-      };
+      // Create the booking once; retries pay for the same booking instead of creating duplicates.
+      let booking = createdBooking;
+      if (!booking) {
+        const { data } = await api.post("/bookings", {
+          serviceId,
+          scheduledDate: date,
+          scheduledTime: time,
+          location: {
+            address,
+            city,
+            pincode,
+            ...(latParam ? { lat: parseFloat(latParam) } : {}),
+            ...(lonParam ? { lon: parseFloat(lonParam) } : {}),
+            ...(road ? { road } : {}),
+            ...(accuracyParam ? { accuracy: parseFloat(accuracyParam) } : {}),
+          },
+          notes,
+          paymentMethod,
+          packageTitle,
+          distanceKm,
+          couponCode: appliedCoupon ? appliedCoupon.code : "",
+        });
+        booking = data;
+        setCreatedBooking(data);
+      }
 
       if (paymentMethod === "razorpay") {
-        // Simulated Razorpay checkout (test mode), then create the booking
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        await api.post("/bookings", bookingData);
-        setSuccess(true);
+        const result = await payForBooking(booking, user);
+        if (result.status === "paid") {
+          setSuccess(true);
+        } else if (result.status === "dismissed") {
+          setPayError(
+            (result.error ? `${result.error}. ` : "") +
+              "Payment not completed. Your booking is saved. Tap Pay to try again, or finish it later from My Bookings."
+          );
+        } else {
+          setPayError(result.error || "Payment failed. Please try again.");
+        }
       } else {
-        // COD - create booking directly
-        await api.post("/bookings", bookingData);
+        // Cash on delivery. If this booking was first created for online payment, switch it.
+        if (booking.paymentMethod !== "cod") await api.post("/payments/cod-confirm", { bookingId: booking._id });
         setSuccess(true);
       }
     } catch (err) {
-      console.error("Booking creation failed:", err);
-      alert(err.response?.data?.message || "Failed to create booking. Please try again.");
+      console.error("Booking failed:", err);
+      setPayError(err.response?.data?.message || "Failed to create booking. Please try again.");
     } finally {
       setProcessing(false);
     }
@@ -549,6 +567,17 @@ const PaymentPage = () => {
             </div>
           </button>
         </div>
+
+        {payError && (
+          <div
+            role="alert"
+            className="mb-4 flex items-start gap-2 rounded-xl p-3 text-sm"
+            style={{ backgroundColor: "#fef2f2", color: "#b91c1c", border: "1px solid #fecaca" }}
+          >
+            <AlertCircle size={16} className="mt-0.5 shrink-0" />
+            <span>{payError}</span>
+          </div>
+        )}
 
         <button
           onClick={handlePayment}
