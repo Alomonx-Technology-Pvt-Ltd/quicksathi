@@ -11,7 +11,7 @@ The suite encodes the *intended* behaviour, so it starts red. At commit time: **
 ## 0. Rules of engagement (read first)
 
 1. **Never point anything at the live database.** The local `quicksathi_backend/.env` currently uses the production Atlas cluster. Tests are hermetic: `test/helpers/stack.mjs` boots `server.js` against an in-memory MongoDB with `DOTENV_CONFIG_PATH=/dev/null`, so the real `.env` is never loaded. For manual runs, use a separate dev DB (WP-0) or the in-memory pattern from the harness.
-2. **One work package per branch/PR**, in the order below. WP-1 through WP-4 are launch blockers.
+2. **One work package per local branch**, in the order below. WP-1 through WP-4 are launch blockers. **Commit locally only. Never `git push`, never open PRs, never touch remotes.** The owner reviews and pushes. In reports, reference the local branch name and commit SHA instead of a PR link.
 3. **Use the red→green loop** (skill: `tdd`). Run the WP's tests first and confirm they fail for the stated reason, then fix, re-run, and run the whole suite (`npm test`).
 4. **Don't weaken a test to make it pass.** If a test's assumption conflicts with a better design, change it in the same PR and explain why in the report. New behaviour gets a new test in the same style (behaviour through the HTTP API, no mocks of internal modules).
 5. **Frontend changes** must be checked in a real browser (skill: `playwright-cli`, or a manual click-through). Run `npm run lint` and `npm run build` in `quicksathi_frontend/`; don't add lint errors.
