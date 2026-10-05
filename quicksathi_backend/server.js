@@ -80,6 +80,9 @@ app.use(cors(corsOptions));
 // Express 5 requires named wildcards — use /*path instead of *
 app.options("/*path", cors(corsOptions));
 
+// Razorpay webhook needs the exact raw bytes to verify its signature, so it is parsed
+// before (and instead of) the JSON body parser.
+app.use("/api/payments/webhook", express.raw({ type: "application/json", limit: "1mb" }));
 app.use(express.json({ limit: "10mb" }));
 
 // ── Routes ──

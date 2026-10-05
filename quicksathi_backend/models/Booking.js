@@ -76,9 +76,13 @@ const bookingSchema = new mongoose.Schema(
     },
     razorpayOrderId: {
       type: String,
+      unique: true,
+      sparse: true,
     },
     razorpayPaymentId: {
       type: String,
+      unique: true,
+      sparse: true,
     },
     status: {
       type: String,
