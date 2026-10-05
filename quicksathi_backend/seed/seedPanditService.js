@@ -229,12 +229,8 @@ async function seedPanditService() {
     console.log("✅ Pandit Service created successfully!");
   }
 
-  // 4. Update provider locations across all services to Pan-India
-  const updateResult = await Service.updateMany(
-    { "providers.location": "Patna" },
-    { $set: { "providers.$[].location": "Pan-India" } }
-  );
-  console.log(`✅ Updated ${updateResult.modifiedCount} services to Pan-India provider location.`);
+  // (Removed) This script used to rewrite the provider location of EVERY service from "Patna" to "Pan-India".
+  // A seed for one service must only touch that service.
 
   await mongoose.disconnect();
   console.log("MongoDB disconnected. Pandit seeding complete!");
