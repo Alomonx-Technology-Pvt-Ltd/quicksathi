@@ -85,7 +85,7 @@ function App() {
             <Route path="services/ac" element={<ACCategoryPage />} />
             <Route path="services/weddings" element={<Navigate to="/services" replace />} />
             <Route path="services/car-rentals" element={<Navigate to="/services" replace />} />
-            <Route path="services/cctv" element={<Navigate to="/services?q=cctv" replace />} />
+            <Route path="services/cctv" element={<Navigate to="/service/cctv-installation" replace />} />
             <Route path="booking/:serviceId" element={<BookingPage />} />
             <Route path="payment" element={<PaymentPage />} />
             <Route

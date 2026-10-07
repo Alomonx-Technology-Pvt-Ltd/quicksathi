@@ -31,7 +31,7 @@ const ServiceDetail = () => {
 
   const findInitialService = (targetId) => {
     if (!targetId) return null;
-    const tid = String(targetId).toLowerCase();
+    const tid = String(targetId).toLowerCase().trim();
     return (
       mockServices.find(
         (s) =>
@@ -39,7 +39,10 @@ const ServiceDetail = () => {
           String(s._id) === tid ||
           s.slug?.toLowerCase() === tid ||
           s.name?.toLowerCase() === tid ||
-          s.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-") === tid
+          s.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-") === tid ||
+          (Array.isArray(s.aliasSlugs) && s.aliasSlugs.map((a) => a.toLowerCase()).includes(tid)) ||
+          ((tid === "cctv" || tid === "cctv-installation" || tid === "home-cctv") &&
+            (s.slug?.includes("cctv") || s.name?.toLowerCase().includes("cctv")))
       ) || null
     );
   };

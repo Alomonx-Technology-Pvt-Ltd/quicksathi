@@ -106,6 +106,39 @@ body {
 }
 
 /* ─────────────────────────────────────────
+   NOTICE MARQUEE TICKER ANIMATION
+───────────────────────────────────────── */
+@keyframes noticeMarquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.notice-marquee-track {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  white-space: nowrap;
+  animation: noticeMarquee 30s linear infinite;
+  will-change: transform;
+}
+
+.notice-marquee-container:hover .notice-marquee-track,
+.notice-marquee-container:active .notice-marquee-track,
+.notice-marquee-container:focus-within .notice-marquee-track {
+  animation-play-state: paused;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .notice-marquee-track {
+    animation-duration: 90s;
+  }
+}
+
+/* ─────────────────────────────────────────
    MOBILE UTILITIES
 ───────────────────────────────────────── */
 html {

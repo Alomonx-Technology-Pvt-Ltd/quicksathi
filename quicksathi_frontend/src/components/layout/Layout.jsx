@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useLocation as useCityLocation } from "../../context/LocationContext";
 import Footer from "../common/Footer";
 import BottomNav from "./BottomNav";
+import NoticeMarquee from "../common/NoticeMarquee";
 import ChatBot from "../chatbot/ChatBot";
 import api from "../../config/api";
 import { Bell, Trash2, MapPin } from "lucide-react";
@@ -22,7 +23,7 @@ import {
 } from "../modals";
 
 /* ── Compact City Picker (used inside navbar) ── */
-const CityPicker = ({ isFullBleed, isMobile }) => {
+const CityPicker = ({ isFullBleed, isMobile, isScrolled }) => {
   const {
     fullLocation,
     street,
@@ -195,7 +196,7 @@ const CityPicker = ({ isFullBleed, isMobile }) => {
         ) : (
           <span
             style={{
-              maxWidth: isMobile ? "85px" : "230px",
+              maxWidth: isMobile ? "85px" : "165px",
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -235,7 +236,7 @@ const CityPicker = ({ isFullBleed, isMobile }) => {
         <div
           className={
             isMobile
-              ? "fixed left-3 right-3 top-[68px] max-w-[360px] mx-auto rounded-2xl overflow-hidden shadow-2xl z-[1000] border"
+              ? `fixed left-3 right-3 ${isScrolled ? "top-[68px]" : "top-[102px]"} max-w-[360px] mx-auto rounded-2xl overflow-hidden shadow-2xl z-[1000] border`
               : "absolute top-full mt-2 rounded-2xl overflow-hidden shadow-2xl z-[1000] border"
           }
           style={{
@@ -570,8 +571,10 @@ const Navbar = () => {
 
   return (
     <>
+      {/* Notice Scrolling Marquee above Nav Menu */}
+      <NoticeMarquee />
       <nav
-        className="sticky top-0 left-0 right-0 z-50 px-4 sm:px-10 flex items-center justify-between w-full max-w-full"
+        className="sticky top-0 left-0 right-0 z-50 px-3 sm:px-6 lg:px-8 xl:px-10 flex items-center justify-between w-full max-w-full"
         style={{
           height: 64,
           backgroundColor: "#ffffff",
@@ -583,20 +586,20 @@ const Navbar = () => {
         {/* Brand */}
         <Link
           to="/"
-          className="py-2 no-underline flex items-center group flex-shrink-0"
+          className="py-2 no-underline flex items-center group shrink-0 mr-2 sm:mr-4"
           aria-label="TiptoBook Home"
         >
           <BrandLogo size={34} isDark={false} />
         </Link>
 
         {/* Desktop Nav Links */}
-        <div className="hidden md:flex items-center gap-6">
+        <div className="hidden lg:flex items-center gap-4 xl:gap-6 shrink-0">
           {navLinks.map(({ to, label, end }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
-              className="text-sm font-medium no-underline transition-all duration-200 hover:opacity-75"
+              className="text-sm font-medium no-underline whitespace-nowrap shrink-0 transition-all duration-200 hover:opacity-75"
               style={({ isActive }) => ({
                 fontFamily: "var(--font-body)",
                 color: isActive ? "var(--color-primary)" : "#475569",
@@ -608,7 +611,9 @@ const Navbar = () => {
           ))}
 
           {/* City Picker */}
-          <CityPicker isFullBleed={false} />
+          <div className="shrink-0">
+            <CityPicker isFullBleed={false} />
+          </div>
 
           {/* Auth area */}
           {isAuthenticated ? (
@@ -755,17 +760,17 @@ const Navbar = () => {
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2 xl:gap-2.5 shrink-0">
               <button
                 onClick={() => navigate("/login")}
-                className="px-4 py-2 rounded-full text-sm font-semibold border-0 cursor-pointer transition-all duration-200 hover:bg-slate-100"
+                className="px-3.5 py-2 rounded-full text-sm font-semibold whitespace-nowrap shrink-0 border-0 cursor-pointer transition-all duration-200 hover:bg-slate-100"
                 style={{ fontFamily: "var(--font-body)", color: "#475569", backgroundColor: "transparent" }}
               >
                 Sign In
               </button>
               <Link
                 to="/provider/onboarding"
-                className="px-4 py-2 rounded-full text-sm font-semibold no-underline transition-all duration-200 hover:opacity-90 hover:scale-[1.02]"
+                className="px-4 py-2 rounded-full text-sm font-semibold no-underline whitespace-nowrap shrink-0 transition-all duration-200 hover:opacity-90 hover:scale-[1.02]"
                 style={{
                   fontFamily: "var(--font-body)",
                   background: "linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-dark) 100%)",
@@ -779,9 +784,9 @@ const Navbar = () => {
           )}
         </div>
 
-        {/* Mobile Header: Location + Hamburger */}
-        <div className="flex items-center gap-2 md:hidden">
-          <CityPicker isMobile={true} />
+        {/* Mobile/Tablet Header: Location + Hamburger */}
+        <div className="flex items-center gap-2 lg:hidden">
+          <CityPicker isMobile={true} isScrolled={scrolled} />
           <button
             className="flex flex-col justify-center items-center w-9 h-9 gap-1.5 rounded-lg border-0 cursor-pointer"
             style={{ background: "transparent" }}
@@ -804,7 +809,7 @@ const Navbar = () => {
       {/* Mobile Menu Drawer */}
       <AnimatePresence>
         {menuOpen && (
-          <div className="fixed inset-0 z-40 md:hidden">
+          <div className="fixed inset-0 z-40 lg:hidden">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
