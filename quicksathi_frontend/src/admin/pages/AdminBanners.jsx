@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import api from "../../config/api";
+import api, { clearCache } from "../../config/api";
+import { uploadImageFile } from "../../utils/imageUpload";
 import {
   Image as ImageIcon,
   Plus,
@@ -123,21 +124,17 @@ const AdminBanners = () => {
 
   const handleImageUpload = async (file) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = async () => {
-      setUploading(true);
-      try {
-        const { data } = await api.post("/admin/upload", { image: reader.result });
-        setForm((prev) => ({ ...prev, image: data.url }));
-        showMessage("Banner image uploaded successfully!");
-      } catch (err) {
-        console.error("Image upload failed:", err);
-        showMessage("Failed to upload image. Please try pasting a direct image URL.", "error");
-      } finally {
-        setUploading(false);
-      }
-    };
+    setUploading(true);
+    try {
+      const url = await uploadImageFile(file);
+      setForm((prev) => ({ ...prev, image: url }));
+      showMessage("Banner image uploaded successfully!");
+    } catch (err) {
+      console.error("Banner image upload failed:", err);
+      showMessage(err.response?.data?.message || err.message || "Failed to upload image. Please try pasting a direct image URL.", "error");
+    } finally {
+      setUploading(false);
+    }
   };
 
   const openAddModal = () => {
@@ -214,6 +211,7 @@ const AdminBanners = () => {
         await api.post("/banners", form);
         showMessage("Banner created successfully!");
       }
+      clearCache();
       setShowModal(false);
       fetchBanners();
     } catch (err) {
@@ -226,6 +224,7 @@ const AdminBanners = () => {
   const handleToggle = async (banner) => {
     try {
       await api.patch(`/banners/${banner._id}/toggle`);
+      clearCache();
       setBanners((prev) =>
         prev.map((b) => (b._id === banner._id ? { ...b, isActive: !b.isActive } : b))
       );
@@ -238,6 +237,7 @@ const AdminBanners = () => {
   const handleDelete = async (id) => {
     try {
       await api.delete(`/banners/${id}`);
+      clearCache();
       showMessage("Banner deleted successfully!");
       setDeleteConfirm(null);
       fetchBanners();
@@ -667,6 +667,21 @@ const AdminBanners = () => {
                     />
                   </label>
                 </div>
+                {form.image && (
+                  <div className="mt-2.5 relative rounded-xl overflow-hidden border border-white/10 w-full h-32 bg-slate-900/60 flex items-center justify-center">
+                    <img
+                      src={form.image}
+                      alt="Banner Preview"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                      }}
+                    />
+                    <div className="absolute bottom-1.5 right-2 px-2 py-0.5 rounded text-[10px] font-semibold bg-black/60 text-white/90 backdrop-blur-xs">
+                      Live Preview
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Category Key & Link */}

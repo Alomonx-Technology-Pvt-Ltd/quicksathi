@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import api from "../../config/api";
+import api, { clearCache } from "../../config/api";
+import { uploadImageFile } from "../../utils/imageUpload";
 import { Pencil, Power, Trash2, Layers, Hash, Hourglass } from "lucide-react";
 
 const PLATFORM_VERTICALS = [
@@ -77,24 +78,21 @@ const AdminCategories = () => {
 
   const handleImageUpload = async (file, fieldName, isSub = false) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = async () => {
-      setUploadingImg(true);
-      try {
-        const { data } = await api.post("/admin/upload", { image: reader.result });
-        if (isSub) {
-          setNewSub((prev) => ({ ...prev, [fieldName]: data.url }));
-        } else {
-          setForm((prev) => ({ ...prev, [fieldName]: data.url }));
-        }
-      } catch (err) {
-        console.error("Failed to upload image:", err);
-        alert("Image upload failed. Please try again.");
-      } finally {
-        setUploadingImg(false);
+    setUploadingImg(true);
+    try {
+      const url = await uploadImageFile(file);
+      if (isSub) {
+        setNewSub((prev) => ({ ...prev, [fieldName]: url }));
+      } else {
+        setForm((prev) => ({ ...prev, [fieldName]: url }));
       }
-    };
+      showMessage("Image uploaded successfully!");
+    } catch (err) {
+      console.error("Failed to upload image:", err);
+      showMessage(err.response?.data?.message || err.message || "Image upload failed.", "error");
+    } finally {
+      setUploadingImg(false);
+    }
   };
 
   const fetchCategories = async () => {
@@ -224,6 +222,7 @@ const AdminCategories = () => {
         await api.post("/admin/categories", payload);
         showMessage("Category created successfully!");
       }
+      clearCache();
       closeForm();
       fetchCategories();
     } catch (err) {
@@ -236,6 +235,7 @@ const AdminCategories = () => {
   const handleDelete = async (id) => {
     try {
       await api.delete(`/admin/categories/${id}`);
+      clearCache();
       showMessage("Category deleted successfully!");
       setDeleteConfirm(null);
       fetchCategories();
@@ -247,6 +247,7 @@ const AdminCategories = () => {
   const handleToggle = async (id) => {
     try {
       const { data } = await api.patch(`/admin/categories/${id}/toggle`);
+      clearCache();
       showMessage(data.message);
       fetchCategories();
     } catch (err) {

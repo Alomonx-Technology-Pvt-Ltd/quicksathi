@@ -80,7 +80,8 @@ app.use(cors(corsOptions));
 // Express 5 requires named wildcards — use /*path instead of *
 app.options("/*path", cors(corsOptions));
 
-app.use(express.json({ limit: "10mb" }));
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
 // ── Routes ──
 app.use("/api/auth", authRoutes);

@@ -238,17 +238,27 @@ router.post("/services", protect, adminOnly, async (req, res) => {
 // PUT /api/admin/services/:id — Update a service (any field)
 router.put("/services/:id", protect, adminOnly, async (req, res) => {
   try {
+    const updateData = { ...req.body };
+    delete updateData._id;
+    delete updateData.__v;
+    delete updateData.createdAt;
+    delete updateData.updatedAt;
+
+    if (updateData.category && typeof updateData.category === "object") {
+      updateData.category = updateData.category._id || updateData.category;
+    }
+
     // If slug is being changed, check uniqueness
-    if (req.body.slug) {
-      const existing = await Service.findOne({ slug: req.body.slug, _id: { $ne: req.params.id } });
+    if (updateData.slug) {
+      const existing = await Service.findOne({ slug: updateData.slug, _id: { $ne: req.params.id } });
       if (existing) {
-        return res.status(400).json({ message: `Service with slug "${req.body.slug}" already exists` });
+        return res.status(400).json({ message: `Service with slug "${updateData.slug}" already exists` });
       }
     }
 
     const service = await Service.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     );
 
@@ -666,22 +676,32 @@ router.delete("/users/:id", protect, adminOnly, async (req, res) => {
   }
 });
 
-// POST /api/admin/upload — Upload base64 image to Cloudinary
+// POST /api/admin/upload — Upload base64 or URL image to Cloudinary
 router.post("/upload", protect, adminOnly, async (req, res) => {
   try {
     const { image } = req.body;
     if (!image) {
       return res.status(400).json({ message: "No image data provided" });
     }
+
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.error("Cloudinary credentials are not configured in environment variables.");
+      return res.status(500).json({ message: "Cloudinary storage is not properly configured on server." });
+    }
+
     const uploadResponse = await cloudinary.uploader.upload(image, {
       folder: "TiptoBook",
+      resource_type: "auto",
+      timeout: 60000,
     });
+
     res.json({
       url: uploadResponse.secure_url,
       publicId: uploadResponse.public_id,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message || "Failed to upload image" });
+    console.error("Cloudinary upload failed:", error);
+    res.status(500).json({ message: error.message || "Failed to upload image to Cloudinary" });
   }
 });
 

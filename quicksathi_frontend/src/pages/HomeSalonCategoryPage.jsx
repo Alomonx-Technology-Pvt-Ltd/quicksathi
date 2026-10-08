@@ -399,6 +399,8 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
                 return {
                   ...fb,
                   _id: matchedLive._id || fb._id,
+                  thumbnail: matchedLive.thumbnail || fb.thumbnail,
+                  bannerImage: matchedLive.bannerImage || fb.bannerImage,
                   startingPrice: matchedLive.startingPrice || fb.startingPrice,
                   rating: matchedLive.rating || fb.rating,
                   totalReviews: matchedLive.totalReviews || fb.totalReviews,
@@ -408,7 +410,11 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
               }
               return fb;
             });
-            setLiveServices(merged);
+
+            // Append any additional live salon services created by admin
+            const matchedSlugs = new Set(FALLBACK_SALON_SERVICES.map((fb) => fb.slug));
+            const newLive = salonSvcs.filter((ls) => !matchedSlugs.has(ls.slug));
+            setLiveServices([...merged, ...newLive]);
           }
         }
       } catch {

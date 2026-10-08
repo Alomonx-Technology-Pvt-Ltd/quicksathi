@@ -1,7 +1,14 @@
 import { Router } from "express";
+import { v2 as cloudinary } from "cloudinary";
 import Banner from "../models/Banner.js";
 import { protect } from "../middleware/auth.js";
 import { adminOnly } from "../middleware/admin.js";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const router = Router();
 
@@ -496,10 +503,45 @@ router.post("/", protect, adminOnly, async (req, res) => {
   }
 });
 
+// POST /api/banners/upload — Upload banner image directly to Cloudinary
+router.post("/upload", protect, adminOnly, async (req, res) => {
+  try {
+    const { image } = req.body;
+    if (!image) {
+      return res.status(400).json({ message: "No image data provided" });
+    }
+
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      console.error("Cloudinary credentials are not configured in environment variables.");
+      return res.status(500).json({ message: "Cloudinary storage is not properly configured on server." });
+    }
+
+    const uploadResponse = await cloudinary.uploader.upload(image, {
+      folder: "TiptoBook",
+      resource_type: "auto",
+      timeout: 60000,
+    });
+
+    res.json({
+      url: uploadResponse.secure_url,
+      publicId: uploadResponse.public_id,
+    });
+  } catch (error) {
+    console.error("Cloudinary banner upload failed:", error);
+    res.status(500).json({ message: error.message || "Failed to upload banner image" });
+  }
+});
+
 // PUT /api/banners/:id — Update a banner (Admin)
 router.put("/:id", protect, adminOnly, async (req, res) => {
   try {
-    const banner = await Banner.findByIdAndUpdate(req.params.id, req.body, {
+    const updateData = { ...req.body };
+    delete updateData._id;
+    delete updateData.__v;
+    delete updateData.createdAt;
+    delete updateData.updatedAt;
+
+    const banner = await Banner.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
     });

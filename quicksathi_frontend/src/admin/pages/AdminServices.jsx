@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import api from "../../config/api";
+import api, { clearCache } from "../../config/api";
+import { uploadImageFile } from "../../utils/imageUpload";
 import { CITY_OPTIONS } from "../../context/LocationContext";
 
 const SERVICE_MODES = ["ON_SITE", "AT_HOME", "RENTAL", "REMOTE"];
@@ -51,24 +52,21 @@ const AdminServices = () => {
 
   const handleImageUpload = async (file, fieldName, isGallery = false) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onloadend = async () => {
-      setUploadingImg(true);
-      try {
-        const { data } = await api.post("/admin/upload", { image: reader.result });
-        if (isGallery) {
-          setNewGalleryUrl(data.url);
-        } else {
-          setForm((prev) => ({ ...prev, [fieldName]: data.url }));
-        }
-      } catch (err) {
-        console.error("Failed to upload image:", err);
-        alert("Image upload failed. Please try again.");
-      } finally {
-        setUploadingImg(false);
+    setUploadingImg(true);
+    try {
+      const url = await uploadImageFile(file);
+      if (isGallery) {
+        setNewGalleryUrl(url);
+      } else {
+        setForm((prev) => ({ ...prev, [fieldName]: url }));
       }
-    };
+      showMessage("Image uploaded successfully!");
+    } catch (err) {
+      console.error("Failed to upload image:", err);
+      showMessage(err.response?.data?.message || err.message || "Image upload failed. You can paste a direct URL.", "error");
+    } finally {
+      setUploadingImg(false);
+    }
   };
 
   const [newPackage, setNewPackage] = useState({ title: "", price: 0, features: [] });
@@ -140,16 +138,21 @@ const AdminServices = () => {
 
   const openEditForm = (service) => {
     setEditingId(service._id);
+    const catId = typeof service.category === "object" && service.category !== null
+      ? service.category._id
+      : service.category || "";
+    const catName = service.categoryName || categories.find((c) => c._id === catId)?.name || "";
+
     setForm({
       name: service.name || "",
       slug: service.slug || "",
       shortDescription: service.shortDescription || "",
       fullDescription: service.fullDescription || "",
-      category: service.category || "",
-      categoryName: service.categoryName || "",
+      category: catId,
+      categoryName: catName,
       thumbnail: service.thumbnail || "",
       bannerImage: service.bannerImage || "",
-      gallery: service.gallery || [],
+      gallery: Array.isArray(service.gallery) ? service.gallery : [],
       startingPrice: service.startingPrice || 0,
       priceUnit: service.priceUnit || "per service",
       perKmRate: service.perKmRate ?? 10,
@@ -158,11 +161,11 @@ const AdminServices = () => {
       experience: service.experience || "",
       available: service.available !== undefined ? service.available : true,
       serviceMode: service.serviceMode || "ON_SITE",
-      tags: service.tags || [],
+      tags: Array.isArray(service.tags) ? service.tags : [],
       featured: service.featured || false,
-      packages: service.packages || [],
-      faqs: service.faqs || [],
-      cities: service.cities || [],
+      packages: Array.isArray(service.packages) ? service.packages : [],
+      faqs: Array.isArray(service.faqs) ? service.faqs : [],
+      cities: Array.isArray(service.cities) ? service.cities : [],
     });
     setShowForm(true);
   };
@@ -198,6 +201,7 @@ const AdminServices = () => {
         await api.post("/admin/services", form);
         showMessage("Service created successfully!");
       }
+      clearCache();
       closeForm();
       fetchServices();
     } catch (err) {
@@ -210,6 +214,7 @@ const AdminServices = () => {
   const handleDelete = async (id) => {
     try {
       await api.delete(`/admin/services/${id}`);
+      clearCache();
       showMessage("Service deleted successfully!");
       setDeleteConfirm(null);
       fetchServices();
@@ -221,6 +226,7 @@ const AdminServices = () => {
   const handleToggle = async (id) => {
     try {
       const { data } = await api.patch(`/admin/services/${id}/toggle`);
+      clearCache();
       showMessage(data.message);
       fetchServices();
     } catch (err) {
@@ -596,7 +602,7 @@ const AdminServices = () => {
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={labelStyle}>Thumbnail</label>
                   <div className="flex gap-2">
-                    <input type="url" value={form.thumbnail} onChange={(e) => setForm((p) => ({ ...p, thumbnail: e.target.value }))} style={inputStyle} className="flex-1 px-3 py-2.5 rounded-xl text-sm border-0 outline-none" placeholder="https://..." />
+                    <input type="text" value={form.thumbnail} onChange={(e) => setForm((p) => ({ ...p, thumbnail: e.target.value }))} style={inputStyle} className="flex-1 px-3 py-2.5 rounded-xl text-sm border-0 outline-none font-mono" placeholder="https://... or /images/..." />
                     <label className="px-4 py-2.5 rounded-xl text-xs font-semibold border-0 cursor-pointer flex items-center justify-center bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/20 whitespace-nowrap">
                       {uploadingImg ? "Uploading..." : "Upload"}
                       <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e.target.files[0], "thumbnail")} className="hidden" disabled={uploadingImg} />
@@ -607,7 +613,7 @@ const AdminServices = () => {
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={labelStyle}>Banner Image</label>
                   <div className="flex gap-2">
-                    <input type="url" value={form.bannerImage} onChange={(e) => setForm((p) => ({ ...p, bannerImage: e.target.value }))} style={inputStyle} className="flex-1 px-3 py-2.5 rounded-xl text-sm border-0 outline-none" placeholder="https://..." />
+                    <input type="text" value={form.bannerImage} onChange={(e) => setForm((p) => ({ ...p, bannerImage: e.target.value }))} style={inputStyle} className="flex-1 px-3 py-2.5 rounded-xl text-sm border-0 outline-none font-mono" placeholder="https://... or /images/..." />
                     <label className="px-4 py-2.5 rounded-xl text-xs font-semibold border-0 cursor-pointer flex items-center justify-center bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/20 whitespace-nowrap">
                       {uploadingImg ? "Uploading..." : "Upload"}
                       <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e.target.files[0], "bannerImage")} className="hidden" disabled={uploadingImg} />
@@ -621,7 +627,7 @@ const AdminServices = () => {
               <div>
                 <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={labelStyle}>Gallery Images</label>
                 <div className="flex gap-2 mb-2">
-                  <input type="url" value={newGalleryUrl} onChange={(e) => setNewGalleryUrl(e.target.value)} style={inputStyle} className="flex-1 px-3 py-2 rounded-xl text-sm border-0 outline-none" placeholder="https://..." />
+                  <input type="text" value={newGalleryUrl} onChange={(e) => setNewGalleryUrl(e.target.value)} style={inputStyle} className="flex-1 px-3 py-2 rounded-xl text-sm border-0 outline-none font-mono" placeholder="https://... or /images/..." />
                   <label className="px-4 py-2 rounded-xl text-xs font-semibold border-0 cursor-pointer flex items-center justify-center bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/20 whitespace-nowrap">
                     {uploadingImg ? "Uploading..." : "Upload File"}
                     <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e.target.files[0], "", true)} className="hidden" disabled={uploadingImg} />

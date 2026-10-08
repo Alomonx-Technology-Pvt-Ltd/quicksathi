@@ -136,9 +136,9 @@ const Services = () => {
         return {
           ...sub,
           imageUrl:
-            sub.imageUrl ||
             matched?.thumbnail ||
             matched?.bannerImage ||
+            sub.imageUrl ||
             cat.imageUrl ||
             "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=800&auto=format&fit=crop",
           parentName: cat.name,

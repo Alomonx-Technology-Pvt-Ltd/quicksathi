@@ -496,7 +496,14 @@ const Category = () => {
           </h2>
 
           <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-4">
-            {subs.map((sub) => (
+            {subs.map((sub) => {
+              const matchedSvc = services.find(
+                (s) =>
+                  s.name?.toLowerCase() === sub.name?.toLowerCase() ||
+                  s.name?.toLowerCase().includes(sub.name?.toLowerCase()) ||
+                  sub.name?.toLowerCase().includes(s.name?.toLowerCase())
+              );
+              return (
               <button
                 key={sub.id || sub._id || sub.name}
                 onClick={() => handleScrollToSection(sub.name)}
@@ -506,6 +513,8 @@ const Category = () => {
                 <div className="relative w-full aspect-square max-w-[105px] rounded-xl sm:rounded-2xl overflow-hidden bg-slate-100 border border-slate-200/70 shadow-xs group-hover:border-purple-300 group-hover:shadow-md transition-all">
                   <img
                     src={
+                      matchedSvc?.thumbnail ||
+                      matchedSvc?.bannerImage ||
                       sub.imageUrl ||
                       sub.image ||
                       category.imageUrl ||
@@ -527,7 +536,8 @@ const Category = () => {
                   {sub.name}
                 </span>
               </button>
-            ))}
+            );
+          })}
           </div>
         </div>
 
