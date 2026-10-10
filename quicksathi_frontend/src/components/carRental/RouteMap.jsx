@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, useMemo } from "react";
 import { MapContainer, TileLayer, Marker, Polyline, Circle, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import { reverseGeocode } from "../../context/LocationContext";
+import { isGoogleMapsAvailable, markGoogleMapsBlocked } from "../../utils/googleMapsLoader";
 import { Crosshair } from "lucide-react";
 
 // Fix Leaflet default marker icons (they break with bundlers)
@@ -79,6 +80,62 @@ const RecenterControl = ({ target }) => {
 };
 
 /**
+ * Toggle between Google Roadmap, Google Satellite / Hybrid, and OpenStreetMap.
+ */
+const MapTypeControl = ({ mapLayer, onToggle, isGoogleReady }) => {
+  return (
+    <div className="leaflet-top leaflet-left" style={{ pointerEvents: "auto", margin: "10px 10px 10px 60px" }}>
+      <div
+        className="flex items-center rounded-lg shadow-md overflow-hidden"
+        style={{
+          backgroundColor: "#ffffff",
+          border: "1px solid rgba(0,0,0,0.14)",
+          fontFamily: "var(--font-body, system-ui, sans-serif)",
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => onToggle("osm")}
+          className="px-2.5 py-1 text-xs font-semibold cursor-pointer border-0 transition-colors flex items-center gap-1"
+          style={{
+            backgroundColor: mapLayer === "osm" ? "#1a3a6b" : "#ffffff",
+            color: mapLayer === "osm" ? "#ffffff" : "#475569",
+          }}
+        >
+          <span>OpenStreet</span>
+          {mapLayer === "osm" && (
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" />
+          )}
+        </button>
+        <button
+          type="button"
+          onClick={() => onToggle("roadmap")}
+          className="px-2.5 py-1 text-xs font-semibold cursor-pointer border-0 transition-colors"
+          style={{
+            backgroundColor: mapLayer === "roadmap" ? "#1a3a6b" : "#ffffff",
+            color: mapLayer === "roadmap" ? "#ffffff" : "#475569",
+          }}
+          title={!isGoogleReady ? "Google Maps not activated — OpenStreet recommended" : "Google Roadmap"}
+        >
+          Google Map
+        </button>
+        <button
+          type="button"
+          onClick={() => onToggle("satellite")}
+          className="px-2.5 py-1 text-xs font-semibold cursor-pointer border-0 transition-colors"
+          style={{
+            backgroundColor: mapLayer === "satellite" ? "#1a3a6b" : "#ffffff",
+            color: mapLayer === "satellite" ? "#ffffff" : "#475569",
+          }}
+        >
+          Satellite
+        </button>
+      </div>
+    </div>
+  );
+};
+
+/**
  * RouteMap — Displays an interactive Leaflet map with route between two points.
  *
  * Props:
@@ -90,7 +147,10 @@ const RecenterControl = ({ target }) => {
 const RouteMap = ({ pickup, dropoff, onRouteCalculated, onPickupChange }) => {
   const [routeCoords, setRouteCoords] = useState([]);
   const [loading, setLoading] = useState(false);
+  // If Google Maps is not implemented or blocked, seamlessly start with OpenStreetMap
+  const [mapLayer, setMapLayer] = useState(() => (isGoogleMapsAvailable() ? "roadmap" : "osm"));
   const prevRouteRef = useRef("");
+  const tileErrorCountRef = useRef(0);
 
   // Default center: India
   const defaultCenter = useMemo(() => [25.61, 85.14], []); // Patna default
@@ -208,9 +268,44 @@ const RouteMap = ({ pickup, dropoff, onRouteCalculated, onPickupChange }) => {
         style={{ height: "100%", width: "100%", borderRadius: "16px" }}
         zoomControl={true}
       >
+        {/* Google Maps Roadmap or Satellite / Hybrid Tiles with automatic OSM fallback on failure */}
         <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          key={mapLayer}
+          url={
+            mapLayer === "satellite"
+              ? "https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}"
+              : mapLayer === "osm"
+              ? "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              : "https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}"
+          }
+          subdomains={mapLayer === "osm" ? ["a", "b", "c"] : ["0", "1", "2", "3"]}
+          maxZoom={mapLayer === "osm" ? 19 : 20}
+          attribution={
+            mapLayer === "osm"
+              ? '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              : '&copy; <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer">Google Maps</a>'
+          }
+          eventHandlers={{
+            tileerror: () => {
+              if (mapLayer !== "osm") {
+                tileErrorCountRef.current += 1;
+                if (tileErrorCountRef.current >= 2) {
+                  console.warn(
+                    "[QuickSathi RouteMap] Google map tiles unavailable or blocked. Automatically switching to OpenStreetMap."
+                  );
+                  markGoogleMapsBlocked();
+                  setMapLayer("osm");
+                }
+              }
+            },
+          }}
+        />
+
+        {/* Map Type Switcher (OpenStreet vs Google Map vs Satellite) */}
+        <MapTypeControl
+          mapLayer={mapLayer}
+          onToggle={setMapLayer}
+          isGoogleReady={isGoogleMapsAvailable()}
         />
 
         {/* Street-view recenter button */}

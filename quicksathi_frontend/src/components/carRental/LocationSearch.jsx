@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { MapPin, X, Loader2, Crosshair, Navigation } from "lucide-react";
 import { useLocation } from "../../context/LocationContext";
+import { searchGooglePlaces, isGoogleMapsAvailable } from "../../utils/googleMapsLoader";
 
 /**
  * LocationSearch — Autocomplete address input using OpenStreetMap Nominatim with
@@ -65,6 +66,30 @@ const LocationSearch = ({
       debounceRef.current = setTimeout(async () => {
         setLoading(true);
         try {
+          // 1. Try Google Places Autocomplete first if Google Maps is activated
+          if (isGoogleMapsAvailable()) {
+            const googleResults = await searchGooglePlaces(q);
+            if (googleResults && googleResults.length > 0) {
+              setResults(
+                googleResults.map((item) => ({
+                  name: item.displayName || item.label,
+                  shortName: item.street || item.road || item.locality || item.displayName,
+                  road: item.road,
+                  locality: item.locality,
+                  city: item.city,
+                  state: item.state,
+                  lat: item.lat,
+                  lon: item.lon,
+                  isGoogle: true,
+                }))
+              );
+              setOpen(true);
+              setLoading(false);
+              return;
+            }
+          }
+
+          // 2. Seamless fallback to OpenStreetMap (Nominatim)
           const params = new URLSearchParams({
             q,
             format: "json",

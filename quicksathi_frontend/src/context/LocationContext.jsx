@@ -1,4 +1,10 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
+import {
+  reverseGeocodeGoogle,
+  searchGooglePlaces,
+  isGoogleMapsAvailable,
+} from "../utils/googleMapsLoader";
+export { reverseGeocodeGoogle, searchGooglePlaces, isGoogleMapsAvailable };
 
 // ── Supported Cities (kept for backward compatibility with admin/provider panels) ──
 export const CITY_OPTIONS = [
@@ -33,20 +39,32 @@ export const useLocation = () => {
   return ctx;
 };
 
-// ── Reverse geocode coordinates → precise road/gully/alley/building address via OpenStreetMap + Photon ─────
-// zoom=18 gives building/road-level address details; Photon identifies named gullies & POIs.
+// ── Reverse geocode coordinates → precise road/gully/alley/building address (Google Maps primary, OSM fallback) ─────
 export async function reverseGeocode(lat, lon, accuracy = null) {
+  // 1. Prioritize Google Maps Geocoding if activated
+  if (isGoogleMapsAvailable()) {
+    try {
+      const googleResult = await reverseGeocodeGoogle(lat, lon, accuracy);
+      if (googleResult && (googleResult.road || googleResult.building || googleResult.locality)) {
+        return googleResult;
+      }
+    } catch (err) {
+      console.warn("Google Maps reverse geocode skipped, trying fallback:", err);
+    }
+  }
+
+  // 2. High-precision fallback to OpenStreetMap + Photon
   try {
     const [nomRes, phoRes] = await Promise.all([
       fetch(
         `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`,
-        { headers: { "Accept-Language": "en", "User-Agent": "TiptoBook/2.0" } }
+        { headers: { "Accept-Language": "en" } }
       )
         .then((r) => (r.ok ? r.json() : null))
         .catch(() => null),
       fetch(
         `https://photon.komoot.io/reverse?lon=${lon}&lat=${lat}&limit=6`,
-        { headers: { "Accept-Language": "en", "User-Agent": "TiptoBook/2.0" } }
+        { headers: { "Accept-Language": "en" } }
       )
         .then((r) => (r.ok ? r.json() : null))
         .catch(() => null),
@@ -219,11 +237,24 @@ export async function reverseGeocode(lat, lon, accuracy = null) {
   }
 }
 
-// ── Live city/area/street search via OpenStreetMap + Photon (gullies & lanes) ──
+// ── Live city/area/street search via Google Places (with OSM fallback) ──
 export async function searchLocation(query) {
   if (!query || !query.trim()) return [];
   const q = query.trim();
 
+  // 1. Try Google Places Autocomplete first if active
+  if (isGoogleMapsAvailable()) {
+    try {
+      const googleResults = await searchGooglePlaces(q);
+      if (googleResults && googleResults.length > 0) {
+        return googleResults;
+      }
+    } catch (err) {
+      console.warn("Google Places search skipped, trying fallback:", err);
+    }
+  }
+
+  // 2. Fallback to OpenStreetMap + Photon
   try {
     const [nomData, photonData] = await Promise.all([
       fetch(

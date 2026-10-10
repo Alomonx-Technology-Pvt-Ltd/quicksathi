@@ -1,1197 +1,1546 @@
-import { useState, useEffect, useRef } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useState, useEffect, useMemo, useRef, useCallback } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  ArrowLeft,
+  Search,
+  ShoppingBag,
+  ChevronRight,
+  ChevronLeft,
+  X,
+  ShieldCheck,
+} from "lucide-react";
 import api from "../config/api";
 import SEO from "../components/SEO";
-import {
-  Search,
-  ShieldCheck,
-  Car,
-  PartyPopper,
-  GraduationCap,
-  Camera,
-  ArrowRight,
-  Star,
-  BadgeCheck,
-  Timer,
-  Sparkles,
-  Scissors,
-  Wrench,
-  Hammer,
-  LayoutGrid,
-  AlertTriangle,
-} from "lucide-react";
-import serviceHeroImg from "../assets/serviceHeroImg.avif";
+import { useLocation as useGeoLocation } from "../context/LocationContext";
 
-import { useLocation } from "../context/LocationContext";
-import WorkProcess from "../components/servicePage/Workprocess";
-import { mockServices } from "../data/mockServices";
-import { mockCategories } from "../data/mockCategories";
+// ── Default Banners matching Home CategoryBannersCarousel ────────────────────
+const DEFAULT_HOME_BANNERS = [
+  {
+    id: "ac",
+    badge: "Top Summer Pick",
+    title: "Deep clean with foam-jet AC service",
+    subtitle: "AC service, gas refill & doorstep repair",
+    cta: "BOOK",
+    link: "/services/ac",
+    textColor: "#ffffff",
+    buttonBg: "#0284c7",
+    image: "/images/ac/foam-jet.webp",
+    bgFallback: "#0d2b45",
+  },
+  {
+    id: "repair",
+    badge: "Home Essential",
+    title: "Home repairs at affordable prices",
+    subtitle: "Electricians, plumbers & carpentry help",
+    cta: "BOOK",
+    link: "/category/house-services",
+    textColor: "#ffffff",
+    buttonBg: "#0066cc",
+    image: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=800&auto=format&fit=crop",
+    bgFallback: "#00488f",
+  },
+  {
+    id: "salon",
+    badge: "Salon at Home",
+    title: "Glow at home with expert salon",
+    subtitle: "Hair styling, facials, waxing & makeup",
+    cta: "BOOK",
+    link: "/category/home-salon",
+    textColor: "#ffffff",
+    buttonBg: "#be185d",
+    image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=800&auto=format&fit=crop",
+    bgFallback: "#5c133a",
+  },
+  {
+    id: "rental",
+    badge: "Instant Booking",
+    title: "Chauffeur & self-drive rentals",
+    subtitle: "Sedans, SUVs & luxury wedding cars",
+    cta: "BOOK",
+    link: "/category/vehicle-rental",
+    textColor: "#ffffff",
+    buttonBg: "#1d4ed8",
+    image: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=800&auto=format&fit=crop",
+    bgFallback: "#091a38",
+  },
+  {
+    id: "wedding",
+    badge: "Grand Setup",
+    title: "Plan Your Perfect Wedding",
+    subtitle: "Venues, decor, photo & catering",
+    cta: "BOOK",
+    link: "/category/wedding",
+    textColor: "#ffffff",
+    buttonBg: "#e11d48",
+    image: "/banners/wedding_banner.webp",
+    bgFallback: "#320b1e",
+  },
+  {
+    id: "help",
+    badge: "Verified Staff",
+    title: "Deep home cleaning & maids",
+    subtitle: "Kitchen, bathroom & daily house help",
+    cta: "BOOK",
+    link: "/category/house-help",
+    textColor: "#ffffff",
+    buttonBg: "#0f766e",
+    image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=800&auto=format&fit=crop",
+    bgFallback: "#09534c",
+  },
+  {
+    id: "tuition",
+    badge: "1st Class Free",
+    title: "Find trusted home tutors",
+    subtitle: "Maths, Science, English & Computer",
+    cta: "BOOK",
+    link: "/category/home-tuition",
+    textColor: "#ffffff",
+    buttonBg: "#0284c7",
+    image: "/banners/tuition_banner.webp",
+    bgFallback: "#0d2b45",
+  },
+  {
+    id: "painting",
+    badge: "Clean Finish",
+    title: "Professional home painting",
+    subtitle: "Waterproof, dust-free wall makeover",
+    cta: "BOOK",
+    link: "/category/painting",
+    textColor: "#ffffff",
+    buttonBg: "#4f46e5",
+    image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=800&auto=format&fit=crop",
+    bgFallback: "#271f65",
+  },
+  {
+    id: "cctv",
+    badge: "Same-Day Setup",
+    title: "24/7 Smart CCTV surveillance",
+    subtitle: "HD cameras, smart locks & live feed",
+    cta: "BOOK",
+    link: "/service/cctv-installation",
+    textColor: "#ffffff",
+    buttonBg: "#ea580c",
+    image: "https://images.unsplash.com/photo-1557597774-9d273605dfa9?q=80&w=800&auto=format&fit=crop",
+    bgFallback: "#0f172a",
+  },
+];
+
+// ── Cute E-Commerce Shopping Gift Bag Icon for "For You" (Zero AI Feel) ───────
+const ForYouBagIcon = () => (
+  <svg
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-6 h-6"
+  >
+    <rect x="3.5" y="6.5" width="17" height="15" rx="3.5" fill="url(#forYouBagGradient)" />
+    <path
+      d="M8.5 8V5C8.5 3.34315 9.84315 2 11.5 2H12.5C14.1569 2 15.5 3.34315 15.5 5V8"
+      stroke="#ffffff"
+      strokeWidth="2"
+      strokeLinecap="round"
+    />
+    <circle cx="12" cy="13.5" r="3.2" fill="rgba(255,255,255,0.24)" />
+    <path
+      d="M10.8 14.7L13.2 12.3M10.8 12.5H10.81M13.2 14.5H13.21"
+      stroke="#ffffff"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+    />
+    <defs>
+      <linearGradient id="forYouBagGradient" x1="3.5" y1="6.5" x2="20.5" y2="21.5" gradientUnits="userSpaceOnUse">
+        <stop stopColor="#9333ea" />
+        <stop offset="1" stopColor="#4f46e5" />
+      </linearGradient>
+    </defs>
+  </svg>
+);
+
+// ── Exact Categories Matching Popups in Home Section ─────────────────────────
+// Every category here strictly mirrors its respective CategoryModal in src/components/modals/
+const POPUP_CATEGORIES = [
+  {
+    id: "for-you",
+    name: "For You",
+    shortName: "For You",
+    vertical: "FEATURED",
+    isCustomIcon: true,
+    bannerImage: "/banners/ac_banner.webp",
+    bannerTitle: "Handpicked Doorstep Services",
+    bannerSubtitle: "Verified pros • 100% upfront pricing",
+    categoryLink: null,
+    badgeColor: "bg-indigo-600 text-white",
+    sections: [
+      {
+        title: "POPULAR IN YOUR CITY",
+        items: [
+          {
+            id: "maid-services",
+            name: "Maid Services (Monthly/Daily)",
+            badge: "Popular",
+            badgeColor: "bg-emerald-600 text-white",
+            image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/house-help.png",
+            route: "/category/house-help",
+          },
+          {
+            id: "cctv-installation",
+            name: "CCTV Installation",
+            badge: "Security",
+            badgeColor: "bg-indigo-600 text-white",
+            image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/cctv-main.jpg",
+            fallbackIcon: "/icons/categories/cctv.png",
+            route: "/service/cctv-installation",
+          },
+          {
+            id: "ac-repair",
+            name: "AC Repair & Services",
+            badge: "Popular",
+            badgeColor: "bg-indigo-600 text-white",
+            image: "/icons/appliances/ac-repair.jpg",
+            fallbackIcon: "/icons/appliances/ac-repair.png",
+            route: "/services/ac",
+          },
+          {
+            id: "plumbing",
+            name: "Plumbing",
+            badge: "Popular",
+            badgeColor: "bg-indigo-600 text-white",
+            image: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/home-repair.png",
+            route: "/category/house-services",
+          },
+          {
+            id: "wedding-car",
+            name: "Wedding Car Rental",
+            badge: "Popular",
+            badgeColor: "bg-blue-600 text-white",
+            image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/car-rental.png",
+            route: "/category/vehicle-rental",
+            isRental: true,
+          },
+          {
+            id: "photography-videography",
+            name: "Photography & Videography",
+            badge: "Popular",
+            badgeColor: "bg-rose-600 text-white",
+            image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/wedding-events.png",
+            route: "/service/photography",
+          },
+          {
+            id: "laundry-ironing",
+            name: "Laundry & Ironing Services",
+            badge: "New",
+            badgeColor: "bg-emerald-600 text-white",
+            image: "https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/house-help.png",
+            route: "/category/house-help",
+          },
+        ],
+      },
+      {
+        title: "HOME ESSENTIALS & TUTORS",
+        items: [
+          {
+            id: "nursery-to-class-5",
+            name: "Nursery to Class 5",
+            badge: "Foundation",
+            badgeColor: "bg-indigo-600 text-white",
+            image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/home-tuition.png",
+            route: "/category/home-tuition",
+          },
+          {
+            id: "electrician",
+            name: "Electrician",
+            image: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/home-repair.png",
+            route: "/category/house-services",
+          },
+          {
+            id: "full-home-painting",
+            name: "Full Home Painting",
+            badge: "Popular",
+            badgeColor: "bg-indigo-600 text-white",
+            image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/painting.png",
+            route: "/category/painting",
+          },
+          {
+            id: "elder-care",
+            name: "Elder Care Services",
+            badge: "Coming Soon",
+            badgeColor: "bg-emerald-600 text-white",
+            image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/house-help.png",
+            route: "/category/house-help",
+          },
+          {
+            id: "home-cook",
+            name: "Home Cook & Chef",
+            image: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/house-help.png",
+            route: "/category/house-help",
+          },
+          {
+            id: "babysitting",
+            name: "Babysitting / Nanny",
+            image: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/house-help.png",
+            route: "/category/house-help",
+          },
+          {
+            id: "washing-machine",
+            name: "Washing Machine Repair",
+            image: "/icons/appliances/washing-machine.jpg",
+            fallbackIcon: "/icons/appliances/washing-machine.png",
+            route: "/service/washing-machine-repair",
+          },
+          {
+            id: "refrigerator",
+            name: "Refrigerator Repair & Services",
+            image: "/icons/appliances/refrigerator.jpg",
+            fallbackIcon: "/icons/appliances/refrigerator.png",
+            route: "/service/refrigerator-repair",
+          },
+          {
+            id: "classes-6-8",
+            name: "Classes 6–8",
+            badge: "Middle School",
+            badgeColor: "bg-indigo-600 text-white",
+            image: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/home-tuition.png",
+            route: "/category/home-tuition",
+          },
+          {
+            id: "pandit-booking",
+            name: "Pandit Booking",
+            badge: "Vedic",
+            badgeColor: "bg-rose-600 text-white",
+            image: "https://images.unsplash.com/photo-1609358905581-e5381612486e?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/wedding-events.png",
+            route: "/service/pandit-service",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "ac",
+    name: "AC & Appliances",
+    shortName: "AC & Appliances",
+    vertical: "AC_APPLIANCES",
+    iconUrl: "/icons/categories/ac-appliances.png",
+    bannerImage: "/banners/ac_banner.webp",
+    bannerTitle: "Doorstep AC & Appliance Repair",
+    bannerSubtitle: "Certified technicians • 30-Day warranty",
+    categoryLink: "/services/ac",
+    badgeColor: "bg-purple-600 text-white",
+    sections: [
+      {
+        title: "AC & APPLIANCE REPAIR",
+        items: [
+          {
+            id: "ac-repair",
+            name: "AC Repair & Services",
+            badge: "Popular",
+            image: "/icons/appliances/ac-repair.jpg",
+            fallbackIcon: "/icons/appliances/ac-repair.png",
+            route: "/services/ac",
+          },
+          {
+            id: "washing-machine",
+            name: "Washing Machine Repair",
+            image: "/icons/appliances/washing-machine.jpg",
+            fallbackIcon: "/icons/appliances/washing-machine.png",
+            route: "/service/washing-machine-repair",
+          },
+          {
+            id: "refrigerator",
+            name: "Refrigerator Repair & Services",
+            image: "/icons/appliances/refrigerator.jpg",
+            fallbackIcon: "/icons/appliances/refrigerator.png",
+            route: "/service/refrigerator-repair",
+          },
+          {
+            id: "tv-repair",
+            name: "TV Repair & Services",
+            image: "/icons/appliances/tv-repair.jpg",
+            fallbackIcon: "/icons/appliances/tv-repair.png",
+            route: "/service/tv-repair",
+          },
+        ],
+      },
+      {
+        title: "OTHER APPLIANCES",
+        items: [
+          {
+            id: "geyser-repair",
+            name: "Geyser Repair & Services",
+            badge: "Essential",
+            image: "/icons/appliances/geyser-repair.jpg",
+            fallbackIcon: "/icons/appliances/geyser-repair.png",
+            route: "/service/geyser-repair",
+          },
+          {
+            id: "foam-jet",
+            name: "Foam-Jet AC Deep Clean",
+            badge: "Popular",
+            image: "/images/ac/foam-jet.webp",
+            fallbackIcon: "/icons/appliances/ac-repair.png",
+            route: "/services/ac",
+          },
+          {
+            id: "gas-refill",
+            name: "AC Gas Refill & Leak Fix",
+            image: "/images/ac/gas-refill.webp",
+            fallbackIcon: "/icons/appliances/ac-repair.png",
+            route: "/services/ac",
+          },
+          {
+            id: "ac-install",
+            name: "AC Installation & Setup",
+            image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315766/TiptoBook/services/ac-installation.jpg",
+            fallbackIcon: "/icons/appliances/ac-repair.png",
+            route: "/services/ac",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "rental",
+    name: "Vehicle Rental",
+    shortName: "Vehicle Rental",
+    vertical: "VEHICLE_RENTAL",
+    iconUrl: "/icons/categories/car-rental.png",
+    bannerImage: "/banners/rental_banner.webp",
+    bannerTitle: "Chauffeur & Self-Drive Fleet",
+    bannerSubtitle: "Clean cars • Verified drivers • Zero hidden charges",
+    categoryLink: "/category/vehicle-rental",
+    badgeColor: "bg-blue-600 text-white",
+    sections: [
+      {
+        title: "VEHICLE RENTAL SERVICES",
+        items: [
+          {
+            id: "wedding-car",
+            name: "Wedding Car Rental",
+            badge: "Popular",
+            image: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/car-rental.png",
+            route: "/category/vehicle-rental",
+            isRental: true,
+          },
+          {
+            id: "daily-car",
+            name: "Daily Car Rental",
+            image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/outstation-airport-cab.jpg",
+            fallbackIcon: "/icons/categories/car-rental.png",
+            route: "/category/vehicle-rental",
+            isRental: true,
+          },
+          {
+            id: "airport-cabs",
+            name: "Outstation & Airport Cab",
+            image: "https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/car-rental.png",
+            route: "/category/vehicle-rental",
+            isRental: true,
+          },
+          {
+            id: "self-drive",
+            name: "Self-Drive Car Fleet",
+            badge: "Zero Deposit",
+            image: "https://images.unsplash.com/photo-1549399542-7e3f8b79c341?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/car-rental.png",
+            route: "/category/vehicle-rental",
+            isRental: true,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "weddings",
+    name: "Wedding & Event",
+    shortName: "Wedding & Event",
+    vertical: "WEDDING",
+    iconUrl: "/icons/categories/wedding-events.png",
+    bannerImage: "/banners/wedding_banner.webp",
+    bannerTitle: "Complete Wedding & Celebration Services",
+    bannerSubtitle: "Venues, photography, catering & decor",
+    categoryLink: "/category/wedding",
+    badgeColor: "bg-rose-600 text-white",
+    sections: [
+      {
+        title: "WEDDING & EVENT SERVICES",
+        items: [
+          {
+            id: "photography-videography",
+            name: "Photography & Videography",
+            badge: "Popular",
+            image: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/wedding-events.png",
+            route: "/service/photography",
+          },
+          {
+            id: "wedding-decoration",
+            name: "Wedding Decoration",
+            image: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/wedding-events.png",
+            route: "/category/wedding",
+          },
+          {
+            id: "venue-booking",
+            name: "Venue Booking",
+            badge: "New",
+            image: "https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/wedding-events.png",
+            route: "/category/wedding",
+          },
+          {
+            id: "catering-services",
+            name: "Catering Services",
+            image: "https://images.unsplash.com/photo-1555244162-803834f70033?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/wedding-events.png",
+            route: "/category/wedding",
+          },
+          {
+            id: "pandit-booking",
+            name: "Pandit Booking",
+            badge: "Vedic",
+            image: "https://images.unsplash.com/photo-1609358905581-e5381612486e?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/wedding-events.png",
+            route: "/service/pandit-service",
+          },
+          {
+            id: "wedding-car-rental",
+            name: "Wedding Car Rental",
+            badge: "Luxury",
+            image: "https://images.unsplash.com/photo-1502877338535-766e1452684a?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/car-rental.png",
+            route: "/category/vehicle-rental",
+            isRental: true,
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "repair",
+    name: "Home Services & Repair",
+    shortName: "Home Repair",
+    vertical: "HOUSE_SERVICES",
+    iconUrl: "/icons/categories/home-repair.png",
+    bannerImage: "/banners/repair_banner.webp",
+    bannerTitle: "Expert Repairs, Maintenance & CCTV",
+    bannerSubtitle: "Plumbing, Electrical, Carpentry & Security",
+    categoryLink: "/category/house-services",
+    badgeColor: "bg-indigo-600 text-white",
+    sections: [
+      {
+        title: "HOME SERVICES & REPAIR",
+        items: [
+          {
+            id: "cctv-installation",
+            name: "CCTV Installation",
+            badge: "Security",
+            image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/cctv-main.jpg",
+            fallbackIcon: "/icons/categories/cctv.png",
+            route: "/service/cctv-installation",
+          },
+          {
+            id: "plumbing",
+            name: "Plumbing",
+            badge: "Popular",
+            image: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/home-repair.png",
+            route: "/category/house-services",
+          },
+          {
+            id: "electrician",
+            name: "Electrician",
+            image: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/home-repair.png",
+            route: "/category/house-services",
+          },
+          {
+            id: "carpentry",
+            name: "Carpentry",
+            image: "https://images.unsplash.com/photo-1504148455328-c376907d081c?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/home-repair.png",
+            route: "/category/house-services",
+          },
+          {
+            id: "painting",
+            name: "Painting Services",
+            badge: "Popular",
+            image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/painting.png",
+            route: "/category/painting",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "help",
+    name: "House Help",
+    shortName: "House Help",
+    vertical: "HOUSE_HELP",
+    iconUrl: "/icons/categories/house-help.png",
+    bannerImage: "/banners/help_banner.webp",
+    bannerTitle: "Verified Doorstep House Help",
+    bannerSubtitle: "Background checked • Maid, cook, laundry & elder care",
+    categoryLink: "/category/house-help",
+    badgeColor: "bg-emerald-600 text-white",
+    sections: [
+      {
+        title: "HOUSE HELP SERVICES",
+        items: [
+          {
+            id: "maid-services",
+            name: "Maid Services (Monthly/Daily)",
+            badge: "Popular",
+            image: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/house-help.png",
+            route: "/category/house-help",
+          },
+          {
+            id: "laundry-ironing",
+            name: "Laundry & Ironing Services",
+            badge: "New",
+            image: "https://images.unsplash.com/photo-1517677208171-0bc6725a3e60?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/house-help.png",
+            route: "/category/house-help",
+          },
+          {
+            id: "elder-care",
+            name: "Elder Care Services",
+            badge: "Coming Soon",
+            image: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/house-help.png",
+            route: "/category/house-help",
+          },
+          {
+            id: "home-cook",
+            name: "Home Cook & Chef",
+            image: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/house-help.png",
+            route: "/category/house-help",
+          },
+          {
+            id: "babysitting",
+            name: "Babysitting / Nanny",
+            image: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/house-help.png",
+            route: "/category/house-help",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "salon",
+    name: "Home Salon & Beauty",
+    shortName: "Home Salon",
+    vertical: "HOME_SALON",
+    iconUrl: "/icons/categories/home-salon.png",
+    bannerImage: "/banners/salon_banner.webp",
+    bannerTitle: "Doorstep Salon & Grooming",
+    bannerSubtitle: "Single-use hygiene kits • Certified beauticians",
+    categoryLink: "/category/home-salon",
+    badgeColor: "bg-pink-600 text-white",
+    sections: [
+      {
+        title: "SALON & GROOMING SERVICES",
+        items: [
+          {
+            id: "salon-women",
+            name: "Women's Beauty Services",
+            badge: "Women",
+            image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=480&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/home-salon.png",
+            route: "/category/home-salon?gender=women",
+          },
+          {
+            id: "salon-men",
+            name: "Men's Grooming",
+            badge: "Men",
+            image: "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?q=80&w=480&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/home-salon.png",
+            route: "/category/home-salon?gender=men",
+          },
+          {
+            id: "hair-styling",
+            name: "Hair Styling & Care",
+            image: "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/home-salon.png",
+            route: "/category/home-salon",
+          },
+          {
+            id: "facial-cleanup",
+            name: "Facial & Cleanup",
+            image: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/home-salon.png",
+            route: "/category/home-salon",
+          },
+          {
+            id: "bridal-makeup",
+            name: "Bridal & Party Makeup",
+            badge: "Luxury",
+            image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/home-salon.png",
+            route: "/category/home-salon",
+          },
+          {
+            id: "manicure-pedicure",
+            name: "Manicure & Pedicure",
+            image: "https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/home-salon.png",
+            route: "/category/home-salon",
+          },
+          {
+            id: "waxing-threading",
+            name: "Waxing & Threading",
+            image: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/home-salon.png",
+            route: "/category/home-salon",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "tuition",
+    name: "Home Tuition",
+    shortName: "Home Tuition",
+    vertical: "HOME_TUITION",
+    iconUrl: "/icons/categories/home-tuition.png",
+    bannerImage: "/banners/tuition_banner.webp",
+    bannerTitle: "Verified Expert Home Tutors",
+    bannerSubtitle: "One-on-one personalized teaching across CBSE & ICSE",
+    categoryLink: "/category/home-tuition",
+    badgeColor: "bg-indigo-600 text-white",
+    sections: [
+      {
+        title: "SCHOOL & ACADEMIC TUITION",
+        items: [
+          {
+            id: "nursery-to-class-5",
+            name: "Nursery to Class 5",
+            badge: "Foundation",
+            image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/home-tuition.png",
+            route: "/category/home-tuition",
+          },
+          {
+            id: "classes-6-8",
+            name: "Classes 6–8",
+            badge: "Middle School",
+            image: "https://images.unsplash.com/photo-1427504494785-3a9ca7044f45?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/home-tuition.png",
+            route: "/category/home-tuition",
+          },
+          {
+            id: "classes-9-10",
+            name: "Classes 9–10",
+            badge: "Board Prep",
+            image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/home-tuition.png",
+            route: "/category/home-tuition",
+          },
+          {
+            id: "classes-11-12",
+            name: "Classes 11–12",
+            badge: "Competitive",
+            image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/home-tuition.png",
+            route: "/category/home-tuition",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "painting",
+    name: "Painting",
+    shortName: "Painting",
+    vertical: "PAINTING",
+    iconUrl: "/icons/categories/painting.png",
+    bannerImage: "/banners/painting_banner.webp",
+    bannerTitle: "Flawless House Painting & Texture",
+    bannerSubtitle: "Dustless sanding • Weatherproof guarantee",
+    categoryLink: "/category/painting",
+    badgeColor: "bg-indigo-600 text-white",
+    sections: [
+      {
+        title: "PAINTING & WATERPROOFING",
+        items: [
+          {
+            id: "full-home-painting",
+            name: "Full Home Painting",
+            badge: "Popular",
+            image: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/painting.png",
+            route: "/category/painting",
+          },
+          {
+            id: "room-by-room-painting",
+            name: "Room-by-Room Painting",
+            badge: "Flexible",
+            image: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/painting.png",
+            route: "/category/painting",
+          },
+          {
+            id: "interior-painting",
+            name: "Interior Wall Painting",
+            image: "https://images.unsplash.com/photo-1562259929-b4e1fd3aef09?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/painting.png",
+            route: "/category/painting",
+          },
+          {
+            id: "exterior-painting",
+            name: "Exterior House Painting",
+            image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/painting.png",
+            route: "/category/painting",
+          },
+          {
+            id: "waterproofing-texture",
+            name: "Waterproofing & Texture",
+            badge: "Damp Proof",
+            image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/painting.png",
+            route: "/category/painting",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    id: "construction",
+    name: "Construction & Interior Design",
+    shortName: "Construction",
+    vertical: "CONSTRUCTION",
+    iconUrl: "/icons/categories/construction.png",
+    bannerImage: "/banners/repair_banner.webp",
+    bannerTitle: "Turnkey Construction & Luxury Interiors",
+    bannerSubtitle: "Complete building • False ceiling • 3D floor layouts",
+    categoryLink: "/category/construction",
+    badgeColor: "bg-blue-600 text-white",
+    sections: [
+      {
+        title: "CONSTRUCTION & DESIGN",
+        items: [
+          {
+            id: "new-home-construction",
+            name: "New Home Construction",
+            badge: "Turnkey",
+            image: "https://images.unsplash.com/photo-1541888946425-d0fbb18615f8?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/construction.png",
+            route: "/services?q=construction",
+          },
+          {
+            id: "renovation-remodeling",
+            name: "Renovation & Remodeling",
+            badge: "Popular",
+            image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/construction.png",
+            route: "/services?q=renovation",
+          },
+          {
+            id: "interior-design",
+            name: "Interior Design",
+            badge: "Luxury",
+            image: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/construction.png",
+            route: "/services?q=interior",
+          },
+          {
+            id: "false-ceiling-lighting",
+            name: "False Ceiling & Lighting",
+            image: "https://images.unsplash.com/photo-1513694203232-719a280e022f?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/construction.png",
+            route: "/services?q=ceiling",
+          },
+          {
+            id: "design-planning-2d-3d",
+            name: "2D/3D Design & Planning",
+            image: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=300&auto=format&fit=crop",
+            fallbackIcon: "/icons/categories/construction.png",
+            route: "/services?q=planning",
+          },
+        ],
+      },
+    ],
+  },
+];
 
 const Services = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [searchQuery, setSearchQuery] = useState(() => searchParams.get("q") || "");
-  const [searchInput, setSearchInput] = useState(() => searchParams.get("q") || "");
-  const [selectedFilter, setSelectedFilter] = useState("ALL");
-  const [categories, setCategories] = useState([]);
-  const [services, setServices] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const filterSectionRef = useRef(null);
-  const resultsSectionRef = useRef(null);
-  const { city } = useLocation();
+  const { city } = useGeoLocation();
 
-  // Sync with URL query parameter when navigating from Hero or other pages
+  const initialSearch = searchParams.get("q") || "";
+  const initialCategory = searchParams.get("cat") || "for-you";
+
+  const [searchQuery, setSearchQuery] = useState(initialSearch);
+  const [isSearchOpen, setIsSearchOpen] = useState(Boolean(initialSearch));
+  const [activeCategoryId, setActiveCategoryId] = useState(initialCategory);
+
+  // Real-time backend state
+  const [backendServices, setBackendServices] = useState([]);
+  const [backendCategories, setBackendCategories] = useState([]);
+  const [carouselBanners, setCarouselBanners] = useState(DEFAULT_HOME_BANNERS);
+  const [bookingCount, setBookingCount] = useState(0);
+
+  const searchInputRef = useRef(null);
+  const rightContentRef = useRef(null);
+  const leftRailRef = useRef(null);
+  const bannerScrollRef = useRef(null);
+
+  // Auto-scroll timer for Home Banners in "For You"
+  const [bannerIndex, setBannerIndex] = useState(0);
+  const [isBannerHovered, setIsBannerHovered] = useState(false);
+
+  // ── Fetch Real-Time Data from Backend ───────────────────────────────────────
   useEffect(() => {
-    const q = searchParams.get("q");
-    if (q !== null) {
-      setSearchQuery(q);
-      setSearchInput(q);
-      if (q.trim()) {
-        setTimeout(() => {
-          filterSectionRef.current?.scrollIntoView({ behavior: "smooth" });
-        }, 300);
+    let isMounted = true;
+    const fetchBackendData = async () => {
+      try {
+        const cityParam = city ? `?city=${encodeURIComponent(city)}` : "";
+        const [servicesRes, categoriesRes, bannersRes, bookingsRes] = await Promise.allSettled([
+          api.get(`/services${cityParam}`),
+          api.get(`/categories`),
+          api.get(`/banners?section=carousel`),
+          api.get(`/bookings/my-bookings`).catch(() => ({ data: [] })),
+        ]);
+
+        if (!isMounted) return;
+
+        if (servicesRes.status === "fulfilled" && servicesRes.value?.data) {
+          const list = Array.isArray(servicesRes.value.data)
+            ? servicesRes.value.data
+            : servicesRes.value.data.services || [];
+          setBackendServices(list);
+        }
+
+        if (categoriesRes.status === "fulfilled" && categoriesRes.value?.data) {
+          const catList = Array.isArray(categoriesRes.value.data)
+            ? categoriesRes.value.data
+            : categoriesRes.value.data.categories || [];
+          setBackendCategories(catList);
+        }
+
+        if (bannersRes.status === "fulfilled" && bannersRes.value?.data) {
+          const bList = Array.isArray(bannersRes.value.data)
+            ? bannersRes.value.data
+            : bannersRes.value.data.banners || [];
+          if (bList.length > 0) {
+            setCarouselBanners(bList);
+          }
+        }
+
+        if (bookingsRes.status === "fulfilled" && bookingsRes.value?.data) {
+          const bCount = Array.isArray(bookingsRes.value.data)
+            ? bookingsRes.value.data.length
+            : bookingsRes.value.data.bookings?.length || 0;
+          setBookingCount(bCount);
+        }
+      } catch (err) {
+        console.warn("Backend real-time sync completed with fallbacks:", err);
       }
+    };
+
+    fetchBackendData();
+    return () => {
+      isMounted = false;
+    };
+  }, [city]);
+
+  // Sync category from URL param if user navigates with ?cat=
+  useEffect(() => {
+    const cat = searchParams.get("cat");
+    if (cat && POPUP_CATEGORIES.some((c) => c.id === cat)) {
+      setActiveCategoryId(cat);
     }
   }, [searchParams]);
 
-  // Fetch categories and services from backend — refetch when city changes
-  const fetchData = async () => {
-    try {
-      setLoading(true);
-      const cityParam = city ? `?city=${encodeURIComponent(city)}` : "";
-      const [catRes, svcRes] = await Promise.all([
-        api.get("/categories"),
-        api.get(`/services${cityParam}`),
-      ]);
-
-      if (catRes.data?.length > 0) {
-        setCategories(catRes.data);
-      } else {
-        throw new Error("No categories returned from backend");
-      }
-
-      setServices(svcRes.data?.length > 0 ? svcRes.data : mockServices);
-    } catch (err) {
-      console.warn(
-        "Backend unreachable, falling back to local mock data:",
-        err,
-      );
-      setCategories(mockCategories);
-      setServices(mockServices);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [city]);
-
-  // Build a service link using the service's _id from the backend
-  const getServiceLink = (name, mongoId, subId) => {
-    const isRental =
-      name.toLowerCase().includes("rental") ||
-      name.toLowerCase().includes("car") ||
-      name.toLowerCase().includes("bike");
-    const prefix = isRental ? "/product" : "/service";
-    const id = mongoId || subId;
-    return id ? `${prefix}/${id}` : "#";
-  };
-
-  const getCategoryIcon = (vertical) => {
-    switch (vertical) {
-      case "CCTV_SECURITY":
-        return ShieldCheck;
-      case "VEHICLE_RENTAL":
-        return Car;
-      case "WEDDING":
-        return Sparkles;
-      case "HOME_TUITION":
-        return GraduationCap;
-      case "HOUSE_HELP":
-        return Wrench;
-      case "HOUSE_SERVICES":
-      case "HOUSE_REPAIR":
-        return Hammer;
-      case "HOME_SALON":
-        return Scissors;
-      default:
-        return Sparkles;
-    }
-  };
-
-  const findMatchedService = (subName) =>
-    services.find(
-      (s) =>
-        s.name.toLowerCase() === subName.toLowerCase() ||
-        s.name.toLowerCase().includes(subName.toLowerCase()) ||
-        subName.toLowerCase().includes(s.name.toLowerCase()),
-    );
-
-  const allSubCategories = [
-    ...categories.flatMap((cat) =>
-      (cat.subCategories || []).map((sub) => {
-        const matched = findMatchedService(sub.name);
-        return {
-          ...sub,
-          imageUrl:
-            matched?.thumbnail ||
-            matched?.bannerImage ||
-            sub.imageUrl ||
-            cat.imageUrl ||
-            "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=800&auto=format&fit=crop",
-          parentName: cat.name,
-          parentId: cat._id,
-          vertical: cat.vertical,
-          comingSoon: !!cat.comingSoon,
-          mongoServiceId: matched?.slug ?? matched?._id ?? null,
-          startingPrice: matched?.startingPrice ?? null,
-          priceUnit: matched?.priceUnit ?? "per visit",
-          rating: matched?.rating ?? null,
-        };
-      })
-    ),
-    ...services
-      .filter((s) => {
-        // Only include services that haven't been matched to an existing subcategory
-        return !categories.some((cat) =>
-          (cat.subCategories || []).some(
-            (sub) =>
-              s.name.toLowerCase() === sub.name.toLowerCase() ||
-              s.name.toLowerCase().includes(sub.name.toLowerCase()) ||
-              sub.name.toLowerCase().includes(s.name.toLowerCase())
-          )
-        );
-      })
-      .map((s) => {
-        // Find parent category to inherit styles/verticals
-        const parentCat =
-          categories.find((c) => c._id === s.category || c.id === s.category) || {};
-        return {
-          _id: s._id,
-          name: s.name,
-          description: s.shortDescription || s.fullDescription || "Professional Service",
-          imageUrl:
-            s.thumbnail ||
-            s.bannerImage ||
-            (Array.isArray(s.gallery) && s.gallery[0]) ||
-            parentCat.imageUrl ||
-            "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=800&auto=format&fit=crop",
-          parentName: parentCat.name || s.categoryName || "General",
-          parentId: parentCat._id || s.category || null,
-          vertical: parentCat.vertical || "OTHER",
-          comingSoon: !!parentCat.comingSoon,
-          mongoServiceId: s.slug || s._id,
-          startingPrice: s.startingPrice || 0,
-          priceUnit: s.priceUnit || "per service",
-          rating: s.rating || 5.0,
-        };
-      })
-  ];
-
-  const filteredServices = allSubCategories.filter((item) => {
-    const q = searchQuery.trim().toLowerCase();
-    const nameMatch = (item.name || "").toLowerCase().includes(q);
-    const descMatch = (item.description || "").toLowerCase().includes(q);
-    const parentMatch = (item.parentName || "").toLowerCase().includes(q);
-    const verticalMatch = (item.vertical || "").toLowerCase().replace(/_/g, " ").includes(q);
-    const matchesSearch = !q || nameMatch || descMatch || parentMatch || verticalMatch;
-
-    if (selectedFilter === "ALL") return matchesSearch;
-    if (selectedFilter === "RENTAL")
-      return item.vertical === "VEHICLE_RENTAL" && matchesSearch;
-    if (selectedFilter === "WEDDING")
-      return item.vertical === "WEDDING" && matchesSearch;
-    if (selectedFilter === "SECURITY")
-      return item.vertical === "CCTV_SECURITY" && matchesSearch;
-    if (selectedFilter === "HOME_TUITION")
-      return item.vertical === "HOME_TUITION" && matchesSearch;
-    if (selectedFilter === "HOUSE_HELP")
-      return (item.vertical === "HOUSE_HELP" || (item.parentName || "").toLowerCase().includes("house help")) && matchesSearch;
-    if (selectedFilter === "HOUSE_SERVICES")
-      return (
-        item.vertical === "HOUSE_SERVICES" ||
-        item.vertical === "HOUSE_REPAIR" ||
-        (item.parentName || "").toLowerCase().includes("repair") ||
-        (item.parentName || "").toLowerCase().includes("house services")
-      ) && matchesSearch;
-    if (selectedFilter === "HOME_SALON")
-      return item.vertical === "HOME_SALON" && matchesSearch;
-
-    return matchesSearch;
-  });
-
-  const scrollToResults = () => {
-    filterSectionRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-  };
-
-  const handleSearchSubmit = (e) => {
-    if (e) e.preventDefault();
-    setSearchQuery(searchInput.trim());
-    scrollToResults();
-  };
-
-  const handleClearSearch = () => {
+  // Switch category handler
+  const handleSelectCategory = (catId) => {
+    setActiveCategoryId(catId);
     setSearchQuery("");
-    setSearchInput("");
-    setSelectedFilter("ALL");
+    if (rightContentRef.current) {
+      rightContentRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
-  const handleQuickTagClick = (tag) => {
-    setSearchInput(tag);
-    setSearchQuery(tag);
-    scrollToResults();
-  };
+  // Find currently active category
+  const activeCategory = useMemo(() => {
+    return POPUP_CATEGORIES.find((c) => c.id === activeCategoryId) || POPUP_CATEGORIES[0];
+  }, [activeCategoryId]);
 
-  const filterTabs = [
-    { id: "ALL", title: "All Services", icon: LayoutGrid },
-    { id: "RENTAL", title: "Vehicle Rental", icon: Car },
-    { id: "WEDDING", title: "Wedding & Events", icon: Sparkles },
-    { id: "HOUSE_HELP", title: "House Help", icon: Wrench },
-    { id: "HOUSE_SERVICES", title: "House Services & Repair", icon: Hammer },
-    { id: "HOME_SALON", title: "Home Salon & Beauty", icon: Scissors, comingSoon: true },
-    { id: "HOME_TUITION", title: "Home Tuition", icon: GraduationCap, comingSoon: true },
-    { id: "SECURITY", title: "CCTV Security", icon: ShieldCheck },
-  ];
+  // Real-time helper: Match item with live backend service data (slugs & links)
+  const getEnrichedItem = useCallback(
+    (item) => {
+      const match = backendServices.find(
+        (s) =>
+          s.name?.toLowerCase() === item.name?.toLowerCase() ||
+          s.slug === item.id ||
+          item.route?.includes(s.slug) ||
+          item.name?.toLowerCase().includes(s.name?.toLowerCase())
+      );
+
+      return {
+        ...item,
+        destinationUrl: match?.slug
+          ? item.isRental
+            ? `/product/${match.slug}`
+            : `/service/${match.slug}`
+          : item.route,
+      };
+    },
+    [backendServices]
+  );
+
+  // Search Results across ALL categories and items
+  const searchResults = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    if (!q) return [];
+
+    const results = [];
+    const seenNames = new Set();
+
+    POPUP_CATEGORIES.forEach((cat) => {
+      cat.sections.forEach((sec) => {
+        sec.items.forEach((item) => {
+          if (
+            item.name.toLowerCase().includes(q) ||
+            cat.name.toLowerCase().includes(q) ||
+            sec.title.toLowerCase().includes(q)
+          ) {
+            if (!seenNames.has(item.name.toLowerCase())) {
+              seenNames.add(item.name.toLowerCase());
+              results.push(getEnrichedItem(item));
+            }
+          }
+        });
+      });
+    });
+
+    // Also include any backend service not in popup list
+    backendServices.forEach((s) => {
+      if (
+        (s.name?.toLowerCase().includes(q) || s.shortDescription?.toLowerCase().includes(q)) &&
+        !seenNames.has(s.name.toLowerCase())
+      ) {
+        seenNames.add(s.name.toLowerCase());
+        results.push({
+          id: s._id || s.slug,
+          name: s.name,
+          image: s.thumbnail || s.bannerImage || "/icons/appliances/ac-repair.jpg",
+          fallbackIcon: "/icons/appliances/ac-repair.png",
+          destinationUrl: s.name?.toLowerCase().includes("car") ? `/product/${s.slug}` : `/service/${s.slug}`,
+        });
+      }
+    });
+
+    return results;
+  }, [searchQuery, backendServices, getEnrichedItem]);
+
+  // Focus input when search bar opens
+  useEffect(() => {
+    if (isSearchOpen && searchInputRef.current) {
+      searchInputRef.current.focus();
+    }
+  }, [isSearchOpen]);
+
+  // ── Auto-scroll carousel banners in "For You" ──────────────────────────────
+  useEffect(() => {
+    if (activeCategoryId !== "for-you" || isBannerHovered || carouselBanners.length <= 1) return;
+    const interval = setInterval(() => {
+      if (bannerScrollRef.current) {
+        const nextIndex = (bannerIndex + 1) % carouselBanners.length;
+        setBannerIndex(nextIndex);
+        const cardWidth = bannerScrollRef.current.querySelector(".promo-banner-slide")?.offsetWidth || 340;
+        bannerScrollRef.current.scrollTo({
+          left: nextIndex * (cardWidth + 12),
+          behavior: "smooth",
+        });
+      }
+    }, 3600);
+    return () => clearInterval(interval);
+  }, [activeCategoryId, isBannerHovered, bannerIndex, carouselBanners.length]);
+
+  const handleBannerScrollBy = (dir) => {
+    if (!bannerScrollRef.current) return;
+    const cardWidth = bannerScrollRef.current.querySelector(".promo-banner-slide")?.offsetWidth || 340;
+    const scrollAmount = dir === "left" ? -cardWidth - 12 : cardWidth + 12;
+    bannerScrollRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+  };
 
   return (
-    <div
-      className="min-h-screen pb-12 sm:pb-20"
-      style={{ backgroundColor: "var(--color-bg)" }}
-    >
+    <div className="w-full min-w-full bg-[#f6f8fb] select-none overflow-x-hidden">
       <SEO
-        title="Verified Services Across India — Home, Wedding, Car Rental & Repairs | TiptoBook"
-        description="Browse 40+ verified on-demand services across India on TiptoBook. Book pandit for puja, AC repair, wedding photography & catering, car rental, home salon, electrician, plumbing & tutors."
+        title="All Services & Categories — Verified Experts at Doorstep | TiptoBook"
+        description="Browse all verified on-demand services across India: AC repairs, car rentals, wedding photography, home salon, house help, tutors, CCTV & electricians."
         canonical="https://www.tiptobook.com/services"
-        keywords="services in India, home services India, pandit for puja, wedding services India, car rental India, AC service India, electrician, plumbing, TiptoBook catalog"
-        jsonLd={{
-          "@context": "https://schema.org",
-          "@type": "CollectionPage",
-          "name": "Verified Services Across India — TiptoBook",
-          "url": "https://www.tiptobook.com/services",
-          "description": "Browse 40+ verified services across India on TiptoBook — AC repairs, cleaning, pandits, weddings, car rentals, and more."
-        }}
       />
-      {/* ============ HERO SECTION ============ */}
-      <section className="relative w-full overflow-hidden text-center">
-        {/* Background Layer with Dark Scrim & Ambient Glows */}
-        <div className="absolute inset-0 z-0">
-          <img
-            src={serviceHeroImg}
-            alt="TiptoBook Services"
-            className="w-full h-full object-cover object-center scale-105 filter brightness-[0.38] contrast-[1.1]"
-          />
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(ellipse at 50% 15%, rgba(11, 79, 216, 0.45) 0%, rgba(10, 15, 30, 0.90) 55%, rgba(7, 10, 22, 0.98) 100%)",
-            }}
-          />
-          {/* Ambient Lighting Orbs */}
-          <div
-            className="absolute -top-20 left-1/4 w-[420px] h-[420px] rounded-full opacity-25 blur-3xl pointer-events-none"
-            style={{ background: "#0b4fd8" }}
-          />
-          <div
-            className="absolute top-1/3 right-10 w-[360px] h-[360px] rounded-full opacity-20 blur-3xl pointer-events-none"
-            style={{ background: "#ff6b00" }}
-          />
-          {/* Subtle Grid Texture */}
-          <div
-            className="absolute inset-0 opacity-[0.06] pointer-events-none"
-            style={{
-              backgroundImage:
-                "radial-gradient(rgba(255, 255, 255, 0.9) 1px, transparent 1px)",
-              backgroundSize: "28px 28px",
-            }}
-          />
-        </div>
 
-        {/* Hero Content Container */}
-        <div className="relative z-10 px-4 sm:px-6 lg:px-8 pt-16 sm:pt-20 md:pt-24 pb-14 sm:pb-20 max-w-5xl mx-auto flex flex-col items-center">
-          {/* Trust Eyebrow Badge */}
-          <motion.div
-            initial={{ y: 14, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-medium text-white/90 mb-5 sm:mb-6 border border-white/20 shadow-lg backdrop-blur-md"
-            style={{
-              fontFamily: "var(--font-body)",
-              backgroundColor: "rgba(255, 255, 255, 0.08)",
-            }}
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-            </span>
-            <span className="text-white/80 font-normal">
-              {city ? `Verified Pros Active in ${city}` : "Trusted Service Marketplace"}
-            </span>
-            <span className="text-amber-300 font-semibold flex items-center gap-1 ml-1 pl-2 border-l border-white/20">
-              <Sparkles size={12} /> Top Rated
-            </span>
-          </motion.div>
-
-          {/* Main Headline */}
-          <motion.h1
-            initial={{ y: 16, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut", delay: 0.08 }}
-            className="text-white font-normal leading-[1.1] mb-3 sm:mb-4 max-w-3xl"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(30px, 5.2vw, 60px)",
-              letterSpacing: "-0.02em",
-            }}
-          >
-            Everything You Need, <br className="hidden sm:inline" />
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 via-indigo-200 to-amber-200 font-medium">
-              All in One Place.
-            </span>
-          </motion.h1>
-
-          {/* Subtitle Description */}
-          <motion.p
-            initial={{ y: 14, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut", delay: 0.15 }}
-            className="text-white/75 text-xs sm:text-sm md:text-base mb-8 max-w-xl px-2 leading-relaxed"
-            style={{ fontFamily: "var(--font-body)" }}
-          >
-            Discover and book verified experts for luxury weddings, premium car rentals, advanced CCTV systems, and home services — on demand.
-          </motion.p>
-
-          {/* Hero Search Box Card */}
-          <motion.div
-            initial={{ y: 16, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut", delay: 0.22 }}
-            className="w-full max-w-2xl"
-          >
-            <form
-              onSubmit={handleSearchSubmit}
-              className="relative flex items-center p-1.5 sm:p-2 rounded-2xl sm:rounded-full transition-all duration-300 shadow-2xl"
-              style={{
-                backgroundColor: "rgba(255, 255, 255, 0.12)",
-                border: "1px solid rgba(255, 255, 255, 0.25)",
-                backdropFilter: "blur(20px)",
-                boxShadow: "0 20px 50px rgba(0, 0, 0, 0.4)",
-              }}
+      {/* ──────────────────────────────────────────────────────────
+          TOP BAR (Full Width Edge-to-Edge)
+          - Left: <- All Categories
+          - Right: Search icon & Cart / Bookings icon with badge
+      ────────────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-40 w-full bg-white border-b border-slate-200/80 px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 shadow-xs">
+        <div className="w-full flex items-center justify-between gap-3">
+          {/* Back button & Page title */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="p-1.5 -ml-1 text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors border-0 bg-transparent cursor-pointer flex items-center justify-center"
+              aria-label="Back"
             >
-              <div className="flex items-center pl-3 sm:pl-4 text-blue-400 pointer-events-none">
-                <Search size={20} />
-              </div>
-              <input
-                type="text"
-                placeholder="Search photography, car rentals, CCTV, salon, repair..."
-                value={searchInput}
-                onChange={(e) => {
-                  setSearchInput(e.target.value);
-                  setSearchQuery(e.target.value);
-                }}
-                className="w-full bg-transparent px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base outline-none text-white placeholder:text-white/50"
-                style={{ fontFamily: "var(--font-body)" }}
-              />
-              {searchInput && (
+              <ArrowLeft size={22} className="stroke-[2.2]" />
+            </button>
+            <h1 className="text-base sm:text-lg md:text-xl font-bold text-slate-900 tracking-tight m-0">
+              All Categories
+            </h1>
+          </div>
+
+          {/* Search Bar / Search Input or Action Icons */}
+          <div className="flex items-center gap-2 sm:gap-3 flex-1 justify-end max-w-md">
+            {isSearchOpen ? (
+              <div className="relative w-full flex items-center">
+                <Search
+                  size={16}
+                  className="absolute left-3 text-slate-400 pointer-events-none"
+                />
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search services (e.g. AC, maid, tuition, car)..."
+                  className="w-full pl-9 pr-8 py-1.5 sm:py-2 text-xs sm:text-sm bg-slate-100 rounded-full border border-slate-200 text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                />
                 <button
                   type="button"
                   onClick={() => {
-                    setSearchInput("");
                     setSearchQuery("");
+                    setIsSearchOpen(false);
                   }}
-                  className="mr-2 text-white/60 hover:text-white border-0 bg-white/10 hover:bg-white/20 rounded-full w-6 h-6 flex items-center justify-center cursor-pointer transition-all text-xs"
-                  title="Clear search"
+                  className="absolute right-2.5 text-slate-400 hover:text-slate-600 border-0 bg-transparent cursor-pointer p-0.5"
+                  aria-label="Clear search"
                 >
-                  ✕
-                </button>
-              )}
-              <button
-                type="submit"
-                className="shrink-0 flex items-center gap-1.5 px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl sm:rounded-full text-xs sm:text-sm font-semibold text-white transition-all duration-300 cursor-pointer shadow-lg hover:brightness-110 active:scale-95 border-0"
-                style={{
-                  background: "linear-gradient(135deg, #0b4fd8 0%, #2563eb 100%)",
-                  boxShadow: "0 4px 16px rgba(11, 79, 216, 0.4)",
-                }}
-              >
-                <span>Search</span>
-                <ArrowRight size={15} />
-              </button>
-            </form>
-
-            {/* Quick Trending / Popular Keyword Chips */}
-            <div className="flex items-center justify-center flex-wrap gap-2 mt-4 text-xs text-white/70">
-              <span className="text-white/40 flex items-center gap-1 text-[11px] uppercase tracking-wider font-semibold">
-                Popular:
-              </span>
-              {[
-                { label: "Wedding Decor", query: "wedding" },
-                { label: "Car Rental", query: "car" },
-                { label: "CCTV Security", query: "cctv" },
-                { label: "Photography", query: "photography" },
-                { label: "House Repair", query: "repair" },
-              ].map((chip, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => handleQuickTagClick(chip.query)}
-                  className="px-3 py-1 rounded-full text-[11px] font-medium text-white/80 hover:text-white border border-white/15 hover:border-white/40 bg-white/5 hover:bg-white/15 transition-all cursor-pointer backdrop-blur-sm"
-                >
-                  {chip.label}
-                </button>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Trust Highlights Badges Ribbon */}
-          <motion.div
-            initial={{ y: 16, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, ease: "easeOut", delay: 0.3 }}
-            className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 w-full max-w-4xl mt-10 sm:mt-12 pt-8 border-t border-white/10"
-          >
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-sm text-left hover:bg-white/[0.07] transition-all">
-              <div className="w-9 h-9 rounded-lg bg-blue-500/20 text-blue-300 flex items-center justify-center shrink-0">
-                <BadgeCheck size={18} />
-              </div>
-              <div>
-                <p className="text-white text-xs sm:text-sm font-semibold m-0 leading-tight">500+ Pros</p>
-                <p className="text-white/50 text-[10px] sm:text-[11px] m-0">Vetted & Verified</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-sm text-left hover:bg-white/[0.07] transition-all">
-              <div className="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center shrink-0">
-                <Star size={18} fill="#f59e0b" color="#f59e0b" />
-              </div>
-              <div>
-                <p className="text-white text-xs sm:text-sm font-semibold m-0 leading-tight">4.9 / 5 Rating</p>
-                <p className="text-white/50 text-[10px] sm:text-[11px] m-0">15,000+ Reviews</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-sm text-left hover:bg-white/[0.07] transition-all">
-              <div className="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0">
-                <Timer size={18} />
-              </div>
-              <div>
-                <p className="text-white text-xs sm:text-sm font-semibold m-0 leading-tight">Instant Booking</p>
-                <p className="text-white/50 text-[10px] sm:text-[11px] m-0">Confirmed Fast</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/10 backdrop-blur-sm text-left hover:bg-white/[0.07] transition-all">
-              <div className="w-9 h-9 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center shrink-0">
-                <ShieldCheck size={18} />
-              </div>
-              <div>
-                <p className="text-white text-xs sm:text-sm font-semibold m-0 leading-tight">Safe & Secure</p>
-                <p className="text-white/50 text-[10px] sm:text-[11px] m-0">100% Guaranteed</p>
-              </div>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Soft bottom edge transition to main content */}
-        <div
-          className="absolute bottom-0 inset-x-0 h-8 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(to top, var(--color-bg), transparent)",
-          }}
-        />
-      </section>
-
-      {/* ============ PREMIUM HEADER ============ */}
-      <section className="px-4 sm:px-6 pt-12 sm:pt-16 max-w-7xl mx-auto">
-        <div className="text-center">
-          <div
-            className="inline-flex items-center gap-2.5 px-5 py-2 rounded-full mb-5 sm:mb-6 backdrop-blur-sm"
-            style={{
-              backgroundColor: "rgba(255,255,255,0.6)",
-              border: "1px solid rgba(255,255,255,0.3)",
-              boxShadow: "0 4px 20px rgba(0,0,0,0.02)",
-            }}
-          >
-            <span
-              className="w-1.5 h-1.5 rounded-full animate-pulse"
-              style={{ backgroundColor: "var(--color-primary)" }}
-            />
-            <span
-              className="text-[10px] font-medium uppercase tracking-[0.2em]"
-              style={{
-                fontFamily: "var(--font-body)",
-                color: "var(--color-primary)",
-                opacity: 0.8,
-              }}
-            >
-              Premium Services
-            </span>
-          </div>
-
-          <h2
-            className="font-normal m-0 mb-3 sm:mb-4"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(28px, 5vw, 52px)",
-              color: "var(--color-text-dark)",
-              letterSpacing: "-0.03em",
-              lineHeight: "1.1",
-            }}
-          >
-            Trusted Professionals, <br className="hidden sm:inline" />
-            <span
-              style={{
-                color: "var(--color-primary)",
-                opacity: 0.6,
-                display: "inline-block",
-              }}
-            >
-              Just a Click Away
-            </span>
-          </h2>
-
-          <p
-            className="text-sm sm:text-base max-w-lg mx-auto m-0 leading-relaxed"
-            style={{
-              fontFamily: "var(--font-body)",
-              color: "var(--color-text-mid)",
-              opacity: 0.75,
-            }}
-          >
-            Discover handpicked professionals for every need — from weddings to
-            security, all verified and trusted.
-          </p>
-        </div>
-      </section>
-
-      {/* ============ FILTER BAR & IN-PAGE SEARCH ============ */}
-      <section
-        ref={filterSectionRef}
-        className="px-3 sm:px-6 py-3 sm:py-4 border-b sticky top-0 z-30 backdrop-blur-md"
-        style={{
-          borderColor: "var(--color-border)",
-          backgroundColor: "rgba(248, 250, 252, 0.95)",
-        }}
-      >
-        {/* Compact in-bar search & counter */}
-        <div className="max-w-6xl mx-auto flex items-center justify-between gap-3 mb-2.5 px-2">
-          <div className="relative flex-1 max-w-sm sm:max-w-md">
-            <Search
-              size={15}
-              className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-            />
-            <input
-              type="text"
-              placeholder="Search services, packages, cameras, cars..."
-              value={searchInput}
-              onChange={(e) => {
-                setSearchInput(e.target.value);
-                setSearchQuery(e.target.value);
-              }}
-              className="w-full pl-9 pr-8 py-2 rounded-full text-xs sm:text-sm bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/30 transition-all text-gray-800 dark:text-gray-100 shadow-sm"
-            />
-            {searchInput && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchInput("");
-                  setSearchQuery("");
-                }}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 border-0 bg-transparent cursor-pointer text-xs"
-                title="Clear search"
-              >
-                ✕
-              </button>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            {searchQuery ? (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-500 font-medium whitespace-nowrap">
-                  <strong>{filteredServices.length}</strong> {filteredServices.length === 1 ? "result" : "results"}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleClearSearch}
-                  className="text-xs text-blue-600 font-semibold hover:underline border-0 bg-transparent cursor-pointer"
-                >
-                  Reset
+                  <X size={15} />
                 </button>
               </div>
             ) : (
-              <span className="text-xs text-gray-400 hidden sm:inline-block">
-                {allSubCategories.length} services available
-              </span>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsSearchOpen(true)}
+                  className="p-2 rounded-full text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors border-0 bg-transparent cursor-pointer flex items-center justify-center"
+                  aria-label="Search services"
+                >
+                  <Search size={20} className="stroke-[2.2]" />
+                </button>
+
+                {/* My Bookings Bag Icon with Real-Time Badge */}
+                <Link
+                  to="/my-bookings"
+                  className="relative p-2 rounded-full text-slate-700 hover:text-slate-900 hover:bg-slate-100 transition-colors flex items-center justify-center no-underline"
+                  aria-label="View bookings"
+                >
+                  <ShoppingBag size={20} className="stroke-[2.2]" />
+                  {bookingCount > 0 && (
+                    <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-blue-600 text-white text-[10px] font-bold flex items-center justify-center shadow-xs">
+                      {bookingCount}
+                    </span>
+                  )}
+                </Link>
+              </div>
             )}
           </div>
         </div>
+      </header>
 
-        <div
-          className="max-w-6xl mx-auto flex gap-2 sm:gap-2.5 overflow-x-auto no-scrollbar justify-start md:justify-center py-1.5 px-2"
+      {/* ──────────────────────────────────────────────────────────
+          MAIN 2-COLUMN SPLIT BROWSER (Full Width Edge-to-Edge)
+          - Left Column: Vertical Category Navigation Rail
+          - Right Column: Category Content with Popup Service Cards
+      ────────────────────────────────────────────────────────── */}
+      <div className="w-full flex h-[calc(100vh-57px)] sm:h-[calc(100vh-61px)] overflow-hidden">
+        {/* =======================================================
+            LEFT CATEGORY RAIL (Width 84px on mobile, 105px on tablet/desktop)
+        ======================================================= */}
+        <aside
+          ref={leftRailRef}
+          aria-label="Service categories navigation rail"
+          className="w-[82px] sm:w-[98px] md:w-[108px] shrink-0 h-full overflow-y-auto bg-[#eef2f7] border-r border-slate-200/90 no-scrollbar"
           style={{ WebkitOverflowScrolling: "touch" }}
         >
-          {filterTabs.map((tab) => {
-            const Icon = tab.icon;
-            const isActive = selectedFilter === tab.id;
+          <div className="flex flex-col py-1.5">
+            {POPUP_CATEGORIES.map((cat) => {
+              const isActive = cat.id === activeCategoryId && !searchQuery;
 
-            return (
-              <motion.button
-                key={tab.id}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.96 }}
-                onClick={() => {
-                  setSelectedFilter(tab.id);
-                  setSearchQuery("");
-                  scrollToResults();
-                }}
-                className="flex-shrink-0 flex items-center gap-2 sm:gap-2.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full cursor-pointer transition-all duration-200 outline-none whitespace-nowrap"
-                style={{
-                  backgroundColor: isActive ? "var(--color-primary)" : "var(--color-bg-white)",
-                  border: isActive ? "1.5px solid var(--color-primary)" : "1.5px solid var(--color-border)",
-                  boxShadow: isActive ? "0 4px 16px rgba(11, 79, 216, 0.28)" : "0 1px 3px rgba(0,0,0,0.04)",
-                  fontFamily: "var(--font-body)",
-                }}
-              >
-                <Icon
-                  className="w-4 h-4 flex-shrink-0"
-                  style={{ color: isActive ? "#ffffff" : "var(--color-text-mid)" }}
-                  strokeWidth={1.8}
-                />
-                <span
-                  className="text-xs sm:text-sm font-semibold whitespace-nowrap"
-                  style={{ color: isActive ? "#ffffff" : "var(--color-text-dark)" }}
+              return (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => handleSelectCategory(cat.id)}
+                  className={`relative w-full py-2.5 sm:py-3 px-1.5 flex flex-col items-center justify-center gap-1.5 transition-all text-center border-0 cursor-pointer ${
+                    isActive
+                      ? "bg-white shadow-xs font-semibold text-blue-600"
+                      : "bg-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/60 font-medium"
+                  }`}
                 >
-                  {tab.title}
-                </span>
-                {tab.comingSoon && (
-                  <span
-                    className="text-[10px] font-bold"
-                    style={{ color: isActive ? "#fde68a" : "#b45309" }}
-                    title="Coming Soon"
-                  >
-                    ⏳
-                  </span>
-                )}
-              </motion.button>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ============ SERVICE RESULTS ============ */}
-      <section
-        ref={resultsSectionRef}
-        className="px-4 sm:px-6 py-12 sm:py-16 md:py-20 lg:py-24 max-w-7xl mx-auto scroll-mt-6"
-      >
-        {/* ============ LOADING STATE ============ */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-              <div
-                key={i}
-                className="rounded-[28px] overflow-hidden animate-pulse"
-                style={{
-                  backgroundColor: "var(--color-bg-soft)",
-                  border: "1px solid rgba(0,0,0,0.02)",
-                  boxShadow: "0 4px 24px rgba(0,0,0,0.02)",
-                }}
-              >
-                <div
-                  className="h-[160px] sm:h-[180px] lg:h-[190px]"
-                  style={{ backgroundColor: "rgba(139,26,26,0.04)" }}
-                />
-                <div className="p-6 sm:p-7 space-y-4">
-                  <div
-                    className="h-5 rounded w-3/4"
-                    style={{ backgroundColor: "rgba(139,26,26,0.06)" }}
-                  />
-                  <div className="space-y-2">
-                    <div
-                      className="h-3.5 rounded w-full"
-                      style={{ backgroundColor: "rgba(139,26,26,0.04)" }}
+                  {/* Active Indicator Bar (Signature blue strip on the left edge) */}
+                  {isActive && (
+                    <motion.div
+                      layoutId="categoryActiveIndicator"
+                      className="absolute left-0 top-1 bottom-1 w-[3.5px] rounded-r-md bg-[#0b4fd8]"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
                     />
-                    <div
-                      className="h-3.5 rounded w-2/3"
-                      style={{ backgroundColor: "rgba(139,26,26,0.04)" }}
-                    />
-                  </div>
-                  <div
-                    className="flex justify-between items-center pt-3 border-t"
-                    style={{ borderColor: "rgba(139,26,26,0.04)" }}
-                  >
-                    <div className="space-y-1">
-                      <div
-                        className="h-3 rounded w-16"
-                        style={{ backgroundColor: "rgba(139,26,26,0.04)" }}
-                      />
-                      <div
-                        className="h-5 rounded w-20"
-                        style={{ backgroundColor: "rgba(139,26,26,0.06)" }}
-                      />
-                    </div>
-                    <div
-                      className="h-9 rounded-full w-24"
-                      style={{ backgroundColor: "rgba(139,26,26,0.06)" }}
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : error ? (
-          /* ============ ERROR STATE ============ */
-          <div className="flex flex-col items-center justify-center gap-5 py-20 sm:py-24 md:py-28 text-center">
-            <div
-              className="flex items-center justify-center rounded-full"
-              style={{
-                width: "80px",
-                height: "80px",
-                backgroundColor: "rgba(139,26,26,0.04)",
-                border: "1px solid rgba(139,26,26,0.06)",
-              }}
-            >
-              <AlertTriangle size={38} className="text-amber-500" />
-            </div>
-            <div>
-              <h3
-                className="m-0 mb-2 font-normal text-xl sm:text-2xl"
-                style={{
-                  fontFamily: "var(--font-display)",
-                  color: "var(--color-text-dark)",
-                }}
-              >
-                Something went wrong
-              </h3>
-              <p
-                className="text-sm sm:text-base m-0 max-w-sm"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  color: "var(--color-text-mid)",
-                }}
-              >
-                {error}
-              </p>
-            </div>
-            <button
-              onClick={fetchData}
-              className="px-8 sm:px-10 py-3 sm:py-3.5 rounded-full text-xs font-semibold cursor-pointer border-0 transition-all duration-300 hover:opacity-90 hover:scale-[1.02] active:scale-[0.98]"
-              style={{
-                fontFamily: "var(--font-body)",
-                backgroundColor: "var(--color-primary)",
-                color: "#fff",
-                boxShadow: "0 4px 20px rgba(139,26,26,0.25)",
-              }}
-            >
-              Try Again
-            </button>
-          </div>
-        ) : (
-          /* ============ SERVICE GRID ============ */
-          <div>
-            {searchQuery && filteredServices.length > 0 && (
-              <div className="mb-6 flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-2xl bg-blue-50/70 dark:bg-blue-950/20 border border-blue-100 dark:border-blue-900/40">
-                <div className="flex items-center gap-2 text-xs sm:text-sm text-blue-900 dark:text-blue-200">
-                  <Search size={15} className="text-blue-500 shrink-0" />
-                  <span>
-                    Found <strong>{filteredServices.length}</strong> {filteredServices.length === 1 ? "service" : "services"} matching <strong>"{searchQuery}"</strong>
-                  </span>
-                  {selectedFilter !== "ALL" && (
-                    <span className="text-xs text-blue-600 dark:text-blue-300 font-medium">
-                      in {filterTabs.find((t) => t.id === selectedFilter)?.title}
-                    </span>
                   )}
+
+                  {/* Category Thumbnail Container (Circle / Soft Rounded Square) */}
+                  <div
+                    className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center p-1.5 transition-transform duration-200 ${
+                      isActive
+                        ? "bg-blue-50/80 scale-105 shadow-xs"
+                        : "bg-white/90 border border-slate-200/50 shadow-2xs"
+                    }`}
+                  >
+                    {cat.isCustomIcon ? (
+                      /* Human E-commerce Purple Shopping Gift Bag Icon (NO AI STAR FEEL) */
+                      <ForYouBagIcon />
+                    ) : cat.iconUrl ? (
+                      <img
+                        src={cat.iconUrl}
+                        alt={cat.name}
+                        className="w-full h-full object-contain"
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = "/icons/categories/ac-appliances.png";
+                        }}
+                      />
+                    ) : null}
+                  </div>
+
+                  {/* Category Title Below Thumbnail (Max 2 lines, centered) */}
+                  <span
+                    className={`text-[10px] sm:text-[11.5px] leading-tight line-clamp-2 px-0.5 tracking-tight ${
+                      isActive
+                        ? "text-[#0b4fd8] font-bold"
+                        : "text-slate-700 font-medium"
+                    }`}
+                  >
+                    {cat.shortName || cat.name}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </aside>
+
+        {/* =======================================================
+            RIGHT CONTENT PANEL (Full Width Across Rest of Screen)
+        ======================================================= */}
+        <main
+          ref={rightContentRef}
+          className="flex-1 w-full h-full overflow-y-auto bg-white p-3.5 sm:p-5 md:p-6 lg:p-8"
+          style={{ WebkitOverflowScrolling: "touch" }}
+        >
+          {/* SEARCH RESULTS VIEW (if search input has content) */}
+          {searchQuery.trim() ? (
+            <div className="w-full">
+              <div className="flex items-center justify-between gap-2 mb-4 pb-2 border-b border-slate-100">
+                <div className="flex items-center gap-2">
+                  <Search size={16} className="text-blue-600" />
+                  <span className="text-xs sm:text-sm font-semibold text-slate-800">
+                    Results for "{searchQuery}"
+                  </span>
+                  <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 font-bold">
+                    {searchResults.length}
+                  </span>
                 </div>
                 <button
                   type="button"
-                  onClick={handleClearSearch}
-                  className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline border-0 bg-transparent cursor-pointer"
+                  onClick={() => setSearchQuery("")}
+                  className="text-xs text-blue-600 hover:underline border-0 bg-transparent cursor-pointer"
                 >
-                  Clear search ✕
+                  Clear search
                 </button>
               </div>
-            )}
 
-            <AnimatePresence mode="wait">
-              {filteredServices.length === 0 ? (
-                /* ============ EMPTY STATE ============ */
-                <motion.div
-                  key="empty"
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  className="text-center py-16 px-4 rounded-3xl border border-dashed border-gray-200 dark:border-neutral-800 my-4"
-                >
-                  <div
-                    className="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center text-blue-600"
-                    style={{ backgroundColor: "var(--color-primary-soft)" }}
-                  >
-                    <Search size={28} />
+              {searchResults.length === 0 ? (
+                <div className="py-16 text-center">
+                  <div className="w-14 h-14 mx-auto mb-3 rounded-full bg-slate-100 flex items-center justify-center text-slate-400">
+                    <Search size={24} />
                   </div>
-                  <h3
-                    className="text-xl font-normal mb-2"
-                    style={{ fontFamily: "var(--font-display)", color: "var(--color-text-dark)" }}
-                  >
+                  <h3 className="text-base font-bold text-slate-800 m-0 mb-1">
                     No services found
                   </h3>
-                  <p
-                    className="text-sm max-w-md mx-auto mb-6"
-                    style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
-                  >
-                    {searchQuery ? (
-                      <>
-                        We couldn't find any services matching <strong>"{searchQuery}"</strong>
-                        {selectedFilter !== "ALL" ? ` in ${filterTabs.find((t) => t.id === selectedFilter)?.title}` : ""}.
-                      </>
-                    ) : (
-                      "No services currently available in this category."
-                    )}
+                  <p className="text-xs text-slate-500 m-0 max-w-xs mx-auto">
+                    We couldn't find matches for "{searchQuery}". Try searching for
+                    "AC", "wedding", "maid", "salon", or "plumber".
                   </p>
-                  <div className="flex flex-wrap items-center justify-center gap-3">
-                    {selectedFilter !== "ALL" && (
+                </div>
+              ) : (
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2.5 sm:gap-4 md:gap-5">
+                  {searchResults.map((item) => (
+                    <motion.div
+                      key={item.id}
+                      whileHover={{ y: -2, scale: 1.02 }}
+                      whileTap={{ scale: 0.97 }}
+                      transition={{ duration: 0.12, ease: "easeOut" }}
+                      className="w-full"
+                    >
+                      <Link
+                        to={item.destinationUrl}
+                        className="group flex flex-col items-center text-center p-1.5 sm:p-2.5 rounded-2xl bg-transparent hover:bg-slate-50/90 transition-colors duration-150 cursor-pointer outline-none relative border-0 no-underline w-full"
+                        style={{ transform: "translateZ(0)" }}
+                      >
+                        {/* Clean High-res Image / Icon Thumbnail */}
+                        <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 flex items-center justify-center relative p-1 shrink-0 aspect-square">
+                          <img
+                            src={item.image || item.icon}
+                            alt={item.name}
+                            loading="eager"
+                            decoding="async"
+                            draggable="false"
+                            className="w-full h-full object-cover rounded-2xl drop-shadow-xs group-hover:scale-105 transition-transform duration-200 ease-out select-none pointer-events-none"
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = item.fallbackIcon || "/icons/categories/house-help.png";
+                            }}
+                          />
+                        </div>
+
+                        {/* Title ONLY */}
+                        <span className="mt-2 text-[11px] sm:text-[12.5px] font-semibold text-slate-800 group-hover:text-indigo-600 leading-snug line-clamp-2 transition-colors duration-150 text-center">
+                          {item.name}
+                        </span>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            /* STANDARD CATEGORY VIEW */
+            <div className="w-full pb-10">
+
+
+              {/* ──────────────────────────────────────────────────────────
+                  "FOR YOU" SECTION AUTO-SCROLLING BANNERS (Same as Home)
+                  Rendered at the top of "For You"
+              ────────────────────────────────────────────────────────── */}
+              {activeCategory.id === "for-you" && carouselBanners.length > 0 && (
+                <div
+                  className="mb-6 sm:mb-8 relative"
+                  onMouseEnter={() => setIsBannerHovered(true)}
+                  onMouseLeave={() => setIsBannerHovered(false)}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                      Featured Offers & Top Deals
+                    </span>
+                    <div className="flex items-center gap-1">
                       <button
                         type="button"
-                        onClick={() => setSelectedFilter("ALL")}
-                        className="px-5 py-2.5 rounded-full text-xs font-semibold text-white border-0 cursor-pointer transition hover:opacity-90"
-                        style={{ backgroundColor: "var(--color-primary)" }}
+                        onClick={() => handleBannerScrollBy("left")}
+                        className="p-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 border-0 cursor-pointer flex items-center justify-center transition-colors"
+                        aria-label="Previous banner"
                       >
-                        Search Across All Categories
+                        <ChevronLeft size={16} />
                       </button>
-                    )}
-                    <button
-                      type="button"
-                      onClick={handleClearSearch}
-                      className="px-5 py-2.5 rounded-full text-xs font-semibold border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-700 dark:text-gray-200 hover:bg-gray-50 cursor-pointer transition"
-                    >
-                      Clear Filters & Show All
-                    </button>
-                  </div>
-                </motion.div>
-              ) : (
-                /* ============ SERVICE CARDS ============ */
-                <motion.div
-                  key="grid"
-                  initial="hidden"
-                  animate="visible"
-                  exit="hidden"
-                  variants={{
-                    hidden: {},
-                    visible: { transition: { staggerChildren: 0.06 } },
-                  }}
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5 md:gap-6"
-                >
-                {filteredServices.map((item) => (
-                  <motion.div
-                    key={item._id || item.id}
-                    variants={{
-                      hidden: { y: 30, opacity: 0 },
-                      visible: {
-                        y: 0,
-                        opacity: 1,
-                        transition: {
-                          duration: 0.7,
-                          ease: [0.22, 1, 0.36, 1],
-                        },
-                      },
-                    }}
-                    whileHover={{ y: -8 }}
-                    whileTap={{ scale: 0.98 }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 350,
-                      damping: 30,
-                    }}
-                    className="group/card relative flex flex-col h-full rounded-[28px] overflow-hidden
-                      bg-[var(--color-bg-soft)]
-                      transition-all duration-500 ease-out
-                      hover:shadow-[0_32px_80px_-16px_rgba(0,0,0,0.12)]"
-                    style={{
-                      border: "1px solid rgba(0,0,0,0.03)",
-                      boxShadow: "0 4px 24px rgba(0,0,0,0.02)",
-                    }}
-                  >
-                    {/* ============ CATEGORY BADGE (with icon) ============ */}
-                    <span
-                      className="absolute top-4 left-4 z-10 inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-[8px] sm:text-[9px] font-semibold uppercase tracking-[0.1em]
-                        text-[var(--color-text-dark)] backdrop-blur-md"
-                      style={{
-                        backgroundColor: "rgba(255,255,255,0.85)",
-                        border: "1px solid rgba(255,255,255,0.2)",
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.04)",
-                      }}
-                    >
-                      {(() => {
-                        const CategoryIcon = getCategoryIcon(item.vertical);
-                        return <CategoryIcon size={11} strokeWidth={2} />;
-                      })()}
-                      {item.parentName}
-                    </span>
-
-                    {/* ============ IMAGE ============ */}
-                    <div className="relative overflow-hidden h-[160px] sm:h-[180px] lg:h-[190px]">
-                      <img
-                        src={item.imageUrl}
-                        alt={item.name}
-                        onError={(e) => {
-                          e.currentTarget.onerror = null;
-                          e.currentTarget.src =
-                            "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=800&auto=format&fit=crop";
-                        }}
-                        className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover/card:scale-110"
-                        style={item.comingSoon ? { filter: "grayscale(0.65) brightness(0.8)" } : undefined}
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/5 to-transparent" />
-                      {item.comingSoon && (
-                        <span
-                          className="absolute top-4 right-4 z-10 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[8px] sm:text-[9px] font-bold uppercase tracking-[0.1em]"
-                          style={{
-                            color: "#fbbf24",
-                            backgroundColor: "rgba(15,23,42,0.78)",
-                            border: "1px solid rgba(245,158,11,0.6)",
-                            backdropFilter: "blur(6px)",
-                          }}
-                        >
-                          ⏳ Coming Soon
-                        </span>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => handleBannerScrollBy("right")}
+                        className="p-1 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 border-0 cursor-pointer flex items-center justify-center transition-colors"
+                        aria-label="Next banner"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
                     </div>
+                  </div>
 
-                    {/* ============ CONTENT ============ */}
-                    <div className="relative p-4 sm:p-5 flex flex-col flex-1">
-                      <h3
-                        className="m-0 mb-3 font-normal text-base sm:text-lg tracking-tight text-[var(--color-text-dark)] line-clamp-1"
+                  {/* Horizontal scrolling banner slider */}
+                  <div
+                    ref={bannerScrollRef}
+                    className="flex gap-3 overflow-x-auto no-scrollbar snap-x snap-mandatory py-1"
+                    style={{ WebkitOverflowScrolling: "touch" }}
+                  >
+                    {carouselBanners.map((banner, bIdx) => (
+                      <Link
+                        key={banner._id || banner.id || bIdx}
+                        to={banner.link || "/services"}
+                        className="promo-banner-slide snap-start shrink-0 rounded-2xl overflow-hidden relative no-underline block transition-transform hover:scale-[1.01] active:scale-[0.99] shadow-xs"
                         style={{
-                          fontFamily: "var(--font-display)",
-                          letterSpacing: "-0.02em",
+                          width: "clamp(260px, 48vw, 360px)",
+                          height: "140px",
+                          backgroundColor: banner.bgFallback || "#0d2b45",
                         }}
                       >
-                        {item.name}
-                      </h3>
+                        {/* Background Image */}
+                        <img
+                          src={banner.image}
+                          alt={banner.title}
+                          className="absolute inset-0 w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.display = "none";
+                          }}
+                        />
+                        {/* Gradient Scrim */}
+                        <div
+                          className="absolute inset-0"
+                          style={{
+                            background:
+                              "linear-gradient(90deg, rgba(10,25,50,0.92) 0%, rgba(10,25,50,0.72) 58%, rgba(10,25,50,0.2) 100%)",
+                          }}
+                        />
 
-                      {/* ============ METADATA ROW ============ */}
-                      <div
-                        className="flex items-center gap-4 mb-4 text-[10px] sm:text-[11px]"
-                        style={{
-                          fontFamily: "var(--font-body)",
-                          color: "var(--color-text-mid)",
-                          opacity: 0.75,
-                        }}
-                      >
-                        <span className="inline-flex items-center gap-1">
-                          <Star
-                            size={12}
-                            strokeWidth={2}
-                            style={{ color: "var(--color-primary)" }}
-                          />
-                          {item.rating ?? "4.9"}
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <BadgeCheck
-                            size={12}
-                            strokeWidth={2}
-                            style={{ color: "var(--color-primary)" }}
-                          />
-                          Verified
-                        </span>
-                        <span className="inline-flex items-center gap-1">
-                          <Timer
-                            size={12}
-                            strokeWidth={2}
-                            style={{ color: "var(--color-primary)" }}
-                          />
-                          Fast
-                        </span>
-                      </div>
+                        {/* Content text overlay */}
+                        <div className="relative z-10 p-3.5 h-full flex flex-col justify-between text-white">
+                          <div>
+                            {banner.badge && (
+                              <span className="inline-block px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wider bg-white/20 backdrop-blur-sm text-white mb-1.5">
+                                {banner.badge}
+                              </span>
+                            )}
+                            <h3 className="text-xs sm:text-sm font-bold text-white line-clamp-1 m-0 leading-tight">
+                              {banner.title}
+                            </h3>
+                            <p className="text-[10px] text-white/80 line-clamp-1 mt-0.5 m-0">
+                              {banner.subtitle}
+                            </p>
+                          </div>
 
-                      {/* ============ FOOTER ============ */}
-                      <div
-                        className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t"
-                        style={{ borderColor: "rgba(0,0,0,0.04)" }}
-                      >
-                        {item.startingPrice !== null ? (
-                          <div className="leading-tight">
+                          <div className="flex items-center justify-between">
                             <span
-                              className="text-[7px] sm:text-[8px] uppercase font-semibold tracking-[0.12em] block mb-0.5 text-[var(--color-text-mid)]"
-                              style={{ opacity: 0.5 }}
+                              className="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider text-white shadow-xs"
+                              style={{ backgroundColor: banner.buttonBg || "#0284c7" }}
                             >
-                              Starting from
-                            </span>
-                            <span
-                              className="font-bold text-base sm:text-lg md:text-xl text-[var(--color-primary)]"
-                              style={{ fontFamily: "var(--font-body)" }}
-                            >
-                              ₹{item.startingPrice?.toLocaleString("en-IN")}
-                            </span>
-                            <span
-                              className="text-[9px] sm:text-[10px] ml-1 text-[var(--color-text-mid)]"
-                              style={{ opacity: 0.6 }}
-                            >
-                              /
-                              {item.priceUnit?.split(" ").slice(1).join(" ") ||
-                                item.priceUnit}
+                              {banner.cta || "BOOK"} →
                             </span>
                           </div>
-                        ) : (
-                          <span
-                            className="text-[10px] sm:text-xs italic text-[var(--color-text-mid)]"
-                            style={{ fontFamily: "var(--font-body)" }}
-                          >
-                            Contact for pricing
-                          </span>
-                        )}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-                        {/* ============ EXPLORE BUTTON ============ */}
-                        {item.comingSoon ? (
-                          <span
-                            className="inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-[9px] sm:text-xs font-semibold"
-                            style={{
-                              fontFamily: "var(--font-body)",
-                              backgroundColor: "rgba(0,0,0,0.05)",
-                              color: "var(--color-text-mid)",
-                              border: "1px solid rgba(0,0,0,0.08)",
-                              cursor: "not-allowed",
-                              opacity: 0.75,
-                            }}
-                          >
-                            ⏳ Coming Soon
-                          </span>
-                        ) : (
-                        <Link
-                          to={getServiceLink(
-                            item.name,
-                            item.mongoServiceId,
-                            item._id || item.id,
-                          )}
-                          aria-label={`Explore ${item.name}`}
-                          className="group/btn relative inline-flex items-center gap-2 px-5 sm:px-6 py-2.5 sm:py-3 rounded-full text-[9px] sm:text-xs font-semibold no-underline
-                            text-white
-                            transition-all duration-300 ease-out
-                            hover:opacity-90
-                            hover:shadow-xl hover:shadow-[var(--color-primary)]/25
-                            active:scale-[0.96]"
-                          style={{
-                            fontFamily: "var(--font-body)",
-                            backgroundColor: "var(--color-primary)",
-                            boxShadow: "0 4px 16px -4px rgba(139,26,26,0.35)",
-                          }}
-                        >
-                          <span>Explore</span>
-                          <ArrowRight
-                            size={13}
-                            strokeWidth={2}
-                            className="transition-transform duration-300 ease-out group-hover/btn:translate-x-1.5"
-                          />
-                        </Link>
-                        )}
+              {/* ──────────────────────────────────────────────────────────
+                  GROUPED SECTIONS WITH SERVICES & ICONS FROM HOME MODALS
+                  Exact cards: Image/Icon with a Title ONLY + Badge
+              ────────────────────────────────────────────────────────── */}
+              <div className="space-y-6 sm:space-y-8">
+                {activeCategory.sections.map((section, sIdx) => (
+                  <div key={sIdx} className="w-full">
+                    {/* Section Label matching Modal Popup */}
+                    {section.title && (
+                      <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                        <span className="text-[10.5px] sm:text-[11.5px] font-bold tracking-wider uppercase text-slate-400">
+                          {section.title}
+                        </span>
+                        <div className="flex-1 h-px bg-slate-100" />
                       </div>
+                    )}
+
+                    {/* Exact Popup Cards Grid (3 cols on mobile, up to 7 on desktop) */}
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3.5 md:gap-4.5">
+                      {section.items.map((rawItem) => {
+                        const item = getEnrichedItem(rawItem);
+
+                        return (
+                          <motion.div
+                            key={item.id}
+                            whileHover={{ y: -2, scale: 1.02 }}
+                            whileTap={{ scale: 0.96 }}
+                            transition={{ duration: 0.12, ease: "easeOut" }}
+                            className="w-full"
+                          >
+                            <Link
+                              to={item.destinationUrl}
+                              className="group flex flex-col items-center text-center p-2 sm:p-2.5 rounded-2xl bg-transparent hover:bg-slate-50/80 transition-colors duration-150 cursor-pointer outline-none relative border-0 no-underline w-full"
+                              style={{ transform: "translateZ(0)" }}
+                            >
+                              {/* Optional Badge from popup (e.g. Popular, New, Foundation, Security) */}
+                              {item.badge && (
+                                <span
+                                  className={`absolute top-0.5 right-1 sm:top-1 sm:right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                                    item.badgeColor || activeCategory.badgeColor || "bg-indigo-600 text-white"
+                                  } tracking-wide shadow-xs z-10 pointer-events-none`}
+                                >
+                                  {item.badge}
+                                </span>
+                              )}
+
+                              {/* Clean High-res Image / Icon Thumbnail */}
+                              <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center relative p-1 shrink-0 aspect-square">
+                                <img
+                                  src={item.image || item.icon}
+                                  alt={item.name}
+                                  loading="eager"
+                                  decoding="async"
+                                  draggable="false"
+                                  className="w-full h-full object-cover rounded-2xl drop-shadow-xs group-hover:scale-108 transition-transform duration-200 ease-out select-none pointer-events-none"
+                                  onError={(e) => {
+                                    e.currentTarget.onerror = null;
+                                    e.currentTarget.src = item.fallbackIcon || "/icons/categories/house-help.png";
+                                  }}
+                                />
+                              </div>
+
+                              {/* Title ONLY */}
+                              <span className="mt-2 text-[11px] sm:text-[12px] font-semibold text-slate-800 group-hover:text-indigo-600 leading-snug line-clamp-2 transition-colors duration-150 text-center">
+                                {item.name}
+                              </span>
+                            </Link>
+                          </motion.div>
+                        );
+                      })}
                     </div>
-                  </motion.div>
+                  </div>
                 ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-          </div>
-        )}
-      </section>
+              </div>
 
-      {/* ============ HOW IT WORKS ============ */}
-      <WorkProcess />
-
-      {/* ============ CTA ============ */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{
-          duration: 0.6,
-          ease: [0.22, 1, 0.36, 1],
-        }}
-        className="relative overflow-hidden py-20 px-6 lg:px-8"
-      >
-        {/* Background Text */}
-        <div
-          className="absolute inset-0 flex items-center justify-center pointer-events-none select-none"
-          aria-hidden="true"
-        >
-          <motion.h1
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 0.035, scale: 1 }}
-            viewport={{ once: true }}
-            transition={{ duration: 1.2 }}
-            className="font-black uppercase tracking-[0.15em]"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(5rem,14vw,11rem)",
-              color: "var(--color-primary)",
-              whiteSpace: "nowrap",
-              lineHeight: 1,
-            }}
-          >
-            TiptoBook
-          </motion.h1>
-        </div>
-
-        {/* Content */}
-        <div className="relative z-10 max-w-4xl mx-auto text-center">
-          {/* Badge */}
-          <span
-            className="inline-block px-4 py-1.5 rounded-full text-xs font-medium mb-5"
-            style={{
-              background: "#F5F5F5",
-              color: "var(--color-primary)",
-            }}
-          >
-            Need Assistance?
-          </span>
-
-          {/* Heading */}
-          <h2
-            className="font-normal leading-tight"
-            style={{
-              fontFamily: "var(--font-display)",
-              fontSize: "clamp(2rem,4vw,3rem)",
-              color: "var(--color-text-dark)",
-            }}
-          >
-            Can't Find What You're Looking For?
-          </h2>
-
-          {/* Description */}
-          <p
-            className="mt-5 mx-auto max-w-2xl leading-8"
-            style={{
-              fontFamily: "var(--font-body)",
-              color: "var(--color-text-mid)",
-            }}
-          >
-            Not seeing the service you need? Share your requirements with us,
-            and our team will connect you with the right verified professional.
-          </p>
-
-          {/* Features */}
-          <div className="flex flex-wrap justify-center gap-6 mt-8 text-sm">
-            <span>✓ Verified Professionals</span>
-            <span>✓ Quick Response</span>
-            <span>✓ Personalized Assistance</span>
-          </div>
-
-          {/* Button */}
-          <Link
-            to="/contact"
-            className="inline-flex items-center gap-2 mt-10 px-7 py-3 rounded-full text-white transition-all duration-300 hover:scale-105 hover:-translate-y-1"
-            style={{
-              background: "var(--color-primary)",
-            }}
-          >
-            Contact Our Team →
-          </Link>
-        </div>
-      </motion.section>
+              {/* ──────────────────────────────────────────────────────────
+                  BOTTOM ASSURANCE FOOTNOTE
+              ────────────────────────────────────────────────────────── */}
+              <div className="mt-10 pt-5 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-500">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck size={16} className="text-emerald-600" />
+                  <span>All providers background verified & skill certified</span>
+                </div>
+                {activeCategory.categoryLink && (
+                  <Link
+                    to={activeCategory.categoryLink}
+                    className="text-xs font-semibold text-blue-600 hover:underline flex items-center gap-1"
+                  >
+                    <span>View full category page</span>
+                    <ChevronRight size={13} />
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 };

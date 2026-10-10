@@ -1,3 +1,4 @@
+import process from 'node:process'
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -13,14 +14,21 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'dist',
       sourcemap: false, // disable in production to reduce bundle size
+      chunkSizeWarningLimit: 1000,
       rollupOptions: {
         output: {
           // Split large vendor libraries into separate chunks for parallel loading
           manualChunks(id) {
-            if (id.includes('firebase')) return 'firebase';
-            if (id.includes('framer-motion')) return 'framer-motion';
-            if (id.includes('gsap')) return 'gsap';
-            if (id.includes('leaflet')) return 'leaflet';
+            if (id.includes('node_modules')) {
+              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+                return 'vendor-react';
+              }
+              if (id.includes('firebase')) return 'vendor-firebase';
+              if (id.includes('framer-motion')) return 'vendor-framer-motion';
+              if (id.includes('leaflet') || id.includes('react-leaflet')) return 'vendor-leaflet';
+              if (id.includes('lucide-react')) return 'vendor-icons';
+              if (id.includes('gsap')) return 'vendor-gsap';
+            }
           },
         },
       },

@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import mongoose from "mongoose";
 import { v2 as cloudinary } from "cloudinary";
 import Provider from "../models/Provider.js";
@@ -304,6 +304,7 @@ router.get("/bookings", protect, providerOnly, async (req, res) => {
     const bookings = await Booking.find({ provider: provider._id })
       .populate("user", "name email phone")
       .populate("service", "name thumbnail")
+      .select("-startOtp")
       .sort("-createdAt");
 
     res.json(bookings);
@@ -325,15 +326,28 @@ router.patch("/bookings/:id/status", protect, providerOnly, async (req, res) => 
       return res.status(400).json({ message: "Invalid status" });
     }
 
+    if (status === "in_progress") {
+      return res.status(400).json({
+        message: "To start work, please verify the customer's 4-digit doorstep OTP.",
+      });
+    }
+
+    if (status === "completed") {
+      return res.status(400).json({
+        message: "To complete work, please use the Submit Work action.",
+      });
+    }
+
     const booking = await Booking.findOne({ _id: req.params.id, provider: provider._id });
     if (!booking) {
       return res.status(404).json({ message: "Booking not found or not assigned to you" });
     }
 
-    booking.status = status;
-    if (status === "completed") {
-      booking.paymentStatus = "paid";
+    if (booking.status === "completed") {
+      return res.status(400).json({ message: "Completed bookings cannot be modified." });
     }
+
+    booking.status = status;
     await booking.save();
 
     // Create Notification for the client user
