@@ -271,11 +271,11 @@ Tests (new file `test/p2-doorstep-otp.test.mjs`):
 
 **Why:** today's 7-day JWT sits in `localStorage` (readable by any injected script), logout only clears the browser, there is no password reset, a database blip logs users out, and some config is tied to Vercel/Render. Order: **R4.0 → R4.1 → R4.2 → R4.3 → R4.4**; R4.5 is a placeholder.
 
-### R4.0 A database error must not log users out (bug, small)
+### R4.0 A database error must not log users out (bug, small) — done in PR #1 (`477c6aa`)
 `middleware/auth.js` (`protect`), `quicksathi_frontend/src/config/api.js` (401 handler).
-- [ ] `protect`: only token/session problems return 401; any other error (DB timeout, Atlas blip) returns **503** "Service temporarily unavailable".
-- [ ] Frontend: a 503 never clears the session; show a retryable error.
-- [ ] Test: with the user lookup forced to fail (MongoDB stopped mid-test), an authenticated call returns 503, not 401.
+- [x] `protect`: only token/session problems return 401; when the database is disconnected or the lookup fails it returns **503** "Service temporarily unavailable".
+- [x] Frontend: a 503 never clears the session (verified: only a 401 with a sent token clears it; pages show the server message).
+- [x] Test `p2-db-outage`: MongoDB stopped mid-test, an authenticated call returns 503, not 401 (fails without the fix).
 
 ### R4.1 Server-side sessions (decision e)
 Files: new `models/Session.js`, new `services/sessions.js`, `middleware/auth.js`, `routes/auth.js` (7 places that call `generateToken`), `server.js`, `test/helpers/stack.mjs`; frontend `config/api.js`, `context/AuthContext.jsx`.
