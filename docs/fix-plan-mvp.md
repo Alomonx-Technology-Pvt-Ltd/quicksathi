@@ -42,8 +42,8 @@ Out of scope (agreed): money in paise, automatic Razorpay refunds, enforced full
 ### 0.1 Prep
 - [x] `45c2718` kept local (not pushed; owner decides).
 - [ ] Ask Nityanand to pause merges to `main` until Phase 0 lands; share this plan. (owner)
-- [x] `git fetch origin` and create a safety branch: `git branch backup/pre-main-merge`.
-- [x] `git merge origin/main` into `aditya-fixes-and-improvement` (**merge, not rebase**: the branch is pushed and has a PR).
+- [x] `git fetch origin` and create safety branches (`backup/pre-main-merge`, `backup/merge-version`).
+- [x] Owner chose a **rebase** (2026-10-11): this branch's commits were replayed onto `origin/main` (where both sides changed a file, the branch's version was kept), then one integration commit re-expresses main's features on the hardened code (its tree is exactly the tested merge result), followed by Phases 1–3. History is linear; the PR branch was force-pushed with `--force-with-lease`.
 
 ### 0.2 Conflict resolution guide (23 files)
 
@@ -320,10 +320,12 @@ Target UX (owner screenshot, 2026-10-11): one "Checkout & Booking" page: date �
 
 | Phase | Commit | Tests | Notes |
 |---|---|---|---|
-| plan | `38b644c` | 108/108 | Plan written; decisions a–d recorded |
-| 0 merge | `52ce9c9`, `845eeb2` | 116/116 | `origin/main` merged; OTP rebuilt on the state machine; mock files stay deleted; Construction + CCTV seeded; uploads image-only. Browser: services search, COD booking → accept → code start → complete → cash; customer sees code, provider never does. |
-| 1 money | `c638752` | 125/125 | Late payments → refund_pending; unpaid online can't be confirmed; order race; coupon release; COD after failure; cash-only rentals with confirmed fare. Browser: rental checkout (cash only, estimate), provider confirms fare, coupon box locks after booking. |
-| 2 identity | `c4b30e3` | 130/130 | Public sign-up removed (interpretation of decision b); takeover-proof Google linking; phone squatting; generic login errors; HS256. Test changes: tests that registered users now seed them; the legacy-admin test no longer pins the "use Google" wording. Browser: login page, onboarding sign-in gate. |
-| 3 providers/admin | `85d28cf` + docs commit | 140/140 | Role-safe approval, demotion deactivates, private KYC + signed links + migration 003, Provider.user unique + migration 004, bounded admin queries, refund queue, geo queue cap, CORS team suffix. Browser: admin KYC links, refund queue shows a late-paid cancelled booking. |
+| plan | `0c095ec` | 108/108 | Plan written; decisions a–d recorded |
+| 0 integrate main | `cf375dd`, `759157a` | 116/116 | Rebased onto `origin/main`; OTP rebuilt on the state machine; mock files stay deleted; Construction + CCTV seeded; uploads image-only. Browser: services search, COD booking → accept → code start → complete → cash; customer sees code, provider never does. |
+| 1 money | `fac5562` | 125/125 | Late payments → refund_pending; unpaid online can't be confirmed; order race; coupon release; COD after failure; cash-only rentals with confirmed fare. Browser: rental checkout (cash only, estimate), provider confirms fare, coupon box locks after booking. |
+| 2 identity | `b0f64eb` | 130/130 | Public sign-up removed (interpretation of decision b); takeover-proof Google linking; phone squatting; generic login errors; HS256. Test changes: tests that registered users now seed them; the legacy-admin test no longer pins the "use Google" wording. Browser: login page, onboarding sign-in gate. |
+| 3 providers/admin | `2fd7a29` + docs commits | 141/141 | Role-safe approval, demotion deactivates, private KYC + signed links + migration 003, Provider.user unique + migration 004, bounded admin queries, refund queue, broadcasts skip deleted users, geo queue cap, CORS team suffix. Browser: admin KYC links, refund queue shows a late-paid cancelled booking. |
+
+Intermediate commits replayed during the rebase (the WP-1…WP-13 series) were not each re-tested; the final tree is identical to the one tested above.
 
 **Not done / deviations:** "Sign In / Sign Up" labels kept (Google/phone sign-in still creates accounts, so the label is accurate). Admin lists keep returning arrays (capped at 200–500) instead of `{items,total}` pagination, so the admin pages didn't need rewriting. `private_download_url` for authenticated KYC assets is verified only by URL shape in tests; check one real file in Phase 4. Frontend lint: 100 errors (same as before the merge).
