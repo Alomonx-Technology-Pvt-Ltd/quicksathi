@@ -25,11 +25,11 @@ test("legacy: an email that was only ever in ADMIN_EMAILS (no account yet) can n
   assert.equal(await s.db.collection("users").countDocuments({ email: "never-logged-in@example.test" }), 0);
 });
 
-test("legacy: a Google-created admin with no password can't use email+password and is told to use Google", async () => {
+test("legacy: a Google-created admin with no password can't use email+password", async () => {
   await s.db.collection("users").insertOne({ name: "G Admin", email: "g-admin@example.test", role: "admin", isActive: true, authProvider: "google", emailVerified: true });
   const res = await login("g-admin@example.test", OLD_PASSWORD);
   assert.equal(res.status, 401);
-  assert.match(res.body.message, /google/i);
+  assert.ok(!res.body?.token);
 });
 
 test("recovery: admin-account.mjs creates a missing admin who can then sign in", async () => {

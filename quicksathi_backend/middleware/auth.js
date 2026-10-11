@@ -14,7 +14,7 @@ export const protect = async (req, res, next) => {
       return res.status(401).json({ message: "Not authorized, no token" });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET, { algorithms: ["HS256"] });
     req.user = await User.findById(decoded.id);
 
     if (!req.user) {
@@ -34,6 +34,7 @@ export const protect = async (req, res, next) => {
 // Generate JWT token
 export const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
+    algorithm: "HS256",
     expiresIn: process.env.JWT_EXPIRES_IN || "7d",
   });
 };

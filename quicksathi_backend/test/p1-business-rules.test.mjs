@@ -87,10 +87,8 @@ test("P1-11: bookings cannot be scheduled in the past", async () => {
 
 test("P1-14: two accounts cannot share the same phone number", async () => {
   const phone = "+919876500001";
-  const a = await s.api("POST", "/auth/register", { body: { name: "a", email: `${uid("a")}@example.test`, password: "Password123!", phone } });
-  assert.equal(a.status, 201, `precondition failed: ${a.text}`);
-  const b = await s.api("POST", "/auth/register", { body: { name: "b", email: `${uid("b")}@example.test`, password: "Password123!", phone } });
-  assert.ok(b.status >= 400, `second account with same phone was created (status ${b.status})`);
+  await s.createUser({ phone });
+  await assert.rejects(s.createUser({ phone }), /E11000/, "second account with the same phone was stored");
 });
 
 test("P1-16: admins can change a booking's status from the admin panel endpoint", async () => {

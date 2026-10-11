@@ -25,22 +25,19 @@ test("P0-1: Firebase login routes never issue a token without a verified idToken
   }
 });
 
-test("P0-2a: registering with an ADMIN_EMAILS address does not grant admin", async () => {
+test("P0-2a: there is no public email sign-up, so nobody can register an ADMIN_EMAILS address", async () => {
   const res = await s.api("POST", "/auth/register", { body: { name: "x", email: ADMIN_EMAILS[0], password: "Password123!" } });
-  const user = await s.db.collection("users").findOne({ email: ADMIN_EMAILS[0] });
-  assert.ok(!(res.body?.user?.role === "admin" || user?.role === "admin"), "self-registration produced an admin account");
+  assert.equal(res.status, 404);
+  assert.equal(await s.db.collection("users").countDocuments({ email: ADMIN_EMAILS[0] }), 0);
 });
 
 test("P0-2b: changing profile email to an admin address and using /admin-login does not grant admin", async () => {
-  const email = `${uid("p")}@example.test`;
-  const reg = await s.api("POST", "/auth/register", { body: { name: "x", email, password: "Password123!" } });
-  assert.equal(reg.status, 201, `precondition: register failed: ${reg.text}`);
-  const token = reg.body.token ?? s.tokenFor((await s.db.collection("users").findOne({ email }))._id);
-  await s.api("PUT", "/auth/profile", { token, body: { email: ADMIN_EMAILS[1] } });
+  const user = await s.createUser();
+  await s.api("PUT", "/auth/profile", { token: user.token, body: { email: ADMIN_EMAILS[1] } });
   const login = await s.api("POST", "/auth/admin-login", { body: { email: ADMIN_EMAILS[1], password: "Password123!" } });
-  const user = await s.db.collection("users").findOne({ email: ADMIN_EMAILS[1] });
+  const promoted = await s.db.collection("users").findOne({ email: ADMIN_EMAILS[1] });
   assert.ok(!(login.status === 200 && login.body?.user?.role === "admin"), "admin-login granted admin to an unverified email change");
-  assert.notEqual(user?.role, "admin", "user was promoted to admin in the database");
+  assert.notEqual(promoted?.role, "admin", "user was promoted to admin in the database");
 });
 
 test("P0-3: /auth/phone never logs in by a client-supplied phone number", async () => {

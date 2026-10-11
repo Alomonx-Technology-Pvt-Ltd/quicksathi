@@ -16,10 +16,15 @@ if (!email || !confirmed) {
 await mongoose.connect(process.env.MONGODB_URI);
 try {
   const dbName = mongoose.connection.name;
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).select("+password");
   if (!user) throw new Error(`No user with email ${email}. They must sign in once with Google first.`);
   if (!user.emailVerified) {
     throw new Error("This user's email is not verified. Ask them to sign in with Google (verified by Firebase) first.");
+  }
+  if (user.password) {
+    // A password set through the old public sign-up may belong to someone else (pre-registration
+    // takeover). Use admin-account.mjs instead: it replaces the password with one you choose.
+    throw new Error("This account has a password from email sign-up. Use scripts/admin-account.mjs to set a new admin password instead.");
   }
   if (user.role === "admin") {
     console.log(`ℹ️  ${email} is already an admin (db: ${dbName}).`);

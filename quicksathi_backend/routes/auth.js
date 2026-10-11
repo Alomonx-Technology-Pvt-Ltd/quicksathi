@@ -4,7 +4,6 @@ import Provider from "../models/Provider.js";
 import { generateToken, protect } from "../middleware/auth.js";
 import { firebaseAuth } from "../config/firebase.js";
 import { sendWelcomeEmail } from "../services/emailService.js";
-import { normalizePhone } from "../services/phone.js";
 
 const router = Router();
 
@@ -85,8 +84,16 @@ async function verifiedGoogleIdentity(idToken) {
 }
 
 // Link Firebase details to an existing account (never changes role).
+// If the account was created by email/password and its email was never verified, whoever set that
+// password may not own the email (pre-registration takeover): the verified Google owner takes over
+// and the old password stops working.
 async function linkGoogleIdentity(user, identity) {
   let changed = false;
+  if (!user.emailVerified && user.authProvider === "local") {
+    user.password = undefined;
+    user.authProvider = "google";
+    changed = true;
+  }
   if (!user.firebaseUid) { user.firebaseUid = identity.uid; changed = true; }
   if (!user.avatar && identity.picture) { user.avatar = identity.picture; changed = true; }
   if (!user.emailVerified) { user.emailVerified = true; changed = true; }
@@ -97,37 +104,10 @@ function assertActive(user) {
   if (!user.isActive) throw new HttpError(403, "Account deactivated");
 }
 
-// ── Email / password ────────────────────────────────────────────────────────
-
-// POST /api/auth/register — always creates a customer account. Admin rights are never
-// derived from the email address (see scripts/grant-admin.mjs).
-router.post("/register", route(async (req, res) => {
-  const name = asString(req.body.name).trim();
-  const email = asString(req.body.email).trim().toLowerCase();
-  const password = asString(req.body.password);
-  const rawPhone = asString(req.body.phone).trim();
-  const phone = normalizePhone(rawPhone);
-  if (rawPhone && !phone) throw new HttpError(400, "Please enter a valid phone number");
-
-  if (!name || !email || !password) {
-    throw new HttpError(400, "Name, email and password are required");
-  }
-
-  if (await User.findOne({ email })) {
-    throw new HttpError(400, "User already exists with this email");
-  }
-
-  const user = await User.create({ name, email, password, phone: phone || undefined, authProvider: "local", role: "user" });
-  const token = generateToken(user._id);
-
-  if (user.email) {
-    sendWelcomeEmail({ to: user.email, name: user.name }).catch((err) =>
-      console.error("Welcome email error:", err?.message || err)
-    );
-  }
-
-  res.status(201).json({ token, user: publicUser(user) });
-}));
+// ── Email / password (existing accounts only) ───────────────────────────────
+// Public email/password sign-up was removed (2026-10-11): new customers and providers sign in with
+// Google or phone OTP, which prove they own the email/number. Existing email accounts and admins
+// (scripts/admin-account.mjs) keep their password login below.
 
 async function localCredentialUser(req) {
   const email = asString(req.body.email).trim().toLowerCase();
@@ -138,7 +118,8 @@ async function localCredentialUser(req) {
   if (!user) throw new HttpError(401, "Invalid email or password");
 
   if (user.authProvider !== "local") {
-    throw new HttpError(401, `This account uses ${user.authProvider} sign-in. Please use that method.`);
+    // Same answer as a wrong password: don't reveal which emails exist or how they sign in.
+    throw new HttpError(401, "Invalid email or password");
   }
   if (!user.password || !(await user.comparePassword(password))) {
     throw new HttpError(401, "Invalid email or password");
@@ -187,7 +168,7 @@ router.post("/provider-google", route(async (req, res) => {
 
   const user = await User.findOne({ email: identity.email });
   if (!user) {
-    throw new HttpError(403, "No account found. Please sign up first, then register as a provider.");
+    throw new HttpError(403, "No account found. Sign in with Google once on the customer login, then register as a provider.");
   }
   assertActive(user);
   await linkGoogleIdentity(user, identity);
@@ -236,6 +217,15 @@ router.post("/phone", route(async (req, res) => {
   });
 
   if (!user) {
+    // The verified owner wins the number: drop it from any account where it was only typed in
+    // (legacy sign-ups), so it can't block this sign-in through the unique phone index.
+    const squatters = await User.updateMany(
+      { phone: identity.phone, authProvider: { $ne: "phone" } },
+      { $unset: { phone: "" } }
+    );
+    if (squatters.modifiedCount) {
+      console.warn(`AUDIT phone ${identity.phone.slice(0, 5)}… released from ${squatters.modifiedCount} unverified account(s)`);
+    }
     user = await User.create({
       name: identity.phone,
       phone: identity.phone,

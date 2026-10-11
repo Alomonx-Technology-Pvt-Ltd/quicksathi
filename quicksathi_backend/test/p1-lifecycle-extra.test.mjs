@@ -1,7 +1,6 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { startStack } from "./helpers/stack.mjs";
-import { normalizePhone } from "../services/phone.js";
 
 let s;
 before(async () => { s = await startStack(); });
@@ -111,16 +110,4 @@ test("WP-8: provider registration refuses document URLs and non-image data", asy
     assert.equal(res.status, 400, JSON.stringify(idProof));
   }
   assert.equal(await s.db.collection("providers").countDocuments({ user: user._id }), 0);
-});
-
-test("WP-9: phone numbers are normalised, so +91 formats of one number collide", async () => {
-  assert.equal(normalizePhone("98765 43210"), "+919876543210");
-  assert.equal(normalizePhone("+91 98765-43210"), "+919876543210");
-  assert.equal(normalizePhone("09876543210"), "+919876543210");
-  assert.equal(normalizePhone("12345"), "");
-  const a = await s.api("POST", "/auth/register", { body: { name: "a", email: "pa@example.test", password: "Password123!", phone: "98765 43210" } });
-  const b = await s.api("POST", "/auth/register", { body: { name: "b", email: "pb@example.test", password: "Password123!", phone: "+91 98765 43210" } });
-  assert.equal(a.status, 201);
-  assert.equal(b.status, 409);
-  assert.equal((await s.api("POST", "/auth/register", { body: { name: "c", email: "pc@example.test", password: "Password123!", phone: "abc" } })).status, 400);
 });

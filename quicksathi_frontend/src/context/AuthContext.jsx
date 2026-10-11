@@ -90,15 +90,6 @@ export const AuthProvider = ({ children }) => {
     setProviderProfile(null);
   };
 
-  // Email/Password Registration
-  const register = async (name, email, password, phone) => {
-    const { data } = await withRetry(() =>
-      api.post("/auth/register", { name, email, password, phone })
-    );
-    saveSession(data.token, data.user);
-    return data.user;
-  };
-
   // Email/Password Login
   const login = async (email, password) => {
     const { data } = await withRetry(() =>
@@ -268,7 +259,6 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: !!user,
     isAdmin: user?.role === "admin",
     isProvider: user?.role === "provider",
-    register,
     login,
     loginWithGoogle,
     sendOtp,
