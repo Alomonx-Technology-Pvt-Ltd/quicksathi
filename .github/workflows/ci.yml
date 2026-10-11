@@ -33,6 +33,31 @@ jobs:
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
 
+  backend-image:
+    name: Backend Docker image
+    runs-on: ubuntu-latest
+    services:
+      mongo:
+        image: mongo:7
+        ports: ["27017:27017"]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image hosts like Railway use
+        run: docker build -t tiptobook-api:ci quicksathi_backend
+      - name: Start it and wait for /api/health
+        run: |
+          docker run -d --name api --network host \
+            -e NODE_ENV=development -e PORT=5050 \
+            -e MONGODB_URI=mongodb://127.0.0.1:27017/quicksathi_ci \
+            -e JWT_SECRET=ci-only-secret-ci-only-secret-ci-only \
+            tiptobook-api:ci
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:5050/api/health; then exit 0; fi
+            sleep 2
+          done
+          docker logs api
+          exit 1
+
   frontend:
     name: Frontend build
     runs-on: ubuntu-latest
@@ -52,3 +77,5 @@ jobs:
       # Remove continue-on-error once `npm run lint` is clean.
       - run: npm run lint
         continue-on-error: true
+      # Netlify / Cloudflare Pages / Apache / Vercel config must match hosting/policy.json.
+      - run: npm run host-config:check

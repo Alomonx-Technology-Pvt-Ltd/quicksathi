@@ -11,11 +11,11 @@ flowchart LR
   subgraph Browser
     SPA["React 19 SPA (Vite)"]
   end
-  subgraph Vercel
-    STATIC["Static hosting + headers (vercel.json)"]
+  subgraph "Static host (Netlify / Cloudflare Pages / Hostinger / Vercel)"
+    STATIC["tiptobook.com: static files + headers (generated from hosting/policy.json)"]
   end
-  subgraph Render
-    API["Express 5 API (quicksathi_backend)"]
+  subgraph "Container / Node host (Railway planned; Render today)"
+    API["api.tiptobook.com: Express 5 API (quicksathi_backend, Dockerfile)"]
   end
   DB[("MongoDB Atlas")]
   FB["Firebase Auth (Google, phone OTP)"]
@@ -71,7 +71,7 @@ docs/                  review, fix plan, ADRs, walkthrough
 `server.js`, in order:
 
 1. `config/validateEnv.js` — in production the process **exits** if required configuration is missing or unsafe. `config/firebase.js` likewise exits in production if Firebase Admin can't initialise.
-2. `helmet`, `trust proxy = 1`, `compression`, CORS (allow-list + localhost + the project's Vercel preview URLs).
+2. `helmet`, `trust proxy` (`TRUST_PROXY` hops, default 1), `compression`, CORS (`config/hosting.js`: `CLIENT_URL`, `CORS_ORIGINS`, preview suffixes in `CORS_ORIGIN_PATTERNS`, any localhost port).
 3. Rate limits (`middleware/rateLimits.js`), before any body is read: global 600/min/IP; failed credential logins 10/15 min; auth 30/min; contact 5/h; AI chat 20/h; coupon validation 10/min; geocoding 60/min (Nominatim 20/min, at most 3 queued per client); doorstep start code 10/min per provider.
 4. Body parsing: `express.raw` for `/api/payments/webhook` (signature needs the exact bytes); `express.json` 10 MB only for `/api/admin/upload` (after `protect` + `adminOnly`) and `/api/providers/register` (after `protect`), so anonymous requests never get a large body parsed; **100 KB** everywhere else.
 5. Routers under `/api/*`. Authenticated routes use `protect` (verifies the JWT **and reloads the user from the DB on every request**, so deactivation and role changes take effect immediately), then `adminOnly` / `providerOnly` where needed.
@@ -175,7 +175,7 @@ Money is stored as rupee numbers (not integer paise) — see "Known limitations"
 
 ## 8. Cross-cutting concerns
 
-- **Security headers**: helmet on the API; `vercel.json` sets HSTS, Referrer-Policy, Permissions-Policy and a minimal CSP (`frame-ancestors`, `base-uri`, `object-src`, `form-action`). A full script-src CSP is not enabled yet.
+- **Security headers**: helmet on the API. For the static frontend, one policy (`quicksathi_frontend/hosting/policy.json`: HSTS, Referrer-Policy, Permissions-Policy, X-Frame-Options and a minimal CSP with `frame-ancestors`, `base-uri`, `object-src`, `form-action`) is generated into `public/_headers` (Netlify, Cloudflare Pages), `public/.htaccess` (Apache/Hostinger), `netlify.toml` and `vercel.json` by `npm run host-config`; CI fails if they drift. A full script-src CSP is not enabled yet.
 - **Email** (`services/emailService.js`): Brevo API, else SMTP. Every user-supplied value is HTML-escaped (`escapeHtml`). In production a missing provider is an error, not a silent mock.
 - **Uploads**: admin images and provider KYC arrive as base64 data URIs and are pushed to Cloudinary. KYC accepts PNG/JPG/WebP only, ≤ ~5 MB.
 - **AI chat** (`routes/ai.js`): the system prompt is fixed on the server; the client sends only the conversation (user/assistant roles, ≤ 10 messages, ≤ 1000 chars each); falls back to a rule-based answer engine.
@@ -187,7 +187,7 @@ Money is stored as rupee numbers (not integer paise) — see "Known limitations"
 |---|---|---|
 | Local dev | **A separate dev database** (`quicksathi_dev`) | `npm run seed:dev` builds the catalog. Never point a local `.env` at production. |
 | Tests | In-memory MongoDB | `test/helpers/stack.mjs` ignores `.env` entirely (`DOTENV_CONFIG_PATH=/dev/null`). |
-| Production | Atlas production database | Config lives only in Render; the server refuses to start if it's incomplete. |
+| Production | Atlas production database | Config lives only in the host's environment settings; the server refuses to start if it's incomplete. |
 
 Backend variables (`quicksathi_backend/.env.example` is the template):
 
@@ -201,9 +201,13 @@ Backend variables (`quicksathi_backend/.env.example` is the template):
 | `GROQ_API_KEY` (+ optional `GROQ_API_URL` proxy) | optional | AI chat (else rule-based fallback) |
 | `ADMIN_EMAILS` | optional | only used as *recipients* of contact-form emails; **grants no privileges** |
 | `GEO_USER_AGENT`, `GEO_NOMINATIM_URL`, `GEO_PHOTON_URL` | optional | geocoding proxy |
-| `ADDITIONAL_ORIGINS`, `VERCEL_PREVIEW_SUFFIX` | optional | extra CORS origins; Vercel preview suffix of the team |
+| `CORS_ORIGINS`, `CORS_ORIGIN_PATTERNS` | optional | extra allowed origins (e.g. staging) and preview-host suffixes under hosts nobody else can claim (`.tiptobook.pages.dev`, `.<account>.workers.dev`); see `config/hosting.js` |
+| `TRUST_PROXY` | optional | reverse proxies in front of the app (default 1; `true`/`false`, a number, or Express names/IPs); check the `trust-proxy check` log line after deploying to a new host |
+| `SELF_PING_URL` | optional | this API's public URL, pinged every 14 min on hosts whose free tier sleeps (Render) |
 | `SEED_DB_ALLOWLIST`, `SITE_URL`, `ADMIN_NEW_PASSWORD` | scripts only | dev seed's extra allowed databases; sitemap base URL; `admin-account.mjs` password |
-| `PORT` | injected by Render | defaults to 5050 locally (5000 clashes with macOS AirPlay) |
+| `PORT` | set by the host | defaults to 5050 locally (5000 clashes with macOS AirPlay) |
+
+**Hosting is vendor-independent** (decision f in `docs/fix-plan-mvp.md`): the frontend is static files for any host (Netlify, Cloudflare Pages, Hostinger, Vercel; config generated from `hosting/policy.json`), and the API is a Docker image (`quicksathi_backend/Dockerfile`, built by Railway automatically; CI builds and boots it) or plain `npm ci && npm start` (`render.yaml`). Target domains: `tiptobook.com` + `api.tiptobook.com`, with a staging pair.
 
 Frontend (`quicksathi_frontend/.env.example`): `VITE_API_URL` (defaults to `http://localhost:5050/api`) and the public `VITE_FIREBASE_*` web config. The app runs without a `.env`; Google/phone login are disabled until Firebase is configured.
 
@@ -218,7 +222,7 @@ cd quicksathi_frontend && npm ci && npm run dev                          # http:
 cd quicksathi_backend && npm test
 ```
 
-CI (`.github/workflows/ci.yml`): backend `npm test` + `npm audit --omit=dev --audit-level=high`; frontend `npm run build` (lint is reported, not yet blocking).
+CI (`.github/workflows/ci.yml`): backend `npm test` (includes the route access matrix, `test/p3-access-matrix.test.mjs`) + `npm audit --omit=dev --audit-level=high`; the backend Docker image is built and must answer `/api/health`; frontend `npm run build` + `npm run host-config:check` (lint is reported, not yet blocking).
 
 **Release checklist for changes that touch money, auth or data shape**: add/adjust a test through the HTTP API; run `npm test`; for schema/index changes write a migration under `scripts/migrations/` with a dry-run mode (see `001-user-unique-indexes.mjs`); never edit production data by hand without a backup.
 
