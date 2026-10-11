@@ -20,6 +20,10 @@
 | b | Email/password signup | **Remove public signup** (`POST /auth/register` and the UI). Existing email accounts and admin password login keep working. The Google-linking fix is still applied for existing unverified accounts. _Interpretation of "sure"; confirm before Phase 2._ |
 | c | Doorstep OTP + live timer | **Keep**, rebuilt on the booking state machine with the security fixes below. |
 | d | Category verticals | **Fixed list**, adding `CONSTRUCTION`. No free-text/custom verticals. |
+| e | Sessions (Round 4) | **Server-side sessions** (opaque id in an `httpOnly` cookie, hashed in a `sessions` collection; `Authorization: Bearer <session id>` also accepted for tests and a future mobile app). No JWT, no refresh tokens. |
+| f | Hosting layout (Round 4) | **Vendor-independent.** Frontend at `tiptobook.com` on any static host (Netlify / Cloudflare Pages / Hostinger / Vercel), API at `api.tiptobook.com` on any Node/Docker host (Railway planned), staging pair `staging.tiptobook.com` + `api-staging.tiptobook.com`. All host differences live in config/env, never in code. |
+| g | Backend packaging (Round 4) | **Add a Dockerfile** (Railway builds it automatically); revisit only if it causes problems. |
+| h | Admin passwords (Round 4) | **Middle ground:** admins sign in with Google by default; an admin password is an emergency fallback reset only by `scripts/admin-account.mjs`. The email reset flow is for customers/providers who still have a password. Admin 2FA later if admins rely on passwords. |
 
 Out of scope (agreed): money in paise, automatic Razorpay refunds, enforced full CSP, architecture-backlog refactors, SSR/prerender.
 
@@ -260,6 +264,85 @@ Tests (new file `test/p2-doorstep-otp.test.mjs`):
 ### 4.4 CI
 - [ ] Find out why no CI run shows on PR #1 (Actions disabled for the repo/org, or workflow permissions). Make backend tests + audit and frontend build required checks.
 - [ ] Turn the lint step into a gate once errors are 0 (separate task).
+
+---
+
+## Round 4 — Sessions, logout & password reset, vendor-independent hosting, API/E2E tests
+
+**Why:** today's 7-day JWT sits in `localStorage` (readable by any injected script), logout only clears the browser, there is no password reset, a database blip logs users out, and some config is tied to Vercel/Render. Order: **R4.0 → R4.1 → R4.2 → R4.3 → R4.4**; R4.5 is a placeholder.
+
+### R4.0 A database error must not log users out (bug, small)
+`middleware/auth.js` (`protect`), `quicksathi_frontend/src/config/api.js` (401 handler).
+- [ ] `protect`: only token/session problems return 401; any other error (DB timeout, Atlas blip) returns **503** "Service temporarily unavailable".
+- [ ] Frontend: a 503 never clears the session; show a retryable error.
+- [ ] Test: with the user lookup forced to fail (MongoDB stopped mid-test), an authenticated call returns 503, not 401.
+
+### R4.1 Server-side sessions (decision e)
+Files: new `models/Session.js`, new `services/sessions.js`, `middleware/auth.js`, `routes/auth.js` (7 places that call `generateToken`), `server.js`, `test/helpers/stack.mjs`; frontend `config/api.js`, `context/AuthContext.jsx`.
+
+**Design**
+- `Session { tokenHash (sha256, unique), user, createdAt, lastUsedAt, expiresAt, absoluteExpiresAt, userAgent, ipPrefix }`. The raw id (32 random bytes, base64url) only lives in the cookie / header; the database holds its hash.
+- Lifetime: **sliding 30 days idle, 90 days absolute** (env `SESSION_IDLE_DAYS`, `SESSION_MAX_DAYS`). `lastUsedAt`/`expiresAt` are updated at most once per hour per session (no write on every request). A TTL index on `absoluteExpiresAt` cleans up.
+- Cookie `ts_session`: `HttpOnly; Secure; SameSite=Lax; Path=/`; `Domain` from env `COOKIE_DOMAIN` (unset = host-only on `api.tiptobook.com`, which is same-site with `tiptobook.com`, so browsers send it).
+- `protect`: read the cookie, else `Authorization: Bearer <id>`; hash it, find the session, then load the user (still per request, as today, so role/deactivation changes apply immediately); reject inactive/deleted users.
+- Cross-site request forgery (cookies are sent automatically): state-changing requests must carry a custom header (`X-Requested-With: tiptobook`, set by the axios instance) **and** an `Origin` from the CORS allowlist; the Razorpay webhook and `/api/health` are exempt. `SameSite=Lax` already blocks cross-site form posts.
+- Logged-in responses default to `Cache-Control: private, no-store`, so no CDN in front can cache personal data.
+
+**Checklist**
+- [ ] `Session` model + `services/sessions.js` (`startSession(res, user, req)`, `endSession`, `endAllSessions(userId, { except })`, `touch`).
+- [ ] The 7 logins in `routes/auth.js` call `startSession` and return `{ user }` (no token in the body).
+- [ ] `POST /auth/logout` (this device), `POST /auth/logout-all` (every device), `GET /auth/sessions` + `DELETE /auth/sessions/:id` ("your devices").
+- [ ] Sessions end automatically on password change/reset, admin role change, deactivation, soft delete (`admin.js`), and in the `grant-admin` / `admin-account` scripts.
+- [ ] Remove `jsonwebtoken`, `JWT_SECRET`, `JWT_EXPIRES_IN` from code, env validation, `.env.example` and `render.yaml` (one-time effect: everyone signs in again).
+- [ ] Frontend `api.js`: `withCredentials: true`; send `X-Requested-With`; **cache only an allowlist of public GET endpoints** (today it caches any GET without an `Authorization` header, which with cookies would cache personal data); 401 handling based on "was signed in" state, not on the header.
+- [ ] Frontend `AuthContext`: no token in `localStorage`; on startup call `GET /auth/me` to learn who is signed in (keep a non-sensitive display copy of the user for first paint); logout calls the API.
+- [ ] Test helper: `createUser()` creates a real session row and returns its id; `api()` keeps sending it as a Bearer header, so existing tests don't change.
+- [ ] Tests: cookie set on login with `HttpOnly`/`Secure`/`SameSite`; logout ends only this device; logout-all ends all; reset, role change and deactivation end sessions; idle/expired sessions rejected; a stored hash can't be used as a session id; a state-changing request without the custom header or with a foreign `Origin` gets 403; personal responses carry `no-store`.
+- [ ] Docs: ADR-0001 rewritten (sessions replace JWT; why no refresh tokens), ARCHITECTURE auth section, CONTEXT ("Session").
+
+### R4.2 Password reset & change (decision h)
+Files: new `models/PasswordReset.js`, `routes/auth.js`, `services/emailService.js`; frontend `pages/Login.jsx`, new `pages/ResetPassword.jsx`, `pages/Profile.jsx`.
+- [ ] `POST /auth/password/forgot {email}`: always `200` "If that email has a password account, we've sent a link" (no enumeration); only for non-admin accounts that have a password; single-use token (32 random bytes, stored hashed), valid **30 minutes**, a newer request replaces older tokens; rate-limited per IP and per email; link is `${CLIENT_URL}/reset-password?token=…`.
+- [ ] `POST /auth/password/reset {token, password}`: token valid, unused and unexpired; password at least 8 characters (same policy as the model); marks the token used; **ends all sessions**; emails "your password was changed".
+- [ ] `POST /auth/password/change {current, new}` (signed in): verifies the current password; ends all other sessions.
+- [ ] Admin accounts: forgot/reset refused (the response stays the generic 200 and no email is sent). README and walkthrough say admins use Google, and `scripts/admin-account.mjs` for an emergency reset.
+- [ ] Frontend: "Forgot password?" on the email sign-in form, a `/reset-password` page, "Change password" in Profile (only when the account has a password).
+- [ ] Tests: unknown and admin emails get the same 200 and no email; a token works once; expired tokens are rejected; reset ends sessions; change requires the current password; rate limit.
+
+### R4.3 Vendor-independent hosting (decisions f, g)
+- [ ] **Env-only config**, no host names in code:
+  - `CORS_ORIGINS` (comma list) and `CORS_ORIGIN_PATTERNS` (suffix patterns for preview hosts) replace `VERCEL_PREVIEW_SUFFIX`;
+  - `TRUST_PROXY` (number of proxy hops, default 1) replaces the hard-coded `app.set("trust proxy", 1)`;
+  - `SELF_PING_URL` (optional) replaces `RENDER_EXTERNAL_URL`;
+  - `COOKIE_DOMAIN` (optional) and `CLIENT_URL` (frontend origin for email links);
+  - frontend: `VITE_API_URL` only.
+- [ ] **Dockerfile** in `quicksathi_backend/` (`node:22-slim`, `npm ci --omit=dev`, non-root `node` user, port from `PORT`, `HEALTHCHECK` on `/api/health`) plus `.dockerignore`. Railway: service root `quicksathi_backend`; it builds the Dockerfile automatically. `render.yaml` stays as one more descriptor until Render is retired.
+- [ ] **Frontend host files** from one documented policy (SPA fallback to `index.html`; security headers HSTS, CSP, `frame-ancestors`/X-Frame-Options, Referrer-Policy, Permissions-Policy; immutable cache for `/assets`):
+  - Netlify / Cloudflare Pages: `public/_redirects` + `public/_headers`;
+  - Hostinger (Apache): `public/.htaccess`;
+  - Vercel: the existing `vercel.json`;
+  - a small CI check that the copies agree.
+- [ ] **Domains:** `tiptobook.com` → frontend host; `api.tiptobook.com` → backend host; staging pair `staging.tiptobook.com` / `api-staging.tiptobook.com` with its own database. Host preview URLs (`*.netlify.app`, `*.pages.dev`) use the staging API with the Bearer-header session (cookies don't cross sites there).
+- [ ] Razorpay webhook and Firebase authorised domains point at the new hosts; the Google Maps key is restricted to the new frontend domains.
+- [ ] Docs: ARCHITECTURE §9 and the README deploy section become host-neutral, with short per-host notes (Railway, Render, Netlify, Cloudflare Pages, Hostinger).
+- [ ] After the first deploy on the new hosts: the `trust-proxy check` log line shows the real client IP; the login cookie is sent from `tiptobook.com` in Safari and Chrome; a 5 MB image upload works.
+
+### R4.4 API access matrix + end-to-end tests
+- [ ] **Route access matrix** (`test/p3-access-matrix.test.mjs`): list every route registered on the Express app; for each, assert anonymous gets 401 (unless it is in an explicit public list) and customer/provider/admin are allowed or get 403 according to one table. The test **fails when a new route has no entry**, so access rules can't be forgotten.
+- [ ] **Playwright** (`quicksathi_frontend/e2e/`, `@playwright/test`), run in CI against the in-memory backend + `seed:dev` + `vite preview`:
+  1. customer books with cash → provider accepts → customer reads the code → provider starts, completes and records cash;
+  2. rental: cash-only checkout, provider confirms the fare;
+  3. coupon applied, booking cancelled, coupon usable again;
+  4. admin assigns a provider and opens KYC links;
+  5. sign in, logout, logout-all, password reset (email captured by the test mail mode);
+  6. online payment in Razorpay test mode: **manual / nightly only** (needs real test keys), not on every PR.
+- [ ] CI: a Playwright job (Chromium only) that uploads traces on failure.
+- [ ] `docs/qa-checklist.md`: the manual run sheet before each production deploy (payments, Firebase logins, KYC, emails, mobile view).
+
+### R4.5 Provider availability (placeholder — discuss first)
+- [ ] Design session with the owner, starting from the slot design (Deferred section below) and developer checklist §2: working hours, days off, online/offline, duration + buffer, no double booking, updates on cancel/reschedule, alternative slots. Then write it here as checklists.
+
+**Acceptance (Round 4):** R4.0–R4.4 checkboxes done; backend suite, access matrix and Playwright green in CI; the manual checks in R4.3 done on staging; docs updated.
 
 ---
 
