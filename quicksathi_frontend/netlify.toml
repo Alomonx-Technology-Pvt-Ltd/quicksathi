@@ -1,0 +1,10 @@
+# Generated from hosting/policy.json by scripts/host-config.mjs. Do not edit by hand.
+# Headers come from public/_headers (shared with Cloudflare Pages).
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

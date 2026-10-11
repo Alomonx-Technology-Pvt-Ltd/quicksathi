@@ -73,7 +73,7 @@ Google/phone login need the `VITE_FIREBASE_*` values; email/password login works
 - **Emails**: every user-controlled value goes through `escapeHtml`; SMTP TLS verification is back on; in production a missing mail provider is a logged failure, not a fake success. The admin broadcast only reaches registered users, sends in awaited batches, and never returns the user list. The contact form is validated, escaped, rate limited and no longer echoes the stored document.
 - **AI chat**: the prompt is server-side; the client can only send user/assistant text.
 - Dependencies: `npm audit` is clean on the backend; the frontend has one remaining advisory (a gRPC package pulled in by Firebase that isn't reachable from a browser; npm's suggested "fix" is downgrading Firebase to v9, so we left it).
-- `vercel.json` adds HSTS, Referrer-Policy, Permissions-Policy and a minimal CSP. A full script-src CSP is still to do (start it in report-only mode).
+- Static-host security headers (HSTS, Referrer-Policy, Permissions-Policy, a minimal CSP) come from `quicksathi_frontend/hosting/policy.json`, generated for Netlify, Cloudflare Pages, Apache/Hostinger and Vercel. A full script-src CSP is still to do (start it in report-only mode).
 
 ## 6. Seed scripts and data safety (WP-6, ADR 0007)
 

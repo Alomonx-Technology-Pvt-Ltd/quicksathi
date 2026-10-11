@@ -24,6 +24,11 @@
 | f | Hosting layout (Round 4) | **Vendor-independent.** Frontend at `tiptobook.com` on any static host (Netlify / Cloudflare Pages / Hostinger / Vercel), API at `api.tiptobook.com` on any Node/Docker host (Railway planned), staging pair `staging.tiptobook.com` + `api-staging.tiptobook.com`. All host differences live in config/env, never in code. |
 | g | Backend packaging (Round 4) | **Add a Dockerfile** (Railway builds it automatically); revisit only if it causes problems. |
 | h | Admin passwords (Round 4) | **Middle ground:** admins sign in with Google by default; an admin password is an emergency fallback reset only by `scripts/admin-account.mjs`. The email reset flow is for customers/providers who still have a password. Admin 2FA later if admins rely on passwords. |
+| i | Session lifetime (2026-10-12) | Customers/providers: 30 days idle, 90 days absolute. **Admins: 12 hours idle, 7 days absolute.** |
+| j | Device list (2026-10-12) | API for the list now; Profile gets only "Log out of all devices". Full "your devices" screen later. |
+| k | Session cap (2026-10-12) | At most **20 active sessions** per account, **confirmation-based**: when a sign-in would exceed the cap, the user is first shown the oldest/least-recently-used session (device, last used) and asked to sign it out before the new sign-in completes. |
+| l | Host config files (2026-10-12) | Ship all of them (Netlify/Cloudflare `_headers`, `netlify.toml`, Apache `.htaccess`, `vercel.json`) generated from one policy. |
+| — | **On hold** (2026-10-12) | (1) **Cut-over from JWT to sessions** (hard switch vs. accepting both for a while): owner to check first. R4.1 waits for this. (2) **Email delivery for password reset** (Brevo + verified sender) isn't set up yet: R4.2 waits. (3) **Playwright now, or together with a TypeScript port and frontend unit tests later:** open. |
 
 Out of scope (agreed): money in paise, automatic Razorpay refunds, enforced full CSP, architecture-backlog refactors, SSR/prerender.
 
@@ -282,7 +287,8 @@ Files: new `models/Session.js`, new `services/sessions.js`, `middleware/auth.js`
 
 **Design**
 - `Session { tokenHash (sha256, unique), user, createdAt, lastUsedAt, expiresAt, absoluteExpiresAt, userAgent, ipPrefix }`. The raw id (32 random bytes, base64url) only lives in the cookie / header; the database holds its hash.
-- Lifetime: **sliding 30 days idle, 90 days absolute** (env `SESSION_IDLE_DAYS`, `SESSION_MAX_DAYS`). `lastUsedAt`/`expiresAt` are updated at most once per hour per session (no write on every request). A TTL index on `absoluteExpiresAt` cleans up.
+- Lifetime (decision i): customers/providers **sliding 30 days idle, 90 days absolute**; admins **12 hours idle, 7 days absolute** (env `SESSION_IDLE_DAYS`, `SESSION_MAX_DAYS`, `ADMIN_SESSION_IDLE_HOURS`, `ADMIN_SESSION_MAX_DAYS`). `lastUsedAt`/`expiresAt` are updated at most once per hour per session (every 10 minutes for admins). A TTL index on `absoluteExpiresAt` cleans up.
+- Session cap (decision k): at most 20 active sessions per account. A sign-in that would be the 21st doesn't create a session; it answers `409 { code: "SESSION_LIMIT", oldest: { id, device, lastUsedAt, createdAt } }`. The frontend asks "Sign out of <device>, last used <date>, to continue?"; on yes it repeats the sign-in with `endSessionId`, the server ends that session and signs in. Firebase sign-ins re-send the same ID token (still valid for an hour); password sign-ins keep the typed credentials in memory only for that retry.
 - Cookie `ts_session`: `HttpOnly; Secure; SameSite=Lax; Path=/`; `Domain` from env `COOKIE_DOMAIN` (unset = host-only on `api.tiptobook.com`, which is same-site with `tiptobook.com`, so browsers send it).
 - `protect`: read the cookie, else `Authorization: Bearer <id>`; hash it, find the session, then load the user (still per request, as today, so role/deactivation changes apply immediately); reject inactive/deleted users.
 - Cross-site request forgery (cookies are sent automatically): state-changing requests must carry a custom header (`X-Requested-With: tiptobook`, set by the axios instance) **and** an `Origin` from the CORS allowlist; the Razorpay webhook and `/api/health` are exempt. `SameSite=Lax` already blocks cross-site form posts.
@@ -309,27 +315,27 @@ Files: new `models/PasswordReset.js`, `routes/auth.js`, `services/emailService.j
 - [ ] Frontend: "Forgot password?" on the email sign-in form, a `/reset-password` page, "Change password" in Profile (only when the account has a password).
 - [ ] Tests: unknown and admin emails get the same 200 and no email; a token works once; expired tokens are rejected; reset ends sessions; change requires the current password; rate limit.
 
-### R4.3 Vendor-independent hosting (decisions f, g)
-- [ ] **Env-only config**, no host names in code:
-  - `CORS_ORIGINS` (comma list) and `CORS_ORIGIN_PATTERNS` (suffix patterns for preview hosts) replace `VERCEL_PREVIEW_SUFFIX`;
-  - `TRUST_PROXY` (number of proxy hops, default 1) replaces the hard-coded `app.set("trust proxy", 1)`;
-  - `SELF_PING_URL` (optional) replaces `RENDER_EXTERNAL_URL`;
-  - `COOKIE_DOMAIN` (optional) and `CLIENT_URL` (frontend origin for email links);
+### R4.3 Vendor-independent hosting (decisions f, g, l)
+- [x] **Env-only config**, no host names in code (`config/hosting.js`, unit-tested in `test/p3-hosting.test.mjs`):
+  - `CORS_ORIGINS` (comma list) and `CORS_ORIGIN_PATTERNS` (preview-host suffixes, single label only) replace `VERCEL_PREVIEW_SUFFIX` and `ADDITIONAL_ORIGINS`;
+  - `TRUST_PROXY` (proxy hops, default 1) replaces the hard-coded `app.set("trust proxy", 1)`;
+  - `SELF_PING_URL` (optional; off unless set) replaces `RENDER_EXTERNAL_URL`;
+  - `CLIENT_URL` (frontend origin for CORS and email links); `COOKIE_DOMAIN` comes with R4.1;
   - frontend: `VITE_API_URL` only.
-- [ ] **Dockerfile** in `quicksathi_backend/` (`node:22-slim`, `npm ci --omit=dev`, non-root `node` user, port from `PORT`, `HEALTHCHECK` on `/api/health`) plus `.dockerignore`. Railway: service root `quicksathi_backend`; it builds the Dockerfile automatically. `render.yaml` stays as one more descriptor until Render is retired.
-- [ ] **Frontend host files** from one documented policy (SPA fallback to `index.html`; security headers HSTS, CSP, `frame-ancestors`/X-Frame-Options, Referrer-Policy, Permissions-Policy; immutable cache for `/assets`):
-  - Netlify / Cloudflare Pages: `public/_redirects` + `public/_headers`;
-  - Hostinger (Apache): `public/.htaccess`;
-  - Vercel: the existing `vercel.json`;
-  - a small CI check that the copies agree.
-- [ ] **Domains:** `tiptobook.com` → frontend host; `api.tiptobook.com` → backend host; staging pair `staging.tiptobook.com` / `api-staging.tiptobook.com` with its own database. Host preview URLs (`*.netlify.app`, `*.pages.dev`) use the staging API with the Bearer-header session (cookies don't cross sites there).
+- [x] **Dockerfile** in `quicksathi_backend/` (`node:22-slim`, `npm ci --omit=dev`, non-root `node` user, port from `PORT`, `HEALTHCHECK` on `/api/health`) plus `.dockerignore`. CI job "Backend Docker image" builds it and boots it against a MongoDB service until `/api/health` answers. Railway: service root `quicksathi_backend`; it builds the Dockerfile automatically. `render.yaml` updated to the new env names and stays until Render is retired. _Not built locally (Docker daemon not running); verified by CI._
+- [x] **Frontend host files** generated by `npm run host-config` from `hosting/policy.json` (SPA fallback; HSTS, CSP, X-Frame-Options, Referrer-Policy, Permissions-Policy; immutable `/assets`, revalidated `index.html`):
+  - Netlify + Cloudflare Pages: `public/_headers`; Netlify SPA fallback in `netlify.toml` (Cloudflare Pages falls back to `index.html` by itself when there's no `404.html`, so there is no shared `_redirects`);
+  - Hostinger / Apache / LiteSpeed: `public/.htaccess` (checked locally with Apache 2.4: deep links serve `index.html`, assets get the year-long cache, security headers on every response);
+  - Vercel: `vercel.json`;
+  - CI runs `npm run host-config:check` and fails if any copy drifts.
+- [ ] **Domains (owner):** `tiptobook.com` → frontend host; `api.tiptobook.com` → backend host; staging pair `staging.tiptobook.com` / `api-staging.tiptobook.com` with its own database. Host preview URLs (`*.netlify.app`, `*.pages.dev`) use the staging API with the Bearer-header session (cookies don't cross sites there).
 - [ ] Razorpay webhook and Firebase authorised domains point at the new hosts; the Google Maps key is restricted to the new frontend domains.
-- [ ] Docs: ARCHITECTURE §9 and the README deploy section become host-neutral, with short per-host notes (Railway, Render, Netlify, Cloudflare Pages, Hostinger).
+- [x] Docs: ARCHITECTURE §8–9 and the diagram, ADR-0008, README deploy section are host-neutral.
 - [ ] After the first deploy on the new hosts: the `trust-proxy check` log line shows the real client IP; the login cookie is sent from `tiptobook.com` in Safari and Chrome; a 5 MB image upload works.
 
 ### R4.4 API access matrix + end-to-end tests
-- [ ] **Route access matrix** (`test/p3-access-matrix.test.mjs`): list every route registered on the Express app; for each, assert anonymous gets 401 (unless it is in an explicit public list) and customer/provider/admin are allowed or get 403 according to one table. The test **fails when a new route has no entry**, so access rules can't be forgotten.
-- [ ] **Playwright** (`quicksathi_frontend/e2e/`, `@playwright/test`), run in CI against the in-memory backend + `seed:dev` + `vite preview`:
+- [x] **Route access matrix** (`test/p3-access-matrix.test.mjs`): reads every route from the routers mounted in `server.js` and the guard it actually has (`protect` / `providerOnly` / `adminOnly`), and compares with one table of 103 routes (public / user / provider / admin). It fails when a route has no entry, an entry has no route, or a guard differs (checked by mutating the table). Over HTTP, every guarded route answers 401 anonymously and 403 to the wrong role.
+- [ ] **Playwright** (on hold, see decisions: now, or with a TypeScript port later) (`quicksathi_frontend/e2e/`, `@playwright/test`), run in CI against the in-memory backend + `seed:dev` + `vite preview`:
   1. customer books with cash → provider accepts → customer reads the code → provider starts, completes and records cash;
   2. rental: cash-only checkout, provider confirms the fare;
   3. coupon applied, booking cancelled, coupon usable again;
