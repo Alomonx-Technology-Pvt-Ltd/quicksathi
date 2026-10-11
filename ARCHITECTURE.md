@@ -53,7 +53,7 @@ quicksathi_backend/
   models/              Mongoose schemas: User, Provider, Category, Service, Booking, Coupon, Banner, Notification, Contact
   routes/              one router per area (auth, bookings, payments, providers, admin, services, categories, coupons,
                        banners, contact, notifications, ai, geo)
-  services/            business rules shared by routes: pricing.js, bookingStatus.js, emailService.js, phone.js
+  services/            business rules shared by routes: pricing.js, bookingStatus.js, emailService.js, kyc.js (private KYC files)
   seed/                dev-only data scripts (guarded) + additive migrations
   scripts/             grant-admin.mjs, generate_sitemap.js, migrations/, upload_to_cloudinary.js
   test/                node:test suites + helpers/stack.mjs (boots the real server on an in-memory MongoDB)
@@ -143,10 +143,11 @@ sequenceDiagram
 
 Rules that must stay true (each has tests):
 
-- **The client never sends an amount.** `services/pricing.js` computes the price from `Service.packages[]` / `startingPrice` (rentals: stored `perKmRate` × reported distance, capped). The same `quote()` backs `/bookings/quote`, `/coupons/validate` and `POST /bookings`.
-- **Coupons** are validated by one function (`couponProblem`) and redeemed atomically (`findOneAndUpdate` guarded on per-user use and `usageLimit`); a failed booking releases the redemption. An invalid coupon fails the booking rather than being silently ignored.
-- **A booking is never created `paid`.** Online bookings become paid only through `/payments/verify` or the webhook; both are idempotent, and the amount in a webhook must equal `booking.amount × 100`.
-- **Status changes go through `services/bookingStatus.js`** (one transition map + `statusHistory` audit). Customers may only cancel while `pending`/`confirmed`; providers move `confirmed → in_progress → completed`; admins can also cancel in-progress jobs. `completed` does **not** imply `paid`; cash is recorded by an explicit *cash collected* action. Cancelling a paid booking sets `paymentStatus = refund_pending` (refunds are manual today).
+- **The client never sends an amount.** `services/pricing.js` computes the price from `Service.packages[]` / `startingPrice`. The same `quote()` backs `/bookings/quote`, `/coupons/validate` and `POST /bookings`. **Rentals** are an estimate (`perKmRate` × browser-reported distance, capped; `fareConfirmed: false`), cash only, no coupons; the provider/admin confirms the final fare before *cash collected*.
+- **Coupons** are validated by one function (`couponProblem`) and redeemed atomically (`findOneAndUpdate` guarded on per-user use and `usageLimit`); a failed booking releases the redemption, and so does cancelling a booking before any money was collected. An invalid coupon fails the booking rather than being silently ignored.
+- **A booking is never created `paid`.** Online bookings become paid only through `/payments/verify` or the webhook (`recordPayment`: one atomic, idempotent update; the webhook amount must equal `booking.amount × 100`; the webhook can also find a booking through the Razorpay order notes). Payment confirms a pending online booking; providers/admins can't confirm it before. A payment that arrives after cancellation becomes `refund_pending`.
+- **Status changes go through `services/bookingStatus.js`** (one transition map + `statusHistory` audit). Customers may only cancel while `pending`/`confirmed`; providers accept/cancel with `PATCH /providers/bookings/:id/status`, **start** with the customer's doorstep code (`POST …/start`) and **finish** with `POST …/complete`; admins can also cancel in-progress jobs. `completed` does **not** imply `paid`; cash is recorded by an explicit *cash collected* action. Cancelling a paid booking sets `paymentStatus = refund_pending` (refunds are manual today; admin Bookings has a *refund pending* queue).
+- **Doorstep start code**: 4 random digits (`crypto.randomInt`), `select: false`, returned only to the booking's customer while it is `confirmed`; 5 wrong tries replace it; per-provider rate limit.
 - **Time** is Asia/Kolkata: past-slot validation, coupon "valid until" dates (a date-only value means end of that day IST) and dashboard buckets all use IST.
 
 ## 6. Data model
@@ -222,11 +223,11 @@ CI (`.github/workflows/ci.yml`): backend `npm test` + `npm audit --omit=dev --au
 ## 11. Known limitations (honest list)
 
 - Razorpay was verified by unit tests only; run a real test-mode payment and webhook before launch.
-- Refunds are manual (`refund_pending` flag only).
-- KYC files are on public (unguessable) Cloudinary URLs; private delivery with signed URLs is planned.
+- Refunds are manual (`refund_pending` flag + admin queue).
+- KYC files uploaded before 2026-10-11 stay on public URLs until `scripts/migrations/003-private-kyc.mjs --apply` runs.
 - JWT is kept in `localStorage` (XSS-exposed); a stricter CSP and/or httpOnly cookies would reduce this.
 - Money is stored as rupee decimals, not integer paise.
-- Rental distance is reported by the browser; the server caps it but doesn't recompute the route.
+- Rental distance is reported by the browser, so rental prices are estimates until the provider confirms the fare.
 - Client-rendered SPA: link previews and non-JS crawlers see the homepage head for every URL. Prerendering is future work.
 - Several very large components (`Services.jsx`, `Hero.jsx`, `Layout.jsx`, `ProviderOnboarding.jsx`) and eight near-identical category modals need refactoring; ~120 pre-existing lint errors remain.
 - Error handling is per-route; a central error handler is open work.

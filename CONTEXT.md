@@ -32,7 +32,10 @@ A priced option inside a service (e.g. Silver Menu). The booking price is the ch
 A service's "from" price, used only when no package is selected. Never a promise of the final price.
 
 **Rental service**:
-A service with `serviceMode = RENTAL`; priced as `perKmRate × distance`.
+A service with `serviceMode = RENTAL`. Booked at an **estimated fare** (`perKmRate × distance` from the customer's route), paid in cash, no coupons.
+
+**Estimated fare / confirmed fare**:
+A rental's price is an estimate (`fareConfirmed: false`) until the provider or an admin records the final fare; cash can be marked collected only after that.
 
 ## Booking and money
 
@@ -54,6 +57,12 @@ The scheduled date + time of a booking, interpreted in India Standard Time (Asia
 **Cash collected**:
 The explicit action by which a provider or admin records that the customer paid cash for a COD booking.
 
+**Doorstep start code**:
+The 4-digit code the customer reads out to the provider on arrival; entering it starts the job (`in_progress`) and its **live timer** (`durationMinutes` from the catalog). Only the customer sees it; 5 wrong tries replace it.
+
+**Refund queue**:
+Bookings with `paymentStatus = refund_pending` (paid, then cancelled, or paid after cancelling). Refunded by hand in Razorpay, then set to `refunded`.
+
 **Coupon**:
 A discount code. Redeemed at most once per customer and within its global limit; redemption is atomic with booking creation.
 _Avoid_: promo code, voucher, offer (the UI says "Offers"; the data is a Coupon)
@@ -67,10 +76,13 @@ Razorpay's server-to-server notification of a payment event; the source of truth
 A `Provider` document with `approvalStatus = pending`, created at onboarding or when an admin promotes a user. Granting the provider role requires approving it.
 
 **KYC documents**:
-The ID proof, selfie and optional business registration a provider uploads. Private: visible to admins only.
+The ID proof, selfie and optional business registration a provider uploads. Private Cloudinary files; admins see them only through short-lived signed links.
 
 **Approved / active provider**:
-`approvalStatus = approved` and `isActive = true`. Only these can be assigned jobs or act on bookings.
+`approvalStatus = approved` and `isActive = true`. Only these can be assigned jobs or services. An approved provider who switches to unavailable (`isActive = false`) can still finish jobs already assigned.
+
+**Vertical**:
+A category's business module (`WEDDING`, `VEHICLE_RENTAL`, …, `CONSTRUCTION`). A fixed list in `models/Category.js`; adding one is a code change.
 
 ## Platform
 

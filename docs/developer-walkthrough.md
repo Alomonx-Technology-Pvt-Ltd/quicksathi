@@ -61,7 +61,7 @@ Google/phone login need the `VITE_FIREBASE_*` values; email/password login works
 - `services/bookingStatus.js` is the single transition map + `statusHistory` + cash-collected rule (ADR 0005). Provider and admin routes use it; the provider dashboard shows only legal actions and a *Cash collected* button.
 - Admin: rejection revokes the role; promotion creates a **pending** application; soft delete (anonymise, ADR 0011); last-admin guards; paginated, searchable user list; assignment needs an approved, active provider and a `pending|confirmed` booking; services keep `cities`/`perKmRate`.
 - KYC accepts image uploads only and fails the application if the upload fails.
-- `User.phone`/`firebaseUid` are unique (partial) and phones are normalised to E.164 (`services/phone.js`).
+- `User.phone`/`firebaseUid` are unique (partial). Phones now come only from verified Firebase sign-in (already E.164), so the old normaliser was removed with public sign-up.
 
 **Before deploying:** run `node scripts/migrations/001-user-unique-indexes.mjs` (dry run first; it stops and prints duplicates if there are any — it never merges accounts).
 

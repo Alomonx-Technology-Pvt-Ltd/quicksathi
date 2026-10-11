@@ -40,10 +40,10 @@ Out of scope (agreed): money in paise, automatic Razorpay refunds, enforced full
 **Why:** PR #1 can't merge, and main's new code re-opens bugs PR #1 fixed (completed ⇒ paid, 50 MB bodies, unguarded status changes) and adds new ones (OTP leak/brute force, booking claiming).
 
 ### 0.1 Prep
-- [ ] Push `45c2718` to the PR branch (owner OK required) or keep it local; note which.
-- [ ] Ask Nityanand to pause merges to `main` until Phase 0 lands; share this plan.
-- [ ] `git fetch origin` and create a safety branch: `git branch backup/pre-main-merge`.
-- [ ] `git merge origin/main` into `aditya-fixes-and-improvement` (**merge, not rebase**: the branch is pushed and has a PR).
+- [x] `45c2718` kept local (not pushed; owner decides).
+- [ ] Ask Nityanand to pause merges to `main` until Phase 0 lands; share this plan. (owner)
+- [x] `git fetch origin` and create a safety branch: `git branch backup/pre-main-merge`.
+- [x] `git merge origin/main` into `aditya-fixes-and-improvement` (**merge, not rebase**: the branch is pushed and has a PR).
 
 ### 0.2 Conflict resolution guide (23 files)
 
@@ -71,9 +71,9 @@ Rule of thumb: **PR #1 wins on security, money and data rules; main wins on new 
 | `frontend/.env.example` | Both. Add a comment: restrict `VITE_GOOGLE_MAPS_API_KEY` by HTTP referrer and set a billing cap. |
 | `.gitignore` | Main. |
 
-- [ ] All 23 files resolved per the table; `grep -rn "<<<<<<<\|>>>>>>>" .` empty.
-- [ ] `grep -rn "data/mock" quicksathi_frontend/src` empty.
-- [ ] Backend suite green before starting 0.3 (expect only failures caused by main's OTP code, fixed next).
+- [x] All 23 files resolved per the table; `grep -rn "<<<<<<<\|>>>>>>>" .` empty.
+- [x] `grep -rn "data/mock" quicksathi_frontend/src` empty.
+- [x] Backend suite green before starting 0.3 (expect only failures caused by main's OTP code, fixed next).
 
 ### 0.3 Doorstep OTP, rebuilt safely
 
@@ -93,22 +93,22 @@ Rule of thumb: **PR #1 wins on security, money and data rules; main wins on new 
 - Update `CONTEXT.md` (Start code, Live timer) and ADR-0005 (start requires the code).
 
 Checklist:
-- [ ] Model fields + `select:false`; remove pre-save generation; generate in booking create.
-- [ ] `otpLimiter` in `middleware/rateLimits.js`.
-- [ ] `start` and `complete` routes in `routes/providers.js`; delete main's `/bookings/:id/verify-otp-start` and `/bookings/:id/complete-work`.
-- [ ] Customer GET handlers select `+startOtp` for own confirmed bookings only.
-- [ ] Frontend: `ProviderDashboard.jsx` and `LiveServiceTimerCard.jsx` call the new routes; provider view never renders an OTP.
-- [ ] Migration script 002 (dry run prints counts).
-- [ ] Docs: CONTEXT.md, ADR-0005.
+- [x] Model fields + `select:false`; remove pre-save generation; generate in booking create.
+- [x] `otpLimiter` in `middleware/rateLimits.js`.
+- [x] `start` and `complete` routes in `routes/providers.js`; delete main's `/bookings/:id/verify-otp-start` and `/bookings/:id/complete-work`.
+- [x] Customer GET handlers select `+startOtp` for own confirmed bookings only.
+- [x] Frontend: `ProviderDashboard.jsx` and `LiveServiceTimerCard.jsx` call the new routes; provider view never renders an OTP.
+- [x] Migration script 002 (dry run prints counts).
+- [x] Docs: CONTEXT.md, ADR-0005.
 
 Tests (new file `test/p2-doorstep-otp.test.mjs`):
-- [ ] No provider-facing response (list, status change, cash collected, start, complete) contains `startOtp`.
-- [ ] Wrong code 5× → 429 and the code changes; the old code no longer works.
-- [ ] Provider not assigned to the booking → 404/403; unassigned booking can't be claimed.
-- [ ] Pending (unconfirmed) booking can't be started.
-- [ ] Start records `statusHistory`; complete leaves COD `paymentStatus: "pending"`.
-- [ ] `durationMinutes` in the create body is ignored.
-- [ ] Customer sees their own code; another customer gets 403.
+- [x] No provider-facing response (list, status change, cash collected, start, complete) contains `startOtp`.
+- [x] Wrong code 5× → 429 and the code changes; the old code no longer works.
+- [x] Provider not assigned to the booking → 404/403; unassigned booking can't be claimed.
+- [x] Pending (unconfirmed) booking can't be started.
+- [x] Start records `statusHistory`; complete leaves COD `paymentStatus: "pending"`.
+- [x] `durationMinutes` in the create body is ignored.
+- [x] Customer sees their own code; another customer gets 403.
 
 **Acceptance (Phase 0):** PR #1 mergeable (no conflicts against `origin/main`), suite green, lint not worse, build OK. Browser smoke: Home, Services (new grid), Construction modal → real results, service detail → book (COD) → provider accepts → customer sees code → provider starts with code → timer runs → provider completes → cash collected.
 
@@ -118,44 +118,44 @@ Tests (new file `test/p2-doorstep-otp.test.mjs`):
 
 ### 1.1 Late payment on a cancelled booking (High)
 `routes/payments.js:55-69` (`markPaid`), `:139-145` (`/verify`).
-- [ ] `markPaid` becomes one conditional update: `findOneAndUpdate({_id, paymentStatus: {$in: ["pending","failed"]}}, …)`. Set `paymentStatus = status === "cancelled" ? "refund_pending" : "paid"`; always store `razorpayPaymentId`; confirm only if `pending`; push a `statusHistory` note.
-- [ ] `/verify` on a cancelled booking calls the same path (records the payment, flags refund) and returns 409 with the refund message.
-- [ ] Tests: webhook `payment.captured` after cancel → `refund_pending` + payment id stored; `/verify` after cancel → same; duplicate webhook → no second notification.
+- [x] `markPaid` becomes one conditional update: `findOneAndUpdate({_id, paymentStatus: {$in: ["pending","failed"]}}, …)`. Set `paymentStatus = status === "cancelled" ? "refund_pending" : "paid"`; always store `razorpayPaymentId`; confirm only if `pending`; push a `statusHistory` note.
+- [x] `/verify` on a cancelled booking calls the same path (records the payment, flags refund) and returns 409 with the refund message.
+- [x] Tests: webhook `payment.captured` after cancel → `refund_pending` + payment id stored; `/verify` after cancel → same; duplicate webhook → no second notification.
 
 ### 1.2 Unpaid online bookings can't be confirmed (High)
 `services/bookingStatus.js:37-53`, `routes/admin.js` assign (~536-590), `ProviderDashboard.jsx`.
-- [ ] In `changeStatus`: `pending → confirmed` is rejected when `paymentMethod === "razorpay" && paymentStatus !== "paid"` (payment itself confirms it via `markPaid`).
-- [ ] Admin assign: assigning a provider no longer flips status for unpaid online bookings.
-- [ ] Provider dashboard: unpaid online bookings show "Awaiting payment", no Accept button.
-- [ ] Tests: provider accept and admin assign on an unpaid online booking → status stays `pending`; after payment it is `confirmed`.
+- [x] In `changeStatus`: `pending → confirmed` is rejected when `paymentMethod === "razorpay" && paymentStatus !== "paid"` (payment itself confirms it via `markPaid`).
+- [x] Admin assign: assigning a provider no longer flips status for unpaid online bookings.
+- [x] Provider dashboard: unpaid online bookings show "Awaiting payment", no Accept button.
+- [x] Tests: provider accept and admin assign on an unpaid online booking → status stays `pending`; after payment it is `confirmed`.
 
 ### 1.3 Razorpay order race (Medium)
 `routes/payments.js:92-103`, webhook `:194-198`.
-- [ ] After creating the order, save with `findOneAndUpdate({_id, razorpayOrderId: {$exists: false}}, {$set: {razorpayOrderId}})`; if it lost, return the stored order id instead.
-- [ ] Webhook: if no booking matches `order_id`, fall back to `payload.order.entity.notes.bookingId` (or the payment's `notes`), and only accept it if the amount matches.
-- [ ] Test: two concurrent `create-order` calls return the same `orderId` (stub the Razorpay client through the existing test seam, or document a manual check if no seam exists).
+- [x] After creating the order, save with `findOneAndUpdate({_id, razorpayOrderId: {$exists: false}}, {$set: {razorpayOrderId}})`; if it lost, return the stored order id instead.
+- [x] Webhook: if no booking matches `order_id`, fall back to `payload.order.entity.notes.bookingId` (or the payment's `notes`), and only accept it if the amount matches.
+- [x] Test: two concurrent `create-order` calls return the same `orderId` (stub the Razorpay client through the existing test seam, or document a manual check if no seam exists).
 
 ### 1.4 Release coupon on cancel (Medium)
 `routes/bookings.js:163-200`, admin/provider cancel paths, `services/pricing.js:128` (`releaseCoupon`).
-- [ ] When a booking is cancelled and no money was collected (`paymentStatus` in `pending|failed`), call `releaseCoupon(booking.coupon, booking._id)`. Put this in one helper used by every cancel path.
-- [ ] Test: apply WELCOME50 → cancel unpaid booking → same customer can use WELCOME50 again; `usedCount` back to previous value. Paid-then-cancelled keeps the redemption.
+- [x] When a booking is cancelled and no money was collected (`paymentStatus` in `pending|failed`), call `releaseCoupon(booking.coupon, booking._id)`. Put this in one helper used by every cancel path.
+- [x] Test: apply WELCOME50 → cancel unpaid booking → same customer can use WELCOME50 again; `usedCount` back to previous value. Paid-then-cancelled keeps the redemption.
 
 ### 1.5 Payment page fallbacks (Low)
 `routes/payments.js:155-172`, `PaymentPage.jsx:124-157`.
-- [ ] `cod-confirm` accepts `paymentStatus` `pending|failed`, resets to `pending`. (Not for rentals after 1.6: they are COD from the start.)
-- [ ] PaymentPage: once the booking exists, lock the coupon controls and show `booking.amount`.
-- [ ] Test: failed payment → switch to COD succeeds.
+- [x] `cod-confirm` accepts `paymentStatus` `pending|failed`, resets to `pending`. (Not for rentals after 1.6: they are COD from the start.)
+- [x] PaymentPage: once the booking exists, lock the coupon controls and show `booking.amount`.
+- [x] Test: failed payment → switch to COD succeeds.
 
 ### 1.6 Rentals: cash only, provider-confirmed fare (decision a)
 `services/pricing.js:37-56`, `routes/bookings.js` create, `models/Booking.js`, `routes/providers.js`, `routes/admin.js`, frontend `BookingCard.jsx`, `BookingPage.jsx`, `PaymentPage.jsx`, `ProviderDashboard.jsx`, `admin/pages/AdminBookings.jsx`.
-- [ ] Booking fields: `fareConfirmed: Boolean` (default `true` for non-rentals, `false` for rentals). `amount` holds the estimate until confirmed.
-- [ ] Booking create for `serviceMode === "RENTAL"`: force `paymentMethod: "cod"` (400 if `razorpay`); reject coupons (400 "Coupons don't apply to rentals"); estimate must be > 0 (also fix the early return in `basePriceFor` so the shared `price > 0` check runs).
-- [ ] `create-order` rejects rentals (400).
-- [ ] `POST /api/providers/bookings/:id/fare` `{ amount }` (assigned, approved, active provider) and `PATCH /api/admin/bookings/:id/fare`: allowed when RENTAL, status `in_progress|completed`, `paymentStatus: "pending"`; integer `1 ≤ amount ≤ MAX_RENTAL_KM × perKmRate`; sets `amount`, `fareConfirmed: true`, `statusHistory` note with old/new; notifies the customer.
-- [ ] `markCashCollected` requires `fareConfirmed`.
-- [ ] Frontend: rental price labelled "Estimated fare: the driver confirms the final fare; pay in cash"; no online-pay option or coupon box for rentals; provider dashboard has a "Confirm fare" input; admin bookings shows estimate vs confirmed.
-- [ ] Docs: CONTEXT.md (Rental service, Estimated fare, Confirmed fare); ADR-0002 note.
-- [ ] Tests: rental with `paymentMethod: razorpay` → 400; rental with coupon → 400; `distanceKm: 0.01` → 400; cash collected before fare confirmed → 409; provider confirms fare → amount changes and history recorded; another provider → 404.
+- [x] Booking fields: `fareConfirmed: Boolean` (default `true` for non-rentals, `false` for rentals). `amount` holds the estimate until confirmed.
+- [x] Booking create for `serviceMode === "RENTAL"`: force `paymentMethod: "cod"` (400 if `razorpay`); reject coupons (400 "Coupons don't apply to rentals"); estimate must be > 0 (also fix the early return in `basePriceFor` so the shared `price > 0` check runs).
+- [x] `create-order` rejects rentals (400).
+- [x] `POST /api/providers/bookings/:id/fare` `{ amount }` (assigned, approved, active provider) and `PATCH /api/admin/bookings/:id/fare`: allowed when RENTAL, status `in_progress|completed`, `paymentStatus: "pending"`; integer `1 ≤ amount ≤ MAX_RENTAL_KM × perKmRate`; sets `amount`, `fareConfirmed: true`, `statusHistory` note with old/new; notifies the customer.
+- [x] `markCashCollected` requires `fareConfirmed`.
+- [x] Frontend: rental price labelled "Estimated fare: the driver confirms the final fare; pay in cash"; no online-pay option or coupon box for rentals; provider dashboard has a "Confirm fare" input; admin bookings shows estimate vs confirmed.
+- [x] Docs: CONTEXT.md (Rental service, Estimated fare, Confirmed fare); ADR-0002 note.
+- [x] Tests: rental with `paymentMethod: razorpay` → 400; rental with coupon → 400; `distanceKm: 0.01` → 400; cash collected before fare confirmed → 409; provider confirms fare → amount changes and history recorded; another provider → 404.
 
 **Acceptance (Phase 1):** suite green. Browser smoke on hermetic stack: COD booking, rental booking with fare confirmation, coupon release after cancel. Razorpay paths verified by tests here and by Phase 4.1 for real.
 
@@ -165,30 +165,30 @@ Tests (new file `test/p2-doorstep-otp.test.mjs`):
 
 ### 2.1 Remove public email/password signup (decision b)
 `routes/auth.js:104-130`, `context/AuthContext.jsx:95-99`, `pages/Login.jsx` (signup toggle, lines ~8, 69-76, 504-604), `pages/ProviderOnboarding.jsx:313-315`, "Sign In / Sign Up" labels (`BookingPage.jsx:301`, `MyBookings.jsx:62`, `Profile.jsx:205`, `Layout.jsx:863`).
-- [ ] Delete `POST /api/auth/register` and `register()` in AuthContext.
-- [ ] Login page: Google and phone OTP for customers; the email/password form stays only for existing accounts (labelled "Sign in with email") and for admins/providers who have one.
-- [ ] Provider onboarding: step 1 is "Sign in with Google or phone"; remove the email/password fields; the form submits only `/providers/register`.
-- [ ] Labels "Sign In / Sign Up" → "Sign in".
-- [ ] Update the P0/P1 tests that call `/auth/register` to create users through the existing fixture helpers (record the test change in the log).
-- [ ] Read-only count of existing `authProvider: "local"` users (owner runs against prod, or from a dev copy) to decide whether they need an email.
-- [ ] Docs: ADR-0001 (signup only via Firebase), README.
+- [x] Delete `POST /api/auth/register` and `register()` in AuthContext.
+- [x] Login page: Google and phone OTP for customers; the email/password form stays only for existing accounts (labelled "Sign in with email") and for admins/providers who have one.
+- [x] Provider onboarding: step 1 is "Sign in with Google or phone"; remove the email/password fields; the form submits only `/providers/register`.
+- [x] Labels "Sign In / Sign Up" → "Sign in".
+- [x] Update the P0/P1 tests that call `/auth/register` to create users through the existing fixture helpers (record the test change in the log).
+- [x] Read-only count of existing `authProvider: "local"` users (owner runs against prod, or from a dev copy) to decide whether they need an email.
+- [x] Docs: ADR-0001 (signup only via Firebase), README.
 
 ### 2.2 Google linking can't keep an attacker's password (High)
 `routes/auth.js:88-94` (`linkGoogleIdentity`).
-- [ ] If `user.authProvider === "local" && !user.emailVerified`: unset `password`, set `authProvider: "google"` before marking `emailVerified`. Existing verified local accounts are unchanged.
-- [ ] `scripts/grant-admin.mjs`: refuse users whose `authProvider` is `local` and who were never Google/phone verified (belt and braces).
-- [ ] Test: local account (unverified) → Google sign-in for the same email (stubbed verifier seam, as in `p0-identity-extra`) → old password login returns 401.
+- [x] If `user.authProvider === "local" && !user.emailVerified`: unset `password`, set `authProvider: "google"` before marking `emailVerified`. Existing verified local accounts are unchanged.
+- [x] `scripts/grant-admin.mjs`: refuse users whose `authProvider` is `local` and who were never Google/phone verified (belt and braces).
+- [x] Test: local account (unverified) → Google sign-in for the same email (stubbed verifier seam, as in `p0-identity-extra`) → old password login returns 401.
 
 ### 2.3 Phone squatting (Medium)
 `routes/auth.js:226-255`, `models/User.js:67`.
-- [ ] With 2.1 no new unverified phones are created. For legacy rows: in `/phone`, if another account holds this phone and is not a phone-verified account, unset its `phone` and then create/link the verified user (log an audit line).
-- [ ] Test: legacy local user with phone X → phone OTP login for X succeeds; the legacy account no longer has X.
+- [x] With 2.1 no new unverified phones are created. For legacy rows: in `/phone`, if another account holds this phone and is not a phone-verified account, unset its `phone` and then create/link the verified user (log an audit line).
+- [x] Test: legacy local user with phone X → phone OTP login for X succeeds; the legacy account no longer has X.
 
 ### 2.4 Small auth hardening (Low)
-- [ ] `localCredentialUser`: same "Invalid email or password" message for non-local accounts (`auth.js:140-142`).
-- [ ] Password minimum 8 (`User.js:24` and `scripts/admin-account.mjs`).
-- [ ] Pin JWT algorithm: `jwt.sign(..., {algorithm: "HS256"})` and `jwt.verify(..., {algorithms: ["HS256"]})`.
-- [ ] Tests: enumeration message; short password rejected by `admin-account.mjs`.
+- [x] `localCredentialUser`: same "Invalid email or password" message for non-local accounts (`auth.js:140-142`).
+- [x] Password minimum 8 (`User.js:24` and `scripts/admin-account.mjs`).
+- [x] Pin JWT algorithm: `jwt.sign(..., {algorithm: "HS256"})` and `jwt.verify(..., {algorithms: ["HS256"]})`.
+- [x] Tests: enumeration message; short password rejected by `admin-account.mjs`.
 
 **Acceptance (Phase 2):** suite green; browser smoke: login page shows Google/phone + email sign-in only; provider onboarding requires sign-in first. Real Firebase check in Phase 4.2.
 
@@ -198,41 +198,41 @@ Tests (new file `test/p2-doorstep-otp.test.mjs`):
 
 ### 3.1 Role changes (Medium)
 `routes/admin.js:472`, `:646-688`.
-- [ ] Approve: `User.updateOne({_id, role: "user"}, {role: "provider"})` (never touch admins). Also restore `isActive: true` and clear `rejectionReason` on (re-)approval.
-- [ ] Role change away from `provider`: set the Provider `isActive: false` in the same request.
-- [ ] Tests: approving an admin's provider profile keeps them admin; demoted provider disappears from `/admin/providers/approved` and can't be assigned.
+- [x] Approve: `User.updateOne({_id, role: "user"}, {role: "provider"})` (never touch admins). Also restore `isActive: true` and clear `rejectionReason` on (re-)approval.
+- [x] Role change away from `provider`: set the Provider `isActive: false` in the same request.
+- [x] Tests: approving an admin's provider profile keeps them admin; demoted provider disappears from `/admin/providers/approved` and can't be assigned.
 
 ### 3.2 Provider dashboard keeps customer details (Medium)
 `ProviderDashboard.jsx:121-144`, `routes/providers.js` status + cash-collected responses.
-- [ ] Backend: populate `user` (`name email phone`) and `service` (`name thumbnail`) in those responses (no `startOtp`).
-- [ ] Frontend: merge keeps existing `user`/`service` if the response lacks them (main's pattern).
-- [ ] Browser check: accept → start → complete; customer name/phone stay visible.
+- [x] Backend: populate `user` (`name email phone`) and `service` (`name thumbnail`) in those responses (no `startOtp`).
+- [x] Frontend: merge keeps existing `user`/`service` if the response lacks them (main's pattern).
+- [x] Browser check: accept → start → complete; customer name/phone stay visible.
 
 ### 3.3 Private KYC documents (Medium)
 `routes/providers.js:60-80` (upload), admin provider detail endpoint, `admin/pages/AdminProviders.jsx`.
-- [ ] Upload KYC with `type: "authenticated"` into `TiptoBook/kyc/<providerId>`; store `public_id`, not a public URL.
-- [ ] `GET /api/admin/providers/:id/documents` returns signed URLs valid ~5 minutes (`cloudinary.url(public_id, {type:"authenticated", sign_url:true, expires_at})`).
-- [ ] Admin page opens documents through that endpoint.
-- [ ] Script `scripts/migrations/003-private-kyc.mjs` (dry run default): re-upload existing KYC as authenticated, update docs, then delete the public copies.
-- [ ] Docs: ADR-0006 status → accepted.
-- [ ] Test: provider/public responses never include document URLs; admin endpoint returns URLs only for admins.
+- [x] Upload KYC with `type: "authenticated"` into `TiptoBook/kyc/<providerId>`; store `public_id`, not a public URL.
+- [x] `GET /api/admin/providers/:id/documents` returns signed URLs valid ~5 minutes (`cloudinary.url(public_id, {type:"authenticated", sign_url:true, expires_at})`).
+- [x] Admin page opens documents through that endpoint.
+- [x] Script `scripts/migrations/003-private-kyc.mjs` (dry run default): re-upload existing KYC as authenticated, update docs, then delete the public copies.
+- [x] Docs: ADR-0006 status → accepted.
+- [x] Test: provider/public responses never include document URLs; admin endpoint returns URLs only for admins.
 
 ### 3.4 Admin and catalog hardening (Low)
-- [ ] `Provider.user` `unique: true` (migration step reports duplicates first); duplicate key on register → 400 "profile already exists".
-- [ ] `GET /categories/:id` filters `active: true` for the public.
-- [ ] Admin list routes: string-only filters, `limit` clamped 1–100, paginate `/providers`, `/service-requests`, `/notifications`.
-- [ ] Admin `PUT /services/:id`, `PUT /categories/:id`, `PUT /banners/:id`, `POST /categories`: one `pick*Fields()` allowlist per resource (shared by POST and PUT).
-- [ ] Admin service approval: 409 unless the owning provider is approved and active.
-- [ ] Admin stats: exclude soft-deleted users and inactive providers.
-- [ ] Admin bookings page: "Refund pending" filter (backend `?paymentStatus=refund_pending`).
-- [ ] Tests for each backend item (one assertion each, behaviour-level).
+- [x] `Provider.user` `unique: true` (migration step reports duplicates first); duplicate key on register → 400 "profile already exists".
+- [x] `GET /categories/:id` filters `active: true` for the public.
+- [x] Admin list routes: string-only filters, `limit` clamped 1–100, paginate `/providers`, `/service-requests`, `/notifications`.
+- [x] Admin `PUT /services/:id`, `PUT /categories/:id`, `PUT /banners/:id`, `POST /categories`: one `pick*Fields()` allowlist per resource (shared by POST and PUT).
+- [x] Admin service approval: 409 unless the owning provider is approved and active.
+- [x] Admin stats: exclude soft-deleted users and inactive providers.
+- [x] Admin bookings page: "Refund pending" filter (backend `?paymentStatus=refund_pending`).
+- [x] Tests for each backend item (one assertion each, behaviour-level).
 
 ### 3.5 Edge and ops (Low)
-- [ ] Geo proxy: cap the Nominatim queue (e.g. 30 waiting or 10 s max wait → 503); stricter per-IP limit on Nominatim routes; `Cache-Control` only on success.
-- [ ] CORS: pin the Vercel preview regex to the team suffix (`-<team>.vercel.app`).
-- [ ] Email: escape the fallback status title (`emailService.js:399,412`).
-- [ ] Render: pin Node 22 (`NODE_VERSION` or `.node-version`); add `BREVO_API_KEY`, `BREVO_SENDER_EMAIL`, `BREVO_SENDER_NAME` to `render.yaml`; drop the hard-coded `SMTP_HOST`.
-- [ ] Log `req.ips` once at boot in production to confirm the `trust proxy` hop count.
+- [x] Geo proxy: cap the Nominatim queue (e.g. 30 waiting or 10 s max wait → 503); stricter per-IP limit on Nominatim routes; `Cache-Control` only on success.
+- [x] CORS: pin the Vercel preview regex to the team suffix (`-<team>.vercel.app`).
+- [x] Email: escape the fallback status title (`emailService.js:399,412`).
+- [x] Render: pin Node 22 (`NODE_VERSION` or `.node-version`); add `BREVO_API_KEY`, `BREVO_SENDER_EMAIL`, `BREVO_SENDER_NAME` to `render.yaml`; drop the hard-coded `SMTP_HOST`.
+- [x] Log `req.ips` once at boot in production to confirm the `trust proxy` hop count.
 
 **Acceptance (Phase 3):** suite green; browser smoke of admin providers (KYC opens via signed URL), admin bookings refund filter, provider dashboard.
 
@@ -244,6 +244,9 @@ Tests (new file `test/p2-doorstep-otp.test.mjs`):
 - [ ] Re-issue test API keys; set `RAZORPAY_KEY_ID/SECRET` in dev.
 - [ ] Create the webhook → `https://<api>/api/payments/webhook`, events `payment.captured`, `payment.failed`, `order.paid`; set `RAZORPAY_WEBHOOK_SECRET`.
 - [ ] Run: success (card + UPI), failure, dismiss then retry from My Bookings, switch to COD after failure, cancel then pay late (expect `refund_pending`). Record booking documents.
+
+### 4.1b Private KYC
+- [ ] Upload one KYC file through provider onboarding with real Cloudinary keys and open it from Admin → Providers → View KYC documents (the signed `private_download_url` link is only checked by shape in tests).
 
 ### 4.2 Firebase
 - [ ] Google and phone login against the real project (customer, provider onboarding, admin Google).
@@ -282,10 +285,11 @@ Target UX (owner screenshot, 2026-10-11): one "Checkout & Booking" page: date �
 ## 5. Deploy order (production)
 
 1. Merge PR #1 (after Phases 0–3 and owner review).
-2. Render env: `RAZORPAY_WEBHOOK_SECRET`, Firebase vars, new `JWT_SECRET`, Brevo vars, Node 22.
-3. Run migrations, each dry run first, then `--apply`: `001-user-unique-indexes`, `002-booking-start-otp`, `003-private-kyc`, Provider.user unique-index step.
-4. Give every admin a Google sign-in or a password via `scripts/admin-account.mjs` (the shared admin password is gone).
-5. Deploy backend, then frontend. Check `/api/health`, then a ₹1 live payment and a refund by hand.
+2. Render env: `RAZORPAY_WEBHOOK_SECRET`, Firebase vars, new `JWT_SECRET`, Brevo vars (`BREVO_API_KEY`, `BREVO_SENDER_EMAIL`), Node 22 (in `render.yaml`), optional `VERCEL_PREVIEW_SUFFIX`.
+3. Run migrations, each dry run first, then `--apply`: `001-user-unique-indexes`, `002-booking-start-otp`, `003-private-kyc` (needs Cloudinary env), `004-provider-user-unique`.
+4. Give every admin a Google sign-in or a password via `scripts/admin-account.mjs` (the shared admin password is gone; `grant-admin.mjs` now refuses accounts with a sign-up password).
+5. Deploy backend, then frontend. Check `/api/health` and the one-time `trust-proxy check` line in the Render log (`req.ip` must be the client's address). Then a ₹1 live payment and a refund by hand.
+6. Tell existing email/password customers nothing changes for them; new customers sign up with Google or phone.
 
 ---
 
@@ -294,10 +298,9 @@ Target UX (owner screenshot, 2026-10-11): one "Checkout & Booking" page: date �
 | File | Covers |
 |---|---|
 | `test/p2-doorstep-otp.test.mjs` | 0.3 |
-| `test/p2-payments-extra.test.mjs` | 1.1, 1.2, 1.3, 1.5 |
-| `test/p2-coupons-rentals.test.mjs` | 1.4, 1.6 |
-| `test/p2-identity.test.mjs` | 2.1–2.4 |
-| `test/p2-admin-providers.test.mjs` | 3.1, 3.3, 3.4 |
+| `test/p2-money.test.mjs` | 1.1–1.6 |
+| `test/p2-identity.test.mjs` | 2.1–2.4 (uses the test-only fake Firebase verifier, `TEST_FAKE_FIREBASE=1`) |
+| `test/p2-admin-providers.test.mjs`, `test/p0-provider-extra.test.mjs` | 3.1, 3.3, 3.4 |
 
 ---
 
@@ -317,4 +320,10 @@ Target UX (owner screenshot, 2026-10-11): one "Checkout & Booking" page: date �
 
 | Phase | Commit | Tests | Notes |
 |---|---|---|---|
-| plan | — | 108/108 | Plan written; decisions a–d recorded |
+| plan | `38b644c` | 108/108 | Plan written; decisions a–d recorded |
+| 0 merge | `52ce9c9`, `845eeb2` | 116/116 | `origin/main` merged; OTP rebuilt on the state machine; mock files stay deleted; Construction + CCTV seeded; uploads image-only. Browser: services search, COD booking → accept → code start → complete → cash; customer sees code, provider never does. |
+| 1 money | `c638752` | 125/125 | Late payments → refund_pending; unpaid online can't be confirmed; order race; coupon release; COD after failure; cash-only rentals with confirmed fare. Browser: rental checkout (cash only, estimate), provider confirms fare, coupon box locks after booking. |
+| 2 identity | `c4b30e3` | 130/130 | Public sign-up removed (interpretation of decision b); takeover-proof Google linking; phone squatting; generic login errors; HS256. Test changes: tests that registered users now seed them; the legacy-admin test no longer pins the "use Google" wording. Browser: login page, onboarding sign-in gate. |
+| 3 providers/admin | `85d28cf` + docs commit | 140/140 | Role-safe approval, demotion deactivates, private KYC + signed links + migration 003, Provider.user unique + migration 004, bounded admin queries, refund queue, geo queue cap, CORS team suffix. Browser: admin KYC links, refund queue shows a late-paid cancelled booking. |
+
+**Not done / deviations:** "Sign In / Sign Up" labels kept (Google/phone sign-in still creates accounts, so the label is accurate). Admin lists keep returning arrays (capped at 200–500) instead of `{items,total}` pagination, so the admin pages didn't need rewriting. `private_download_url` for authenticated KYC assets is verified only by URL shape in tests; check one real file in Phase 4. Frontend lint: 100 errors (same as before the merge).

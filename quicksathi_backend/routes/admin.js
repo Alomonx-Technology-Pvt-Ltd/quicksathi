@@ -849,18 +849,20 @@ router.post("/send-email", protect, adminOnly, async (req, res) => {
     }
 
     let recipients = [];
+    // Live accounts only: soft-deleted users (ADR 0011) keep an anonymised placeholder email.
+    const live = { deletedAt: { $exists: false }, isActive: { $ne: false }, email: { $exists: true, $ne: "" } };
     if (recipientType === "all") {
-      const users = await User.find({}, "email");
+      const users = await User.find(live, "email");
       recipients = users.map(u => u.email);
     } else if (recipientType === "providers") {
-      const providers = await Provider.find({ approvalStatus: "approved" }).populate("user", "email");
-      recipients = providers.map(p => p.user?.email).filter(Boolean);
+      const providers = await Provider.find({ approvalStatus: "approved", isActive: true }).populate("user", "email deletedAt");
+      recipients = providers.filter((p) => p.user && !p.user.deletedAt).map((p) => p.user.email).filter(Boolean);
     } else if (recipientType === "users") {
-      const users = await User.find({ role: "user" }, "email");
+      const users = await User.find({ ...live, role: "user" }, "email");
       recipients = users.map(u => u.email);
     } else if (recipientType === "individual") {
       // Only registered accounts can be messaged: this endpoint must not be a mail relay to arbitrary addresses.
-      const target = typeof email === "string" ? await User.findOne({ email: email.trim().toLowerCase() }, "email") : null;
+      const target = typeof email === "string" ? await User.findOne({ ...live, email: email.trim().toLowerCase() }, "email") : null;
       if (!target) {
         return res.status(400).json({ message: "No registered user with that email address" });
       }

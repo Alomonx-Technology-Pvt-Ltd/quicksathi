@@ -19,6 +19,7 @@ Monorepo:
 | [docs/adr/](./docs/adr/) | why the important decisions were made |
 | [docs/developer-walkthrough.md](./docs/developer-walkthrough.md) | the security/reliability overhaul, area by area, with a deploy checklist |
 | [docs/code-review-2026-10-04.md](./docs/code-review-2026-10-04.md), [docs/fix-plan-p0-p1.md](./docs/fix-plan-p0-p1.md) | original findings and the plan that fixed them |
+| [docs/fix-plan-mvp.md](./docs/fix-plan-mvp.md) | round 3: main merged in, money/identity/provider fixes, deploy order, deferred slot booking |
 
 ## Quickstart
 
@@ -77,7 +78,7 @@ VITE_FIREBASE_APP_ID=...
 
 - **Frontend → Vercel**: build `npm run build`, output `dist`. Set `VITE_API_URL` and the `VITE_FIREBASE_*` values. Security headers and SPA rewrites are in `vercel.json`.
 - **Backend → Render** (`render.yaml`): build `npm ci`, start `npm start`. Set every variable marked `sync: false`. `PORT` is injected by Render. Configure the Razorpay webhook to `POST https://<api-host>/api/payments/webhook` (events `payment.captured`, `payment.failed`, `order.paid`) and put its secret in `RAZORPAY_WEBHOOK_SECRET`.
-- First deploy of the unique-phone change: `node scripts/migrations/001-user-unique-indexes.mjs` (dry run), then `--apply`.
+- Migrations, each as a dry run first, then `--apply` (order and details: [fix-plan-mvp §5](./docs/fix-plan-mvp.md#5-deploy-order-production)): `001-user-unique-indexes`, `002-booking-start-otp`, `003-private-kyc`, `004-provider-user-unique` in `quicksathi_backend/scripts/migrations/`.
 - Full checklist: [developer walkthrough §10](./docs/developer-walkthrough.md#10-deploy-checklist).
 
 ## Project status

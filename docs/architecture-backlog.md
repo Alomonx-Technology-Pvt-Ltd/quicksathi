@@ -6,13 +6,15 @@ Suggested order: **1 → 4 → 2** (they build on each other), then 3, 5–8; fr
 
 ## Quick fixes (do any time, independent of the candidates)
 
-| Fix | Where |
-|---|---|
-| Admin service search puts the raw query into `$regex` (unescaped, untyped) | `routes/admin.js` ~149–155 |
-| Re-approving a provider leaves `isActive: false` (reject sets it, approve never restores it); approve doesn't clear `rejectionReason` | `routes/admin.js` approve/reject |
-| `assign-provider` (service) accepts a rejected/inactive provider; the booking-assign route does not | `routes/admin.js` ~509–532 |
-| Admin broadcast (`all`/`users`) emails and notifies soft-deleted users (`deleted+<id>@deleted.invalid`); dashboard user count includes them | `routes/admin.js` broadcast, stats |
-| Provider-only routes check `approvalStatus` but not `isActive` | `routes/providers.js` |
+All five were fixed in round 3 (`docs/fix-plan-mvp.md` Phase 3, tests in `test/p2-admin-providers.test.mjs`):
+
+| Fix | Where | Status |
+|---|---|---|
+| Admin service search puts the raw query into `$regex` (unescaped, untyped) | `routes/admin.js` services list | done: escaped, string-only, clamped |
+| Re-approving a provider leaves `isActive: false`; approve doesn't clear `rejectionReason` | `routes/admin.js` approve/reject | done |
+| `assign-provider` (service) accepts a rejected/inactive provider | `routes/admin.js` assign-provider | done |
+| Admin broadcast and dashboard user count include soft-deleted users | `routes/admin.js` broadcast, stats | done |
+| Provider-only routes check `approvalStatus` but not `isActive` | `routes/providers.js` | decided: `isActive` is the provider's availability toggle, so it must not block finishing jobs already accepted; rejection/demotion/deletion are enforced by `approvalStatus`, role and `protect` |
 
 ## Backend
 

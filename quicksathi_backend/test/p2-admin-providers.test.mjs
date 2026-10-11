@@ -106,3 +106,11 @@ test("category updates take known fields only; a vertical outside the fixed list
   const bad = await s.api("PUT", `/admin/categories/${cat._id}`, { ...as(admin.token), body: { vertical: "SOLAR" } });
   assert.equal(bad.status, 400);
 });
+
+test("broadcasts never reach soft-deleted accounts", async () => {
+  const gone = await s.createUser();
+  await s.api("DELETE", `/admin/users/${gone._id}`, as(admin.token));
+  const placeholder = (await userRow(gone._id)).email;
+  const res = await s.api("POST", "/admin/send-email", { ...as(admin.token), body: { recipientType: "individual", email: placeholder, subject: "Hi", body: "Hello" } });
+  assert.equal(res.status, 400, res.text);
+});
