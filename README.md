@@ -76,8 +76,8 @@ VITE_FIREBASE_APP_ID=...
 
 ## Deployment
 
-- **Frontend → Vercel**: build `npm run build`, output `dist`. Set `VITE_API_URL` and the `VITE_FIREBASE_*` values. Security headers and SPA rewrites are in `vercel.json`.
-- **Backend → Render** (`render.yaml`): build `npm ci`, start `npm start`. Set every variable marked `sync: false`. `PORT` is injected by Render. Configure the Razorpay webhook to `POST https://<api-host>/api/payments/webhook` (events `payment.captured`, `payment.failed`, `order.paid`) and put its secret in `RAZORPAY_WEBHOOK_SECRET`.
+- **Frontend → any static host** (Netlify, Cloudflare Pages, Hostinger, Vercel): build `npm run build`, publish `dist`. Set `VITE_API_URL` and the `VITE_FIREBASE_*` values. Security headers, caching and the SPA fallback are generated for every host from `quicksathi_frontend/hosting/policy.json` (`npm run host-config`); don't edit `_headers`, `.htaccess`, `netlify.toml` or `vercel.json` by hand.
+- **Backend → any Node or container host.** Railway: set the service root to `quicksathi_backend`; it builds the `Dockerfile` automatically. Render: `render.yaml` (`npm ci`, `npm start`). Set the variables listed in [ARCHITECTURE.md §9](./ARCHITECTURE.md#9-environments-and-configuration); `PORT` comes from the host, and check the one-time `trust-proxy check` log line (adjust `TRUST_PROXY` if `req.ip` isn't the client). Configure the Razorpay webhook to `POST https://<api-host>/api/payments/webhook` (events `payment.captured`, `payment.failed`, `order.paid`) and put its secret in `RAZORPAY_WEBHOOK_SECRET`.
 - Migrations, each as a dry run first, then `--apply` (order and details: [fix-plan-mvp §5](./docs/fix-plan-mvp.md#5-deploy-order-production)): `001-user-unique-indexes`, `002-booking-start-otp`, `003-private-kyc`, `004-provider-user-unique` in `quicksathi_backend/scripts/migrations/`.
 - Full checklist: [developer walkthrough §10](./docs/developer-walkthrough.md#10-deploy-checklist).
 
