@@ -188,7 +188,7 @@ export async function startStack({ env: extraEnv = {} } = {}) {
     });
 
   return {
-    api, db, uri, port, tokenFor, createUser, createCategory, createService, createProvider,
+    api, db, uri, port, mongo, tokenFor, createUser, createCategory, createService, createProvider,
     createBooking, createCoupon, razorpaySignature, runScript,
     logs: () => logs,
     restart: async () => { await shutdown(); await boot(); },
