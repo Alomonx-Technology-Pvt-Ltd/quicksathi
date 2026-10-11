@@ -32,3 +32,11 @@ export const contactLimiter = make({ windowMs: HOUR, limit: 5, message: "Too man
 export const aiLimiter = make({ windowMs: HOUR, limit: 20, message: "Chat limit reached. Please try again later." });
 export const couponLimiter = make({ windowMs: MINUTE, limit: 10, message: "Too many coupon attempts. Please wait a minute." });
 export const geoLimiter = make({ windowMs: MINUTE, limit: 60, message: "Too many location lookups. Please slow down." });
+// Doorstep start codes, per signed-in provider (mounted after protect), on top of the
+// per-booking limit of 5 wrong codes.
+export const otpLimiter = make({
+  windowMs: MINUTE,
+  limit: 10,
+  message: "Too many start-code attempts. Please wait a minute.",
+  keyGenerator: (req) => `user:${req.user?._id}`,
+});

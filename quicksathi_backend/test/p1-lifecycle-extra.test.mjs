@@ -13,11 +13,11 @@ test("WP-5: a provider walks a booking through the legal lifecycle and 'complete
   const { provider, user } = await s.createProvider();
   const customer = await s.createUser();
   const service = await s.createService();
-  const b = await s.createBooking({ user: customer, service, provider, status: "confirmed" });
-  for (const next of ["in_progress", "completed"]) {
-    const res = await s.api("PATCH", `/providers/bookings/${b._id}/status`, { token: user.token, body: { status: next } });
-    assert.equal(res.status, 200, res.text);
-  }
+  const b = await s.createBooking({ user: customer, service, provider, status: "confirmed", extra: { startOtp: "4821" } });
+  const started = await s.api("POST", `/providers/bookings/${b._id}/start`, { token: user.token, body: { otp: "4821" } });
+  assert.equal(started.status, 200, started.text);
+  const finished = await s.api("POST", `/providers/bookings/${b._id}/complete`, { token: user.token, body: { notes: "done" } });
+  assert.equal(finished.status, 200, finished.text);
   const done = await reload(b._id);
   assert.equal(done.status, "completed");
   assert.equal(done.paymentStatus, "pending");
@@ -29,7 +29,7 @@ test("WP-5: illegal jumps are rejected (pending → completed, cancelled → any
   const customer = await s.createUser();
   const service = await s.createService();
   const pending = await s.createBooking({ user: customer, service, provider, status: "pending" });
-  assert.equal((await s.api("PATCH", `/providers/bookings/${pending._id}/status`, { token: user.token, body: { status: "completed" } })).status, 409);
+  assert.equal((await s.api("POST", `/providers/bookings/${pending._id}/complete`, { token: user.token })).status, 409);
   const cancelled = await s.createBooking({ user: customer, service, provider, status: "cancelled" });
   assert.equal((await s.api("PATCH", `/providers/bookings/${cancelled._id}/status`, { token: user.token, body: { status: "confirmed" } })).status, 409);
   assert.equal((await s.api("PATCH", `/providers/bookings/${pending._id}/status`, { token: user.token, body: { status: "bogus" } })).status, 400);

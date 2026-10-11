@@ -240,17 +240,24 @@ router.post("/services", protect, adminOnly, async (req, res) => {
   }
 });
 
-// PUT /api/admin/services/:id — Update a service (any field)
+// Fields an admin may change on an existing service. Ratings/reviews come from customers, and
+// approval/ownership have their own routes, so they are never taken from this body.
+const SERVICE_EDITABLE_FIELDS = [
+  "slug", "name", "shortDescription", "fullDescription", "category", "categoryName",
+  "thumbnail", "bannerImage", "gallery", "startingPrice", "priceUnit", "experience",
+  "available", "serviceMode", "tags", "featured", "packages", "faqs", "cities", "perKmRate", "durationMinutes",
+];
+
+const pickFields = (body = {}, fields) =>
+  Object.fromEntries(fields.filter((f) => body[f] !== undefined).map((f) => [f, body[f]]));
+
+// PUT /api/admin/services/:id — Update a service (allow-listed fields)
 router.put("/services/:id", protect, adminOnly, async (req, res) => {
   try {
-    const updateData = { ...req.body };
-    delete updateData._id;
-    delete updateData.__v;
-    delete updateData.createdAt;
-    delete updateData.updatedAt;
+    const updateData = pickFields(req.body, SERVICE_EDITABLE_FIELDS);
 
     if (updateData.category && typeof updateData.category === "object") {
-      updateData.category = updateData.category._id || updateData.category;
+      updateData.category = updateData.category._id;
     }
 
     // If slug is being changed, check uniqueness
@@ -726,22 +733,29 @@ router.delete("/users/:id", protect, adminOnly, async (req, res) => {
   }
 });
 
-// POST /api/admin/upload — Upload base64 or URL image to Cloudinary
+// Images only (no SVG: it can carry script), as a base64 data URL, at most ~5 MB.
+const IMAGE_DATA_URL = /^data:image\/(png|jpe?g|webp);base64,[A-Za-z0-9+/]+=*$/;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+// POST /api/admin/upload — Upload a base64 image to Cloudinary
 router.post("/upload", protect, adminOnly, async (req, res) => {
   try {
     const { image } = req.body;
-    if (!image) {
-      return res.status(400).json({ message: "No image data provided" });
+    if (typeof image !== "string" || !IMAGE_DATA_URL.test(image)) {
+      return res.status(400).json({ message: "Upload a PNG, JPEG or WebP image" });
+    }
+    if (Math.floor((image.length - image.indexOf(",") - 1) * 0.75) > MAX_IMAGE_BYTES) {
+      return res.status(413).json({ message: "Image is larger than 5 MB" });
     }
 
     if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
       console.error("Cloudinary credentials are not configured in environment variables.");
-      return res.status(500).json({ message: "Cloudinary storage is not properly configured on server." });
+      return res.status(503).json({ message: "Image storage is not configured on the server." });
     }
 
     const uploadResponse = await cloudinary.uploader.upload(image, {
       folder: "TiptoBook",
-      resource_type: "auto",
+      resource_type: "image",
       timeout: 60000,
     });
 
@@ -751,7 +765,7 @@ router.post("/upload", protect, adminOnly, async (req, res) => {
     });
   } catch (error) {
     console.error("Cloudinary upload failed:", error);
-    res.status(500).json({ message: error.message || "Failed to upload image to Cloudinary" });
+    res.status(502).json({ message: "Image upload failed. Please try again." });
   }
 });
 

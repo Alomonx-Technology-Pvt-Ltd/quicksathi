@@ -1,3 +1,4 @@
+import crypto from "node:crypto";
 import mongoose from "mongoose";
 
 const bookingSchema = new mongoose.Schema(
@@ -109,16 +110,52 @@ const bookingSchema = new mongoose.Schema(
         note: String,
       },
     ],
+    // ── Doorstep start code + live service timer ──
+    // The customer reads the 4-digit start code to the provider at the door; only the customer
+    // ever receives it (select:false; customer routes opt in with .select("+startOtp")).
+    startOtp: {
+      type: String,
+      select: false,
+    },
+    startOtpAttempts: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
+    durationMinutes: {
+      type: Number,
+      default: 60,
+    },
+    startedAt: {
+      type: Date,
+    },
+    expectedEndAt: {
+      type: Date,
+    },
+    completedAt: {
+      type: Date,
+    },
+    completionNotes: {
+      type: String,
+      default: "",
+      maxlength: 1000,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-// Generate booking ID before saving
+export const newStartOtp = () => String(crypto.randomInt(0, 10000)).padStart(4, "0");
+
+// Generate booking ID and (for new bookings only) the doorstep start code.
 bookingSchema.pre("save", function (next) {
   if (!this.bookingId) {
     this.bookingId = "QS-" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substring(2, 6).toUpperCase();
+  }
+  // Only on insert: startOtp is select:false, so on later saves it is simply not loaded.
+  if (this.isNew && !this.startOtp) {
+    this.startOtp = newStartOtp();
   }
   next();
 });

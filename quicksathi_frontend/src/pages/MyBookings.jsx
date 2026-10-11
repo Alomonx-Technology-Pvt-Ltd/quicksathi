@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../config/api";
 import { payForBooking } from "../utils/razorpayCheckout";
+import LiveServiceTimerCard from "../components/LiveServiceTimerCard";
 
 const STATUS_STYLES = {
   pending: { bg: "rgba(234,179,8,0.1)", color: "#ca8a04", label: "Pending" },
@@ -22,18 +23,33 @@ const MyBookings = () => {
 
   useEffect(() => {
     if (!isAuthenticated) return;
-    const fetchBookings = async () => {
+    let isMounted = true;
+
+    const fetchBookings = async (silent = false) => {
       try {
-        setLoading(true);
+        if (!silent) setLoading(true);
         const { data } = await api.get("/bookings");
-        setBookings(data);
+        if (isMounted) setBookings(data);
       } catch (err) {
-        setError(err.response?.data?.message || "Failed to load bookings.");
+        if (isMounted && !silent) {
+          setError(err.response?.data?.message || "Failed to load bookings.");
+        }
       } finally {
-        setLoading(false);
+        if (isMounted && !silent) setLoading(false);
       }
     };
+
     fetchBookings();
+
+    // Poll every 8 seconds if there are active jobs
+    const pollInterval = setInterval(() => {
+      fetchBookings(true);
+    }, 8000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(pollInterval);
+    };
   }, [isAuthenticated]);
 
   const handleCancel = async (bookingId) => {
@@ -202,6 +218,9 @@ const MyBookings = () => {
                       )}
                     </div>
                   </div>
+
+                  {/* Doorstep Verification OTP Card & Active Countdown Timer */}
+                  <LiveServiceTimerCard booking={booking} />
                 </div>
               );
             })}

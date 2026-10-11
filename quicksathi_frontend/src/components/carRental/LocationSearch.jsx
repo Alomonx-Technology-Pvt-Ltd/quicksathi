@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { MapPin, X, Loader2, Crosshair, Navigation } from "lucide-react";
 import { useLocation } from "../../context/LocationContext";
 import api from "../../config/api";
+import { searchGooglePlaces, isGoogleMapsAvailable } from "../../utils/googleMapsLoader";
 
 /**
  * LocationSearch — Autocomplete address input using OpenStreetMap Nominatim with
@@ -66,6 +67,30 @@ const LocationSearch = ({
       debounceRef.current = setTimeout(async () => {
         setLoading(true);
         try {
+          // 1. Google Places when a Maps key is configured (optional).
+          if (isGoogleMapsAvailable()) {
+            const googleResults = await searchGooglePlaces(q);
+            if (googleResults && googleResults.length > 0) {
+              setResults(
+                googleResults.map((item) => ({
+                  name: item.displayName || item.label,
+                  shortName: item.street || item.road || item.locality || item.displayName,
+                  road: item.road,
+                  locality: item.locality,
+                  city: item.city,
+                  state: item.state,
+                  lat: item.lat,
+                  lon: item.lon,
+                  isGoogle: true,
+                }))
+              );
+              setOpen(true);
+              setLoading(false);
+              return;
+            }
+          }
+
+          // 2. OpenStreetMap through our backend proxy (cached, rate-limited; ADR-0010).
           const { data } = await api.get("/geo/nominatim/search", { params: { q, limit: 7 } });
           setResults(
             (data || []).map((item) => {

@@ -1409,6 +1409,95 @@ const servicesData = [
       { name: "ColorPro Painters", rating: 4.7, experience: "8 Years", location: "Patna", startingPrice: 2999, image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop" }
     ]
   },
+  // ── Construction & Interior Design (category added on main, 2026-10-05) ──
+  // Large jobs are quoted after a paid site visit, so the bookable price is the visit/consultation.
+  {
+    slug: "home-construction-consultation",
+    name: "Home Construction Consultation",
+    shortDescription: "Site visit, budget estimate and plan for a new home or commercial building",
+    fullDescription: "A civil engineer visits your plot, checks soil and access, and gives you a written estimate and timeline for end-to-end construction with quality materials and structural guarantees.",
+    categoryGroup: "Construction & Interior Design",
+    thumbnail: "https://images.unsplash.com/photo-1541888946425-d0fbb18615f8?q=80&w=2070&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1541888946425-d0fbb18615f8?q=80&w=2070&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 999,
+    priceUnit: "per visit",
+    experience: "10 Years",
+    available: true,
+    serviceMode: "ON_SITE",
+    tags: ["Construction", "New Home", "Civil", "Planning"],
+    featured: false,
+    packages: [
+      { title: "Site Visit & Estimate", price: 999, features: ["Engineer site visit", "Written cost estimate", "Timeline plan"] }
+    ],
+    faqs: [
+      { question: "Is the visit fee adjusted later?", answer: "Your provider will tell you during the visit whether it is adjusted against the final contract." }
+    ],
+  },
+  {
+    slug: "renovation-remodeling",
+    name: "Renovation & Remodeling",
+    shortDescription: "Kitchen, bathroom and full-home renovation with a site survey first",
+    fullDescription: "Complete home transformation: kitchen remodels, bathroom revamps and structural restoration. Booking covers the survey and a detailed quote.",
+    categoryGroup: "Construction & Interior Design",
+    thumbnail: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2070&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2070&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 499,
+    priceUnit: "per visit",
+    experience: "8 Years",
+    available: true,
+    serviceMode: "ON_SITE",
+    tags: ["Construction", "Renovation", "Remodeling", "Kitchen", "Bathroom"],
+    featured: false,
+    packages: [
+      { title: "Survey & Quote", price: 499, features: ["On-site survey", "Itemised quote", "Material options"] }
+    ],
+    faqs: [],
+  },
+  {
+    slug: "interior-design-false-ceiling",
+    name: "Interior Design & False Ceiling",
+    shortDescription: "Modern interiors, custom woodwork, false ceilings and lighting",
+    fullDescription: "Bespoke interiors, gypsum/POP false ceilings and ambient lighting. Booking covers a designer consultation and a mood board for your space.",
+    categoryGroup: "Construction & Interior Design",
+    thumbnail: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2070&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2070&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 799,
+    priceUnit: "per consultation",
+    experience: "7 Years",
+    available: true,
+    serviceMode: "ON_SITE",
+    tags: ["Construction", "Interior", "Interior Design", "False Ceiling", "Ceiling", "Lighting"],
+    featured: false,
+    packages: [
+      { title: "Designer Consultation", price: 799, features: ["Home visit by a designer", "Mood board", "Budget estimate"] }
+    ],
+    faqs: [],
+  },
+  {
+    slug: "2d-3d-design-planning",
+    name: "2D/3D Design & Planning",
+    shortDescription: "Floor plans, 3D elevations and approval-ready drawings",
+    fullDescription: "Architectural floor plans, 3D elevation renders, structural drafting and municipal approval layouts, delivered digitally.",
+    categoryGroup: "Construction & Interior Design",
+    thumbnail: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2070&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2070&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 2999,
+    priceUnit: "per plan",
+    experience: "9 Years",
+    available: true,
+    serviceMode: "REMOTE",
+    tags: ["Construction", "Planning", "2D", "3D", "Architecture"],
+    featured: false,
+    packages: [
+      { title: "2D Floor Plan", price: 2999, features: ["Up to 2 floors", "2 revisions"] },
+      { title: "2D + 3D Elevation", price: 6999, features: ["Floor plans", "3D front elevation", "3 revisions"] }
+    ],
+    faqs: [],
+  },
   {
     slug: "hair-styling-care",
     name: "Hair Styling & Care",

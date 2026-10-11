@@ -78,6 +78,8 @@ router.post("/", protect, async (req, res) => {
         provider: toObjectId(service.provider),
         serviceName: service.name,
         packageTitle: pkg?.title || "",
+        // Allotted time for the live timer comes from the catalog, never from the request.
+        durationMinutes: pkg?.durationMinutes || service.durationMinutes || 60,
         scheduledDate: parsedDate,
         scheduledTime,
         location,
@@ -106,13 +108,21 @@ router.post("/", protect, async (req, res) => {
       }).catch((err) => console.error("Email notification error:", err?.message || err));
     }
 
-    res.status(201).json(booking);
+    res.status(201).json(customerView(booking));
   } catch (error) {
     if (error instanceof PricingError) return res.status(error.status).json({ message: error.message, ...error.extra });
     console.error("Booking creation error:", error);
     res.status(500).json({ message: error.message });
   }
 });
+
+// The doorstep start code is shown to the customer only while the job is confirmed and not yet started.
+function customerView(booking) {
+  const out = booking.toObject();
+  if (out.status !== "confirmed") delete out.startOtp;
+  delete out.startOtpAttempts;
+  return out;
+}
 
 // GET /api/bookings — Get current user's bookings
 router.get("/", protect, async (req, res) => {
@@ -122,11 +132,12 @@ router.get("/", protect, async (req, res) => {
     if (status) filter.status = status;
 
     const bookings = await Booking.find(filter)
+      .select("+startOtp")
       .populate("service", "name thumbnail startingPrice slug")
       .populate("provider", "businessName phone email")
       .sort("-createdAt");
 
-    res.json(bookings);
+    res.json(bookings.map(customerView));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -141,6 +152,7 @@ router.get("/:id", protect, async (req, res) => {
     }
 
     const booking = await Booking.findById(req.params.id)
+      .select("+startOtp")
       .populate("service")
       .populate("user", "name email phone");
 
@@ -149,11 +161,14 @@ router.get("/:id", protect, async (req, res) => {
     }
 
     // Only allow owner or admin to view
-    if (booking.user._id.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+    const isOwner = booking.user._id.toString() === req.user._id.toString();
+    if (!isOwner && req.user.role !== "admin") {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    res.json(booking);
+    const out = customerView(booking);
+    if (!isOwner) delete out.startOtp; // the start code is for the customer only
+    res.json(out);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

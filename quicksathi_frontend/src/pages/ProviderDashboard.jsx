@@ -19,6 +19,7 @@ import {
   Moon
 } from "lucide-react";
 import BrandLogo from "../components/common/BrandLogo";
+import LiveServiceTimerCard from "../components/LiveServiceTimerCard";
 
 const STATUS_STYLES = {
   pending: { bg: "rgba(245,158,11,0.1)", color: "#f59e0b", label: "⏳ Pending Review" },
@@ -44,6 +45,8 @@ const ProviderDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [verifying, setVerifying] = useState(null);
+  const [completing, setCompleting] = useState(null);
   const [message, setMessage] = useState("");
   const [selectedCities, setSelectedCities] = useState([]);
   
@@ -67,6 +70,7 @@ const ProviderDashboard = () => {
   }, [theme]);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchData = async () => {
       try {
         const [providerRes, servicesRes, bookingsRes, categoriesRes] = await Promise.all([
@@ -75,6 +79,7 @@ const ProviderDashboard = () => {
           api.get("/providers/bookings").catch(() => ({ data: [] })),
           api.get("/categories").catch(() => ({ data: [] })),
         ]);
+        if (!isMounted) return;
         setProvider(providerRes.data);
         setServices(servicesRes.data);
         setBookings(bookingsRes.data);
@@ -86,10 +91,27 @@ const ProviderDashboard = () => {
       } catch (err) {
         console.error("Dashboard fetch error:", err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
     fetchData();
+
+    // Background poll every 10s so provider sees newly created and updated bookings
+    const pollInterval = setInterval(async () => {
+      try {
+        const bookingsRes = await api.get("/providers/bookings");
+        if (isMounted && bookingsRes.data) {
+          setBookings(bookingsRes.data);
+        }
+      } catch {
+        // silent fail on background poll
+      }
+    }, 10000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(pollInterval);
+    };
   }, []);
 
   const handleChange = (e) => {
@@ -118,12 +140,18 @@ const ProviderDashboard = () => {
     }
   };
 
+  // API responses carry the populated customer/service; keep the existing objects if one ever doesn't.
+  const mergeBooking = (prev, next = {}) => ({
+    ...prev,
+    ...next,
+    user: typeof next.user === "object" && next.user ? next.user : prev.user,
+    service: typeof next.service === "object" && next.service ? next.service : prev.service,
+  });
+
   const handleBookingStatus = async (bookingId, newStatus) => {
     try {
       const { data } = await api.patch(`/providers/bookings/${bookingId}/status`, { status: newStatus });
-      setBookings((prev) =>
-        prev.map((b) => (b._id === bookingId ? { ...b, ...data.booking } : b))
-      );
+      setBookings((prev) => prev.map((b) => (b._id === bookingId ? mergeBooking(b, data.booking) : b)));
       setMessage(`Booking status updated to ${newStatus.replace("_", " ")}!`);
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
@@ -135,11 +163,42 @@ const ProviderDashboard = () => {
   const handleCashCollected = async (bookingId) => {
     try {
       const { data } = await api.post(`/providers/bookings/${bookingId}/cash-collected`);
-      setBookings((prev) => prev.map((b) => (b._id === bookingId ? { ...b, ...data.booking } : b)));
+      setBookings((prev) => prev.map((b) => (b._id === bookingId ? mergeBooking(b, data.booking) : b)));
       setMessage("Cash payment recorded.");
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
       setMessage(err.response?.data?.message || "Could not record cash payment");
+    }
+  };
+
+  const handleVerifyOtpStart = async (bookingId, otp, setErrorCallback) => {
+    try {
+      setVerifying(bookingId);
+      const { data } = await api.post(`/providers/bookings/${bookingId}/start`, { otp });
+      setBookings((prev) => prev.map((b) => (b._id === bookingId ? mergeBooking(b, data.booking) : b)));
+      setMessage("Code verified. The service timer has started.");
+      setTimeout(() => setMessage(""), 4000);
+    } catch (err) {
+      const msg = err.response?.data?.message || "Wrong code. Check with the customer.";
+      if (setErrorCallback) setErrorCallback(msg);
+      else setMessage(msg);
+    } finally {
+      setVerifying(null);
+    }
+  };
+
+  const handleCompleteWork = async (bookingId, notes = "") => {
+    if (!window.confirm("Are you sure you want to submit this job as completed?")) return;
+    try {
+      setCompleting(bookingId);
+      const { data } = await api.post(`/providers/bookings/${bookingId}/complete`, { notes });
+      setBookings((prev) => prev.map((b) => (b._id === bookingId ? mergeBooking(b, data.booking) : b)));
+      setMessage("Service job completed successfully!");
+      setTimeout(() => setMessage(""), 4000);
+    } catch (err) {
+      setMessage(err.response?.data?.message || "Failed to complete work");
+    } finally {
+      setCompleting(null);
     }
   };
 
@@ -653,8 +712,23 @@ const ProviderDashboard = () => {
                         </div>
                       )}
 
+                      {/* Time-Based Live Countdown Timer & OTP Verification */}
+                      <LiveServiceTimerCard
+                        booking={b}
+                        isProvider={true}
+                        onVerifyOtp={handleVerifyOtpStart}
+                        onCompleteWork={handleCompleteWork}
+                        verifying={verifying === b._id}
+                        completing={completing === b._id}
+                      />
+
                       <div className="flex items-center justify-end gap-2 pt-3 border-t" style={{ borderColor: "var(--admin-border)" }}>
-                        {b.status === "pending" && (
+                        {b.status === "pending" && b.paymentMethod === "razorpay" && b.paymentStatus !== "paid" && (
+                          <span className="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase" style={{ color: "var(--admin-text-muted)" }}>
+                            Awaiting payment
+                          </span>
+                        )}
+                        {b.status === "pending" && !(b.paymentMethod === "razorpay" && b.paymentStatus !== "paid") && (
                           <button
                             onClick={() => handleBookingStatus(b._id, "confirmed")}
                             className="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase cursor-pointer border-0 bg-green-500 hover:bg-green-600 text-white transition"
@@ -662,22 +736,7 @@ const ProviderDashboard = () => {
                             Accept Booking
                           </button>
                         )}
-                        {b.status === "confirmed" && (
-                          <button
-                            onClick={() => handleBookingStatus(b._id, "in_progress")}
-                            className="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase cursor-pointer border-0 bg-blue-500 hover:bg-blue-600 text-white transition"
-                          >
-                            Start Work
-                          </button>
-                        )}
-                        {b.status === "in_progress" && (
-                          <button
-                            onClick={() => handleBookingStatus(b._id, "completed")}
-                            className="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase cursor-pointer border-0 bg-purple-500 hover:bg-purple-600 text-white transition"
-                          >
-                            Complete Work
-                          </button>
-                        )}
+                        {/* Start and Complete live in the timer card above (start needs the customer's code). */}
                         {["in_progress", "completed"].includes(b.status) && b.paymentMethod === "cod" && b.paymentStatus !== "paid" && (
                           <button
                             onClick={() => handleCashCollected(b._id)}
