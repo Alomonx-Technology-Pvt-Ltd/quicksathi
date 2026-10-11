@@ -409,7 +409,7 @@ export async function sendBookingStatusEmail({ to, name, booking, status }) {
                 <tr>
                   <td style="padding: 28px 40px; background: ${curr.color}; text-align: center; color: #ffffff;">
                     <div style="font-size: 32px; margin-bottom: 4px;">${curr.icon}</div>
-                    <h2 style="margin: 0; font-size: 20px;">${curr.title}</h2>
+                    <h2 style="margin: 0; font-size: 20px;">${escapeHtml(curr.title)}</h2>
                     <p style="margin: 4px 0 0 0; opacity: 0.9; font-size: 13px;">Order #${bookingId}</p>
                   </td>
                 </tr>

@@ -11,6 +11,7 @@ import { adminOnly } from "../middleware/admin.js";
 import { adminUpdateBookingStatus } from "./bookings.js";
 import { markCashCollected, confirmFare, BookingStateError } from "../services/bookingStatus.js";
 import { maxRentalFare } from "../services/pricing.js";
+import { kycViewUrl } from "../services/kyc.js";
 import { v2 as cloudinary } from "cloudinary";
 
 const router = Router();
@@ -20,6 +21,11 @@ cloudinary.config({
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
+
+// Query-string helpers: only plain strings reach a filter (no ?x[$ne]= objects) and lists are bounded.
+const str = (v) => (typeof v === "string" && v ? v : undefined);
+const clampLimit = (v, fallback, max = 200) => Math.min(Math.max(parseInt(v, 10) || fallback, 1), max);
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
 // ─── DASHBOARD STATS ───────────────────────────────────
 
@@ -49,8 +55,8 @@ router.get("/stats", protect, adminOnly, async (req, res) => {
       monthlyRevenueAgg,
       dailyBookingsAgg
     ] = await Promise.all([
-      User.countDocuments(),
-      Provider.countDocuments({ approvalStatus: "approved" }),
+      User.countDocuments({ deletedAt: { $exists: false } }),
+      Provider.countDocuments({ approvalStatus: "approved", isActive: true }),
       Provider.countDocuments({ approvalStatus: "pending" }),
       Booking.countDocuments(),
       Service.countDocuments(),
@@ -144,32 +150,32 @@ router.get("/stats", protect, adminOnly, async (req, res) => {
 // GET /api/admin/services — List ALL services (including unavailable)
 router.get("/services", protect, adminOnly, async (req, res) => {
   try {
-    const { category, search, page = 1, limit = 50 } = req.query;
+    const category = str(req.query.category);
+    const search = str(req.query.search);
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = clampLimit(req.query.limit, 50);
     const filter = {};
 
-    if (category) filter.category = category;
+    if (category && /^[a-f0-9]{24}$/i.test(category)) filter.category = category;
     if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { categoryName: { $regex: search, $options: "i" } },
-        { tags: { $regex: search, $options: "i" } },
-      ];
+      const rx = new RegExp(escapeRegex(search.slice(0, 100)), "i");
+      filter.$or = [{ name: rx }, { categoryName: rx }, { tags: rx }];
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const skip = (page - 1) * limit;
     const [services, total] = await Promise.all([
       Service.find(filter)
         .sort("-createdAt")
         .skip(skip)
-        .limit(parseInt(limit)),
+        .limit(limit),
       Service.countDocuments(filter),
     ]);
 
     res.json({
       services,
       total,
-      page: parseInt(page),
-      totalPages: Math.ceil(total / parseInt(limit)),
+      page,
+      totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -363,16 +369,22 @@ router.post("/categories", protect, adminOnly, async (req, res) => {
 
     res.status(201).json(category);
   } catch (error) {
+    if (error?.name === "ValidationError") return res.status(400).json({ message: error.message });
     res.status(500).json({ message: error.message });
   }
 });
 
-// PUT /api/admin/categories/:id — Update a category
+const CATEGORY_EDITABLE_FIELDS = [
+  "name", "description", "vertical", "type", "imageUrl", "secondaryImageUrl", "iconUrl",
+  "displayOrder", "active", "comingSoon", "subCategories",
+];
+
+// PUT /api/admin/categories/:id — Update a category (allow-listed fields)
 router.put("/categories/:id", protect, adminOnly, async (req, res) => {
   try {
     const category = await Category.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      pickFields(req.body, CATEGORY_EDITABLE_FIELDS),
       { new: true, runValidators: true }
     );
 
@@ -382,6 +394,7 @@ router.put("/categories/:id", protect, adminOnly, async (req, res) => {
 
     res.json(category);
   } catch (error) {
+    if (error?.name === "ValidationError") return res.status(400).json({ message: error.message });
     res.status(500).json({ message: error.message });
   }
 });
@@ -454,16 +467,38 @@ router.patch("/categories/:id/coming-soon", protect, adminOnly, async (req, res)
 // GET /api/admin/providers — List all providers with status filter
 router.get("/providers", protect, adminOnly, async (req, res) => {
   try {
-    const { status } = req.query;
+    const status = str(req.query.status);
     const filter = {};
     if (status) filter.approvalStatus = status;
 
+    // KYC documents are not in this list; admins open them through /providers/:id/documents (signed, short-lived).
     const providers = await Provider.find(filter)
-      .select("+documents.idProof +documents.businessRegistration +documents.selfiePhoto +documents.other")
       .populate("user", "name email avatar phone")
-      .sort("-createdAt");
+      .sort("-createdAt")
+      .limit(500);
 
     res.json(providers);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// GET /api/admin/providers/:id/documents — KYC files as short-lived signed links (admins only).
+router.get("/providers/:id/documents", protect, adminOnly, async (req, res) => {
+  try {
+    const provider = await Provider.findById(req.params.id).select(
+      "+documents.idProof +documents.businessRegistration +documents.selfiePhoto +documents.other"
+    );
+    if (!provider) return res.status(404).json({ message: "Provider not found" });
+    const d = provider.documents || {};
+    res.set("Cache-Control", "no-store");
+    res.json({
+      expiresInSeconds: 300,
+      selfiePhoto: kycViewUrl(d.selfiePhoto),
+      idProof: kycViewUrl(d.idProof),
+      businessRegistration: kycViewUrl(d.businessRegistration),
+      other: (d.other || []).map((ref) => kycViewUrl(ref)),
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -478,6 +513,9 @@ router.patch("/providers/:id/approve", protect, adminOnly, async (req, res) => {
         approvalStatus: "approved",
         approvedBy: req.user._id,
         approvedAt: new Date(),
+        // Re-approval after a rejection restores the profile.
+        isActive: true,
+        rejectionReason: "",
       },
       { new: true }
     ).populate("user", "name email");
@@ -486,8 +524,8 @@ router.patch("/providers/:id/approve", protect, adminOnly, async (req, res) => {
       return res.status(404).json({ message: "Provider not found" });
     }
 
-    // Promote user role to provider
-    await User.findByIdAndUpdate(provider.user._id, { role: "provider" });
+    // Grant the provider role to a customer account only; never touch an admin's role.
+    await User.updateOne({ _id: provider.user._id, role: "user" }, { role: "provider" });
 
     res.json({ message: "Provider approved", provider });
   } catch (error) {
@@ -536,6 +574,9 @@ router.patch("/services/:id/assign-provider", protect, adminOnly, async (req, re
       const provider = await Provider.findById(providerId);
       if (!provider) {
         return res.status(404).json({ message: "Provider not found" });
+      }
+      if (provider.approvalStatus !== "approved" || !provider.isActive) {
+        return res.status(400).json({ message: "Only approved, active providers can be assigned to services" });
       }
       service.provider = provider._id;
     } else {
@@ -725,6 +766,10 @@ router.patch("/users/:id/role", protect, adminOnly, async (req, res) => {
 
     user.role = finalRole;
     await user.save();
+    // Leaving the provider role ends the provider profile too, so the account can't be assigned jobs.
+    if (finalRole !== "provider") {
+      await Provider.updateMany({ user: user._id, isActive: true }, { isActive: false });
+    }
     res.json({ message: "User role updated successfully", user });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -949,7 +994,8 @@ router.get("/service-requests", protect, adminOnly, async (req, res) => {
     const services = await Service.find({ provider: { $exists: true, $ne: null } })
       .populate("provider", "businessName email phone location")
       .populate("category", "name")
-      .sort("-createdAt");
+      .sort("-createdAt")
+      .limit(500);
     res.json(services);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -959,8 +1005,11 @@ router.get("/service-requests", protect, adminOnly, async (req, res) => {
 // PATCH /api/admin/service-requests/:id/approve — Approve a service listing
 router.patch("/service-requests/:id/approve", protect, adminOnly, async (req, res) => {
   try {
-    const service = await Service.findById(req.params.id).populate("provider", "businessName user");
+    const service = await Service.findById(req.params.id).populate("provider", "businessName user approvalStatus isActive");
     if (!service) return res.status(404).json({ message: "Service not found" });
+    if (service.provider && (service.provider.approvalStatus !== "approved" || !service.provider.isActive)) {
+      return res.status(409).json({ message: "This listing's provider isn't approved and active, so it can't go live" });
+    }
 
     service.approvalStatus = "approved";
     service.available = true;
@@ -1026,15 +1075,18 @@ router.patch("/service-requests/:id/reject", protect, adminOnly, async (req, res
 // GET /api/admin/bookings — List all bookings (for Admin Panel)
 router.get("/bookings", protect, adminOnly, async (req, res) => {
   try {
-    const { status, limit = 100 } = req.query;
+    const status = str(req.query.status);
+    const paymentStatus = str(req.query.paymentStatus);
     const filter = {};
     if (status && status !== "all") filter.status = status;
+    // e.g. ?paymentStatus=refund_pending: the manual refund queue
+    if (paymentStatus && paymentStatus !== "all") filter.paymentStatus = paymentStatus;
 
     const bookings = await Booking.find(filter)
       .populate("user", "name email phone")
       .populate("provider", "businessName user")
       .sort("-createdAt")
-      .limit(parseInt(limit));
+      .limit(clampLimit(req.query.limit, 100));
     res.json(bookings);
   } catch (error) {
     res.status(500).json({ message: error.message });

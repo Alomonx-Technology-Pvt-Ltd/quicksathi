@@ -56,21 +56,24 @@ router.get("/:id", async (req, res) => {
   try {
     const rawId = req.params.id;
     let category = null;
+    // Public: a category the admin has switched off is not served (same rule as the list endpoint).
+    const active = { active: true };
 
     if (mongoose.Types.ObjectId.isValid(rawId)) {
-      category = await Category.findById(rawId);
+      category = await Category.findOne({ _id: rawId, ...active });
     }
 
     if (!category) {
       const mappedVertical = LEGACY_CATEGORY_MAP[rawId.toLowerCase()];
       if (mappedVertical) {
-        category = await Category.findOne({ vertical: mappedVertical });
+        category = await Category.findOne({ vertical: mappedVertical, ...active });
       }
     }
 
     if (!category) {
       const cleanName = rawId.replace(/-/g, " ").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
       category = await Category.findOne({
+        ...active,
         $or: [
           { name: new RegExp(`^${cleanName}$`, "i") },
           { vertical: rawId.toUpperCase().replace(/-/g, "_") },

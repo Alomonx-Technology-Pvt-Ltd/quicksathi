@@ -10,7 +10,7 @@ services:
     rootDir: quicksathi_backend # Tell Render to look inside this folder
 
     # ── Build & Start ──
-    buildCommand: npm install
+    buildCommand: npm ci
     startCommand: npm start
 
     # ── Health Check ──
@@ -26,6 +26,10 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+
+      # Same Node major as CI (.github/workflows/ci.yml); "engines" alone would let Render pick a newer one.
+      - key: NODE_VERSION
+        value: "22"
 
       # PORT is injected by Render; do not set it here.
 
@@ -46,7 +50,7 @@ services:
       - key: CLIENT_URL
         sync: false   # e.g. https://quicksathi.vercel.app
 
-      # Admin emails (comma-separated)
+      # Admin emails (comma-separated). Informational only: admin rights come from scripts/grant-admin.mjs.
       - key: ADMIN_EMAILS
         sync: false
 
@@ -70,21 +74,29 @@ services:
       - key: CLOUDINARY_API_SECRET
         sync: false
 
-      # Email (Gmail SMTP)
-      - key: SMTP_HOST
-        value: smtp.gmail.com
+      # Email: Brevo HTTP API (preferred). Sender must be verified in Brevo.
+      - key: BREVO_API_KEY
+        sync: false
 
-      - key: SMTP_PORT
-        value: 587
+      - key: BREVO_SENDER_EMAIL
+        sync: false   # e.g. support@tiptobook.com
 
+      - key: BREVO_SENDER_NAME
+        value: TiptoBook
+
+      # Email fallback: SMTP (Brevo relay by default; set SMTP_HOST only to use another provider)
       - key: SMTP_USER
         sync: false
 
       - key: SMTP_PASS
-        sync: false   # Use a Gmail App Password (16-char), NOT your regular password
+        sync: false
 
       - key: SMTP_SENDER
-        sync: false   # e.g. "QuickSathi" <quicksathi9@gmail.com>
+        sync: false   # e.g. "TiptoBook" <support@tiptobook.com>
+
+      # Vercel preview origins allowed by CORS (team suffix); optional
+      - key: VERCEL_PREVIEW_SUFFIX
+        sync: false   # default: -quicksathi9-3638s-projects.vercel.app
 
       # Razorpay
       - key: RAZORPAY_KEY_ID

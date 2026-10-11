@@ -13,6 +13,7 @@ import { changeStatus, markCashCollected, confirmFare, BookingStateError } from 
 import { sendBookingStatusEmail } from "../services/emailService.js";
 import { otpLimiter } from "../middleware/rateLimits.js";
 import { releaseCouponIfUnpaid, maxRentalFare } from "../services/pricing.js";
+import { uploadPrivateKyc } from "../services/kyc.js";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -72,8 +73,8 @@ router.post("/register", protect, async (req, res) => {
         throw err;
       }
       try {
-        const uploaded = await cloudinary.uploader.upload(value, { folder });
-        return uploaded.secure_url;
+        // Private (authenticated) asset: no public URL exists; admins view it via a signed link.
+        return await uploadPrivateKyc(value, folder);
       } catch (uploadErr) {
         console.error(`${label} upload failed:`, uploadErr?.message || uploadErr);
         const err = new Error(`Could not upload your ${label.toLowerCase()}. Please try again.`);
@@ -115,6 +116,8 @@ router.post("/register", protect, async (req, res) => {
 
     res.status(201).json(provider);
   } catch (error) {
+    // Two simultaneous submissions: the unique index on Provider.user lets only one through.
+    if (error?.code === 11000) return res.status(400).json({ message: "Provider profile already exists" });
     res.status(500).json({ message: error.message });
   }
 });

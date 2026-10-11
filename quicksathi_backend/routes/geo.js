@@ -16,17 +16,23 @@ const cache = new Map(); // url -> { expires, body }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// Nominatim: strictly one request at a time, at least 1.1s apart.
+// Nominatim: strictly one request at a time, at least 1.1s apart. The queue is bounded: one client
+// sending many unique queries must not make every user's lookup wait minutes.
+const MAX_WAITING = 20;
 let nominatimGate = Promise.resolve();
 let lastNominatimCall = 0;
+let waiting = 0;
+class GeoBusyError extends Error {}
 function nominatimTurn() {
+  if (waiting >= MAX_WAITING) return Promise.reject(new GeoBusyError("busy"));
+  waiting++;
   const turn = nominatimGate.then(async () => {
     const wait = lastNominatimCall + 1100 - Date.now();
     if (wait > 0) await sleep(wait);
     lastNominatimCall = Date.now();
   });
   nominatimGate = turn.catch(() => {});
-  return turn;
+  return turn.finally(() => { waiting--; });
 }
 
 async function fetchJson(url, { throttled }) {
@@ -58,12 +64,12 @@ const parseCoord = (value, max) => {
 };
 
 const bad = (res, message) => res.status(400).json({ message });
-const upstreamFailed = (res) => res.status(502).json({ message: "Location service is unavailable right now." });
-
-router.use((req, res, next) => {
-  res.set("Cache-Control", "public, max-age=300");
-  next();
-});
+const upstreamFailed = (res, err) =>
+  err instanceof GeoBusyError
+    ? res.status(503).json({ message: "Location search is busy. Please try again in a moment." })
+    : res.status(502).json({ message: "Location service is unavailable right now." });
+// Only successful answers are cacheable (a brief upstream failure must not stick in browsers/CDN).
+const ok = (res, body) => res.set("Cache-Control", "public, max-age=300").json(body);
 
 // GET /api/geo/nominatim/search?q=patna&limit=8
 router.get("/nominatim/search", async (req, res) => {
@@ -71,9 +77,9 @@ router.get("/nominatim/search", async (req, res) => {
   if (!q) return bad(res, "q must be 2-120 characters");
   const url = `${NOMINATIM}/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=${parseLimit(req.query.limit)}&countrycodes=in`;
   try {
-    res.json(await fetchJson(url, { throttled: true }));
-  } catch {
-    upstreamFailed(res);
+    ok(res, await fetchJson(url, { throttled: true }));
+  } catch (err) {
+    upstreamFailed(res, err);
   }
 });
 
@@ -84,9 +90,9 @@ router.get("/nominatim/reverse", async (req, res) => {
   if (lat === null || lon === null) return bad(res, "lat and lon are required");
   const url = `${NOMINATIM}/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`;
   try {
-    res.json(await fetchJson(url, { throttled: true }));
-  } catch {
-    upstreamFailed(res);
+    ok(res, await fetchJson(url, { throttled: true }));
+  } catch (err) {
+    upstreamFailed(res, err);
   }
 });
 
@@ -96,9 +102,9 @@ router.get("/photon/search", async (req, res) => {
   if (!q) return bad(res, "q must be 2-120 characters");
   const url = `${PHOTON}/api/?q=${encodeURIComponent(q)}&limit=${parseLimit(req.query.limit)}`;
   try {
-    res.json(await fetchJson(url, { throttled: false }));
-  } catch {
-    upstreamFailed(res);
+    ok(res, await fetchJson(url, { throttled: false }));
+  } catch (err) {
+    upstreamFailed(res, err);
   }
 });
 
@@ -109,9 +115,9 @@ router.get("/photon/reverse", async (req, res) => {
   if (lat === null || lon === null) return bad(res, "lat and lon are required");
   const url = `${PHOTON}/reverse?lon=${lon}&lat=${lat}&limit=${parseLimit(req.query.limit, 6)}`;
   try {
-    res.json(await fetchJson(url, { throttled: false }));
-  } catch {
-    upstreamFailed(res);
+    ok(res, await fetchJson(url, { throttled: false }));
+  } catch (err) {
+    upstreamFailed(res, err);
   }
 });
 

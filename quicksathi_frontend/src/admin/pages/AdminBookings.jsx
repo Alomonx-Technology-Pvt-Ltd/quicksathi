@@ -19,10 +19,10 @@ const AdminBookings = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [actioningId, setActioningId] = useState(null);
 
-  const fetchBookings = async () => {
+  const fetchBookings = async (paymentStatus = "") => {
     try {
       setLoading(true);
-      const { data } = await api.get("/admin/bookings?limit=100");
+      const { data } = await api.get(`/admin/bookings?limit=200${paymentStatus ? `&paymentStatus=${paymentStatus}` : ""}`);
       setBookings(data);
     } catch (err) {
       console.error("Failed to fetch bookings:", err);
@@ -87,6 +87,7 @@ const AdminBookings = () => {
       b.serviceName?.toLowerCase().includes(searchQuery.toLowerCase());
     
     if (filter === "all") return matchesSearch;
+    if (filter === "refund_pending") return b.paymentStatus === "refund_pending" && matchesSearch;
     return b.status === filter && matchesSearch;
   });
 
@@ -142,10 +143,14 @@ const AdminBookings = () => {
         </div>
 
         <div className="flex gap-2 overflow-x-auto max-w-full">
-          {["all", "pending", "confirmed", "in_progress", "completed", "cancelled"].map((f) => (
+          {["all", "pending", "confirmed", "in_progress", "completed", "cancelled", "refund_pending"].map((f) => (
             <button
               key={f}
-              onClick={() => setFilter(f)}
+              onClick={() => {
+                // The refund queue is fetched on its own so old refund-due bookings aren't cut off by the list limit.
+                if (f === "refund_pending" || filter === "refund_pending") fetchBookings(f === "refund_pending" ? "refund_pending" : "");
+                setFilter(f);
+              }}
               className="px-4 py-2 rounded-xl text-xs font-semibold cursor-pointer capitalize transition-all border whitespace-nowrap"
               style={{
                 fontFamily: "var(--font-body)",

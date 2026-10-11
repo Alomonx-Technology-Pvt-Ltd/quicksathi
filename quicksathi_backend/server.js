@@ -6,7 +6,7 @@ import cors from "cors";
 import compression from "compression";
 import connectDB from "./config/db.js";
 import helmet from "helmet";
-import { apiLimiter, credentialLimiter, authLimiter, contactLimiter, aiLimiter, couponLimiter, geoLimiter } from "./middleware/rateLimits.js";
+import { apiLimiter, credentialLimiter, authLimiter, contactLimiter, aiLimiter, couponLimiter, geoLimiter, nominatimLimiter } from "./middleware/rateLimits.js";
 
 // Import routes
 import authRoutes from "./routes/auth.js";
@@ -29,6 +29,18 @@ const PORT = process.env.PORT || 5050; // 5000 is taken by macOS AirPlay Receive
 // Behind Render's proxy: trust one hop so rate limits see the real client IP.
 app.set("trust proxy", 1);
 app.disable("x-powered-by");
+// One-time check that "trust proxy" matches Render's hops: req.ip must be the client, not a proxy,
+// or every user would share one rate-limit bucket. Look for this line in the Render log after deploy.
+if (process.env.NODE_ENV === "production") {
+  let logged = false;
+  app.use((req, _res, next) => {
+    if (!logged) {
+      logged = true;
+      console.log(`trust-proxy check: req.ip=${req.ip} hops=${JSON.stringify(req.ips)} xff=${req.get("x-forwarded-for") || "-"}`);
+    }
+    next();
+  });
+}
 app.use(helmet());
 
 // Enable gzip/brotli compression for optimized response speed & bandwidth
@@ -66,8 +78,10 @@ const corsOptions = {
     // Check exact match against allowed list
     if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
 
-    // Allow any Vercel preview deployment URL for this project
-    if (/^https:\/\/(tiptobook|quicksathi)[a-z0-9-]*\.vercel\.app$/i.test(origin)) {
+    // Allow Vercel preview deployments of THIS team only. A bare "tiptobook*.vercel.app" pattern would
+    // also match projects anyone can create. Override the suffix with VERCEL_PREVIEW_SUFFIX if the team changes.
+    const previewSuffix = process.env.VERCEL_PREVIEW_SUFFIX || "-quicksathi9-3638s-projects.vercel.app";
+    if (origin.startsWith("https://") && origin.endsWith(previewSuffix) && /^https:\/\/[a-z0-9-]+$/i.test(origin.slice(0, -previewSuffix.length))) {
       return callback(null, true);
     }
 
@@ -105,6 +119,7 @@ app.use("/api/contact", (req, res, next) => (req.method === "POST" ? contactLimi
 app.use("/api/ai", aiLimiter);
 app.use("/api/coupons/validate", couponLimiter);
 app.use("/api/geo", geoLimiter);
+app.use("/api/geo/nominatim", nominatimLimiter);
 
 // ── Routes ──
 app.use("/api/auth", authRoutes);
@@ -180,7 +195,7 @@ const startServer = async () => {
   app.listen(PORT, () => {
     console.log(`🚀 TiptoBook backend running on port ${PORT}`);
     console.log(`   Environment : ${process.env.NODE_ENV || "development"}`);
-    console.log(`   Allowed origins : ${ALLOWED_ORIGINS.join(", ")} + *.vercel.app previews`);
+    console.log(`   Allowed origins : ${ALLOWED_ORIGINS.join(", ")} + team Vercel previews`);
 
     // ── Self-ping keepalive (Render free tier) ──────────────────────────────
     // Render free plan sleeps after 15 minutes of inactivity (causes 30-60s cold starts).

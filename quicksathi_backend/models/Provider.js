@@ -6,6 +6,7 @@ const providerSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      unique: true, // one provider profile per account (see scripts/migrations/004-provider-user-unique.mjs)
     },
     businessName: {
       type: String,
@@ -55,8 +56,9 @@ const providerSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    // KYC documents are private: excluded from every query unless explicitly requested
-    // with .select("+documents.idProof +documents.businessRegistration +documents.selfiePhoto +documents.other").
+    // KYC documents are private: excluded from every query unless explicitly requested with
+    // .select("+documents.…"). Values are private Cloudinary references (services/kyc.js); admins get
+    // short-lived signed links from GET /api/admin/providers/:id/documents.
     documents: {
       idProof: { type: String, default: "", select: false },
       businessRegistration: { type: String, default: "", select: false },
