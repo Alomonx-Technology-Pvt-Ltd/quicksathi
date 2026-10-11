@@ -44,6 +44,24 @@ try {
 } catch (error) {
   console.error("❌ Firebase Admin SDK initialization failed:", error.message);
   console.info("   Make sure you have FIREBASE env vars set OR config/firebase-service-account.json exists.");
+  // Without Firebase every Google/phone sign-in would be unverifiable. Never run production like that.
+  if (process.env.NODE_ENV === "production") {
+    console.error("❌ Refusing to start in production without Firebase Admin configured.");
+    process.exit(1);
+  }
+}
+
+// Test-only seam: lets the hermetic test stack exercise verified Google/phone sign-in without Firebase.
+// Tokens are "fake.<base64url JSON of the decoded claims>". Requires NODE_ENV=test AND an explicit flag,
+// and production refuses to boot without real Firebase above, so it can't be enabled by accident.
+if (process.env.NODE_ENV === "test" && process.env.TEST_FAKE_FIREBASE === "1") {
+  console.warn("⚠️  TEST_FAKE_FIREBASE: accepting fake Firebase tokens (tests only)");
+  firebaseAuth = {
+    async verifyIdToken(token) {
+      if (typeof token !== "string" || !token.startsWith("fake.")) throw new Error("invalid token");
+      return JSON.parse(Buffer.from(token.slice(5), "base64url").toString("utf8"));
+    },
+  };
 }
 
 export { firebaseAuth };

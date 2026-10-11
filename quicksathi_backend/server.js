@@ -1,8 +1,12 @@
 import "dotenv/config";
+import "./config/validateEnv.js"; // exits in production if configuration is missing/unsafe
 import express from "express";
+import mongoose from "mongoose";
 import cors from "cors";
 import compression from "compression";
 import connectDB from "./config/db.js";
+import helmet from "helmet";
+import { apiLimiter, credentialLimiter, authLimiter, contactLimiter, aiLimiter, couponLimiter, geoLimiter, nominatimLimiter } from "./middleware/rateLimits.js";
 
 // Import routes
 import authRoutes from "./routes/auth.js";
@@ -17,9 +21,27 @@ import contactRoutes from "./routes/contact.js";
 import aiRoutes from "./routes/ai.js";
 import bannerRoutes from "./routes/banners.js";
 import couponRoutes from "./routes/coupons.js";
+import geoRoutes from "./routes/geo.js";
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5050; // 5000 is taken by macOS AirPlay Receiver on developer machines
+
+// Behind Render's proxy: trust one hop so rate limits see the real client IP.
+app.set("trust proxy", 1);
+app.disable("x-powered-by");
+// One-time check that "trust proxy" matches Render's hops: req.ip must be the client, not a proxy,
+// or every user would share one rate-limit bucket. Look for this line in the Render log after deploy.
+if (process.env.NODE_ENV === "production") {
+  let logged = false;
+  app.use((req, _res, next) => {
+    if (!logged) {
+      logged = true;
+      console.log(`trust-proxy check: req.ip=${req.ip} hops=${JSON.stringify(req.ips)} xff=${req.get("x-forwarded-for") || "-"}`);
+    }
+    next();
+  });
+}
+app.use(helmet());
 
 // Enable gzip/brotli compression for optimized response speed & bandwidth
 app.use(compression());
@@ -56,8 +78,10 @@ const corsOptions = {
     // Check exact match against allowed list
     if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
 
-    // Allow any Vercel preview deployment URL for this project
-    if (/^https:\/\/(tiptobook|quicksathi)[a-z0-9-]*\.vercel\.app$/i.test(origin)) {
+    // Allow Vercel preview deployments of THIS team only. A bare "tiptobook*.vercel.app" pattern would
+    // also match projects anyone can create. Override the suffix with VERCEL_PREVIEW_SUFFIX if the team changes.
+    const previewSuffix = process.env.VERCEL_PREVIEW_SUFFIX || "-quicksathi9-3638s-projects.vercel.app";
+    if (origin.startsWith("https://") && origin.endsWith(previewSuffix) && /^https:\/\/[a-z0-9-]+$/i.test(origin.slice(0, -previewSuffix.length))) {
       return callback(null, true);
     }
 
@@ -80,8 +104,22 @@ app.use(cors(corsOptions));
 // Express 5 requires named wildcards — use /*path instead of *
 app.options("/*path", cors(corsOptions));
 
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ limit: "50mb", extended: true }));
+// Razorpay webhook needs the exact raw bytes to verify its signature, so it is parsed
+// before (and instead of) the JSON body parser.
+app.use("/api/payments/webhook", express.raw({ type: "application/json", limit: "1mb" }));
+// Large bodies only where base64 uploads happen (admin image upload, provider KYC); everything else is capped at 100 KB.
+const bigJson = express.json({ limit: "10mb" });
+app.use("/api/admin/upload", bigJson);
+app.use("/api/providers/register", bigJson);
+app.use(express.json({ limit: "100kb" }));
+app.use("/api", apiLimiter);
+app.use(["/api/auth/login", "/api/auth/provider-login", "/api/auth/admin-login"], credentialLimiter);
+app.use("/api/auth", authLimiter);
+app.use("/api/contact", (req, res, next) => (req.method === "POST" ? contactLimiter(req, res, next) : next()));
+app.use("/api/ai", aiLimiter);
+app.use("/api/coupons/validate", couponLimiter);
+app.use("/api/geo", geoLimiter);
+app.use("/api/geo/nominatim", nominatimLimiter);
 
 // ── Routes ──
 app.use("/api/auth", authRoutes);
@@ -96,6 +134,7 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/ai", aiRoutes);
 app.use("/api/banners", bannerRoutes);
 app.use("/api/coupons", couponRoutes);
+app.use("/api/geo", geoRoutes);
 
 // ── Root route — friendly API info ──
 app.get("/", (req, res) => {
@@ -118,8 +157,11 @@ app.get("/", (req, res) => {
 
 // ── Health check ──
 app.get("/api/health", (req, res) => {
-  res.json({
-    status: "ok",
+  // 503 while the database is not connected, so the host's health check restarts/avoids this instance.
+  const dbUp = mongoose.connection.readyState === 1;
+  res.status(dbUp ? 200 : 503).json({
+    status: dbUp ? "ok" : "degraded",
+    db: dbUp ? "connected" : "disconnected",
     timestamp: new Date().toISOString(),
     env: process.env.NODE_ENV || "development",
   });
@@ -136,6 +178,11 @@ app.use((err, req, res, next) => {
   if (err.message?.startsWith("CORS:")) {
     return res.status(403).json({ message: err.message });
   }
+  // Client errors raised by middleware (body too large, malformed JSON, ...) keep their own 4xx status.
+  const status = err.status || err.statusCode;
+  if (status >= 400 && status < 500) {
+    return res.status(status).json({ message: err.type === "entity.too.large" ? "Request body too large" : "Invalid request" });
+  }
   console.error("Server error:", err);
   res.status(500).json({
     message: process.env.NODE_ENV === "production" ? "Internal server error" : err.message,
@@ -148,7 +195,7 @@ const startServer = async () => {
   app.listen(PORT, () => {
     console.log(`🚀 TiptoBook backend running on port ${PORT}`);
     console.log(`   Environment : ${process.env.NODE_ENV || "development"}`);
-    console.log(`   Allowed origins : ${ALLOWED_ORIGINS.join(", ")} + *.vercel.app previews`);
+    console.log(`   Allowed origins : ${ALLOWED_ORIGINS.join(", ")} + team Vercel previews`);
 
     // ── Self-ping keepalive (Render free tier) ──────────────────────────────
     // Render free plan sleeps after 15 minutes of inactivity (causes 30-60s cold starts).

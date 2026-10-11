@@ -5,11 +5,10 @@ import { Smartphone } from "lucide-react";
 import BrandLogo from "../components/common/BrandLogo";
 
 const Login = () => {
-  const [isSignup, setIsSignup] = useState(false);
-  const [formData, setFormData] = useState({ name: "", email: "", password: "", phone: "" });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login, register, loginWithGoogle, sendOtp, verifyOtp, updateProfile, providerLogin, providerLoginWithGoogle } = useAuth();
+  const { login, loginWithGoogle, sendOtp, verifyOtp, updateProfile, providerLogin, providerLoginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/";
@@ -38,7 +37,6 @@ const Login = () => {
     setError("");
 
     const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const PHONE_REGEX = /^(\+91[\s-]?)?[6-9]\d{9}$/;
 
     // Validate email format
     if (!formData.email.trim()) {
@@ -52,8 +50,8 @@ const Login = () => {
       return;
     }
 
-    if (!formData.password || formData.password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (!formData.password) {
+      setError("Password is required.");
       setLoading(false);
       return;
     }
@@ -66,17 +64,7 @@ const Login = () => {
         return;
       }
 
-      if (isSignup) {
-        if (!formData.name.trim() || formData.name.trim().length < 2) {
-          throw new Error("Name is required and must be at least 2 characters.");
-        }
-        if (formData.phone && !PHONE_REGEX.test(formData.phone.trim().replace(/\s/g, ""))) {
-          throw new Error("Please enter a valid 10-digit Indian phone number (e.g. +91 98765 43210).");
-        }
-        await register(formData.name, formData.email, formData.password, formData.phone);
-      } else {
-        await login(formData.email, formData.password);
-      }
+      await login(formData.email, formData.password);
       navigate(redirectTo);
     } catch (err) {
       setError(err.response?.data?.message || err.message || "Something went wrong");
@@ -154,7 +142,8 @@ const Login = () => {
     setLoading(true);
     setError("");
     try {
-      await updateProfile({ name: profileData.name.trim(), email: profileData.email.trim() || undefined });
+      // Email is identity and can't be set from the profile form (verify it by signing in with Google).
+      await updateProfile({ name: profileData.name.trim() });
       navigate(redirectTo);
     } catch (err) {
       setError(err.response?.data?.message || err.message || "Failed to save profile");
@@ -167,7 +156,6 @@ const Login = () => {
     if (showCompleteProfile) return "Complete your profile";
     if (phoneMode) return otpSent ? "Enter verification code" : "Sign in with Phone";
     if (isProviderMode) return "Provider Sign In";
-    if (isSignup) return "Create your account";
     if (redirectTo === "/admin") return "Admin Sign In";
     return "Welcome back";
   };
@@ -500,24 +488,6 @@ const Login = () => {
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-                {isSignup && !isProviderMode && (
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
-                      style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="John Doe"
-                      required
-                      className={inputClass}
-                      style={inputStyle}
-                    />
-                  </div>
-                )}
 
                 <div>
                   <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
@@ -548,29 +518,12 @@ const Login = () => {
                     onChange={handleChange}
                     placeholder="••••••••"
                     required
-                    minLength={6}
+                    minLength={8}
                     className={inputClass}
                     style={inputStyle}
                   />
                 </div>
 
-                {isSignup && !isProviderMode && (
-                  <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
-                      style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
-                      Phone (Optional)
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="+91 98765 43210"
-                      className={inputClass}
-                      style={inputStyle}
-                    />
-                  </div>
-                )}
 
                 <button
                   type="submit"
@@ -584,21 +537,14 @@ const Login = () => {
                     opacity: loading ? 0.7 : 1,
                   }}
                 >
-                  {loading ? "Please wait..." : isProviderMode ? "Sign In as Provider" : isSignup ? "Create Account" : "Sign In"}
+                  {loading ? "Please wait..." : isProviderMode ? "Sign In as Provider" : "Sign In with Email"}
                 </button>
               </form>
 
-              {/* Toggle sign up / sign in (only for user mode) */}
+              {/* New accounts: Google or phone above (they prove you own the email/number). */}
               {!isProviderMode && (
-                <p className="text-center text-sm mt-6" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
-                  {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
-                  <button
-                    onClick={() => { setIsSignup(!isSignup); setError(""); }}
-                    className="font-semibold border-0 bg-transparent cursor-pointer underline"
-                    style={{ color: "var(--color-primary)", fontFamily: "var(--font-body)" }}
-                  >
-                    {isSignup ? "Sign In" : "Create Account"}
-                  </button>
+                <p className="text-center text-xs mt-6" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+                  New to TiptoBook? Continue with Google or Phone above to create your account.
                 </p>
               )}
             </>

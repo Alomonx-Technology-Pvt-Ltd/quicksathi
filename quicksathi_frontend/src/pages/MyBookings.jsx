@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../config/api";
+import { payForBooking } from "../utils/razorpayCheckout";
 import LiveServiceTimerCard from "../components/LiveServiceTimerCard";
 
 const STATUS_STYLES = {
@@ -13,11 +14,12 @@ const STATUS_STYLES = {
 };
 
 const MyBookings = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [cancelling, setCancelling] = useState(null);
+  const [paying, setPaying] = useState(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -113,6 +115,20 @@ const MyBookings = () => {
     );
   }
 
+  const handlePay = async (booking) => {
+    setPaying(booking._id);
+    try {
+      const result = await payForBooking(booking, user);
+      if (result.status === "paid") {
+        setBookings((prev) => prev.map((b) => (b._id === booking._id ? { ...b, ...result.booking } : b)));
+      } else if (result.status === "failed") {
+        alert(result.error);
+      }
+    } finally {
+      setPaying(null);
+    }
+  };
+
   return (
     <div className="min-h-screen pt-24 pb-20 px-4 sm:px-8" style={{ backgroundColor: "var(--color-bg)" }}>
       <div className="max-w-4xl mx-auto">
@@ -174,7 +190,18 @@ const MyBookings = () => {
                     <div className="flex flex-col items-end gap-3 flex-shrink-0">
                       <p className="text-xl font-bold m-0" style={{ fontFamily: "var(--font-display)", color: "var(--color-primary)" }}>
                         ₹{booking.amount?.toLocaleString("en-IN")}
+                        {booking.fareConfirmed === false && <span className="text-xs font-normal ml-1">(estimate)</span>}
                       </p>
+                      {booking.paymentMethod === "razorpay" && booking.paymentStatus !== "paid" && booking.status === "pending" && (
+                        <button
+                          onClick={() => handlePay(booking)}
+                          disabled={paying === booking._id}
+                          className="px-4 py-1.5 rounded-full text-xs font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-90 disabled:opacity-50"
+                          style={{ fontFamily: "var(--font-body)", backgroundColor: "var(--color-primary)", color: "#fff" }}
+                        >
+                          {paying === booking._id ? "Opening…" : "Pay now"}
+                        </button>
+                      )}
                       {canCancel && (
                         <button
                           onClick={() => handleCancel(booking._id)}

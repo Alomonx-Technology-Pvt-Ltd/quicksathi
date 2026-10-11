@@ -5,10 +5,15 @@ import Provider from "../models/Provider.js";
 import Category from "../models/Category.js";
 import Service from "../models/Service.js";
 import User from "../models/User.js";
-import Booking from "../models/Booking.js";
+import Booking, { newStartOtp } from "../models/Booking.js";
 import Notification from "../models/Notification.js";
 import { protect } from "../middleware/auth.js";
 import { providerOnly } from "../middleware/admin.js";
+import { changeStatus, markCashCollected, confirmFare, BookingStateError } from "../services/bookingStatus.js";
+import { sendBookingStatusEmail } from "../services/emailService.js";
+import { otpLimiter } from "../middleware/rateLimits.js";
+import { releaseCouponIfUnpaid, maxRentalFare } from "../services/pricing.js";
+import { uploadPrivateKyc } from "../services/kyc.js";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -53,49 +58,38 @@ router.post("/register", protect, async (req, res) => {
       }
     }
 
-    // Upload selfie photo to Cloudinary if provided as base64 data
-    let selfieUrl = "";
-    if (selfiePhoto && selfiePhoto.startsWith("data:image")) {
-      try {
-        const uploadRes = await cloudinary.uploader.upload(selfiePhoto, {
-          folder: "TiptoBook/providers/selfies",
-        });
-        selfieUrl = uploadRes.secure_url;
-      } catch (err) {
-        console.error("Selfie Cloudinary upload failed:", err);
+    // KYC documents must be real image uploads (data URIs). Arbitrary URLs are rejected, and a failed
+    // upload fails the application instead of silently creating one with no documents.
+    const uploadKyc = async (value, folder, label) => {
+      if (!value) return "";
+      if (typeof value !== "string" || !/^data:image\/(png|jpe?g|webp);base64,/i.test(value)) {
+        const err = new Error(`${label} must be an image file (PNG, JPG or WebP)`);
+        err.status = 400;
+        throw err;
       }
-    } else if (selfiePhoto) {
-      selfieUrl = selfiePhoto;
-    }
+      if (value.length > 7 * 1024 * 1024) {
+        const err = new Error(`${label} is too large (max 5 MB)`);
+        err.status = 400;
+        throw err;
+      }
+      try {
+        // Private (authenticated) asset: no public URL exists; admins view it via a signed link.
+        return await uploadPrivateKyc(value, folder);
+      } catch (uploadErr) {
+        console.error(`${label} upload failed:`, uploadErr?.message || uploadErr);
+        const err = new Error(`Could not upload your ${label.toLowerCase()}. Please try again.`);
+        err.status = 502;
+        throw err;
+      }
+    };
 
-    // Upload ID Proof if provided as base64
-    let idProofUrl = "";
-    if (idProof && idProof.startsWith("data:image")) {
-      try {
-        const uploadRes = await cloudinary.uploader.upload(idProof, {
-          folder: "TiptoBook/providers/documents",
-        });
-        idProofUrl = uploadRes.secure_url;
-      } catch (err) {
-        console.error("ID Proof upload failed:", err);
-      }
-    } else if (idProof) {
-      idProofUrl = idProof;
-    }
-
-    // Upload Business Reg if provided as base64
-    let businessRegUrl = "";
-    if (businessReg && businessReg.startsWith("data:image")) {
-      try {
-        const uploadRes = await cloudinary.uploader.upload(businessReg, {
-          folder: "TiptoBook/providers/documents",
-        });
-        businessRegUrl = uploadRes.secure_url;
-      } catch (err) {
-        console.error("Business Reg upload failed:", err);
-      }
-    } else if (businessReg) {
-      businessRegUrl = businessReg;
+    let selfieUrl, idProofUrl, businessRegUrl;
+    try {
+      selfieUrl = await uploadKyc(selfiePhoto, "TiptoBook/providers/selfies", "Selfie photo");
+      idProofUrl = await uploadKyc(idProof, "TiptoBook/providers/documents", "ID proof");
+      businessRegUrl = await uploadKyc(businessReg, "TiptoBook/providers/documents", "Business registration");
+    } catch (uploadError) {
+      return res.status(uploadError.status || 500).json({ message: uploadError.message });
     }
 
     const provider = await Provider.create({
@@ -122,6 +116,8 @@ router.post("/register", protect, async (req, res) => {
 
     res.status(201).json(provider);
   } catch (error) {
+    // Two simultaneous submissions: the unique index on Provider.user lets only one through.
+    if (error?.code === 11000) return res.status(400).json({ message: "Provider profile already exists" });
     res.status(500).json({ message: error.message });
   }
 });
@@ -162,11 +158,35 @@ router.get("/status", protect, async (req, res) => {
 });
 
 // PUT /api/providers/me — Update provider profile
+const PROVIDER_EDITABLE_FIELDS = [
+  "businessName", "businessType", "description", "logo", "servicesOffered",
+  "experience", "location", "phone", "email", "isActive",
+];
+
 router.put("/me", protect, providerOnly, async (req, res) => {
   try {
+    // Allowlist only. approvalStatus, rating, totalBookings, documents, user, approvedBy... are never client-editable.
+    const updates = {};
+    for (const field of PROVIDER_EDITABLE_FIELDS) {
+      if (req.body?.[field] !== undefined) updates[field] = req.body[field];
+    }
+
+    const current = await Provider.findOne({ user: req.user._id }).select("approvalStatus");
+    if (!current) {
+      return res.status(404).json({ message: "Provider profile not found" });
+    }
+    if (updates.isActive !== undefined) {
+      if (typeof updates.isActive !== "boolean") {
+        return res.status(400).json({ message: "isActive must be true or false" });
+      }
+      if (current.approvalStatus !== "approved") {
+        return res.status(403).json({ message: "Only approved providers can change availability" });
+      }
+    }
+
     const provider = await Provider.findOneAndUpdate(
       { user: req.user._id },
-      req.body,
+      { $set: updates },
       { new: true, runValidators: true }
     );
     if (!provider) {
@@ -293,6 +313,33 @@ router.get("/services", protect, providerOnly, async (req, res) => {
   }
 });
 
+// ── Provider booking actions ────────────────────────────────────────────────
+// Only an approved provider acts on bookings, and only on bookings assigned to them. (Provider.isActive is
+// the provider's own "available for new jobs" toggle; going offline must not strand jobs already accepted.
+// Rejection, demotion and account deletion are covered by approvalStatus, providerOnly and protect.)
+async function actingProvider(req) {
+  const provider = await Provider.findOne({ user: req.user._id });
+  if (!provider) throw new BookingStateError("Provider profile not found", 404);
+  if (provider.approvalStatus !== "approved") {
+    throw new BookingStateError("Your provider profile isn't approved", 403);
+  }
+  return provider;
+}
+
+// Responses carry the customer/service details the dashboard shows; never the start code.
+const providerBookingView = (id) =>
+  Booking.findById(id).populate("user", "name email phone").populate("service", "name thumbnail");
+
+const notifyCustomer = (booking, title, message) =>
+  Notification.create({ recipient: booking.user, title, message, type: "booking" }).catch((err) =>
+    console.error("Provider booking notification error:", err?.message || err)
+  );
+
+const sendError = (res, error) => {
+  if (error instanceof BookingStateError) return res.status(error.status).json({ message: error.message });
+  res.status(500).json({ message: error.message });
+};
+
 // GET /api/providers/bookings — Provider views their assigned bookings
 router.get("/bookings", protect, providerOnly, async (req, res) => {
   try {
@@ -304,7 +351,6 @@ router.get("/bookings", protect, providerOnly, async (req, res) => {
     const bookings = await Booking.find({ provider: provider._id })
       .populate("user", "name email phone")
       .populate("service", "name thumbnail")
-      .select("-startOtp")
       .sort("-createdAt");
 
     res.json(bookings);
@@ -313,29 +359,18 @@ router.get("/bookings", protect, providerOnly, async (req, res) => {
   }
 });
 
-// PATCH /api/providers/bookings/:id/status — Provider updates status of their assigned booking
+// PATCH /api/providers/bookings/:id/status — accept or cancel an assigned booking.
+// Starting needs the customer's doorstep code (/start); finishing uses /complete.
 router.patch("/bookings/:id/status", protect, providerOnly, async (req, res) => {
   try {
-    const provider = await Provider.findOne({ user: req.user._id });
-    if (!provider) {
-      return res.status(404).json({ message: "Provider profile not found" });
-    }
+    const provider = await actingProvider(req);
 
     const { status } = req.body;
-    if (!["pending", "confirmed", "in_progress", "completed", "cancelled"].includes(status)) {
-      return res.status(400).json({ message: "Invalid status" });
-    }
-
     if (status === "in_progress") {
-      return res.status(400).json({
-        message: "To start work, please verify the customer's 4-digit doorstep OTP.",
-      });
+      return res.status(400).json({ message: "To start work, enter the customer's 4-digit doorstep code." });
     }
-
     if (status === "completed") {
-      return res.status(400).json({
-        message: "To complete work, please use the Submit Work action.",
-      });
+      return res.status(400).json({ message: "To finish, use the Complete work action." });
     }
 
     const booking = await Booking.findOne({ _id: req.params.id, provider: provider._id });
@@ -343,28 +378,154 @@ router.patch("/bookings/:id/status", protect, providerOnly, async (req, res) => 
       return res.status(404).json({ message: "Booking not found or not assigned to you" });
     }
 
-    if (booking.status === "completed") {
-      return res.status(400).json({ message: "Completed bookings cannot be modified." });
+    changeStatus(booking, status, { actorId: req.user._id, role: "provider", reason: req.body?.reason });
+    await booking.save();
+    await releaseCouponIfUnpaid(booking);
+
+    await notifyCustomer(
+      booking,
+      `Booking Update: ${status.toUpperCase()} 🔄`,
+      `Your booking ${booking.bookingId || ""} for ${booking.serviceName} has been updated to "${status}" by the provider.`
+    );
+
+    res.json({ message: "Booking status updated successfully", booking: await providerBookingView(booking._id) });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+const MAX_START_ATTEMPTS = 5;
+
+// POST /api/providers/bookings/:id/start — the customer's doorstep code starts the job and its timer.
+router.post("/bookings/:id/start", protect, otpLimiter, providerOnly, async (req, res) => {
+  try {
+    const provider = await actingProvider(req);
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({ message: "Invalid booking ID format" });
+    }
+    const otp = typeof req.body?.otp === "string" || typeof req.body?.otp === "number" ? String(req.body.otp).trim() : "";
+    if (!/^\d{4}$/.test(otp)) {
+      return res.status(400).json({ message: "Enter the 4-digit start code from the customer." });
     }
 
-    booking.status = status;
+    // Count the attempt atomically before checking, so parallel guesses can't exceed the limit.
+    const booking = await Booking.findOneAndUpdate(
+      { _id: req.params.id, provider: provider._id },
+      { $inc: { startOtpAttempts: 1 } },
+      { new: true }
+    ).select("+startOtp +startOtpAttempts");
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found or not assigned to you" });
+    }
+    if (booking.status !== "confirmed") {
+      return res.status(409).json({ message: `A ${booking.status.replace("_", " ")} booking can't be started` });
+    }
+
+    const reissue = async (message) => {
+      await Booking.updateOne({ _id: booking._id }, { $set: { startOtp: newStartOtp(), startOtpAttempts: 0 } });
+      await notifyCustomer(booking, "New start code 🔐", `Your start code for booking ${booking.bookingId} was changed. Open My Bookings to see the new code.`);
+      return res.status(429).json({ message });
+    };
+
+    if (!booking.startOtp) {
+      return reissue("A start code has been sent to the customer. Ask them to open My Bookings.");
+    }
+    if (booking.startOtpAttempts > MAX_START_ATTEMPTS) {
+      return reissue("Too many wrong codes. A new code has been sent to the customer.");
+    }
+    if (booking.startOtp !== otp) {
+      if (booking.startOtpAttempts >= MAX_START_ATTEMPTS) {
+        return reissue("Too many wrong codes. A new code has been sent to the customer.");
+      }
+      return res.status(400).json({
+        message: `Wrong code. ${MAX_START_ATTEMPTS - booking.startOtpAttempts} attempt(s) left.`,
+      });
+    }
+
+    changeStatus(booking, "in_progress", { actorId: req.user._id, role: "provider" });
+    const now = new Date();
+    booking.startedAt = now;
+    booking.expectedEndAt = new Date(now.getTime() + (booking.durationMinutes || 60) * 60 * 1000);
+    booking.startOtp = undefined;
+    booking.startOtpAttempts = 0;
     await booking.save();
 
-    // Create Notification for the client user
-    try {
-      await Notification.create({
-        recipient: booking.user,
-        title: `Booking Update: ${status.toUpperCase()} 🔄`,
-        message: `Your booking ${booking.bookingId || ""} for ${booking.serviceName} has been updated to "${status}" by the provider.`,
-        type: "booking",
-      });
-    } catch (notifErr) {
-      console.error("Failed to create provider booking notification:", notifErr);
+    await notifyCustomer(
+      booking,
+      "Service started ⏱️",
+      `Your professional has started work on ${booking.serviceName}. The ${booking.durationMinutes || 60}-minute timer is running.`
+    );
+
+    res.json({ message: "Code verified. The service timer has started.", booking: await providerBookingView(booking._id) });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+// POST /api/providers/bookings/:id/complete — the provider finishes the job. Payment is untouched:
+// cash jobs still need "Cash collected", online jobs were paid before they could start.
+router.post("/bookings/:id/complete", protect, providerOnly, async (req, res) => {
+  try {
+    const provider = await actingProvider(req);
+    const booking = await Booking.findOne({ _id: req.params.id, provider: provider._id });
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found or not assigned to you" });
     }
 
-    res.json({ message: "Booking status updated successfully", booking });
+    changeStatus(booking, "completed", { actorId: req.user._id, role: "provider" });
+    booking.completedAt = new Date();
+    if (typeof req.body?.notes === "string") booking.completionNotes = req.body.notes.trim().slice(0, 1000);
+    await booking.save();
+
+    await notifyCustomer(
+      booking,
+      "Service completed ✅",
+      `Your service for ${booking.serviceName} has been completed. Thank you for choosing TiptoBook!`
+    );
+    (async () => {
+      const bookedUser = await User.findById(booking.user).select("name email");
+      if (bookedUser?.email) {
+        await sendBookingStatusEmail({ to: bookedUser.email, name: bookedUser.name, booking, status: "completed" });
+      }
+    })().catch((err) => console.error("Completion email error:", err?.message || err));
+
+    res.json({ message: "Work marked as completed.", booking: await providerBookingView(booking._id) });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    sendError(res, error);
+  }
+});
+
+// POST /api/providers/bookings/:id/cash-collected — provider confirms they received the cash for a COD job
+router.post("/bookings/:id/cash-collected", protect, providerOnly, async (req, res) => {
+  try {
+    const provider = await actingProvider(req);
+    const booking = await Booking.findOne({ _id: req.params.id, provider: provider._id });
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found or not assigned to you" });
+    }
+    markCashCollected(booking, { actorId: req.user._id, role: "provider" });
+    await booking.save();
+    res.json({ message: "Marked as paid", booking: await providerBookingView(booking._id) });
+  } catch (error) {
+    sendError(res, error);
+  }
+});
+
+// POST /api/providers/bookings/:id/fare — rental trips: record the final fare (cash is collected after this).
+router.post("/bookings/:id/fare", protect, providerOnly, async (req, res) => {
+  try {
+    const provider = await actingProvider(req);
+    const booking = await Booking.findOne({ _id: req.params.id, provider: provider._id });
+    if (!booking) {
+      return res.status(404).json({ message: "Booking not found or not assigned to you" });
+    }
+    const service = await Service.findById(booking.service).select("perKmRate");
+    confirmFare(booking, req.body?.amount, { actorId: req.user._id, role: "provider", maxAmount: maxRentalFare(service) });
+    await booking.save();
+    await notifyCustomer(booking, "Final fare confirmed", `Your trip fare for ${booking.bookingId} is ₹${booking.amount}, payable in cash.`);
+    res.json({ message: "Fare confirmed", booking: await providerBookingView(booking._id) });
+  } catch (error) {
+    sendError(res, error);
   }
 });
 
@@ -376,7 +537,7 @@ router.get("/", async (req, res) => {
     if (category) filter.categoryName = category;
 
     const providers = await Provider.find(filter)
-      .populate("user", "name avatar")
+      .select("businessName businessType description logo categoryName servicesOffered experience location.city rating totalBookings")
       .sort("-rating");
 
     res.json(providers);

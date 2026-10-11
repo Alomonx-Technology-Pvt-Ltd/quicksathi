@@ -17,8 +17,7 @@ import {
 import api from "../config/api";
 import SEO from "../components/SEO";
 import { useLocation } from "../context/LocationContext";
-import { mockCategories } from "../data/mockCategories";
-import { mockServices } from "../data/mockServices";
+import { useCatalog } from "../hooks/useCatalog";
 import ACCategoryPage from "./ACCategoryPage";
 import HomeSalonCategoryPage from "./HomeSalonCategoryPage";
 import CategorySpotlightBanner from "../components/CategorySpotlightBanner";
@@ -197,97 +196,31 @@ const Category = () => {
     return null;
   }, [street, road, locality, city, fullLocation]);
 
-  // Instant render: find mock category for this id immediately
-  const findMock = (catId) => {
-    if (!catId) return null;
-    const cid = String(catId).toLowerCase();
-
-    let match = mockCategories.find(
-      (c) => (c.id || c._id)?.toString().toLowerCase() === cid
-    );
-    if (match) return match;
-
-    const cleanVert = cid.toUpperCase().replace(/-/g, "_");
-    match = mockCategories.find((c) => c.vertical?.toUpperCase() === cleanVert);
-    if (match) return match;
-
-    const aliasMap = {
-      wedding: 10,
-      weddings: 10,
-      "vehicle-rental": 6,
-      rental: 6,
-      "home-tuition": 15,
-      tuition: 15,
-      "house-help": 20,
-      help: 20,
-      "home-salon": 25,
-      salon: 25,
-      "house-services": 31,
-      repair: 31,
-      painting: 35,
-      cctv: 31,
-      "cctv-security": 31,
-      ac: 1,
-      "ac-appliances": 1,
-    };
-    if (aliasMap[cid]) {
-      match = mockCategories.find((c) => c.id === aliasMap[cid]);
-      if (match) return match;
-    }
-
-    const cleanName = cid.replace(/-/g, " ");
-    return (
-      mockCategories.find(
-        (c) =>
-          c.name?.toLowerCase() === cleanName ||
-          c.name?.toLowerCase().includes(cleanName) ||
-          cleanName.includes(c.name?.toLowerCase())
-      ) ?? null
-    );
-  };
-
-  const [category, setCategory] = useState(() => findMock(id));
-  const [services, setServices] = useState(() => mockServices);
+  // The category (and its sub-categories) come from the API. The backend resolves ids, slugs and
+  // legacy aliases, so no client-side alias table or mock data is needed.
+  const [category, setCategory] = useState(null);
+  const [status, setStatus] = useState("loading"); // loading | ready | notfound | error
+  const { services } = useCatalog({ city });
   const [activeSection, setActiveSection] = useState("all");
   const [selectedServiceForModal, setSelectedServiceForModal] = useState(null);
   const sectionRefs = useRef({});
 
-  // Background fetch — upgrades mock → real data
   useEffect(() => {
-    const fetchCategory = async () => {
-      try {
-        const { data } = await api.get(`/categories/${id}`);
-        if (data) {
-          setCategory(data);
-          return;
-        }
-      } catch {
-        // fallback to full list
-      }
-      try {
-        const { data } = await api.get("/categories");
-        const found = data?.find((cat) => {
-          const catId = (cat._id || cat.id)?.toString();
-          const cleanParam = String(id).toLowerCase().replace(/-/g, "_");
-          return catId === String(id) || cat.vertical?.toLowerCase() === cleanParam;
-        });
-        if (found) setCategory(found);
-      } catch {
-        // Keep mock already displayed
-      }
-    };
-    fetchCategory();
-  }, [id]);
-
-  // Fetch real-time services from backend
-  useEffect(() => {
+    let cancelled = false;
     api
-      .get("/services")
+      .get(`/categories/${encodeURIComponent(id)}`)
       .then(({ data }) => {
-        if (data && data.length > 0) setServices(data);
+        if (cancelled) return;
+        setCategory(data);
+        setStatus("ready");
       })
-      .catch(() => {});
-  }, []);
+      .catch((err) => {
+        if (cancelled) return;
+        setCategory(null);
+        setStatus(err.response?.status === 404 ? "notfound" : "error");
+      });
+    return () => { cancelled = true; };
+  }, [id]);
 
   // Delegate AC category to ACCategoryPage for tailored multi-package experience
   if (
@@ -311,8 +244,10 @@ const Category = () => {
 
   if (!category) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white text-slate-800 text-xl font-semibold">
-        Category not found
+      <div className="min-h-screen flex items-center justify-center bg-white text-slate-800 text-xl font-semibold px-6 text-center">
+        {status === "loading" && "Loading…"}
+        {status === "notfound" && (<><meta name="robots" content="noindex" />Category not found</>)}
+        {status === "error" && "We couldn't load this category. Please refresh and try again."}
       </div>
     );
   }

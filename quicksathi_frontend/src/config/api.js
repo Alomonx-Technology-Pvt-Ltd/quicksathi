@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5050/api";
 
 // ── In-memory response cache ─────────────────────────────────────────────────
 // Caches GET responses for CACHE_TTL_MS so repeat navigations are instant.
@@ -59,11 +59,24 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
+    // Only treat a 401 as "your session expired" when we actually sent a session token and the call
+    // wasn't a login attempt itself (a wrong password is also a 401 and must show its own message).
+    const sentToken = Boolean(error.config?.headers?.Authorization);
+    const isAuthCall = String(error.config?.url || "").startsWith("/auth/");
+    if (error.response?.status === 401 && sentToken && !isAuthCall) {
       localStorage.removeItem("qs_token");
       localStorage.removeItem("qs_user");
-      if (!window.location.pathname.includes("/login")) {
-        window.location.href = "/login";
+      localStorage.removeItem("qs_provider");
+      const path = window.location.pathname;
+      // Pages that need an account send you to sign in; public pages (home, services…) just reload as a
+      // signed-out visitor instead of throwing you onto the login screen.
+      const needsAccount = /^\/(my-bookings|booking|payment|profile|account|provider\/(dashboard|onboarding))/.test(path);
+      if (path.startsWith("/admin")) {
+        window.location.href = "/admin";
+      } else if (needsAccount) {
+        window.location.href = `/login?redirect=${encodeURIComponent(path)}`;
+      } else if (!path.includes("/login")) {
+        window.location.reload();
       }
     }
     return Promise.reject(error);

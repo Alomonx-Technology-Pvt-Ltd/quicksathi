@@ -15,6 +15,17 @@ const AdminProviders = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [actioningId, setActioningId] = useState(null);
+  // KYC files are private; fetch short-lived signed links only when an admin asks for them.
+  const [docs, setDocs] = useState({});
+  const openDocuments = async (id) => {
+    try {
+      const { data } = await api.get(`/admin/providers/${id}/documents`);
+      setDocs((prev) => ({ ...prev, [id]: data }));
+      setTimeout(() => setDocs((prev) => ({ ...prev, [id]: undefined })), (data.expiresInSeconds || 300) * 1000);
+    } catch (err) {
+      alert(err.response?.data?.message || "Could not load documents");
+    }
+  };
 
   const fetchProviders = async () => {
     try {
@@ -193,43 +204,37 @@ const AdminProviders = () => {
                   {/* Documents & Verification Section */}
                   <div className="flex flex-wrap items-center gap-3 mt-3 pt-3 border-t" style={{ borderColor: "var(--admin-border)" }}>
                     <span className="text-[10px] uppercase font-bold tracking-wider" style={{ color: "var(--admin-text-muted)" }}>Verification:</span>
-                    {provider.documents?.selfiePhoto ? (
-                      <a 
-                        href={provider.documents.selfiePhoto} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold no-underline border transition-all hover:opacity-80"
-                        style={{ backgroundColor: "rgba(34,197,94,0.08)", borderColor: "rgba(34,197,94,0.2)", color: "#22c55e" }}
-                      >
-                        <img src={provider.documents.selfiePhoto} alt="Selfie" className="w-4 h-4 rounded-full object-cover" />
-                        📸 View Live Selfie
-                      </a>
+                    {docs[provider._id] ? (
+                      <>
+                        {[
+                          ["selfiePhoto", "📸 Live Selfie", "rgba(34,197,94,0.08)", "rgba(34,197,94,0.2)", "#22c55e"],
+                          ["idProof", "📄 ID Proof", "rgba(59,130,246,0.08)", "rgba(59,130,246,0.2)", "#60a5fa"],
+                          ["businessRegistration", "📑 Business Reg", "rgba(168,85,247,0.08)", "rgba(168,85,247,0.2)", "#c084fc"],
+                        ].map(([key, label, bg, border, color]) =>
+                          docs[provider._id][key] ? (
+                            <a
+                              key={key}
+                              href={docs[provider._id][key]}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold no-underline border transition-all hover:opacity-80"
+                              style={{ backgroundColor: bg, borderColor: border, color }}
+                            >
+                              {label}
+                            </a>
+                          ) : null
+                        )}
+                        <span className="text-[10px]" style={{ color: "var(--admin-text-muted)" }}>Links expire in 5 minutes</span>
+                      </>
                     ) : (
-                      <span className="text-xs" style={{ color: "var(--admin-text-muted)" }}>No selfie</span>
-                    )}
-
-                    {provider.documents?.idProof && (
-                      <a 
-                        href={provider.documents.idProof} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold no-underline border transition-all hover:opacity-80"
+                      <button
+                        type="button"
+                        onClick={() => openDocuments(provider._id)}
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border cursor-pointer transition-all hover:opacity-80"
                         style={{ backgroundColor: "rgba(59,130,246,0.08)", borderColor: "rgba(59,130,246,0.2)", color: "#60a5fa" }}
                       >
-                        📄 ID Proof
-                      </a>
-                    )}
-
-                    {provider.documents?.businessRegistration && (
-                      <a 
-                        href={provider.documents.businessRegistration} 
-                        target="_blank" 
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold no-underline border transition-all hover:opacity-80"
-                        style={{ backgroundColor: "rgba(168,85,247,0.08)", borderColor: "rgba(168,85,247,0.2)", color: "#c084fc" }}
-                      >
-                        📑 Business Reg
-                      </a>
+                        🔒 View KYC documents
+                      </button>
                     )}
                   </div>
 

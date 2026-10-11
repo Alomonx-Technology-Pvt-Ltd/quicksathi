@@ -30,7 +30,7 @@ export function hermeticEnv(extra = {}) {
     PATH: process.env.PATH,
     HOME: process.env.HOME,
     DOTENV_CONFIG_PATH: "/dev/null",
-    NODE_ENV: "production",
+    NODE_ENV: "test",
     JWT_SECRET,
     JWT_EXPIRES_IN: "1h",
     ADMIN_EMAILS: ADMIN_EMAILS.join(","),
@@ -46,7 +46,7 @@ let seq = 0;
 export const uid = (prefix = "x") => `${prefix}${Date.now().toString(36)}${(seq++).toString(36)}`;
 export const daysFromNow = (n) => new Date(Date.now() + n * 864e5);
 
-export async function startStack() {
+export async function startStack({ env: extraEnv = {} } = {}) {
   const mongo = await MongoMemoryServer.create();
   const uri = `${mongo.getUri()}qs_test`;
   const port = await freePort();
@@ -59,7 +59,7 @@ export async function startStack() {
     logs = "";
     child = spawn(process.execPath, ["server.js"], {
       cwd: BACKEND_DIR,
-      env: hermeticEnv({ PORT: String(port), MONGODB_URI: uri }),
+      env: hermeticEnv({ PORT: String(port), MONGODB_URI: uri, ...extraEnv }),
       stdio: ["ignore", "pipe", "pipe"],
     });
     child.stdout.on("data", (d) => (logs += d));
@@ -69,7 +69,13 @@ export async function startStack() {
       try {
         const r = await fetch(`http://127.0.0.1:${port}/api/health`);
         if (r.status < 500) {
-          await new Promise((r2) => setTimeout(r2, 300)); // let import-time seeding settle
+          // Mongoose builds indexes in the background after boot; wait for the ones tests rely on.
+          for (let i = 0; i < 50; i++) {
+            const names = new Set((await db.collection("bookings").indexes().catch(() => [])).map((x) => x.name));
+            const userNames = new Set((await db.collection("users").indexes().catch(() => [])).map((x) => x.name));
+            if (names.has("razorpayPaymentId_1") && names.has("razorpayOrderId_1") && userNames.has("phone_unique")) break;
+            await new Promise((r2) => setTimeout(r2, 100));
+          }
           return;
         }
       } catch {}
@@ -171,10 +177,10 @@ export async function startStack() {
   const razorpaySignature = (orderId, paymentId) =>
     crypto.createHmac("sha256", RAZORPAY_SECRET).update(`${orderId}|${paymentId}`).digest("hex");
 
-  const runScript = (relPath, extraEnv = {}, timeoutMs = 30_000) =>
+  const runScript = (relPath, extraEnv = {}, timeoutMs = 30_000, args = []) =>
     new Promise((resolve) => {
       let out = "";
-      const p = spawn(process.execPath, [relPath], { cwd: BACKEND_DIR, env: hermeticEnv({ MONGODB_URI: uri, ...extraEnv }) });
+      const p = spawn(process.execPath, [relPath, ...args], { cwd: BACKEND_DIR, env: hermeticEnv({ MONGODB_URI: uri, ...extraEnv }) });
       p.stdout.on("data", (d) => (out += d));
       p.stderr.on("data", (d) => (out += d));
       const t = setTimeout(() => p.kill("SIGKILL"), timeoutMs);
@@ -182,7 +188,7 @@ export async function startStack() {
     });
 
   return {
-    api, db, uri, port, tokenFor, createUser, createCategory, createService, createProvider,
+    api, db, uri, port, mongo, tokenFor, createUser, createCategory, createService, createProvider,
     createBooking, createCoupon, razorpaySignature, runScript,
     logs: () => logs,
     restart: async () => { await shutdown(); await boot(); },

@@ -140,12 +140,18 @@ const ProviderDashboard = () => {
     }
   };
 
+  // API responses carry the populated customer/service; keep the existing objects if one ever doesn't.
+  const mergeBooking = (prev, next = {}) => ({
+    ...prev,
+    ...next,
+    user: typeof next.user === "object" && next.user ? next.user : prev.user,
+    service: typeof next.service === "object" && next.service ? next.service : prev.service,
+  });
+
   const handleBookingStatus = async (bookingId, newStatus) => {
     try {
       const { data } = await api.patch(`/providers/bookings/${bookingId}/status`, { status: newStatus });
-      setBookings((prev) =>
-        prev.map((b) => (b._id === bookingId ? { ...b, status: newStatus } : b))
-      );
+      setBookings((prev) => prev.map((b) => (b._id === bookingId ? mergeBooking(b, data.booking) : b)));
       setMessage(`Booking status updated to ${newStatus.replace("_", " ")}!`);
       setTimeout(() => setMessage(""), 3000);
     } catch (err) {
@@ -154,26 +160,40 @@ const ProviderDashboard = () => {
     }
   };
 
+  const handleCashCollected = async (bookingId) => {
+    try {
+      const { data } = await api.post(`/providers/bookings/${bookingId}/cash-collected`);
+      setBookings((prev) => prev.map((b) => (b._id === bookingId ? mergeBooking(b, data.booking) : b)));
+      setMessage("Cash payment recorded.");
+      setTimeout(() => setMessage(""), 3000);
+    } catch (err) {
+      setMessage(err.response?.data?.message || "Could not record cash payment");
+    }
+  };
+
+  // Rentals are booked at an estimate; the driver records the final fare before taking cash.
+  const handleConfirmFare = async (booking) => {
+    const input = window.prompt(`Final fare in ₹ for ${booking.bookingId} (estimate ₹${booking.amount})`, String(booking.amount));
+    if (input === null) return;
+    try {
+      const { data } = await api.post(`/providers/bookings/${booking._id}/fare`, { amount: Number(input) });
+      setBookings((prev) => prev.map((b) => (b._id === booking._id ? mergeBooking(b, data.booking) : b)));
+      setMessage(`Fare confirmed: ₹${data.booking.amount}`);
+      setTimeout(() => setMessage(""), 3000);
+    } catch (err) {
+      setMessage(err.response?.data?.message || "Could not confirm the fare");
+    }
+  };
+
   const handleVerifyOtpStart = async (bookingId, otp, setErrorCallback) => {
     try {
       setVerifying(bookingId);
-      const { data } = await api.post(`/bookings/${bookingId}/verify-otp-start`, { otp });
-      setBookings((prev) =>
-        prev.map((b) =>
-          b._id === bookingId
-            ? {
-                ...b,
-                ...(data.booking || {}),
-                user: data.booking?.user || b.user,
-                service: data.booking?.service || b.service,
-              }
-            : b
-        )
-      );
-      setMessage("Doorstep OTP verified! Service countdown timer started.");
+      const { data } = await api.post(`/providers/bookings/${bookingId}/start`, { otp });
+      setBookings((prev) => prev.map((b) => (b._id === bookingId ? mergeBooking(b, data.booking) : b)));
+      setMessage("Code verified. The service timer has started.");
       setTimeout(() => setMessage(""), 4000);
     } catch (err) {
-      const msg = err.response?.data?.message || "Invalid OTP! Check with customer.";
+      const msg = err.response?.data?.message || "Wrong code. Check with the customer.";
       if (setErrorCallback) setErrorCallback(msg);
       else setMessage(msg);
     } finally {
@@ -185,19 +205,8 @@ const ProviderDashboard = () => {
     if (!window.confirm("Are you sure you want to submit this job as completed?")) return;
     try {
       setCompleting(bookingId);
-      const { data } = await api.post(`/bookings/${bookingId}/complete-work`, { notes });
-      setBookings((prev) =>
-        prev.map((b) =>
-          b._id === bookingId
-            ? {
-                ...b,
-                ...(data.booking || {}),
-                user: data.booking?.user || b.user,
-                service: data.booking?.service || b.service,
-              }
-            : b
-        )
-      );
+      const { data } = await api.post(`/providers/bookings/${bookingId}/complete`, { notes });
+      setBookings((prev) => prev.map((b) => (b._id === bookingId ? mergeBooking(b, data.booking) : b)));
       setMessage("Service job completed successfully!");
       setTimeout(() => setMessage(""), 4000);
     } catch (err) {
@@ -508,7 +517,7 @@ const ProviderDashboard = () => {
               style={{ backgroundColor: "var(--admin-bg-sidebar)", borderColor: "var(--admin-border)" }}
             >
               <AlertCircle size={40} className="mx-auto text-amber-500 mb-4 animate-pulse" />
-              <h2 className="text-lg font-bold mb-2">Account Status: {provider?.approvalStatus.toUpperCase()}</h2>
+              <h2 className="text-lg font-bold mb-2">Account Status: {provider?.approvalStatus?.toUpperCase() || "UNKNOWN"}</h2>
               {provider?.approvalStatus === "rejected" && provider?.rejectionReason ? (
                 <p className="text-sm text-red-400">Rejection Reason: {provider.rejectionReason}</p>
               ) : (
@@ -728,7 +737,12 @@ const ProviderDashboard = () => {
                       />
 
                       <div className="flex items-center justify-end gap-2 pt-3 border-t" style={{ borderColor: "var(--admin-border)" }}>
-                        {b.status === "pending" && (
+                        {b.status === "pending" && b.paymentMethod === "razorpay" && b.paymentStatus !== "paid" && (
+                          <span className="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase" style={{ color: "var(--admin-text-muted)" }}>
+                            Awaiting payment
+                          </span>
+                        )}
+                        {b.status === "pending" && !(b.paymentMethod === "razorpay" && b.paymentStatus !== "paid") && (
                           <button
                             onClick={() => handleBookingStatus(b._id, "confirmed")}
                             className="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase cursor-pointer border-0 bg-green-500 hover:bg-green-600 text-white transition"
@@ -736,7 +750,24 @@ const ProviderDashboard = () => {
                             Accept Booking
                           </button>
                         )}
-                        {b.status !== "completed" && b.status !== "cancelled" && (
+                        {/* Start and Complete live in the timer card above (start needs the customer's code). */}
+                        {["in_progress", "completed"].includes(b.status) && b.fareConfirmed === false && b.paymentStatus === "pending" && (
+                          <button
+                            onClick={() => handleConfirmFare(b)}
+                            className="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase cursor-pointer border-0 bg-purple-500 hover:bg-purple-600 text-white transition"
+                          >
+                            Confirm Fare (est. ₹{b.amount})
+                          </button>
+                        )}
+                        {["in_progress", "completed"].includes(b.status) && b.paymentMethod === "cod" && b.paymentStatus !== "paid" && b.fareConfirmed !== false && (
+                          <button
+                            onClick={() => handleCashCollected(b._id)}
+                            className="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase cursor-pointer border-0 bg-emerald-500 hover:bg-emerald-600 text-white transition"
+                          >
+                            Cash Collected
+                          </button>
+                        )}
+                        {["pending", "confirmed"].includes(b.status) && (
                           <button
                             onClick={() => handleBookingStatus(b._id, "cancelled")}
                             className="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase cursor-pointer border-0 bg-red-500 hover:bg-red-600 text-white transition"
