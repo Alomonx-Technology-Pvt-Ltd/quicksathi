@@ -282,6 +282,27 @@ Target UX (owner screenshot, 2026-10-11): one "Checkout & Booking" page: date �
 
 ---
 
+## Deferred — Automatic partner assignment & acceptance (developer checklist §1; needs a design pass)
+
+Source: owner's developer checklist (2026-10-11), section 1. **On hold** until provider availability (checklist §2, to be discussed together with the slot design above) is settled, because assignment needs to know who is free when.
+
+**Checklist items:** auto-assign bookings to eligible partners; prioritise by availability, distance, ratings and reviews; weigh acceptance rate and cancellation history; auto-reassign if a partner rejects or doesn't respond; prevent duplicate assignments and overlapping bookings; notify customers and partners of status changes.
+
+**Where the code is today:** each service has one provider (`Service.provider`), copied onto the booking at creation; admins reassign by hand (`PATCH /admin/bookings/:id/assign`, atomic, approved+active providers only). Provider ratings exist as a field but there are no real reviews, no acceptance/decline records, no provider coordinates and no background job runner (Render free tier sleeps).
+
+**Starting point discussed (not decided):** offer the job to all eligible partners (approved, online, offering the service, in the city, free in the slot); the first to accept wins through one conditional update (no double assignment); if nobody accepts in N minutes it lands in the admin queue. Ranking comes later, once there is data.
+
+**Questions the design must answer:**
+- Eligibility: providers per service (many-to-many), service area (city / pincodes / radius), availability source (slots, working hours, days off, online toggle).
+- Offer flow: broadcast vs ranked one-at-a-time; response timeout; how many rounds before admin fallback; what the customer sees while waiting.
+- **Late rejection / no-show:** a partner declines or cancels 30 minutes before the slot. Who is offered it, with what shorter timeout; when the customer is told and offered reschedule/cancel; whether a paid booking is refunded automatically if nobody takes it.
+- **Reward / penalty system** feeding priority: acceptance rate, late cancellations, no-shows, lateness against the slot, completion rate, customer ratings (needs a real reviews feature). Penalties (lower priority, cool-down, suspension) and rewards (priority, badges, incentives); how scores decay; how disputes are handled.
+- Notifications: channels (in-app exists; web push, SMS/WhatsApp via e.g. MSG91 cost money), templates per event, and who is told what (see architecture-backlog #3, one booking-event notifier).
+- Infrastructure: something must run timers (offer expiry, reassignment): a paid always-on instance or a scheduled job.
+- Tests: two partners accept at once (one wins), decline → re-offer, timeout → admin queue, late cancel → re-offer + customer notified, penalties applied once.
+
+---
+
 ## 5. Deploy order (production)
 
 1. Merge PR #1 (after Phases 0–3 and owner review).
