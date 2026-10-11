@@ -7,6 +7,7 @@ import compression from "compression";
 import connectDB from "./config/db.js";
 import helmet from "helmet";
 import { apiLimiter, credentialLimiter, authLimiter, contactLimiter, aiLimiter, couponLimiter, geoLimiter, nominatimLimiter } from "./middleware/rateLimits.js";
+import { trustProxySetting, makeOriginChecker } from "./config/hosting.js";
 import { protect } from "./middleware/auth.js";
 import { adminOnly } from "./middleware/admin.js";
 
@@ -28,11 +29,11 @@ import geoRoutes from "./routes/geo.js";
 const app = express();
 const PORT = process.env.PORT || 5050; // 5000 is taken by macOS AirPlay Receiver on developer machines
 
-// Behind Render's proxy: trust one hop so rate limits see the real client IP.
-app.set("trust proxy", 1);
+// Number of reverse proxies in front of the app (TRUST_PROXY, default 1) so rate limits see the real client IP.
+app.set("trust proxy", trustProxySetting());
 app.disable("x-powered-by");
-// One-time check that "trust proxy" matches Render's hops: req.ip must be the client, not a proxy,
-// or every user would share one rate-limit bucket. Look for this line in the Render log after deploy.
+// One-time check that TRUST_PROXY matches the host's proxy hops: req.ip must be the client, not a proxy,
+// or every user would share one rate-limit bucket. Look for this line in the server log after deploy.
 if (process.env.NODE_ENV === "production") {
   let logged = false;
   app.use((req, _res, next) => {
@@ -48,53 +49,12 @@ app.use(helmet());
 // Enable gzip/brotli compression for optimized response speed & bandwidth
 app.use(compression());
 
-// ── CORS — allow local dev + production + all Vercel preview URLs ──
-const ALLOWED_ORIGINS = [
-  "http://localhost:5173",
-  "http://localhost:3000",
-];
-
-// Add the configured production URL if present (set CLIENT_URL in Render env vars)
-if (process.env.CLIENT_URL) {
-  ALLOWED_ORIGINS.push(process.env.CLIENT_URL);
-}
-
-// Add additional origins from comma-separated ADDITIONAL_ORIGINS env var
-if (process.env.ADDITIONAL_ORIGINS) {
-  process.env.ADDITIONAL_ORIGINS.split(",").forEach((o) => {
-    const trimmed = o.trim();
-    if (trimmed) ALLOWED_ORIGINS.push(trimmed);
-  });
-}
+// ── CORS — origins come from env (config/hosting.js): CLIENT_URL, CORS_ORIGINS, CORS_ORIGIN_PATTERNS ──
+const isAllowedOrigin = makeOriginChecker();
 
 const corsOptions = {
-  origin: (origin, callback) => {
-    // Allow requests with no origin (Postman, curl, mobile apps, server-to-server)
-    if (!origin) return callback(null, true);
-
-    // Allow any localhost / 127.0.0.1 port (e.g. 5173, 5174, 5175, 3000, 4173)
-    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) {
-      return callback(null, true);
-    }
-
-    // Check exact match against allowed list
-    if (ALLOWED_ORIGINS.includes(origin)) return callback(null, true);
-
-    // Allow Vercel preview deployments of THIS team only. A bare "tiptobook*.vercel.app" pattern would
-    // also match projects anyone can create. Override the suffix with VERCEL_PREVIEW_SUFFIX if the team changes.
-    const previewSuffix = process.env.VERCEL_PREVIEW_SUFFIX || "-quicksathi9-3638s-projects.vercel.app";
-    if (origin.startsWith("https://") && origin.endsWith(previewSuffix) && /^https:\/\/[a-z0-9-]+$/i.test(origin.slice(0, -previewSuffix.length))) {
-      return callback(null, true);
-    }
-
-    // Allow in non-production environments
-    if (process.env.NODE_ENV !== "production") {
-      return callback(null, true);
-    }
-
-    // Block everything else in production
-    callback(new Error(`CORS: Origin '${origin}' is not allowed.`));
-  },
+  origin: (origin, callback) =>
+    isAllowedOrigin(origin) ? callback(null, true) : callback(new Error(`CORS: Origin '${origin}' is not allowed.`)),
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -201,30 +161,22 @@ const startServer = async () => {
   app.listen(PORT, () => {
     console.log(`🚀 TiptoBook backend running on port ${PORT}`);
     console.log(`   Environment : ${process.env.NODE_ENV || "development"}`);
-    console.log(`   Allowed origins : ${ALLOWED_ORIGINS.join(", ")} + team Vercel previews`);
+    console.log(`   Allowed origins : ${isAllowedOrigin.describe()}`);
 
-    // ── Self-ping keepalive (Render / Railway free tiers) ─────────────────
-    // Free plans may sleep after inactivity (Render: 15 min, Railway: varies).
-    // Pinging every 14 minutes keeps the service warm at no extra cost.
-    // Only runs in production — skipped in local dev to avoid noise.
-    if (process.env.NODE_ENV === "production") {
-      // Auto-detect platform URL:
-      //   Render  → RENDER_EXTERNAL_URL  (full URL like https://xxx.onrender.com)
-      //   Railway → RAILWAY_PUBLIC_DOMAIN (domain only like xxx.up.railway.app)
-      const SERVICE_URL =
-        process.env.RENDER_EXTERNAL_URL ||
-        (process.env.RAILWAY_PUBLIC_DOMAIN
-          ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
-          : `http://localhost:${PORT}`);
+    // ── Optional self-ping keepalive ─────────────────────────────────────────
+    // Free tiers on some hosts (e.g. Render) sleep after ~15 idle minutes, causing 30-60 s cold starts.
+    // Set SELF_PING_URL to this service's public URL to ping /api/health every 14 minutes.
+    // Leave it unset on hosts that don't sleep (Railway, paid plans, a VPS).
+    const selfPingUrl = (process.env.SELF_PING_URL || "").replace(/\/+$/, "");
+    if (selfPingUrl) {
       setInterval(async () => {
         try {
-          await fetch(`${SERVICE_URL}/api/health`);
-          console.log("🏓 Keepalive ping sent");
+          await fetch(`${selfPingUrl}/api/health`);
         } catch (err) {
           console.warn("Keepalive ping failed:", err.message);
         }
-      }, 14 * 60 * 1000); // every 14 minutes
-      console.log(`   Keepalive : pinging ${SERVICE_URL}/api/health every 14 min`);
+      }, 14 * 60 * 1000);
+      console.log(`   Keepalive : pinging ${selfPingUrl}/api/health every 14 min`);
     }
   });
 };
