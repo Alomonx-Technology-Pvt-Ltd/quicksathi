@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import api from "../config/api";
-import { Ticket, Check, X, Tag, Sparkles, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
+import { Ticket, Check, X, Tag, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { payForBooking } from "../utils/razorpayCheckout";
 
@@ -116,6 +116,16 @@ const PaymentPage = () => {
   const price = quoted ? quoted.originalAmount : urlPrice;
   const finalAmount = Math.max(0, price - discountAmount);
 
+  // Rentals: estimated fare, cash only, no coupons (the driver confirms the final fare).
+  const rental = Boolean(quoted?.isRental);
+  const method = rental ? "cod" : paymentMethod;
+  // Once the booking exists its price is fixed on the server: show that and lock the coupon box.
+  const locked = Boolean(createdBooking);
+  const shownPrice = locked ? createdBooking.originalAmount : price;
+  const shownDiscount = locked ? createdBooking.discountAmount : discountAmount;
+  const shownTotal = locked ? createdBooking.amount : finalAmount;
+  const shownCoupon = locked ? createdBooking.couponCode : appliedCoupon?.code;
+
   const handlePayment = async () => {
     setProcessing(true);
     setPayError("");
@@ -138,7 +148,7 @@ const PaymentPage = () => {
             ...(accuracyParam ? { accuracy: parseFloat(accuracyParam) } : {}),
           },
           notes,
-          paymentMethod,
+          paymentMethod: method,
           packageTitle,
           distanceKm,
           couponCode: appliedCoupon ? appliedCoupon.code : "",
@@ -147,7 +157,7 @@ const PaymentPage = () => {
         setCreatedBooking(data);
       }
 
-      if (paymentMethod === "razorpay") {
+      if (method === "razorpay") {
         const result = await payForBooking(booking, user);
         if (result.status === "paid") {
           setSuccess(true);
@@ -288,7 +298,7 @@ const PaymentPage = () => {
           <div className="flex flex-col gap-2">
             <div className="flex justify-between text-sm" style={{ fontFamily: "var(--font-body)" }}>
               <span style={{ color: "var(--color-text-mid)" }}>{serviceName}</span>
-              <span style={{ color: "var(--color-text-dark)" }}>₹{price.toLocaleString()}</span>
+              <span style={{ color: "var(--color-text-dark)" }}>₹{shownPrice.toLocaleString()}</span>
             </div>
             {packageTitle && (
               <div className="flex justify-between text-sm" style={{ fontFamily: "var(--font-body)" }}>
@@ -320,16 +330,16 @@ const PaymentPage = () => {
             )}
 
             {/* Discount line if applied */}
-            {appliedCoupon && discountAmount > 0 && (
+            {shownCoupon && shownDiscount > 0 && (
               <div
                 className="flex justify-between text-sm font-medium pt-2 text-emerald-600"
                 style={{ fontFamily: "var(--font-body)" }}
               >
                 <span className="flex items-center gap-1">
                   <Tag size={13} />
-                  <span>Coupon ({appliedCoupon.code})</span>
+                  <span>Coupon ({shownCoupon})</span>
                 </span>
-                <span>-₹{discountAmount.toLocaleString()}</span>
+                <span>-₹{shownDiscount.toLocaleString()}</span>
               </div>
             )}
 
@@ -337,23 +347,30 @@ const PaymentPage = () => {
               className="flex justify-between text-lg font-bold pt-3 mt-2"
               style={{ borderTop: "1px solid var(--color-border)", fontFamily: "var(--font-display)" }}
             >
-              <span style={{ color: "var(--color-text-dark)" }}>Total</span>
+              <span style={{ color: "var(--color-text-dark)" }}>{rental ? "Estimated fare" : "Total"}</span>
               <div className="text-right">
-                {appliedCoupon && discountAmount > 0 && (
+                {shownCoupon && shownDiscount > 0 && (
                   <span className="text-xs line-through text-slate-400 mr-2">
-                    ₹{price.toLocaleString()}
+                    ₹{shownPrice.toLocaleString()}
                   </span>
                 )}
-                <span style={{ color: "var(--color-primary)" }}>₹{finalAmount.toLocaleString()}</span>
+                <span style={{ color: "var(--color-primary)" }}>₹{shownTotal.toLocaleString()}</span>
               </div>
             </div>
+            {rental && (
+              <p className="text-xs m-0 mt-1" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+                The driver confirms the final fare at the end of the trip. Pay in cash.
+              </p>
+            )}
           </div>
         </div>
 
-        {/* ── Offers & Promo Code Box ── */}
+        {/* ── Offers & Promo Code Box ── (not for rentals; frozen once the booking exists) */}
+        {!rental && (
         <div
           className="rounded-2xl p-5 mb-8 border transition-all"
-          style={{ backgroundColor: "var(--color-bg-white)", borderColor: "var(--color-border)" }}
+          style={{ backgroundColor: "var(--color-bg-white)", borderColor: "var(--color-border)", ...(locked ? { opacity: 0.6, pointerEvents: "none" } : {}) }}
+          aria-disabled={locked}
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -485,11 +502,18 @@ const PaymentPage = () => {
               ))}
             </div>
           )}
+          {locked && (
+            <p className="text-xs mt-3 mb-0" style={{ color: "var(--color-text-mid)" }}>
+              The price is fixed for this booking. To use a different coupon, cancel it from My Bookings and book again.
+            </p>
+          )}
         </div>
+        )}
 
         {/* ── Payment Methods ── */}
         <div className="flex flex-col gap-4 mb-8">
           {/* Razorpay */}
+          {!rental && (
           <button
             onClick={() => setPaymentMethod("razorpay")}
             className="text-left p-5 rounded-2xl border cursor-pointer transition-all duration-200"
@@ -527,15 +551,16 @@ const PaymentPage = () => {
               </div>
             </div>
           </button>
+          )}
 
           {/* COD */}
           <button
             onClick={() => setPaymentMethod("cod")}
             className="text-left p-5 rounded-2xl border cursor-pointer transition-all duration-200"
             style={{
-              backgroundColor: paymentMethod === "cod" ? "rgba(34,197,94,0.04)" : "var(--color-bg-white)",
-              borderColor: paymentMethod === "cod" ? "#22c55e" : "var(--color-border)",
-              boxShadow: paymentMethod === "cod" ? "0 0 0 2px rgba(34,197,94,0.15)" : "none",
+              backgroundColor: method === "cod" ? "rgba(34,197,94,0.04)" : "var(--color-bg-white)",
+              borderColor: method === "cod" ? "#22c55e" : "var(--color-border)",
+              boxShadow: method === "cod" ? "0 0 0 2px rgba(34,197,94,0.15)" : "none",
             }}
           >
             <div className="flex items-center gap-4">
@@ -558,9 +583,9 @@ const PaymentPage = () => {
               </div>
               <div
                 className="w-5 h-5 rounded-full border-2 flex items-center justify-center"
-                style={{ borderColor: paymentMethod === "cod" ? "#22c55e" : "var(--color-border)" }}
+                style={{ borderColor: method === "cod" ? "#22c55e" : "var(--color-border)" }}
               >
-                {paymentMethod === "cod" && (
+                {method === "cod" && (
                   <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "#22c55e" }} />
                 )}
               </div>
@@ -593,9 +618,9 @@ const PaymentPage = () => {
         >
           {processing
             ? "Processing..."
-            : paymentMethod === "razorpay"
-            ? `Pay ₹${finalAmount.toLocaleString()}`
-            : `Confirm COD Booking (₹${finalAmount.toLocaleString()})`}
+            : method === "razorpay"
+            ? `Pay ₹${shownTotal.toLocaleString()}`
+            : `Confirm ${rental ? "Cash Booking" : "COD Booking"} (₹${shownTotal.toLocaleString()}${rental ? " est." : ""})`}
         </button>
       </div>
     </div>

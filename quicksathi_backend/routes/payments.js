@@ -48,24 +48,48 @@ async function loadOwnBooking(req, res) {
   return booking;
 }
 
-/**
- * Mark a booking paid. Idempotent. Used by /verify (browser) and the webhook (Razorpay);
- * whichever arrives first wins and the second is a no-op.
- */
-async function markPaid(booking, paymentId) {
-  if (booking.paymentStatus === "paid") return booking;
-  booking.paymentStatus = "paid";
-  booking.razorpayPaymentId = paymentId;
-  if (booking.status === "pending") booking.status = "confirmed";
-  await booking.save();
+const notify = (recipient, title, message) =>
+  Notification.create({ recipient, title, message, type: "booking" }).catch((err) =>
+    console.error("Payment notification error:", err?.message || err)
+  );
 
-  Notification.create({
-    recipient: booking.user,
-    title: "Payment received ✅",
-    message: `We received your payment for booking ${booking.bookingId}.`,
-    type: "booking",
-  }).catch((err) => console.error("Payment notification error:", err?.message || err));
-  return booking;
+/**
+ * Record a captured payment. Idempotent and atomic. Used by /verify (browser) and the webhook
+ * (Razorpay); whichever arrives first wins and the second is a no-op.
+ * Returns "paid", "refund_pending" (money arrived after the booking was cancelled) or "noop".
+ */
+async function recordPayment(bookingId, paymentId) {
+  const open = { _id: bookingId, paymentStatus: { $in: ["pending", "failed"] } };
+  const history = (from, to, note) => ({ from, to, role: "system", at: new Date(), note });
+
+  const paid = await Booking.findOneAndUpdate(
+    { ...open, status: { $ne: "cancelled" } },
+    { $set: { paymentStatus: "paid", razorpayPaymentId: paymentId } },
+    { new: true }
+  );
+  if (paid) {
+    // An online booking is confirmed by its payment (providers can't accept it before; see bookingStatus.js).
+    await Booking.updateOne(
+      { _id: bookingId, status: "pending" },
+      { $set: { status: "confirmed" }, $push: { statusHistory: history("pending", "confirmed", "online payment received") } }
+    );
+    notify(paid.user, "Payment received ✅", `We received your payment for booking ${paid.bookingId}.`);
+    return "paid";
+  }
+
+  const late = await Booking.findOneAndUpdate(
+    { ...open, status: "cancelled" },
+    {
+      $set: { paymentStatus: "refund_pending", razorpayPaymentId: paymentId },
+      $push: { statusHistory: history("cancelled", "cancelled", "payment received after cancellation: refund due") },
+    },
+    { new: true }
+  );
+  if (late) {
+    notify(late.user, "Refund on its way", `Your payment for cancelled booking ${late.bookingId} arrived after the cancellation. We will refund it.`);
+    return "refund_pending";
+  }
+  return "noop";
 }
 
 // POST /api/payments/create-order — Create (or reuse) a Razorpay order for one of MY bookings.
@@ -97,9 +121,14 @@ router.post("/create-order", protect, async (req, res) => {
         receipt: booking.bookingId,
         notes: { bookingId: booking._id.toString(), userId: req.user._id.toString() },
       });
-      orderId = order.id;
-      booking.razorpayOrderId = orderId;
-      await booking.save();
+      // Save only if no other request stored an order meanwhile (double click, retry on a cold start).
+      // If one did, use that order so the customer can never pay an order we don't track.
+      const saved = await Booking.findOneAndUpdate(
+        { _id: booking._id, razorpayOrderId: null },
+        { $set: { razorpayOrderId: order.id } },
+        { new: true }
+      );
+      orderId = saved ? order.id : (await Booking.findById(booking._id)).razorpayOrderId;
     }
 
     res.json({
@@ -136,36 +165,37 @@ router.post("/verify", protect, async (req, res) => {
       return res.status(400).json({ message: "Payment verification failed" });
     }
 
-    if (booking.paymentStatus === "paid") {
-      return res.json({ message: "Payment already recorded", booking });
+    const outcome = await recordPayment(booking._id, razorpay_payment_id);
+    if (outcome === "refund_pending" || (outcome === "noop" && booking.status === "cancelled")) {
+      return res.status(409).json({ message: "This booking was cancelled; your payment will be refunded." });
     }
-    if (booking.status === "cancelled") {
-      return res.status(409).json({ message: "This booking was cancelled; contact support for a refund." });
-    }
-
-    await markPaid(booking, razorpay_payment_id);
-    res.json({ message: "Payment verified successfully", booking });
+    const fresh = await Booking.findById(booking._id);
+    res.json({ message: outcome === "paid" ? "Payment verified successfully" : "Payment already recorded", booking: fresh });
   } catch (error) {
     if (error?.code === 11000) return res.status(409).json({ message: "This payment is already linked to another booking" });
     res.status(500).json({ message: error.message });
   }
 });
 
-// POST /api/payments/cod-confirm — Confirm a cash-on-delivery booking (only while nothing has been paid).
+// POST /api/payments/cod-confirm — Switch an online booking to cash on delivery (nothing paid yet;
+// a failed online attempt is fine). The booking stays pending until the provider accepts it.
 router.post("/cod-confirm", protect, async (req, res) => {
   try {
     const booking = await loadOwnBooking(req, res);
     if (!booking) return;
 
-    if (booking.status !== "pending" || booking.paymentStatus !== "pending") {
+    const updated = await Booking.findOneAndUpdate(
+      { _id: booking._id, status: "pending", paymentStatus: { $in: ["pending", "failed"] } },
+      {
+        $set: { paymentMethod: "cod", paymentStatus: "pending" },
+        $push: { statusHistory: { from: "pending", to: "pending", by: req.user._id, role: "customer", at: new Date(), note: "switched to cash on delivery" } },
+      },
+      { new: true }
+    );
+    if (!updated) {
       return res.status(409).json({ message: "This booking can't be switched to cash on delivery" });
     }
-
-    booking.paymentMethod = "cod";
-    booking.status = "confirmed";
-    await booking.save();
-
-    res.json({ message: "COD booking confirmed", booking });
+    res.json({ message: "Switched to cash on delivery", booking: updated });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -192,21 +222,29 @@ router.post("/webhook", async (req, res) => {
     }
 
     const payment = event?.payload?.payment?.entity;
-    if (!payment?.order_id) return res.json({ received: true });
+    const order = event?.payload?.order?.entity;
+    const orderId = payment?.order_id || order?.id;
+    if (!orderId) return res.json({ received: true });
 
-    const booking = await Booking.findOne({ razorpayOrderId: payment.order_id });
+    let booking = await Booking.findOne({ razorpayOrderId: orderId });
+    if (!booking) {
+      // An order we created but whose id lost a race (see create-order): find the booking from the order notes.
+      const notedId = order?.notes?.bookingId || payment?.notes?.bookingId;
+      if (isId(notedId)) booking = await Booking.findById(notedId);
+    }
     if (!booking) return res.json({ received: true }); // not one of ours / unknown order
 
     if (event.event === "payment.captured" || event.event === "order.paid") {
+      const amount = payment?.amount ?? order?.amount_paid;
+      const currency = payment?.currency ?? order?.currency;
       // Only accept the exact amount we asked for.
-      if (payment.amount === toPaise(booking.amount) && payment.currency === "INR") {
-        await markPaid(booking, payment.id);
+      if (amount === toPaise(booking.amount) && currency === "INR" && payment?.id) {
+        await recordPayment(booking._id, payment.id);
       } else {
-        console.error(`Webhook amount mismatch for ${booking.bookingId}: got ${payment.amount} ${payment.currency}`);
+        console.error(`Webhook amount mismatch for ${booking.bookingId}: got ${amount} ${currency}`);
       }
-    } else if (event.event === "payment.failed" && booking.paymentStatus === "pending") {
-      booking.paymentStatus = "failed";
-      await booking.save();
+    } else if (event.event === "payment.failed") {
+      await Booking.updateOne({ _id: booking._id, paymentStatus: "pending" }, { $set: { paymentStatus: "failed" } });
     }
 
     res.json({ received: true });

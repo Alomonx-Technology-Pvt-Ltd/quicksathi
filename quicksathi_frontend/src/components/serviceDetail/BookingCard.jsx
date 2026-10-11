@@ -173,9 +173,10 @@ const BookingCard = ({ service, pkg }) => {
                 <span className="font-bold text-slate-900">{formatDuration(routeInfo.durationMin)}</span>
               </div>
               <div className="flex items-center justify-between pt-1 border-t border-purple-200/60">
-                <span className="font-bold text-slate-900">Trip Total:</span>
+                <span className="font-bold text-slate-900">Estimated fare:</span>
                 <span className="text-base font-extrabold text-purple-700">₹{distancePrice.toLocaleString()}</span>
               </div>
+              <p className="text-[11px] text-slate-500 m-0">The driver confirms the final fare at the end of the trip. Pay in cash.</p>
             </div>
           )}
 

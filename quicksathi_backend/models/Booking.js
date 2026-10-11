@@ -140,6 +140,11 @@ const bookingSchema = new mongoose.Schema(
       default: "",
       maxlength: 1000,
     },
+    // Rentals are booked at an estimated fare; the provider confirms the final fare before cash is taken.
+    fareConfirmed: {
+      type: Boolean,
+      default: true,
+    },
   },
   {
     timestamps: true,

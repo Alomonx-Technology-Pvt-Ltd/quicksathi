@@ -43,17 +43,22 @@ export function basePriceFor(service, { packageIndex, packageTitle, distanceKm }
   else if (typeof packageTitle === "string" && packageTitle) pkg = packages.find((p) => p.title === packageTitle) || null;
 
   const km = Number(distanceKm);
-  if (service.serviceMode === "RENTAL" && service.perKmRate > 0 && km > 0) {
-    // NOTE: distance is still reported by the client until server-side routing exists (see fix plan WP-12).
-    return { price: Math.round(Math.min(km, MAX_RENTAL_KM) * service.perKmRate), pkg };
-  }
-
-  const price = pkg ? pkg.price : service.startingPrice;
+  // Rentals: an ESTIMATE from the customer's route (client-reported distance). The provider confirms
+  // the final fare and the customer pays cash (see confirmFare in bookingStatus.js).
+  const price =
+    service.serviceMode === "RENTAL" && service.perKmRate > 0 && km > 0
+      ? Math.round(Math.min(km, MAX_RENTAL_KM) * service.perKmRate)
+      : pkg ? pkg.price : service.startingPrice;
   if (!Number.isFinite(price) || price <= 0) {
     throw new PricingError(400, "This service has no bookable price");
   }
   return { price, pkg };
 }
+
+export const isRental = (service) => service?.serviceMode === "RENTAL";
+
+/** Highest fare a provider may confirm for a rental (same cap as the estimate). */
+export const maxRentalFare = (service) => Math.round(MAX_RENTAL_KM * (service?.perKmRate || 0));
 
 export function discountFor(coupon, basePrice) {
   let discount;
@@ -97,6 +102,7 @@ export async function quote({ serviceId, packageIndex, packageTitle, distanceKm,
   let discountAmount = 0;
   const code = typeof couponCode === "string" ? couponCode.trim().toUpperCase() : "";
   if (code) {
+    if (isRental(service)) throw new PricingError(400, "Coupons don't apply to rentals.");
     coupon = await Coupon.findOne({ code });
     if (!coupon) throw new PricingError(400, "Invalid coupon code.");
     const problem = couponProblem(coupon, { userId, basePrice: originalAmount });
@@ -127,6 +133,19 @@ export async function redeemCoupon(coupon, { userId, bookingId, discountApplied 
 
 export async function releaseCoupon(couponId, bookingId) {
   await Coupon.updateOne({ _id: couponId, "usedBy.bookingId": bookingId }, { $inc: { usedCount: -1 }, $pull: { usedBy: { bookingId } } });
+}
+
+/**
+ * Give the coupon back when a booking is cancelled before any money was collected
+ * (unpaid online booking, or cash job cancelled before the visit). Paid/refunded bookings keep it.
+ */
+export async function releaseCouponIfUnpaid(booking) {
+  if (booking.status !== "cancelled") return;
+  if (!["pending", "failed"].includes(booking.paymentStatus)) return;
+  await Coupon.updateOne(
+    { "usedBy.bookingId": booking._id },
+    { $inc: { usedCount: -1 }, $pull: { usedBy: { bookingId: booking._id } } }
+  );
 }
 
 // ── Scheduling (Asia/Kolkata) ──────────────────────────────────────────────

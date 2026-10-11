@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 import Booking from "../models/Booking.js";
 import Service from "../models/Service.js";
 import Notification from "../models/Notification.js";
-import { quote, redeemCoupon, releaseCoupon, assertFutureSlot, PricingError } from "../services/pricing.js";
+import { quote, redeemCoupon, releaseCoupon, releaseCouponIfUnpaid, assertFutureSlot, isRental, PricingError } from "../services/pricing.js";
 import { changeStatus, BookingStateError } from "../services/bookingStatus.js";
 import User from "../models/User.js";
 import { protect } from "../middleware/auth.js";
@@ -31,6 +31,7 @@ router.post("/quote", protect, async (req, res) => {
       discountAmount: q.discountAmount,
       amount: q.amount,
       packageTitle: q.pkg?.title || "",
+      isRental: isRental(q.service),
       coupon: q.coupon ? { code: q.coupon.code, title: q.coupon.title } : null,
     });
   } catch (error) {
@@ -61,6 +62,10 @@ router.post("/", protect, async (req, res) => {
 
     const q = await quote({ ...pickQuoteInput(req.body), userId: req.user._id });
     const { service, pkg, coupon } = q;
+    // Rentals: estimated fare, confirmed by the provider and paid in cash (owner decision 2026-10-11).
+    if (isRental(service) && paymentMethod !== "cod") {
+      return res.status(400).json({ message: "Rentals are paid in cash once the driver confirms the final fare." });
+    }
 
     const bookingObjectId = new mongoose.Types.ObjectId();
     if (coupon && q.discountAmount > 0) {
@@ -89,6 +94,7 @@ router.post("/", protect, async (req, res) => {
         couponCode: coupon && q.discountAmount > 0 ? coupon.code : "",
         discountAmount: q.discountAmount,
         paymentMethod,
+        fareConfirmed: !isRental(service),
         // Money is never marked received at creation. Online payments become "paid" only via
         // verified Razorpay confirmation (see routes/payments.js).
         paymentStatus: "pending",
@@ -198,6 +204,7 @@ router.patch("/:id/cancel", protect, async (req, res) => {
       reason: req.body?.reason,
     });
     await booking.save();
+    await releaseCouponIfUnpaid(booking);
 
     // Create In-Website Notification
     try {
@@ -250,6 +257,7 @@ export const adminUpdateBookingStatus = async (req, res) => {
     const status = req.body?.status;
     changeStatus(booking, status, { actorId: req.user._id, role: "admin", reason: req.body?.reason });
     await booking.save();
+    await releaseCouponIfUnpaid(booking);
 
     try {
       await Notification.create({

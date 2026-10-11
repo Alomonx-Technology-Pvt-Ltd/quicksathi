@@ -190,6 +190,7 @@ const MyBookings = () => {
                     <div className="flex flex-col items-end gap-3 flex-shrink-0">
                       <p className="text-xl font-bold m-0" style={{ fontFamily: "var(--font-display)", color: "var(--color-primary)" }}>
                         ₹{booking.amount?.toLocaleString("en-IN")}
+                        {booking.fareConfirmed === false && <span className="text-xs font-normal ml-1">(estimate)</span>}
                       </p>
                       {booking.paymentMethod === "razorpay" && booking.paymentStatus !== "paid" && booking.status === "pending" && (
                         <button

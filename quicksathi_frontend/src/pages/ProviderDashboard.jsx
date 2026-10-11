@@ -171,6 +171,20 @@ const ProviderDashboard = () => {
     }
   };
 
+  // Rentals are booked at an estimate; the driver records the final fare before taking cash.
+  const handleConfirmFare = async (booking) => {
+    const input = window.prompt(`Final fare in ₹ for ${booking.bookingId} (estimate ₹${booking.amount})`, String(booking.amount));
+    if (input === null) return;
+    try {
+      const { data } = await api.post(`/providers/bookings/${booking._id}/fare`, { amount: Number(input) });
+      setBookings((prev) => prev.map((b) => (b._id === booking._id ? mergeBooking(b, data.booking) : b)));
+      setMessage(`Fare confirmed: ₹${data.booking.amount}`);
+      setTimeout(() => setMessage(""), 3000);
+    } catch (err) {
+      setMessage(err.response?.data?.message || "Could not confirm the fare");
+    }
+  };
+
   const handleVerifyOtpStart = async (bookingId, otp, setErrorCallback) => {
     try {
       setVerifying(bookingId);
@@ -737,7 +751,15 @@ const ProviderDashboard = () => {
                           </button>
                         )}
                         {/* Start and Complete live in the timer card above (start needs the customer's code). */}
-                        {["in_progress", "completed"].includes(b.status) && b.paymentMethod === "cod" && b.paymentStatus !== "paid" && (
+                        {["in_progress", "completed"].includes(b.status) && b.fareConfirmed === false && b.paymentStatus === "pending" && (
+                          <button
+                            onClick={() => handleConfirmFare(b)}
+                            className="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase cursor-pointer border-0 bg-purple-500 hover:bg-purple-600 text-white transition"
+                          >
+                            Confirm Fare (est. ₹{b.amount})
+                          </button>
+                        )}
+                        {["in_progress", "completed"].includes(b.status) && b.paymentMethod === "cod" && b.paymentStatus !== "paid" && b.fareConfirmed !== false && (
                           <button
                             onClick={() => handleCashCollected(b._id)}
                             className="px-3.5 py-1.5 rounded-lg text-xs font-bold uppercase cursor-pointer border-0 bg-emerald-500 hover:bg-emerald-600 text-white transition"

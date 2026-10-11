@@ -9,7 +9,8 @@ import Notification from "../models/Notification.js";
 import { protect } from "../middleware/auth.js";
 import { adminOnly } from "../middleware/admin.js";
 import { adminUpdateBookingStatus } from "./bookings.js";
-import { markCashCollected, BookingStateError } from "../services/bookingStatus.js";
+import { markCashCollected, confirmFare, BookingStateError } from "../services/bookingStatus.js";
+import { maxRentalFare } from "../services/pricing.js";
 import { v2 as cloudinary } from "cloudinary";
 
 const router = Router();
@@ -553,27 +554,41 @@ router.patch("/services/:id/assign-provider", protect, adminOnly, async (req, re
 router.patch("/bookings/:id/assign", protect, adminOnly, async (req, res) => {
   try {
     const { providerId } = req.body;
-    const booking = await Booking.findById(req.params.id);
-    if (!booking) {
+    const exists = await Booking.exists({ _id: req.params.id });
+    if (!exists) {
       return res.status(404).json({ message: "Booking not found" });
     }
 
+    let provider = null;
     if (providerId) {
-      const provider = await Provider.findById(providerId);
+      provider = await Provider.findById(providerId);
       if (!provider) {
         return res.status(404).json({ message: "Provider not found" });
       }
       if (provider.approvalStatus !== "approved" || !provider.isActive) {
         return res.status(400).json({ message: "Only approved, active providers can be assigned to bookings" });
       }
-      if (!["pending", "confirmed"].includes(booking.status)) {
-        return res.status(409).json({ message: `A ${booking.status.replace("_", " ")} booking can't be reassigned` });
+    }
+
+    // Conditional update: a booking cancelled or started meanwhile is never (re)assigned or revived.
+    const booking = await Booking.findOneAndUpdate(
+      { _id: req.params.id, status: { $in: ["pending", "confirmed"] } },
+      provider ? { $set: { provider: provider._id } } : { $unset: { provider: "" } },
+      { new: true }
+    );
+    if (!booking) {
+      return res.status(409).json({ message: "Only pending or confirmed bookings can be (re)assigned" });
+    }
+
+    if (provider) {
+      // Assigning confirms a pending job, except an online booking that isn't paid yet (its payment confirms it).
+      const awaitingPayment = booking.paymentMethod === "razorpay" && booking.paymentStatus !== "paid";
+      if (booking.status === "pending" && !awaitingPayment) {
+        await Booking.updateOne(
+          { _id: booking._id, status: "pending" },
+          { $set: { status: "confirmed" }, $push: { statusHistory: { from: "pending", to: "confirmed", by: req.user._id, role: "admin", at: new Date(), note: "provider assigned" } } }
+        );
       }
-      booking.provider = provider._id;
-      if (booking.status === "pending") {
-        booking.status = "confirmed";
-      }
-      await booking.save();
 
       // Notify only after the assignment is saved.
       Notification.create({
@@ -588,12 +603,7 @@ router.patch("/bookings/:id/assign", protect, adminOnly, async (req, res) => {
         message: `Your booking for ${booking.serviceName} has been assigned to ${provider.businessName}.`,
         type: "booking",
       }).catch((e) => console.error("Failed to notify user:", e));
-    } else {
-      booking.provider = undefined;
-      await booking.save();
     }
-
-
 
     const updatedBooking = await Booking.findById(booking._id)
       .populate("user", "name email phone")
@@ -623,7 +633,20 @@ router.post("/bookings/:id/cash-collected", protect, adminOnly, async (req, res)
   }
 });
 
-
+// PATCH /api/admin/bookings/:id/fare — rentals: record the final fare (same rules as the provider route)
+router.patch("/bookings/:id/fare", protect, adminOnly, async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+    const service = await Service.findById(booking.service).select("perKmRate");
+    confirmFare(booking, req.body?.amount, { actorId: req.user._id, role: "admin", maxAmount: maxRentalFare(service) });
+    await booking.save();
+    res.json({ message: "Fare confirmed", booking });
+  } catch (error) {
+    if (error instanceof BookingStateError) return res.status(error.status).json({ message: error.message });
+    res.status(500).json({ message: error.message });
+  }
+});
 
 // ─── USERS ─────────────────────────────────────────────
 
