@@ -1,6 +1,7 @@
 // Rate limits / headers / body size. Own stack so limiter state can't leak into other suites.
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
+import bcrypt from "bcryptjs";
 import { startStack, uid } from "./helpers/stack.mjs";
 
 let s;
@@ -15,7 +16,7 @@ test("P1-1a: responses carry baseline security headers", async () => {
 
 test("P1-1b: repeated failed logins are rate limited", async () => {
   const email = `${uid("bf")}@example.test`;
-  await s.api("POST", "/auth/register", { body: { name: "x", email, password: "Password123!" } });
+  await s.db.collection("users").insertOne({ name: "x", email, role: "user", isActive: true, authProvider: "local", password: await bcrypt.hash("Password123!", 4) });
   const statuses = [];
   for (let i = 0; i < 30; i++) statuses.push((await s.api("POST", "/auth/login", { body: { email, password: `wrong-${i}` } })).status);
   assert.ok(statuses.includes(429), `30 bad logins, statuses: ${[...new Set(statuses)].join(",")}`);

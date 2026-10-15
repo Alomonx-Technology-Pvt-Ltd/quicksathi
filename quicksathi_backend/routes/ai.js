@@ -73,11 +73,20 @@ function isRefusal(text) {
  * 2. If all models fail (rate-limit, quota exhausted, network drop, etc.),
  *    instantly returns an intelligent, context-aware local response.
  */
-router.post("/chat", async (req, res) => {
-  const { messages, systemPrompt } = req.body;
+// Only the visitor's own conversation is accepted: user/assistant roles, text only, bounded size.
+// The system prompt is fixed on the server; a client-supplied one is ignored.
+const MAX_MESSAGE_CHARS = 1000;
+const sanitizeMessages = (raw) =>
+  (Array.isArray(raw) ? raw : [])
+    .filter((m) => m && (m.role === "user" || m.role === "assistant") && typeof m.content === "string" && m.content.trim())
+    .map((m) => ({ role: m.role, content: m.content.trim().slice(0, MAX_MESSAGE_CHARS) }))
+    .slice(-10);
 
-  if (!messages || !Array.isArray(messages)) {
-    return res.status(400).json({ message: "messages array is required" });
+router.post("/chat", async (req, res) => {
+  const messages = sanitizeMessages(req.body?.messages);
+
+  if (messages.length === 0 || messages[messages.length - 1].role !== "user") {
+    return res.status(400).json({ message: "A user message is required" });
   }
 
   const GROQ_API_KEY = process.env.GROQ_API_KEY;
@@ -93,15 +102,14 @@ router.post("/chat", async (req, res) => {
     });
   }
 
-  const activeSystemPrompt =
-    systemPrompt && systemPrompt.trim() ? systemPrompt : DEFAULT_SYSTEM_PROMPT;
+  const activeSystemPrompt = DEFAULT_SYSTEM_PROMPT;
 
   // Build the payload for Groq
   const buildPayload = (model) => ({
     model,
     messages: [
       { role: "system", content: activeSystemPrompt },
-      ...messages.slice(-10),
+      ...messages,
     ],
     temperature: 0.7,
     max_tokens: 512,

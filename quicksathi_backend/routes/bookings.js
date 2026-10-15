@@ -3,35 +3,14 @@ import mongoose from "mongoose";
 import Booking from "../models/Booking.js";
 import Service from "../models/Service.js";
 import Notification from "../models/Notification.js";
-import Coupon from "../models/Coupon.js";
+import { quote, redeemCoupon, releaseCoupon, releaseCouponIfUnpaid, assertFutureSlot, isRental, PricingError } from "../services/pricing.js";
+import { changeStatus, BookingStateError } from "../services/bookingStatus.js";
 import User from "../models/User.js";
 import { protect } from "../middleware/auth.js";
+import { adminOnly } from "../middleware/admin.js";
 import { sendBookingConfirmationEmail, sendBookingStatusEmail } from "../services/emailService.js";
 
 const router = Router();
-
-/**
- * Resolve a serviceId that may be a MongoDB ObjectId, a slug string, or a service name.
- * Returns the Service document or null.
- */
-async function resolveService(serviceId) {
-  if (!serviceId) return null;
-
-  // 1. Try as ObjectId
-  if (mongoose.Types.ObjectId.isValid(serviceId)) {
-    const byId = await Service.findById(serviceId);
-    if (byId) return byId;
-  }
-
-  // 2. Try as slug or exact name (frontend often passes slug)
-  const bySlugOrName = await Service.findOne({
-    $or: [
-      { slug: serviceId.toLowerCase() },
-      { name: { $regex: new RegExp(`^${serviceId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i") } },
-    ],
-  });
-  return bySlugOrName || null;
-}
 
 /**
  * Safely cast a value to ObjectId. Returns ObjectId or undefined.
@@ -43,119 +22,87 @@ function toObjectId(val) {
   return undefined;
 }
 
-// POST /api/bookings — Create a booking
-router.post("/", protect, async (req, res) => {
+// POST /api/bookings/quote — price a booking exactly as creation would (no side effects).
+router.post("/quote", protect, async (req, res) => {
   try {
-    const {
-      serviceId,
-      packageIndex,
-      scheduledDate,
-      scheduledTime,
-      location,
-      notes,
-      paymentMethod,
-      amount,
-      couponCode,
-    } = req.body;
+    const q = await quote({ ...pickQuoteInput(req.body), userId: req.user._id });
+    res.json({
+      originalAmount: q.originalAmount,
+      discountAmount: q.discountAmount,
+      amount: q.amount,
+      packageTitle: q.pkg?.title || "",
+      isRental: isRental(q.service),
+      coupon: q.coupon ? { code: q.coupon.code, title: q.coupon.title } : null,
+    });
+  } catch (error) {
+    if (error instanceof PricingError) return res.status(error.status).json({ message: error.message, ...error.extra });
+    res.status(500).json({ message: error.message });
+  }
+});
 
-    // ── Resolve service (supports ObjectId, slug, and name) ──
-    const service = await resolveService(serviceId);
-    if (!service) {
-      return res.status(404).json({ message: "Service not found" });
-    }
+const pickQuoteInput = (body = {}) => ({
+  serviceId: body.serviceId,
+  packageIndex: body.packageIndex,
+  packageTitle: body.packageTitle,
+  distanceKm: body.distanceKm,
+  couponCode: body.couponCode,
+});
 
-    // ── Validate scheduledDate ──
-    const parsedDate = new Date(scheduledDate);
-    if (!scheduledDate || isNaN(parsedDate.getTime())) {
-      return res.status(400).json({ message: "A valid scheduled date is required (e.g. 2025-12-31)" });
-    }
+// POST /api/bookings — Create a booking. The price is computed here from the catalog;
+// any `amount` sent by the client is ignored.
+router.post("/", protect, async (req, res) => {
+  let redeemed = null;
+  try {
+    const { scheduledDate, scheduledTime, location, notes, paymentMethod } = req.body;
 
-    // ── Validate paymentMethod ──
     if (!paymentMethod || !["razorpay", "cod"].includes(paymentMethod)) {
       return res.status(400).json({ message: "Payment method must be 'razorpay' or 'cod'" });
     }
+    const parsedDate = assertFutureSlot(scheduledDate, scheduledTime);
 
-    const pkg = service.packages?.[packageIndex];
-    const basePrice = Number(amount) || pkg?.price || service.startingPrice || 0;
-
-    let appliedDiscount = 0;
-    let validatedCoupon = null;
-
-    // Handle coupon application if couponCode was provided
-    if (couponCode && couponCode.trim()) {
-      const cleanCode = couponCode.trim().toUpperCase();
-      validatedCoupon = await Coupon.findOne({ code: cleanCode });
-
-      if (validatedCoupon && validatedCoupon.isActive) {
-        // Enforce ONE-TIME-PER-USER rule
-        const alreadyUsed = validatedCoupon.usedBy?.some(
-          (entry) => entry.user && entry.user.toString() === req.user._id.toString()
-        );
-
-        if (alreadyUsed) {
-          return res.status(400).json({
-            message: "You have already used this coupon code. Each coupon can only be applied once per user.",
-          });
-        }
-
-        // Check expiry and min order amount
-        const isExpired = validatedCoupon.validUntil && new Date(validatedCoupon.validUntil) < new Date();
-        const meetsMinAmount = !validatedCoupon.minOrderAmount || basePrice >= validatedCoupon.minOrderAmount;
-
-        if (!isExpired && meetsMinAmount) {
-          if (validatedCoupon.discountType === "percentage") {
-            appliedDiscount = Math.round((basePrice * validatedCoupon.discountValue) / 100);
-            if (validatedCoupon.maxDiscountAmount && appliedDiscount > validatedCoupon.maxDiscountAmount) {
-              appliedDiscount = validatedCoupon.maxDiscountAmount;
-            }
-          } else {
-            appliedDiscount = Math.min(validatedCoupon.discountValue, basePrice);
-          }
-        }
-      }
+    const q = await quote({ ...pickQuoteInput(req.body), userId: req.user._id });
+    const { service, pkg, coupon } = q;
+    // Rentals: estimated fare, confirmed by the provider and paid in cash (owner decision 2026-10-11).
+    if (isRental(service) && paymentMethod !== "cod") {
+      return res.status(400).json({ message: "Rentals are paid in cash once the driver confirms the final fare." });
     }
 
-    const finalPayable = Math.max(0, basePrice - appliedDiscount);
+    const bookingObjectId = new mongoose.Types.ObjectId();
+    if (coupon && q.discountAmount > 0) {
+      const ok = await redeemCoupon(coupon, { userId: req.user._id, bookingId: bookingObjectId, discountApplied: q.discountAmount });
+      if (!ok) return res.status(400).json({ message: "This coupon can't be used (already redeemed or fully used)." });
+      redeemed = coupon._id;
+    }
 
-    // ── Safely cast provider to ObjectId ──
-    const providerOid = toObjectId(service.provider);
-
-    // ── Calculate service duration in minutes (default 60 mins if unspecified) ──
-    const serviceDuration = Number(req.body.durationMinutes) || pkg?.durationMinutes || service.durationMinutes || 60;
-
-    const booking = await Booking.create({
-      user: req.user._id,
-      service: service._id,             // always use the resolved ObjectId
-      provider: providerOid,
-      serviceName: service.name,
-      packageTitle: pkg?.title || "",
-      durationMinutes: serviceDuration,
-      scheduledDate: parsedDate,
-      scheduledTime,
-      location,
-      notes,
-      originalAmount: basePrice,
-      amount: finalPayable,
-      couponCode: validatedCoupon ? validatedCoupon.code : "",
-      discountAmount: appliedDiscount,
-      paymentMethod,
-      paymentStatus: paymentMethod === "razorpay" ? "paid" : "pending",
-      status: paymentMethod === "razorpay" ? "confirmed" : "pending",
-    });
-
-    // Record coupon usage for this user
-    if (validatedCoupon && appliedDiscount > 0) {
-      await Coupon.findByIdAndUpdate(validatedCoupon._id, {
-        $inc: { usedCount: 1 },
-        $push: {
-          usedBy: {
-            user: req.user._id,
-            bookingId: booking._id,
-            discountApplied: appliedDiscount,
-            usedAt: new Date(),
-          },
-        },
+    let booking;
+    try {
+      booking = await Booking.create({
+        _id: bookingObjectId,
+        user: req.user._id,
+        service: service._id,
+        provider: toObjectId(service.provider),
+        serviceName: service.name,
+        packageTitle: pkg?.title || "",
+        // Allotted time for the live timer comes from the catalog, never from the request.
+        durationMinutes: pkg?.durationMinutes || service.durationMinutes || 60,
+        scheduledDate: parsedDate,
+        scheduledTime,
+        location,
+        notes,
+        originalAmount: q.originalAmount,
+        amount: q.amount,
+        couponCode: coupon && q.discountAmount > 0 ? coupon.code : "",
+        discountAmount: q.discountAmount,
+        paymentMethod,
+        fareConfirmed: !isRental(service),
+        // Money is never marked received at creation. Online payments become "paid" only via
+        // verified Razorpay confirmation (see routes/payments.js).
+        paymentStatus: "pending",
+        status: "pending",
       });
+    } catch (err) {
+      if (redeemed) await releaseCoupon(redeemed, bookingObjectId);
+      throw err;
     }
 
     // Send confirmation email asynchronously (does not block HTTP response)
@@ -167,12 +114,21 @@ router.post("/", protect, async (req, res) => {
       }).catch((err) => console.error("Email notification error:", err?.message || err));
     }
 
-    res.status(201).json(booking);
+    res.status(201).json(customerView(booking));
   } catch (error) {
+    if (error instanceof PricingError) return res.status(error.status).json({ message: error.message, ...error.extra });
     console.error("Booking creation error:", error);
     res.status(500).json({ message: error.message });
   }
 });
+
+// The doorstep start code is shown to the customer only while the job is confirmed and not yet started.
+function customerView(booking) {
+  const out = booking.toObject();
+  if (out.status !== "confirmed") delete out.startOtp;
+  delete out.startOtpAttempts;
+  return out;
+}
 
 // GET /api/bookings — Get current user's bookings
 router.get("/", protect, async (req, res) => {
@@ -182,19 +138,12 @@ router.get("/", protect, async (req, res) => {
     if (status) filter.status = status;
 
     const bookings = await Booking.find(filter)
+      .select("+startOtp")
       .populate("service", "name thumbnail startingPrice slug")
       .populate("provider", "businessName phone email")
       .sort("-createdAt");
 
-    // Ensure legacy/seeded bookings have a 4-digit startOtp
-    for (const b of bookings) {
-      if (!b.startOtp && ["pending", "confirmed"].includes(b.status)) {
-        b.startOtp = Math.floor(1000 + Math.random() * 9000).toString();
-        await b.save();
-      }
-    }
-
-    res.json(bookings);
+    res.json(bookings.map(customerView));
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -209,6 +158,7 @@ router.get("/:id", protect, async (req, res) => {
     }
 
     const booking = await Booking.findById(req.params.id)
+      .select("+startOtp")
       .populate("service")
       .populate("user", "name email phone");
 
@@ -217,16 +167,14 @@ router.get("/:id", protect, async (req, res) => {
     }
 
     // Only allow owner or admin to view
-    if (booking.user._id.toString() !== req.user._id.toString() && req.user.role !== "admin") {
+    const isOwner = booking.user._id.toString() === req.user._id.toString();
+    if (!isOwner && req.user.role !== "admin") {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    if (!booking.startOtp && ["pending", "confirmed"].includes(booking.status)) {
-      booking.startOtp = Math.floor(1000 + Math.random() * 9000).toString();
-      await booking.save();
-    }
-
-    res.json(booking);
+    const out = customerView(booking);
+    if (!isOwner) delete out.startOtp; // the start code is for the customer only
+    res.json(out);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -249,14 +197,14 @@ router.patch("/:id/cancel", protect, async (req, res) => {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    if (["completed", "cancelled", "in_progress"].includes(booking.status) && req.user.role !== "admin") {
-      return res.status(400).json({ message: "Cannot cancel a booking that is currently in progress or completed." });
-    }
-
-    booking.status = "cancelled";
-    booking.cancelledBy = req.user.role === "admin" ? "admin" : "user";
-    booking.cancelReason = req.body?.reason || "";
+    // Customers can only cancel before the job starts; admins can also cancel a job in progress.
+    changeStatus(booking, "cancelled", {
+      actorId: req.user._id,
+      role: req.user.role === "admin" ? "admin" : "customer",
+      reason: req.body?.reason,
+    });
     await booking.save();
+    await releaseCouponIfUnpaid(booking);
 
     // Create In-Website Notification
     try {
@@ -289,73 +237,44 @@ router.patch("/:id/cancel", protect, async (req, res) => {
 
     res.json(booking);
   } catch (error) {
+    if (error instanceof BookingStateError) return res.status(error.status).json({ message: error.message });
     res.status(500).json({ message: error.message });
   }
 });
 
-// PATCH /api/bookings/:id/status — Update booking status (admin/provider)
-router.patch("/:id/status", protect, async (req, res) => {
+// Admin-only status change shared by PATCH /api/bookings/:id/status and PATCH /api/admin/bookings/:id/status.
+// Providers use PATCH /api/providers/bookings/:id/status, which is scoped to their own bookings.
+export const adminUpdateBookingStatus = async (req, res) => {
   try {
-    if (req.user.role !== "admin" && req.user.role !== "provider") {
-      return res.status(403).json({ message: "Not authorized" });
-    }
-
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
       return res.status(400).json({ message: "Invalid booking ID format" });
     }
-
-    // Providers cannot bypass doorstep OTP or complete-work endpoints
-    if (req.user.role === "provider") {
-      if (req.body.status === "in_progress") {
-        return res.status(400).json({
-          message: "To start work, please verify the customer's 4-digit doorstep OTP.",
-        });
-      }
-      if (req.body.status === "completed") {
-        return res.status(400).json({
-          message: "To complete work, please use the Submit Work action.",
-        });
-      }
-    }
-
-    const updateFields = { status: req.body.status };
-    if (req.body.status === "completed") {
-      updateFields.paymentStatus = "paid";
-    }
-
-    const booking = await Booking.findByIdAndUpdate(
-      req.params.id,
-      updateFields,
-      { new: true, runValidators: true }
-    );
-
+    const booking = await Booking.findById(req.params.id);
     if (!booking) {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    // Create In-Website Notification
+    const status = req.body?.status;
+    changeStatus(booking, status, { actorId: req.user._id, role: "admin", reason: req.body?.reason });
+    await booking.save();
+    await releaseCouponIfUnpaid(booking);
+
     try {
       await Notification.create({
         recipient: booking.user,
-        title: `Booking Update: ${req.body.status.toUpperCase()} 🔄`,
-        message: `The status of your booking ${booking.bookingId || ""} for ${booking.serviceName} has been updated to "${req.body.status}".`,
+        title: `Booking Update: ${status.toUpperCase()} 🔄`,
+        message: `The status of your booking ${booking.bookingId || ""} for ${booking.serviceName} has been updated to "${status}".`,
         type: "booking",
       });
     } catch (notifError) {
       console.error("Failed to create status update notification:", notifError);
     }
 
-    // Send status update email notification asynchronously
     (async () => {
       try {
         const bookedUser = await User.findById(booking.user).select("name email");
         if (bookedUser?.email) {
-          await sendBookingStatusEmail({
-            to: bookedUser.email,
-            name: bookedUser.name,
-            booking,
-            status: req.body.status,
-          });
+          await sendBookingStatusEmail({ to: bookedUser.email, name: bookedUser.name, booking, status });
         }
       } catch (emailErr) {
         console.error("Booking status email error:", emailErr?.message || emailErr);
@@ -364,201 +283,10 @@ router.patch("/:id/status", protect, async (req, res) => {
 
     res.json(booking);
   } catch (error) {
+    if (error instanceof BookingStateError) return res.status(error.status).json({ message: error.message });
     res.status(500).json({ message: error.message });
   }
-});
-
-// POST /api/bookings/:id/verify-otp-start — Serviceman verifies OTP & starts countdown
-router.post("/:id/verify-otp-start", protect, async (req, res) => {
-  try {
-    if (req.user.role !== "provider" && req.user.role !== "admin") {
-      return res.status(403).json({ message: "Only service partners or admins can start service work." });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ message: "Invalid booking ID format" });
-    }
-
-    const { otp } = req.body;
-    if (!otp || !otp.toString().trim()) {
-      return res.status(400).json({ message: "Please provide the 4-digit start OTP provided by the customer." });
-    }
-
-    const booking = await Booking.findById(req.params.id);
-    if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
-    }
-
-    if (booking.status === "in_progress") {
-      return res.status(400).json({ 
-        message: "This service is already in progress.",
-        booking 
-      });
-    }
-
-    if (booking.status === "completed") {
-      return res.status(400).json({ message: "This service has already been completed." });
-    }
-
-    if (booking.status === "cancelled") {
-      return res.status(400).json({ message: "Cannot start a cancelled booking." });
-    }
-
-    // Validate provider assignment
-    if (req.user.role === "provider") {
-      const Provider = mongoose.model("Provider");
-      const providerDoc = await Provider.findOne({ user: req.user._id });
-      if (!providerDoc) {
-        return res.status(403).json({ message: "Provider profile not found." });
-      }
-      if (booking.provider && booking.provider.toString() !== providerDoc._id.toString()) {
-        return res.status(403).json({ message: "This booking is assigned to another provider." });
-      }
-      if (!booking.provider) {
-        booking.provider = providerDoc._id;
-      }
-    }
-
-    // Auto-generate startOtp if legacy booking had none
-    if (!booking.startOtp) {
-      booking.startOtp = Math.floor(1000 + Math.random() * 9000).toString();
-      await booking.save();
-      return res.status(400).json({
-        message: "A new start OTP was generated. Please ask customer to refresh their screen and share the 4-digit OTP.",
-      });
-    }
-
-    // Verify OTP
-    const cleanOtp = otp.toString().trim();
-    if (booking.startOtp !== cleanOtp) {
-      return res.status(400).json({ 
-        message: "Invalid OTP! Please check the 4-digit start code with the customer." 
-      });
-    }
-
-    // Calculate duration & timestamps
-    const duration = booking.durationMinutes || 60;
-    const now = new Date();
-    const expectedEnd = new Date(now.getTime() + duration * 60 * 1000);
-
-    booking.status = "in_progress";
-    booking.startedAt = now;
-    booking.expectedEndAt = expectedEnd;
-
-    await booking.save();
-
-    // Populate user and service so provider UI retains all details
-    const populatedBooking = await Booking.findById(booking._id)
-      .populate("user", "name email phone")
-      .populate("service", "name thumbnail startingPrice slug");
-
-    // Create In-Website Notification for customer
-    try {
-      await Notification.create({
-        recipient: booking.user,
-        title: "Service Started! ⏱️",
-        message: `Your professional has verified your OTP and started work on ${booking.serviceName}. The ${duration}-minute countdown timer is now active.`,
-        type: "booking",
-      });
-    } catch (notifErr) {
-      console.error("Failed to create start notification:", notifErr);
-    }
-
-    res.json({
-      message: "OTP verified successfully! Service countdown timer has started.",
-      booking: populatedBooking,
-    });
-  } catch (error) {
-    console.error("OTP verification error:", error);
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// POST /api/bookings/:id/complete-work — Serviceman finishes work and submits
-router.post("/:id/complete-work", protect, async (req, res) => {
-  try {
-    if (req.user.role !== "provider" && req.user.role !== "admin") {
-      return res.status(403).json({ message: "Only service partners or admins can complete service work." });
-    }
-
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ message: "Invalid booking ID format" });
-    }
-
-    const booking = await Booking.findById(req.params.id);
-    if (!booking) {
-      return res.status(404).json({ message: "Booking not found" });
-    }
-
-    // Validate provider assignment
-    if (req.user.role === "provider") {
-      const Provider = mongoose.model("Provider");
-      const providerDoc = await Provider.findOne({ user: req.user._id });
-      if (!providerDoc) {
-        return res.status(403).json({ message: "Provider profile not found." });
-      }
-      if (booking.provider && booking.provider.toString() !== providerDoc._id.toString()) {
-        return res.status(403).json({ message: "This booking is assigned to another provider." });
-      }
-    }
-
-    if (booking.status !== "in_progress") {
-      return res.status(400).json({ 
-        message: `Cannot complete booking with status "${booking.status}". Service must be in progress first.` 
-      });
-    }
-
-    booking.status = "completed";
-    booking.completedAt = new Date();
-    booking.paymentStatus = "paid";
-    if (req.body?.notes) {
-      booking.completionNotes = req.body.notes;
-    }
-
-    await booking.save();
-
-    // Populate user and service so provider UI retains all details
-    const populatedBooking = await Booking.findById(booking._id)
-      .populate("user", "name email phone")
-      .populate("service", "name thumbnail startingPrice slug");
-
-    // Create In-Website Notification for customer
-    try {
-      await Notification.create({
-        recipient: booking.user,
-        title: "Service Completed! ✅",
-        message: `Your service for ${booking.serviceName} has been successfully completed by your professional. Thank you for choosing QuickSathi!`,
-        type: "booking",
-      });
-    } catch (notifErr) {
-      console.error("Failed to create completion notification:", notifErr);
-    }
-
-    // Send email notification asynchronously
-    (async () => {
-      try {
-        const bookedUser = await User.findById(booking.user).select("name email");
-        if (bookedUser?.email) {
-          await sendBookingStatusEmail({
-            to: bookedUser.email,
-            name: bookedUser.name,
-            booking,
-            status: "completed",
-          });
-        }
-      } catch (err) {
-        console.error("Email notification error:", err?.message || err);
-      }
-    })();
-
-    res.json({
-      message: "Service work submitted as completed!",
-      booking: populatedBooking,
-    });
-  } catch (error) {
-    console.error("Complete work error:", error);
-    res.status(500).json({ message: error.message });
-  }
-});
+};
+router.patch("/:id/status", protect, adminOnly, adminUpdateBookingStatus);
 
 export default router;

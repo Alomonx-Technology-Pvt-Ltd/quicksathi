@@ -23,12 +23,14 @@ const categorySchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    // Fixed list (owner decision 2026-10-11). Adding a vertical is a code change: update this list
+    // and the dropdown in quicksathi_frontend/src/admin/pages/AdminCategories.jsx.
     vertical: {
       type: String,
       required: true,
       trim: true,
       uppercase: true,
-      default: "OTHER",
+      enum: ["WEDDING", "VEHICLE_RENTAL", "CCTV_SECURITY", "HOME_TUITION", "HOUSE_HELP", "HOME_SALON", "HOUSE_SERVICES", "PAINTING", "AC_APPLIANCES", "CONSTRUCTION"],
     },
     type: {
       type: String,

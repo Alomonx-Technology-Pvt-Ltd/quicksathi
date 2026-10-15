@@ -1,107 +1,63 @@
+// Generates quicksathi_frontend/public/sitemap.xml from the live catalog.
+//   node scripts/generate_sitemap.js [--out path/to/sitemap.xml]
+// Env: MONGODB_URI (required), SITE_URL (default https://www.tiptobook.com)
 import "dotenv/config";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import mongoose from "mongoose";
-import connectDB from "../config/db.js";
 import Service from "../models/Service.js";
 import Category from "../models/Category.js";
-import fs from "fs";
+
+const SITE_URL = (process.env.SITE_URL || "https://www.tiptobook.com").replace(/\/+$/, "");
+const here = path.dirname(fileURLToPath(import.meta.url));
+const outArg = process.argv.indexOf("--out");
+const outPath = outArg > -1 ? path.resolve(process.argv[outArg + 1]) : path.resolve(here, "../../quicksathi_frontend/public/sitemap.xml");
+
+// Pages that exist in quicksathi_frontend/src/App.jsx and should be indexed.
+const STATIC_PAGES = [
+  "/", "/services", "/services/ac", "/about-us", "/contact", "/provider/onboarding",
+  "/privacy-policy", "/terms-and-conditions", "/provider/rules-and-policies", "/provider/terms-and-conditions",
+];
+
+const xmlEscape = (s) => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+const day = (d) => new Date(d || Date.now()).toISOString().split("T")[0];
+const entry = (loc, lastmod) => `  <url>\n    <loc>${xmlEscape(SITE_URL + loc)}</loc>\n    <lastmod>${day(lastmod)}</lastmod>\n  </url>\n`;
 
 async function run() {
-  await connectDB();
+  await mongoose.connect(process.env.MONGODB_URI);
 
-  const services = await Service.find({ available: true }).sort("slug");
-  const categories = await Category.find({ active: true }).sort("displayOrder");
+  const services = await Service.find({ available: true, approvalStatus: "approved" }).select("slug updatedAt").sort("slug").lean();
+  const categories = await Category.find({ active: true, comingSoon: { $ne: true } }).select("vertical updatedAt").lean();
 
-  const today = new Date().toISOString().split("T")[0];
+  let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
+  for (const p of STATIC_PAGES) xml += entry(p);
 
-  let xml = `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <!-- Core Main Pages -->
-  <url>
-    <loc>https://www.tiptobook.com/</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
-    <loc>https://www.tiptobook.com/services</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.95</priority>
-  </url>
-  <url>
-    <loc>https://www.tiptobook.com/services/ac</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://www.tiptobook.com/about-us</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.tiptobook.com/contact</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://www.tiptobook.com/provider/onboarding</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.75</priority>
-  </url>
-
-  <!-- Main Category Pages -->
-`;
-
-  const categorySlugs = [
-    { slug: "vehicle-rental", name: "Vehicle Rental" },
-    { slug: "wedding", name: "Wedding & Party Services" },
-    { slug: "house-help", name: "House Help" },
-    { slug: "house-services", name: "House Services & Repair" },
-    { slug: "home-salon", name: "Home Salon & Beauty" },
-    { slug: "home-tuition", name: "Home Tuition" },
-    { slug: "cctv-security", name: "CCTV Security" },
-    { slug: "painting", name: "Painting" },
-  ];
-
-  for (const cs of categorySlugs) {
-    xml += `  <url>
-    <loc>https://www.tiptobook.com/category/${cs.slug}</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.85</priority>
-  </url>
-`;
+  // AC & Appliances is served at /services/ac (already listed above).
+  const seen = new Set();
+  for (const c of categories) {
+    if (!c.vertical || c.vertical === "AC_APPLIANCES") continue;
+    const slug = c.vertical.toLowerCase().replace(/_/g, "-");
+    if (seen.has(slug)) continue;
+    seen.add(slug);
+    xml += entry(`/category/${slug}`, c.updatedAt);
   }
 
-  xml += `\n  <!-- Live Service Catalog (${services.length} services) -->\n`;
-
-  const seenSlugs = new Set();
+  let serviceCount = 0;
   for (const s of services) {
-    const slug = s.slug || s._id;
-    if (seenSlugs.has(slug)) continue;
-    seenSlugs.add(slug);
-
-    xml += `  <url>
-    <loc>https://www.tiptobook.com/service/${slug}</loc>
-    <lastmod>${today}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.85</priority>
-  </url>
-`;
+    if (!s.slug) continue; // never emit ObjectId URLs
+    xml += entry(`/service/${s.slug}`, s.updatedAt);
+    serviceCount += 1;
   }
-
   xml += `</urlset>\n`;
 
-  const __dirname = path.dirname(fileURLToPath(import.meta.url));
-  const targetPath = path.resolve(__dirname, "../../quicksathi_frontend/public/sitemap.xml");
-  fs.writeFileSync(targetPath, xml, "utf-8");
-  console.log(`Generated sitemap with ${seenSlugs.size + categorySlugs.length + 6} URLs written to ${targetPath}`);
-
-  await mongoose.disconnect();
+  fs.writeFileSync(outPath, xml, "utf-8");
+  console.log(`Sitemap written to ${outPath}: ${STATIC_PAGES.length} pages, ${seen.size} categories, ${serviceCount} services`);
 }
 
-run().catch(console.error);
+run()
+  .catch((err) => {
+    console.error("Sitemap generation failed:", err);
+    process.exitCode = 1;
+  })
+  .finally(() => mongoose.disconnect());

@@ -11,9 +11,7 @@ import {
   Car,
   Sparkles,
 } from "lucide-react";
-import api, { getCached } from "../config/api";
-import { mockServices } from "../data/mockServices";
-import { mockCategories } from "../data/mockCategories";
+
 
 // ── Target 4 core categories ──────────────────────────────────────────────────
 const SECTIONS_CONFIG = [
@@ -413,65 +411,11 @@ const HomeFeaturedServices = ({
   services: propServices = [],
   onBookNow,
 }) => {
-  // ── Instant 0ms Render: seed immediately from props or cache or mock data ──
-  const [realServices, setRealServices] = useState(() => {
-    if (Array.isArray(propServices) && propServices.length > 0) return propServices;
-    const cached = getCached("/services");
-    if (cached && cached.length > 0) return cached;
-    return mockServices;
-  });
-
-  const [realCategories, setRealCategories] = useState(() => {
-    if (Array.isArray(propCategories) && propCategories.length > 0) return propCategories;
-    const cached = getCached("/categories");
-    if (cached && cached.length > 0) return cached;
-    return mockCategories;
-  });
-
-  // Never block the user with full-section skeletons if services are already present
-  const [loading, setLoading] = useState(false);
-
-  // Sync state if parent props update (e.g., when Home.jsx finishes background fetch or city change)
-  useEffect(() => {
-    if (Array.isArray(propServices) && propServices.length > 0) {
-      setRealServices(propServices);
-    }
-  }, [propServices]);
-
-  useEffect(() => {
-    if (Array.isArray(propCategories) && propCategories.length > 0) {
-      setRealCategories(propCategories);
-    }
-  }, [propCategories]);
-
-  // Silent background fetch to refresh real database data without blocking UI
-  useEffect(() => {
-    let isMounted = true;
-    const fetchFreshData = async () => {
-      try {
-        const [servicesRes, categoriesRes] = await Promise.all([
-          api.get("/services").catch(() => null),
-          api.get("/categories").catch(() => null),
-        ]);
-
-        if (isMounted) {
-          if (servicesRes?.data && Array.isArray(servicesRes.data) && servicesRes.data.length > 0) {
-            setRealServices(servicesRes.data);
-          }
-          if (categoriesRes?.data && Array.isArray(categoriesRes.data) && categoriesRes.data.length > 0) {
-            setRealCategories(categoriesRes.data);
-          }
-        }
-      } catch (err) {
-        // Silently keep current data on failure
-      }
-    };
-
-    fetchFreshData();
-    return () => {
-      isMounted = false;
-    };
-  }, []);
+  // Data comes from the parent (Home → useCatalog). No fetching and no mock fallback here, so the
+  // featured grid always respects the visitor's city filter.
+  const realServices = propServices;
+  const realCategories = propCategories;
+  const loading = false;
 
   // Group services by category section using the precise matchers
   const groupedData = useMemo(() => {

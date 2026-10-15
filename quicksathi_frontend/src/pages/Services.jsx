@@ -118,7 +118,7 @@ const DEFAULT_HOME_BANNERS = [
     title: "24/7 Smart CCTV surveillance",
     subtitle: "HD cameras, smart locks & live feed",
     cta: "BOOK",
-    link: "/service/cctv-installation",
+    link: "/service/home-cctv",
     textColor: "#ffffff",
     buttonBg: "#ea580c",
     image: "https://images.unsplash.com/photo-1557597774-9d273605dfa9?q=80&w=800&auto=format&fit=crop",
@@ -193,7 +193,7 @@ const POPUP_CATEGORIES = [
             badgeColor: "bg-indigo-600 text-white",
             image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/cctv-main.jpg",
             fallbackIcon: "/icons/categories/cctv.png",
-            route: "/service/cctv-installation",
+            route: "/service/home-cctv",
           },
           {
             id: "ac-repair",
@@ -299,14 +299,14 @@ const POPUP_CATEGORIES = [
             name: "Washing Machine Repair",
             image: "/icons/appliances/washing-machine.jpg",
             fallbackIcon: "/icons/appliances/washing-machine.png",
-            route: "/service/washing-machine-repair",
+            route: "/services?q=washing%20machine",
           },
           {
             id: "refrigerator",
             name: "Refrigerator Repair & Services",
             image: "/icons/appliances/refrigerator.jpg",
             fallbackIcon: "/icons/appliances/refrigerator.png",
-            route: "/service/refrigerator-repair",
+            route: "/services?q=refrigerator",
           },
           {
             id: "classes-6-8",
@@ -358,21 +358,21 @@ const POPUP_CATEGORIES = [
             name: "Washing Machine Repair",
             image: "/icons/appliances/washing-machine.jpg",
             fallbackIcon: "/icons/appliances/washing-machine.png",
-            route: "/service/washing-machine-repair",
+            route: "/services?q=washing%20machine",
           },
           {
             id: "refrigerator",
             name: "Refrigerator Repair & Services",
             image: "/icons/appliances/refrigerator.jpg",
             fallbackIcon: "/icons/appliances/refrigerator.png",
-            route: "/service/refrigerator-repair",
+            route: "/services?q=refrigerator",
           },
           {
             id: "tv-repair",
             name: "TV Repair & Services",
             image: "/icons/appliances/tv-repair.jpg",
             fallbackIcon: "/icons/appliances/tv-repair.png",
-            route: "/service/tv-repair",
+            route: "/services?q=tv%20repair",
           },
         ],
       },
@@ -385,7 +385,7 @@ const POPUP_CATEGORIES = [
             badge: "Essential",
             image: "/icons/appliances/geyser-repair.jpg",
             fallbackIcon: "/icons/appliances/geyser-repair.png",
-            route: "/service/geyser-repair",
+            route: "/services?q=geyser",
           },
           {
             id: "foam-jet",
@@ -553,7 +553,7 @@ const POPUP_CATEGORIES = [
             badge: "Security",
             image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/cctv-main.jpg",
             fallbackIcon: "/icons/categories/cctv.png",
-            route: "/service/cctv-installation",
+            route: "/service/home-cctv",
           },
           {
             id: "plumbing",
@@ -921,7 +921,7 @@ const Services = () => {
           api.get(`/services${cityParam}`),
           api.get(`/categories`),
           api.get(`/banners?section=carousel`),
-          api.get(`/bookings/my-bookings`).catch(() => ({ data: [] })),
+          api.get(`/bookings`).catch(() => ({ data: [] })),
         ]);
 
         if (!isMounted) return;
@@ -966,11 +966,17 @@ const Services = () => {
     };
   }, [city]);
 
-  // Sync category from URL param if user navigates with ?cat=
+  // Sync category / search from the URL when the user navigates here with ?cat= or ?q=
+  // (items inside this page link to /services?q=..., which doesn't remount the page).
   useEffect(() => {
     const cat = searchParams.get("cat");
     if (cat && POPUP_CATEGORIES.some((c) => c.id === cat)) {
       setActiveCategoryId(cat);
+    }
+    const q = searchParams.get("q");
+    if (q) {
+      setSearchQuery(q);
+      setIsSearchOpen(true);
     }
   }, [searchParams]);
 
