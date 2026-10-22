@@ -34,6 +34,12 @@ export const protect = async (req, res, next) => {
   if (!req.user) {
     return res.status(401).json({ message: "User not found" });
   }
+  // Tokens issued before the cutoff were ended on purpose (account taken back by its verified owner,
+  // admin password reset). Compare in whole seconds: JWT iat has no milliseconds, and the token issued
+  // in the same request as the cutoff must stay valid.
+  if (req.user.tokensValidAfter && decoded.iat < Math.floor(req.user.tokensValidAfter.getTime() / 1000)) {
+    return res.status(401).json({ message: "Session ended. Please sign in again." });
+  }
   if (!req.user.isActive) {
     return res.status(403).json({ message: "Account deactivated" });
   }

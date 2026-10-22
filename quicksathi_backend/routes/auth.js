@@ -85,13 +85,14 @@ async function verifiedGoogleIdentity(idToken) {
 
 // Link Firebase details to an existing account (never changes role).
 // If the account was created by email/password and its email was never verified, whoever set that
-// password may not own the email (pre-registration takeover): the verified Google owner takes over
-// and the old password stops working.
+// password may not own the email (pre-registration takeover): the verified Google owner takes over,
+// the old password stops working and every token issued before now is rejected (middleware/auth.js).
 async function linkGoogleIdentity(user, identity) {
   let changed = false;
   if (!user.emailVerified && user.authProvider === "local") {
     user.password = undefined;
     user.authProvider = "google";
+    user.tokensValidAfter = new Date();
     changed = true;
   }
   if (!user.firebaseUid) { user.firebaseUid = identity.uid; changed = true; }

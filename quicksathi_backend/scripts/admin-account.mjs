@@ -43,7 +43,9 @@ try {
   const db = mongoose.connection.name;
   let user = await User.findOne({ email });
   if (!user) {
-    user = new User({ name: "TiptoBook Admin", email, role: "admin", authProvider: "local", password });
+    // emailVerified: the operator vouches for this address. Without it, the admin's first Google
+    // sign-in would treat the account as an unverified sign-up and delete this password (routes/auth.js).
+    user = new User({ name: "TiptoBook Admin", email, role: "admin", authProvider: "local", emailVerified: true, password });
     await user.save();
     console.log(`✅ AUDIT ${new Date().toISOString()} db=${db} created admin ${email}`);
   } else {
@@ -51,9 +53,12 @@ try {
     user.role = "admin";
     user.isActive = true;
     user.authProvider = "local";
+    user.emailVerified = true;
     user.password = password;
+    // End every existing login: a token held by whoever knew the old password must not become an admin token.
+    user.tokensValidAfter = new Date();
     await user.save();
-    console.log(`✅ AUDIT ${new Date().toISOString()} db=${db} reset password / ensured admin for ${email} (role was ${before})`);
+    console.log(`✅ AUDIT ${new Date().toISOString()} db=${db} reset password / ensured admin for ${email} (role was ${before}); existing logins ended`);
   }
 } catch (err) {
   console.error(`❌ ${err.message}`);
