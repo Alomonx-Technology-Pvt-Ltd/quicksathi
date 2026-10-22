@@ -28,7 +28,14 @@ const freePort = () =>
 export function hermeticEnv(extra = {}) {
   return {
     PATH: process.env.PATH,
-    HOME: process.env.HOME,
+    HOME: process.env.HOME || process.env.USERPROFILE,
+    USERPROFILE: process.env.USERPROFILE,
+    SystemRoot: process.env.SystemRoot,
+    SYSTEMROOT: process.env.SYSTEMROOT,
+    TEMP: process.env.TEMP,
+    TMP: process.env.TMP,
+    APPDATA: process.env.APPDATA,
+    LOCALAPPDATA: process.env.LOCALAPPDATA,
     DOTENV_CONFIG_PATH: "/dev/null",
     NODE_ENV: "test",
     JWT_SECRET,

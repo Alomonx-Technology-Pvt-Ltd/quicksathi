@@ -197,21 +197,28 @@ const startServer = async () => {
     console.log(`   Environment : ${process.env.NODE_ENV || "development"}`);
     console.log(`   Allowed origins : ${ALLOWED_ORIGINS.join(", ")} + team Vercel previews`);
 
-    // ── Self-ping keepalive (Render free tier) ──────────────────────────────
-    // Render free plan sleeps after 15 minutes of inactivity (causes 30-60s cold starts).
+    // ── Self-ping keepalive (Render / Railway free tiers) ─────────────────
+    // Free plans may sleep after inactivity (Render: 15 min, Railway: varies).
     // Pinging every 14 minutes keeps the service warm at no extra cost.
     // Only runs in production — skipped in local dev to avoid noise.
     if (process.env.NODE_ENV === "production") {
-      const RENDER_URL = process.env.RENDER_EXTERNAL_URL || `http://localhost:${PORT}`;
+      // Auto-detect platform URL:
+      //   Render  → RENDER_EXTERNAL_URL  (full URL like https://xxx.onrender.com)
+      //   Railway → RAILWAY_PUBLIC_DOMAIN (domain only like xxx.up.railway.app)
+      const SERVICE_URL =
+        process.env.RENDER_EXTERNAL_URL ||
+        (process.env.RAILWAY_PUBLIC_DOMAIN
+          ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+          : `http://localhost:${PORT}`);
       setInterval(async () => {
         try {
-          await fetch(`${RENDER_URL}/api/health`);
+          await fetch(`${SERVICE_URL}/api/health`);
           console.log("🏓 Keepalive ping sent");
         } catch (err) {
           console.warn("Keepalive ping failed:", err.message);
         }
       }, 14 * 60 * 1000); // every 14 minutes
-      console.log(`   Keepalive : pinging ${RENDER_URL}/api/health every 14 min`);
+      console.log(`   Keepalive : pinging ${SERVICE_URL}/api/health every 14 min`);
     }
   });
 };

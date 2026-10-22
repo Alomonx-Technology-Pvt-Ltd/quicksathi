@@ -1,0 +1,8 @@
+# nixpacks.toml — Pin Node.js version for Railway's Nixpacks builder
+# Ensures Railway uses the same Node version specified in package.json engines
+
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["npm ci || npm install"]
