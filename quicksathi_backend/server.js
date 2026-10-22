@@ -111,7 +111,7 @@ app.get("/", (req, res) => {
     message: "Welcome to the TiptoBook backend. Use /api/* endpoints to interact with the API.",
     endpoints: {
       health:     "GET /api/health",
-      auth:       "POST /api/auth/login | /api/auth/register",
+      auth:       "POST /api/auth/google | /api/auth/phone | /api/auth/login",
       categories: "GET /api/categories",
       services:   "GET /api/services",
       bookings:   "GET /api/bookings",
@@ -158,7 +158,7 @@ app.use((err, req, res, next) => {
 // ── Start server ──
 const startServer = async () => {
   await connectDB();
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     console.log(`🚀 TiptoBook backend running on port ${PORT}`);
     console.log(`   Environment : ${process.env.NODE_ENV || "development"}`);
     console.log(`   Allowed origins : ${isAllowedOrigin.describe()}`);
@@ -179,6 +179,22 @@ const startServer = async () => {
       console.log(`   Keepalive : pinging ${selfPingUrl}/api/health every 14 min`);
     }
   });
+
+  // Hosts stop the old instance with SIGTERM on every deploy. Finish requests already in flight
+  // (payment verify, webhooks) instead of being killed mid-write; give up after 10 s.
+  let stopping = false;
+  const shutdown = (signal) => {
+    if (stopping) return;
+    stopping = true;
+    console.log(`${signal} received: closing the server`);
+    setTimeout(() => process.exit(1), 10_000).unref();
+    server.close(async () => {
+      await mongoose.connection.close().catch(() => {});
+      process.exit(0);
+    });
+  };
+  process.on("SIGTERM", () => shutdown("SIGTERM"));
+  process.on("SIGINT", () => shutdown("SIGINT"));
 };
 
 startServer();
