@@ -400,6 +400,11 @@ Source: owner's developer checklist (2026-10-11), section 1. **On hold** until p
 4. Give every admin a Google sign-in or a password via `scripts/admin-account.mjs` (the shared admin password is gone; `grant-admin.mjs` now refuses accounts with a sign-up password).
 5. Deploy backend, then frontend. Check `/api/health` and the one-time `trust-proxy check` line in the Render log (`req.ip` must be the client's address). Then a ₹1 live payment and a refund by hand.
 6. Tell existing email/password customers nothing changes for them; new customers sign up with Google or phone.
+7. **Merging PR #2 (Round 4 hosting)** changes env names, so set the new ones first:
+   - `ADDITIONAL_ORIGINS` → `CORS_ORIGINS` (exact origins, comma list). `VERCEL_PREVIEW_SUFFIX` is gone: list Vercel/Netlify previews in `CORS_ORIGINS`, or use `CORS_ORIGIN_PATTERNS` only for Cloudflare suffixes (`.tiptobook.pages.dev`, `.<account>.workers.dev`).
+   - Keep-alive no longer reads `RENDER_EXTERNAL_URL`: on Render set `SELF_PING_URL` to the API's URL; on Railway leave it unset.
+   - Railway builds `quicksathi_backend/Dockerfile` (Node 22, `NODE_ENV=production`): every variable `config/validateEnv.js` requires and the Firebase trio must be set before the first deploy, or it won't start.
+   - Cloudflare Workers Builds: root directory `quicksathi_frontend`, so `wrangler.jsonc` (SPA fallback) is used. Never add a `_redirects` file.
 
 ---
 
