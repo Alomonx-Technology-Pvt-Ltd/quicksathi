@@ -5,8 +5,8 @@ status: accepted (with a known SEO trade-off)
 
 The frontend is a Vite/React SPA served as static files, the API is a single Express service, data is in MongoDB Atlas. This is cheap and quick to operate for a small team.
 
-**Hosting is vendor-independent** (updated 2026-10-12, Round 4). We expect to move hosts (frontend possibly to Netlify, Cloudflare Pages or Hostinger; API to Railway), so nothing host-specific lives in code:
-- the frontend's security headers, caching and SPA fallback come from one policy, `quicksathi_frontend/hosting/policy.json`, generated into `public/_headers` (Netlify, Cloudflare Pages), `public/.htaccess` (Apache/Hostinger), `netlify.toml` and `vercel.json` by `npm run host-config` (CI fails if they drift);
+**Hosting is vendor-independent** (updated 2026-10-23). The frontend now deploys to Cloudflare Workers and the API to Railway; nothing host-specific lives in code:
+- the frontend's security headers, caching and SPA fallback come from one policy, `quicksathi_frontend/hosting/policy.json`, generated into `wrangler.jsonc` (Workers: `not_found_handling: "single-page-application"`; a `/* /index.html 200` redirect rule breaks Workers deploys), `public/_headers` (Workers/Pages, Netlify), `public/.htaccess` (Apache/Hostinger) and `vercel.json` by `npm run host-config` (CI fails if they drift);
 - the API ships as a Docker image (`quicksathi_backend/Dockerfile`; Railway builds it automatically, CI builds it and checks `/api/health`) and reads every host difference from env vars (`TRUST_PROXY`, `CORS_ORIGINS`, `CORS_ORIGIN_PATTERNS`, `SELF_PING_URL`, `CLIENT_URL`);
 - domains: `tiptobook.com` for the frontend and `api.tiptobook.com` for the API (same site, so login cookies work in every browser), with a `staging.` / `api-staging.` pair. Host preview URLs (`*.netlify.app`, `*.pages.dev`) are different sites and use the staging API.
 
