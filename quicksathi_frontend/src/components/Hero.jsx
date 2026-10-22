@@ -20,6 +20,8 @@ import {
 
 
 // ── Service categories for the auto-scrolling right panel ──
+// Marketing cards: names, copy and images only. Price and rating are looked up in the live catalog
+// by name (ServiceCard), so the homepage never shows a number the API doesn't have.
 const HERO_CATEGORIES = [
   {
     id: "rental",
@@ -32,16 +34,12 @@ const HERO_CATEGORIES = [
       {
         name: "Wedding Car Rental",
         desc: "Decorated cars for special occasions with driver.",
-        price: 7999,
-        rating: 4.8,
         badge: "Wedding",
         img: "https://images.unsplash.com/photo-1503376780353-7e6692767b70?q=80&w=600&auto=format&fit=crop",
       },
       {
         name: "Daily Car Rental",
         desc: "AC sedans & SUVs for daily rentals, airport & city trips.",
-        price: 3499,
-        rating: 4.8,
         badge: "Everyday Ride",
         img: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/outstation-airport-cab.jpg",
       },
@@ -58,16 +56,12 @@ const HERO_CATEGORIES = [
       {
         name: "Wedding Photography",
         desc: "Candid, cinematic films, drone shoots & albums.",
-        price: 15000,
-        rating: 4.9,
         badge: "Cinematic",
         img: "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=600&auto=format&fit=crop",
       },
       {
         name: "Stage & Venue Decoration",
         desc: "Floral stage setup, entryway decor & LED lighting.",
-        price: 25000,
-        rating: 4.8,
         badge: "Themes",
         img: "https://images.unsplash.com/photo-1519225421980-715cb0215aed?q=80&w=600&auto=format&fit=crop",
       },
@@ -84,16 +78,12 @@ const HERO_CATEGORIES = [
       {
         name: "Maid & Deep Cleaning",
         desc: "Daily or monthly home cleaning with verified maids.",
-        price: 1499,
-        rating: 4.8,
         badge: "Verified",
         img: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop",
       },
       {
         name: "Home Cook Service",
         desc: "Experienced home cooks offering multi-cuisine meals.",
-        price: 2999,
-        rating: 4.9,
         badge: "Healthy",
         img: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?q=80&w=600&auto=format&fit=crop",
       },
@@ -110,16 +100,12 @@ const HERO_CATEGORIES = [
       {
         name: "Plumbing",
         desc: "Expert plumbing for leaks, fittings & drainage.",
-        price: 199,
-        rating: 4.6,
         badge: "Quick Fix",
         img: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?q=80&w=600&auto=format&fit=crop",
       },
       {
         name: "Electrician",
         desc: "Certified wiring, fan install, switchboard repair.",
-        price: 149,
-        rating: 4.7,
         badge: "Certified",
         img: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?q=80&w=600&auto=format&fit=crop",
       },
@@ -136,16 +122,12 @@ const HERO_CATEGORIES = [
       {
         name: "Hair Styling & Care",
         desc: "Professional haircuts, coloring, keratin & scalp care.",
-        price: 799,
-        rating: 4.9,
         badge: "Best Seller",
         img: "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=600&auto=format&fit=crop",
       },
       {
         name: "Facial & Skin Cleanup",
         desc: "Rejuvenating facials, organic cleanups & anti-aging.",
-        price: 999,
-        rating: 4.8,
         badge: "Glow Care",
         img: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=600&auto=format&fit=crop",
       },
@@ -162,16 +144,12 @@ const HERO_CATEGORIES = [
       {
         name: "School Academics",
         desc: "Maths, Science & English home tuition by verified tutors.",
-        price: 2500,
-        rating: 4.9,
         badge: "Class 1-10",
         img: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?q=80&w=600&auto=format&fit=crop",
       },
       {
         name: "Competitive Exam Prep",
         desc: "Expert coaching for JEE, NEET & Olympiads.",
-        price: 4500,
-        rating: 4.9,
         badge: "Exam Prep",
         img: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=600&auto=format&fit=crop",
       },
@@ -188,16 +166,12 @@ const HERO_CATEGORIES = [
       {
         name: "AC Repair & Service",
         desc: "Foam jet deep clean, inspection & cooling fix.",
-        price: 449,
-        rating: 4.8,
         badge: "Popular",
         img: "/images/ac/foam-jet.webp",
       },
       {
         name: "AC Gas Refill",
         desc: "Leak detection & complete gas refill for instant cooling.",
-        price: 2499,
-        rating: 4.9,
         badge: "Top Rated",
         img: "/images/ac/gas-refill.webp",
       },
@@ -208,7 +182,7 @@ const HERO_CATEGORIES = [
 const FONT_HERO = "var(--font-sans, 'Plus Jakarta Sans', 'Inter', sans-serif)";
 
 // ── Single service card for the right panel ──
-const ServiceCard = ({ cat, onNavigate }) => {
+const ServiceCard = ({ cat, onNavigate, liveByName }) => {
   const Icon = cat.icon;
   return (
     <motion.div
@@ -254,7 +228,9 @@ const ServiceCard = ({ cat, onNavigate }) => {
       </div>
 
       {/* Services list */}
-      {cat.services.map((svc, idx) => (
+      {cat.services.map((svc, idx) => {
+        const live = liveByName.get(svc.name.toLowerCase());
+        return (
         <div
           key={idx}
           className="flex items-center gap-3.5 px-5 py-3.5 hover:bg-slate-50 transition-colors cursor-pointer group"
@@ -283,19 +259,21 @@ const ServiceCard = ({ cat, onNavigate }) => {
               >
                 {svc.name}
               </p>
-              <span
-                className="flex-shrink-0 flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-lg"
-                style={{
-                  backgroundColor: "rgba(255,255,255,0.9)",
-                  color: "#1a1a1a",
-                  border: "1px solid rgba(0,0,0,0.08)",
-                  boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
-                  fontFamily: FONT_HERO,
-                }}
-              >
-                <Star size={9} className="fill-amber-400 text-amber-400" />
-                {svc.rating}
-              </span>
+              {live?.rating > 0 && (
+                <span
+                  className="flex-shrink-0 flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-lg"
+                  style={{
+                    backgroundColor: "rgba(255,255,255,0.9)",
+                    color: "#1a1a1a",
+                    border: "1px solid rgba(0,0,0,0.08)",
+                    boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+                    fontFamily: FONT_HERO,
+                  }}
+                >
+                  <Star size={9} className="fill-amber-400 text-amber-400" />
+                  {live.rating}
+                </span>
+              )}
             </div>
             <p
               className="text-xs mt-0.5 mb-0 line-clamp-1"
@@ -304,13 +282,15 @@ const ServiceCard = ({ cat, onNavigate }) => {
               {svc.desc}
             </p>
             <div className="flex items-center justify-between mt-1.5">
-              <span
-                className="text-xs font-bold"
-                style={{ color: "var(--color-primary)", fontFamily: FONT_HERO }}
-              >
-                &#8377;{svc.price.toLocaleString("en-IN")}
-                <span className="font-normal text-slate-400 text-[10px]"> onwards</span>
-              </span>
+              {live?.startingPrice > 0 ? (
+                <span
+                  className="text-xs font-bold"
+                  style={{ color: "var(--color-primary)", fontFamily: FONT_HERO }}
+                >
+                  &#8377;{live.startingPrice.toLocaleString("en-IN")}
+                  <span className="font-normal text-slate-400 text-[10px]"> onwards</span>
+                </span>
+              ) : <span />}
               {svc.badge && (
                 <span
                   className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-md"
@@ -322,7 +302,8 @@ const ServiceCard = ({ cat, onNavigate }) => {
             </div>
           </div>
         </div>
-      ))}
+        );
+      })}
     </motion.div>
   );
 };
@@ -393,8 +374,6 @@ const Hero = ({ categories, services, onBookNow }) => {
         addSvc({
           name: s.name,
           shortDescription: s.desc,
-          startingPrice: s.price,
-          rating: s.rating,
           thumbnail: s.img,
           categoryName: cat.title,
           route: cat.route,
@@ -451,6 +430,10 @@ const Hero = ({ categories, services, onBookNow }) => {
   }, [searchQuery, services, categories]);
 
   const activeCat = HERO_CATEGORIES[activeCardIdx];
+  const liveByName = useMemo(
+    () => new Map((services || []).map((s) => [String(s.name || "").toLowerCase(), s])),
+    [services]
+  );
 
   const handleSearch = (e) => {
     e?.preventDefault();
@@ -723,7 +706,7 @@ const Hero = ({ categories, services, onBookNow }) => {
                                     {svc.categoryName}
                                   </span>
                                 )}
-                                {svc.rating && (
+                                {svc.rating > 0 && (
                                   <span className="flex items-center gap-0.5 text-[10px] font-bold text-amber-600">
                                     <Star size={10} className="fill-amber-400 text-amber-400" />
                                     {svc.rating}
@@ -797,7 +780,6 @@ const Hero = ({ categories, services, onBookNow }) => {
             {[
               { value: "10K+", label: "Happy Customers" },
               { value: "50+", label: "Expert Partners" },
-              { value: "4.9★", label: "Average Rating" },
             ].map((stat, i) => (
               <div key={i} className="flex flex-col">
                 <span
@@ -878,6 +860,7 @@ const Hero = ({ categories, services, onBookNow }) => {
               <ServiceCard
                 key={activeCat.id}
                 cat={activeCat}
+                liveByName={liveByName}
                 onNavigate={(route) => {
                   const r = (route || "").toLowerCase();
                   if (r.includes("/services/ac") || r.includes("appliance")) {

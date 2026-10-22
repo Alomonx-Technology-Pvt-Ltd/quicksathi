@@ -4,7 +4,7 @@ import Booking from "../models/Booking.js";
 import Service from "../models/Service.js";
 import Notification from "../models/Notification.js";
 import { quote, redeemCoupon, releaseCoupon, releaseCouponIfUnpaid, assertFutureSlot, isRental, PricingError } from "../services/pricing.js";
-import { changeStatus, BookingStateError } from "../services/bookingStatus.js";
+import { changeStatus, saveBooking, BookingStateError } from "../services/bookingStatus.js";
 import User from "../models/User.js";
 import { protect } from "../middleware/auth.js";
 import { adminOnly } from "../middleware/admin.js";
@@ -203,7 +203,7 @@ router.patch("/:id/cancel", protect, async (req, res) => {
       role: req.user.role === "admin" ? "admin" : "customer",
       reason: req.body?.reason,
     });
-    await booking.save();
+    await saveBooking(booking);
     await releaseCouponIfUnpaid(booking);
 
     // Create In-Website Notification
@@ -256,7 +256,7 @@ export const adminUpdateBookingStatus = async (req, res) => {
 
     const status = req.body?.status;
     changeStatus(booking, status, { actorId: req.user._id, role: "admin", reason: req.body?.reason });
-    await booking.save();
+    await saveBooking(booking);
     await releaseCouponIfUnpaid(booking);
 
     try {

@@ -105,7 +105,7 @@ const ServiceDetail = () => {
   const handleBookNow = (targetPkg) => {
     const pkgToBook = targetPkg || service.packages?.[selectedPkg];
     const serviceId = service.slug || service._id || service.id || id;
-    const price = pkgToBook?.price || service.startingPrice || 349;
+    const price = pkgToBook?.price ?? service.startingPrice ?? 0;
     const params = new URLSearchParams({
       name: service.name,
       package: pkgToBook?.title ?? "",
@@ -161,7 +161,7 @@ const ServiceDetail = () => {
 
   const pkg = service.packages?.[selectedPkg];
   const isRental = service.serviceMode === "RENTAL";
-  const activePkgPrice = pkg?.price || service.startingPrice || 349;
+  const activePkgPrice = pkg?.price ?? service.startingPrice ?? 0;
 
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-20 sm:pb-28 overflow-x-hidden selection:bg-purple-100 selection:text-purple-900">
@@ -367,10 +367,10 @@ const ServiceDetail = () => {
                   <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-600">
                     <Star size={12} className="fill-amber-400 text-amber-400" />
                     <span className="font-semibold text-slate-800">
-                      {service.rating || 4.8}
+                      {service.rating > 0 ? service.rating : "New"}
                     </span>
                     <span>
-                      ({(service.totalReviews || 2890).toLocaleString("en-IN")} reviews)
+                      ({(service.totalReviews ?? 0).toLocaleString("en-IN")} reviews)
                     </span>
                   </div>
                 </div>
@@ -475,7 +475,7 @@ const ServiceDetail = () => {
                     Package Price
                   </span>
                   <span className="text-xl font-extrabold text-slate-900">
-                    ₹{(selectedPkgForModal.price || service.startingPrice || 349).toLocaleString("en-IN")}
+                    ₹{(selectedPkgForModal.price ?? service.startingPrice ?? 0).toLocaleString("en-IN")}
                   </span>
                 </div>
 

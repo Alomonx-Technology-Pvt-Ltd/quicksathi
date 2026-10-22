@@ -518,7 +518,6 @@ const Login = () => {
                     onChange={handleChange}
                     placeholder="••••••••"
                     required
-                    minLength={8}
                     className={inputClass}
                     style={inputStyle}
                   />

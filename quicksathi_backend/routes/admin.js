@@ -680,7 +680,7 @@ router.patch("/bookings/:id/fare", protect, adminOnly, async (req, res) => {
     const booking = await Booking.findById(req.params.id);
     if (!booking) return res.status(404).json({ message: "Booking not found" });
     const service = await Service.findById(booking.service).select("perKmRate");
-    confirmFare(booking, req.body?.amount, { actorId: req.user._id, role: "admin", maxAmount: maxRentalFare(service) });
+    confirmFare(booking, req.body?.amount, { actorId: req.user._id, role: "admin", maxAmount: maxRentalFare(service, booking) });
     await booking.save();
     res.json({ message: "Fare confirmed", booking });
   } catch (error) {
@@ -837,6 +837,9 @@ router.post("/upload", protect, adminOnly, async (req, res) => {
   }
 });
 
+// True while a bulk email broadcast is being sent in the background (one API instance; see railway.toml numReplicas).
+let broadcastInProgress = false;
+
 // POST /api/admin/send-email — Send notifications to users via Email or In-Website
 router.post("/send-email", protect, adminOnly, async (req, res) => {
   try {
@@ -875,41 +878,17 @@ router.post("/send-email", protect, adminOnly, async (req, res) => {
       return res.status(400).json({ message: "No matching recipients found" });
     }
 
-    let emailSent = false;
-    let isMock = true;
     let webSent = false;
     let webCount = 0;
-    let emailOk = 0;
-    let emailFailed = 0;
-
-    // --- Channel 1: Email ---
-    if (channels.includes("email")) {
-      const emailHtml = `
-        <div style="font-family: sans-serif; padding: 24px; color: #334155; line-height: 1.6; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
-          <h2 style="color: #f97316; margin-top: 0;">TiptoBook Platform Announcement</h2>
-          <p style="white-space: pre-line; font-size: 15px; color: #1e293b;">${escapeHtml(body)}</p>
-          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-top: 24px;" />
-          <p style="font-size: 12px; color: #94a3b8; text-align: center;">You received this notification from the TiptoBook Administrator.</p>
-        </div>
-      `;
-
-      // Awaited, in small batches, so one broadcast can't open hundreds of mail connections at once.
-      for (let i = 0; i < recipients.length; i += 10) {
-        const results = await Promise.all(
-          recipients.slice(i, i + 10).map((recipient) =>
-            sendMail({ to: recipient, subject, text: body, html: emailHtml }).catch((err) => ({ success: false, error: err?.message }))
-          )
-        );
-        for (const r of results) (r?.success ? (emailOk += 1) : (emailFailed += 1));
-      }
-
-      isMock = !process.env.BREVO_API_KEY && !process.env.SMTP_USER;
-      emailSent = emailOk > 0;
+    const sendEmail = channels.includes("email");
+    const isMock = !process.env.BREVO_API_KEY && !process.env.SMTP_USER;
+    const bulk = recipientType !== "individual";
+    if (sendEmail && bulk && broadcastInProgress) {
+      return res.status(409).json({ message: "An email broadcast is still being sent. Wait for its result notification, then try again." });
     }
 
-    // --- Channel 2: In-Website Alerts ---
+    // --- Channel 2: In-Website Alerts (fast: one insert) ---
     if (channels.includes("web")) {
-      // Find matching users in database
       const matchedUsers = await User.find({ email: { $in: recipients } }, "_id");
       if (matchedUsers.length > 0) {
         const notificationDocs = matchedUsers.map(u => ({
@@ -924,13 +903,64 @@ router.post("/send-email", protect, adminOnly, async (req, res) => {
       }
     }
 
+    // --- Channel 1: Email ---
+    let emailResult = null;
+    if (sendEmail) {
+      const emailHtml = `
+        <div style="font-family: sans-serif; padding: 24px; color: #334155; line-height: 1.6; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
+          <h2 style="color: #f97316; margin-top: 0;">TiptoBook Platform Announcement</h2>
+          <p style="white-space: pre-line; font-size: 15px; color: #1e293b;">${escapeHtml(body)}</p>
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-top: 24px;" />
+          <p style="font-size: 12px; color: #94a3b8; text-align: center;">You received this notification from the TiptoBook Administrator.</p>
+        </div>
+      `;
+      // In small batches, so one broadcast can't open hundreds of mail connections at once.
+      const sendAll = async () => {
+        let ok = 0;
+        let failed = 0;
+        for (let i = 0; i < recipients.length; i += 10) {
+          const results = await Promise.all(
+            recipients.slice(i, i + 10).map((recipient) =>
+              sendMail({ to: recipient, subject, text: body, html: emailHtml }).catch((err) => ({ success: false, error: err?.message }))
+            )
+          );
+          for (const r of results) (r?.success ? (ok += 1) : (failed += 1));
+        }
+        return { ok, failed };
+      };
+
+      if (bulk) {
+        // Hundreds of sends take longer than the admin page waits (15 s): answer now, send in the
+        // background and report the result as a notification to the admin who started it.
+        // A retry after a timeout would otherwise email everyone twice; the flag also blocks that.
+        broadcastInProgress = true;
+        const adminId = req.user._id;
+        sendAll()
+          .then(({ ok, failed }) =>
+            Notification.create({
+              recipient: adminId,
+              title: "Email broadcast finished",
+              message: `"${subject}": ${ok} delivered, ${failed} failed, out of ${recipients.length}.${isMock ? " (Mock mode: no mail provider configured.)" : ""}`,
+              type: "system",
+            })
+          )
+          .catch((err) => console.error("Email broadcast error:", err?.message || err))
+          .finally(() => { broadcastInProgress = false; });
+      } else {
+        emailResult = await sendAll();
+      }
+    }
+
     res.json({
       success: true,
-      message: `Notification broadcasted. Channels: ${channels.join(", ")}.`,
+      message: sendEmail && bulk
+        ? `Sending ${recipients.length} email(s) in the background; you'll get a notification with the result.${webSent ? ` In-website alerts delivered to ${webCount} account(s).` : ""}`
+        : `Notification broadcasted. Channels: ${channels.join(", ")}.`,
       count: recipients.length,
-      emailSent,
-      emailDelivered: emailOk,
-      emailFailed,
+      emailQueued: sendEmail && bulk ? recipients.length : 0,
+      emailSent: emailResult ? emailResult.ok > 0 : false,
+      emailDelivered: emailResult?.ok ?? 0,
+      emailFailed: emailResult?.failed ?? 0,
       webSent,
       webCount,
       mock: isMock,
@@ -946,9 +976,12 @@ router.post("/send-email", protect, adminOnly, async (req, res) => {
 // GET /api/admin/notifications — Live admin notifications feed
 router.get("/notifications", protect, adminOnly, async (req, res) => {
   try {
-    const [pendingProviders, recentBookings] = await Promise.all([
-      Provider.find({ approvalStatus: "pending" }).populate("user", "name"),
-      Booking.find().populate("user", "name").sort("-createdAt").limit(15)
+    // Only the 10 newest alerts are returned, so no source needs more than 10 rows.
+    const [pendingProviders, recentBookings, ownNotifications] = await Promise.all([
+      Provider.find({ approvalStatus: "pending" }).populate("user", "name").sort("-createdAt").limit(10),
+      Booking.find().populate("user", "name").sort("-createdAt").limit(10),
+      // Messages addressed to this admin: refunds needed (routes/payments.js), broadcast results.
+      Notification.find({ recipient: req.user._id }).sort("-createdAt").limit(10),
     ]);
 
     const alerts = [];
@@ -974,6 +1007,17 @@ router.get("/notifications", protect, adminOnly, async (req, res) => {
         color: "#10b981",
         message: `₹${(b.amount || 0).toLocaleString()} ${b.serviceName || "service"} logged`,
         createdAt: b.createdAt,
+      });
+    });
+
+    ownNotifications.forEach((n) => {
+      alerts.push({
+        _id: `notification-${n._id}`,
+        type: "system",
+        title: n.title,
+        color: "#f59e0b",
+        message: n.message,
+        createdAt: n.createdAt,
       });
     });
 

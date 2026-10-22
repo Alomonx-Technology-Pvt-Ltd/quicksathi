@@ -23,7 +23,8 @@ try {
   }
   if (user.password) {
     // A password set through the old public sign-up may belong to someone else (pre-registration
-    // takeover). Use admin-account.mjs instead: it replaces the password with one you choose.
+    // takeover). Use admin-account.mjs instead: it replaces the password with one you choose and
+    // ends every existing login on the account.
     throw new Error("This account has a password from email sign-up. Use scripts/admin-account.mjs to set a new admin password instead.");
   }
   if (user.role === "admin") {

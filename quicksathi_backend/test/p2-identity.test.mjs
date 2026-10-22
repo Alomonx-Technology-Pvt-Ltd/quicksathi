@@ -75,3 +75,32 @@ test("tokens are HS256 only", async () => {
   assert.equal((await s.api("GET", "/auth/me", { token: none })).status, 401);
   assert.equal((await s.api("GET", "/auth/me", { token: s.tokenFor(user._id) })).status, 200);
 });
+
+// A token signed a minute ago: the cutoff compares whole seconds, so it must be clearly older.
+const earlierToken = (id) =>
+  jwt.sign({ id: String(id), iat: Math.floor(Date.now() / 1000) - 60 }, JWT_SECRET, { algorithm: "HS256", expiresIn: "1h" });
+
+test("logins issued before the real owner takes the account back stop working", async () => {
+  const squat = await localUser();
+  const squatterToken = earlierToken(squat._id);
+  assert.equal((await s.api("GET", "/auth/me", { token: squatterToken })).status, 200, "precondition");
+
+  const owner = await s.api("POST", "/auth/google", { body: { idToken: google(squat.email) } });
+  assert.equal(owner.status, 200, owner.text);
+  assert.equal((await s.api("GET", "/auth/me", { token: squatterToken })).status, 401, "the squatter keeps access");
+  assert.equal((await s.api("GET", "/auth/me", { token: owner.body.token })).status, 200, "the owner's new login must work");
+});
+
+test("an admin set up by admin-account.mjs keeps that password after a Google sign-in; earlier logins end", async () => {
+  const email = `${uid("adm")}@example.test`;
+  const signup = await localUser({ email });
+  const earlier = earlierToken(signup._id);
+
+  const run = await s.runScript("scripts/admin-account.mjs", { ADMIN_NEW_PASSWORD: "Correct-Horse-Battery-9" }, 30_000, [email, "--yes"]);
+  assert.equal(run.code, 0, run.out);
+  assert.equal((await s.api("GET", "/auth/me", { token: earlier })).status, 401, "a login from the old password became an admin login");
+
+  assert.equal((await s.api("POST", "/auth/admin-google", { body: { idToken: google(email) } })).status, 200);
+  const login = await s.api("POST", "/auth/admin-login", { body: { email, password: "Correct-Horse-Battery-9" } });
+  assert.equal(login.status, 200, "Google sign-in deleted the emergency admin password");
+});

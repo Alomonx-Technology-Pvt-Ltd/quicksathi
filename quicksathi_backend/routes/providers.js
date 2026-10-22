@@ -9,7 +9,7 @@ import Booking, { newStartOtp } from "../models/Booking.js";
 import Notification from "../models/Notification.js";
 import { protect } from "../middleware/auth.js";
 import { providerOnly } from "../middleware/admin.js";
-import { changeStatus, markCashCollected, confirmFare, BookingStateError } from "../services/bookingStatus.js";
+import { changeStatus, saveBooking, markCashCollected, confirmFare, BookingStateError } from "../services/bookingStatus.js";
 import { sendBookingStatusEmail } from "../services/emailService.js";
 import { otpLimiter } from "../middleware/rateLimits.js";
 import { releaseCouponIfUnpaid, maxRentalFare } from "../services/pricing.js";
@@ -379,7 +379,7 @@ router.patch("/bookings/:id/status", protect, providerOnly, async (req, res) => 
     }
 
     changeStatus(booking, status, { actorId: req.user._id, role: "provider", reason: req.body?.reason });
-    await booking.save();
+    await saveBooking(booking);
     await releaseCouponIfUnpaid(booking);
 
     await notifyCustomer(
@@ -448,7 +448,7 @@ router.post("/bookings/:id/start", protect, otpLimiter, providerOnly, async (req
     booking.expectedEndAt = new Date(now.getTime() + (booking.durationMinutes || 60) * 60 * 1000);
     booking.startOtp = undefined;
     booking.startOtpAttempts = 0;
-    await booking.save();
+    await saveBooking(booking);
 
     await notifyCustomer(
       booking,
@@ -475,7 +475,7 @@ router.post("/bookings/:id/complete", protect, providerOnly, async (req, res) =>
     changeStatus(booking, "completed", { actorId: req.user._id, role: "provider" });
     booking.completedAt = new Date();
     if (typeof req.body?.notes === "string") booking.completionNotes = req.body.notes.trim().slice(0, 1000);
-    await booking.save();
+    await saveBooking(booking);
 
     await notifyCustomer(
       booking,
@@ -520,7 +520,7 @@ router.post("/bookings/:id/fare", protect, providerOnly, async (req, res) => {
       return res.status(404).json({ message: "Booking not found or not assigned to you" });
     }
     const service = await Service.findById(booking.service).select("perKmRate");
-    confirmFare(booking, req.body?.amount, { actorId: req.user._id, role: "provider", maxAmount: maxRentalFare(service) });
+    confirmFare(booking, req.body?.amount, { actorId: req.user._id, role: "provider", maxAmount: maxRentalFare(service, booking) });
     await booking.save();
     await notifyCustomer(booking, "Final fare confirmed", `Your trip fare for ${booking.bookingId} is ₹${booking.amount}, payable in cash.`);
     res.json({ message: "Fare confirmed", booking: await providerBookingView(booking._id) });

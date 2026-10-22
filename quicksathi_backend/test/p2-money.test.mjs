@@ -166,3 +166,78 @@ test("the provider confirms the final rental fare before cash is collected", asy
   assert.deepEqual([after.amount, after.fareConfirmed, after.paymentStatus], [720, true, "paid"]);
   assert.ok(after.statusHistory.some((h) => /600 estimate → ₹720/.test(h.note)));
 });
+
+test("a cancel that read the booking before a payment landed is refused, so the refund flag can't be lost", async () => {
+  const { user, booking } = await onlineBooking();
+  const { default: BookingModel } = await import("../models/Booking.js");
+  const { changeStatus, saveBooking, BookingStateError } = await import("../services/bookingStatus.js");
+  // Own connection: mongoose.disconnect() would also close the stack's connection.
+  const conn = await mongoose.createConnection(s.uri).asPromise();
+  try {
+    const Booking = conn.model("Booking", BookingModel.schema);
+    const stale = await Booking.findById(booking._id); // the cancel has read the unpaid booking...
+    const paid = await webhook("payment.captured", { payment: { entity: { id: "pay_cancel_race", order_id: booking.razorpayOrderId, amount: 100000, currency: "INR" } } });
+    assert.equal(paid.status, 200, paid.text);
+    changeStatus(stale, "cancelled", { actorId: user._id, role: "customer" }); // ...and saves after the payment
+    await assert.rejects(saveBooking(stale), (e) => e instanceof BookingStateError && e.status === 409);
+  } finally {
+    await conn.close();
+  }
+  assert.deepEqual(await reload(booking._id).then((b) => [b.status, b.paymentStatus]), ["confirmed", "paid"]);
+
+  const retry = await s.api("PATCH", `/bookings/${booking._id}/cancel`, { token: user.token });
+  assert.equal(retry.status, 200, retry.text);
+  assert.deepEqual(await reload(booking._id).then((b) => [b.status, b.paymentStatus]), ["cancelled", "refund_pending"]);
+});
+
+test("an online payment for a booking already paid in cash is flagged once for a refund", async () => {
+  const admin = await s.createUser({ role: "admin" });
+  const { user, booking } = await onlineBooking();
+  assert.equal((await s.api("POST", "/payments/cod-confirm", { token: user.token, body: { bookingId: String(booking._id) } })).status, 200);
+  await s.db.collection("bookings").updateOne({ _id: booking._id }, { $set: { status: "completed", paymentStatus: "paid" } }); // cash collected
+
+  const payload = { payment: { entity: { id: "pay_extra", order_id: booking.razorpayOrderId, amount: 100000, currency: "INR" } } };
+  assert.equal((await webhook("payment.captured", payload)).status, 200);
+  assert.equal((await webhook("payment.captured", payload)).status, 200);
+
+  const after = await reload(booking._id);
+  assert.equal(after.paymentStatus, "paid");
+  assert.equal(after.statusHistory.filter((h) => /pay_extra.*refund due/.test(h.note || "")).length, 1);
+  const feed = await s.api("GET", "/admin/notifications", { token: admin.token });
+  assert.equal(feed.body.filter((a) => /pay_extra/.test(a.message)).length, 1, "admins must see the refund exactly once");
+
+  const verify = await s.api("POST", "/payments/verify", { token: user.token, body: verifyBody(after, "pay_extra2") });
+  assert.equal(verify.status, 409);
+});
+
+test("a late payment.failed doesn't mark a booking that switched to cash as failed", async () => {
+  const { user, booking } = await onlineBooking();
+  assert.equal((await s.api("POST", "/payments/cod-confirm", { token: user.token, body: { bookingId: String(booking._id) } })).status, 200);
+  await webhook("payment.failed", { payment: { entity: { id: "pay_late_fail", order_id: booking.razorpayOrderId, amount: 100000, currency: "INR" } } });
+  assert.equal((await reload(booking._id)).paymentStatus, "pending");
+});
+
+test("a service with packages is booked as one of them, never at its 'from' price", async () => {
+  const customer = await s.createUser();
+  const service = await s.createService({ price: 800 });
+  const quote = (extra) => s.api("POST", "/bookings/quote", { token: customer.token, body: { serviceId: String(service._id), ...extra } });
+  for (const bad of [{}, { packageIndex: 99 }, { packageTitle: "Not a package" }]) {
+    assert.equal((await quote(bad)).status, 400, JSON.stringify(bad));
+  }
+  const ok = await quote({ packageTitle: "Standard" });
+  assert.equal(ok.status, 200, ok.text);
+});
+
+test("a rental with a per-km rate of 0 (priced by package) caps the final fare at 3x its estimate", async () => {
+  const { provider, providerUser, customer, service } = await rentalSetup();
+  // An admin can set the rate to 0; the schema default (10) only applies when the field is missing.
+  await s.db.collection("services").updateOne({ _id: service._id }, { $set: { perKmRate: 0 } });
+  const created = await s.api("POST", "/bookings", { token: customer.token, body: rentalBody(service, { packageTitle: "Standard" }) });
+  assert.equal(created.status, 201, created.text);
+  assert.equal(created.body.amount, 1500);
+  const id = created.body._id;
+  await s.db.collection("bookings").updateOne({ _id: new mongoose.Types.ObjectId(id) }, { $set: { status: "in_progress", provider: provider._id } });
+
+  assert.equal((await s.api("POST", `/providers/bookings/${id}/fare`, { token: providerUser.token, body: { amount: 4501 } })).status, 400);
+  assert.equal((await s.api("POST", `/providers/bookings/${id}/fare`, { token: providerUser.token, body: { amount: 4500 } })).status, 200);
+});

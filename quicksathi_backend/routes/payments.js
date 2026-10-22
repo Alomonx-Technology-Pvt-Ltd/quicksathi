@@ -4,6 +4,7 @@ import Razorpay from "razorpay";
 import crypto from "crypto";
 import Booking from "../models/Booking.js";
 import Notification from "../models/Notification.js";
+import User from "../models/User.js";
 import { protect } from "../middleware/auth.js";
 
 const router = Router();
@@ -56,7 +57,9 @@ const notify = (recipient, title, message) =>
 /**
  * Record a captured payment. Idempotent and atomic. Used by /verify (browser) and the webhook
  * (Razorpay); whichever arrives first wins and the second is a no-op.
- * Returns "paid", "refund_pending" (money arrived after the booking was cancelled) or "noop".
+ * Returns "paid", "refund_pending" (money arrived after the booking was cancelled),
+ * "extra" (the booking was already settled another way, e.g. cash collected: this money must be
+ * refunded) or "noop" (this same payment was already recorded).
  */
 async function recordPayment(bookingId, paymentId) {
   const open = { _id: bookingId, paymentStatus: { $in: ["pending", "failed"] } };
@@ -89,7 +92,24 @@ async function recordPayment(bookingId, paymentId) {
     notify(late.user, "Refund on its way", `Your payment for cancelled booking ${late.bookingId} arrived after the cancellation. We will refund it.`);
     return "refund_pending";
   }
-  return "noop";
+
+  // Already settled by something else: cash collected after the customer switched to cash, or another
+  // Razorpay payment on the same order. Nothing else stores this money, so flag it once for a refund.
+  const current = await Booking.findById(bookingId).select("status paymentStatus razorpayPaymentId bookingId");
+  if (!current || current.razorpayPaymentId === paymentId) return "noop";
+  const note = `extra online payment ${paymentId} received while the booking was already ${current.paymentStatus}: refund due`;
+  const flagged = await Booking.updateOne(
+    { _id: bookingId, "statusHistory.note": { $ne: note } },
+    { $push: { statusHistory: history(current.status, current.status, note) } }
+  );
+  if (flagged.modifiedCount) {
+    console.warn(`AUDIT ${new Date().toISOString()} booking ${current.bookingId}: ${note}`);
+    const admins = await User.find({ role: "admin", isActive: true }).select("_id");
+    await Promise.all(
+      admins.map((a) => notify(a._id, "Refund needed 💸", `Booking ${current.bookingId}: ${note}. Refund it in the Razorpay dashboard.`))
+    );
+  }
+  return "extra";
 }
 
 // POST /api/payments/create-order — Create (or reuse) a Razorpay order for one of MY bookings.
@@ -169,6 +189,9 @@ router.post("/verify", protect, async (req, res) => {
     if (outcome === "refund_pending" || (outcome === "noop" && booking.status === "cancelled")) {
       return res.status(409).json({ message: "This booking was cancelled; your payment will be refunded." });
     }
+    if (outcome === "extra") {
+      return res.status(409).json({ message: "This booking was already paid; this payment will be refunded." });
+    }
     const fresh = await Booking.findById(booking._id);
     res.json({ message: outcome === "paid" ? "Payment verified successfully" : "Payment already recorded", booking: fresh });
   } catch (error) {
@@ -244,7 +267,8 @@ router.post("/webhook", async (req, res) => {
         console.error(`Webhook amount mismatch for ${booking.bookingId}: got ${amount} ${currency}`);
       }
     } else if (event.event === "payment.failed") {
-      await Booking.updateOne({ _id: booking._id, paymentStatus: "pending" }, { $set: { paymentStatus: "failed" } });
+      // Only an online booking can fail online: a customer who switched to cash owes cash, not "failed".
+      await Booking.updateOne({ _id: booking._id, paymentMethod: "razorpay", paymentStatus: "pending" }, { $set: { paymentStatus: "failed" } });
     }
 
     res.json({ received: true });

@@ -182,3 +182,20 @@ test("P1-23c: admin-created services keep their city restrictions", async () => 
   const svc = await s.db.collection("services").findOne({ _id: new mongoose.Types.ObjectId(String(res.body._id)) });
   assert.deepEqual(svc?.cities, ["Patna"]);
 });
+
+test("a bulk email broadcast answers at once and reports its result to the admin; a second one waits", async () => {
+  const admin = await s.createUser({ role: "admin" });
+  const body = { recipientType: "all", subject: `Bulk ${uid("b")}`, body: "Hello", channels: ["email"] };
+  const res = await s.api("POST", "/admin/send-email", { token: admin.token, body });
+  assert.equal(res.status, 200, res.text);
+  assert.ok(res.body.emailQueued > 0);
+
+  let finished;
+  for (let i = 0; i < 50 && !finished; i++) {
+    const feed = await s.api("GET", "/admin/notifications", { token: admin.token });
+    finished = feed.body.find((a) => a.title === "Email broadcast finished" && a.message.includes(body.subject));
+    if (!finished) await new Promise((r) => setTimeout(r, 100));
+  }
+  assert.ok(finished, "the admin never got the broadcast result");
+  assert.match(finished.message, /\d+ delivered, \d+ failed/);
+});

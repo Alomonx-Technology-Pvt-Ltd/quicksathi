@@ -19,6 +19,8 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false, // true only when set from a verified Firebase token
     },
+    // Login tokens issued before this moment are rejected (account taken back, admin password reset).
+    tokensValidAfter: { type: Date },
     password: {
       type: String,
       minlength: 8,
