@@ -293,11 +293,11 @@ router.patch("/:id/cancel", protect, async (req, res) => {
   }
 });
 
-// PATCH /api/bookings/:id/status — Update booking status (admin/provider)
+// PATCH /api/bookings/:id/status — Update booking status (admin only; providers use /api/providers/bookings/:id/status)
 router.patch("/:id/status", protect, async (req, res) => {
   try {
-    if (req.user.role !== "admin" && req.user.role !== "provider") {
-      return res.status(403).json({ message: "Not authorized" });
+    if (req.user.role !== "admin") {
+      return res.status(403).json({ message: "Not authorized. Admin privileges required." });
     }
 
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {

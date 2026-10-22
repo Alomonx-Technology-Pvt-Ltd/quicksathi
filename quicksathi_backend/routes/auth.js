@@ -16,6 +16,22 @@ const isAdminEmail = (email) => {
   return adminEmails.includes(email?.toLowerCase());
 };
 
+// Helper to verify Firebase ID tokens securely without falling back to spoofable body parameters
+const verifyFirebaseToken = async (idToken) => {
+  if (!idToken) {
+    return { error: { status: 400, message: "Firebase ID token is required" } };
+  }
+  if (!firebaseAuth) {
+    return { error: { status: 503, message: "Authentication service unavailable" } };
+  }
+  try {
+    const decoded = await firebaseAuth.verifyIdToken(idToken);
+    return { decoded };
+  } catch (err) {
+    return { error: { status: 401, message: "Invalid or expired Firebase token" } };
+  }
+};
+
 // POST /api/auth/register
 router.post("/register", async (req, res) => {
   try {
@@ -27,13 +43,14 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: "User already exists with this email" });
     }
 
+    // Role is ALWAYS "user" for public self-registration. Admin promotion is never derived from self-registration.
     const user = await User.create({
       name,
       email,
       password,
       phone,
       authProvider: "local",
-      role: isAdminEmail(email) ? "admin" : "user",
+      role: "user",
     });
 
     const token = generateToken(user._id);
@@ -81,12 +98,6 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ message: "Invalid email or password" });
     }
 
-    // Auto-promote to admin if email is in ADMIN_EMAILS list
-    if (isAdminEmail(user.email) && user.role !== "admin") {
-      user.role = "admin";
-      await user.save();
-    }
-
     const token = generateToken(user._id);
 
     res.json({
@@ -104,42 +115,36 @@ router.post("/login", async (req, res) => {
   }
 });
 
-// POST /api/auth/google — Handle Firebase Google Sign-In (with server-side token verification)
+// POST /api/auth/google — Handle Firebase Google Sign-In (with strict token verification)
 router.post("/google", async (req, res) => {
   try {
-    const { idToken, email, name, avatar, firebaseUid } = req.body;
+    const { idToken } = req.body;
+    const authResult = await verifyFirebaseToken(idToken);
+    if (authResult.error) {
+      return res.status(authResult.error.status).json({ message: authResult.error.message });
+    }
 
-    let verifiedEmail = email;
-    let verifiedName = name;
-    let verifiedAvatar = avatar;
-    let verifiedUid = firebaseUid;
+    const { decoded } = authResult;
+    const verifiedEmail = decoded.email?.trim().toLowerCase();
+    const verifiedName = decoded.name || req.body.name || "User";
+    const verifiedAvatar = decoded.picture || req.body.avatar || "";
+    const verifiedUid = decoded.uid;
 
-    // If an ID token is provided, verify it server-side (preferred & secure)
-    if (idToken && firebaseAuth) {
-      try {
-        const decodedToken = await firebaseAuth.verifyIdToken(idToken);
-        verifiedEmail = decodedToken.email;
-        verifiedName = decodedToken.name || name;
-        verifiedAvatar = decodedToken.picture || avatar;
-        verifiedUid = decodedToken.uid;
-      } catch (tokenError) {
-        return res.status(401).json({ message: "Invalid Firebase token" });
-      }
-    } else if (!email) {
-      return res.status(400).json({ message: "Email or Firebase ID token is required" });
+    if (!verifiedEmail) {
+      return res.status(400).json({ message: "Google account must have an email associated" });
     }
 
     let user = await User.findOne({ email: verifiedEmail });
 
     if (!user) {
-      // Create new user from Google sign-in
+      // Create new user from Google sign-in — always role 'user'
       user = await User.create({
         name: verifiedName,
         email: verifiedEmail,
         avatar: verifiedAvatar,
         firebaseUid: verifiedUid,
         authProvider: "google",
-        role: isAdminEmail(verifiedEmail) ? "admin" : "user",
+        role: "user",
       });
 
       // Send welcome email to new Google user
@@ -160,12 +165,6 @@ router.post("/google", async (req, res) => {
         user.avatar = verifiedAvatar;
         changed = true;
       }
-      // Auto-promote to admin if email is in ADMIN_EMAILS list
-      if (isAdminEmail(user.email) && user.role !== "admin") {
-        user.role = "admin";
-        changed = true;
-      }
-      
       if (changed) {
         await user.save();
       }
@@ -213,19 +212,23 @@ router.get("/me", protect, async (req, res) => {
 // PUT /api/auth/profile — Update user profile
 router.put("/profile", protect, async (req, res) => {
   try {
-    const allowedFields = ["name", "email", "phone", "address", "city", "state", "pincode"];
+    // Prohibit directly changing email and phone to prevent identity takeover
+    if (req.body.email && req.body.email.toLowerCase() !== req.user.email?.toLowerCase()) {
+      return res.status(400).json({
+        message: "Email cannot be changed directly. Please verify via email link.",
+      });
+    }
+    if (req.body.phone && req.body.phone !== req.user.phone) {
+      return res.status(400).json({
+        message: "Phone number cannot be changed directly. Please verify via OTP.",
+      });
+    }
+
+    const allowedFields = ["name", "address", "city", "state", "pincode"];
     const updates = {};
     for (const field of allowedFields) {
       if (req.body[field] !== undefined) {
         updates[field] = req.body[field];
-      }
-    }
-
-    // If updating email, check uniqueness
-    if (updates.email) {
-      const existing = await User.findOne({ email: updates.email, _id: { $ne: req.user._id } });
-      if (existing) {
-        return res.status(400).json({ message: "This email is already in use by another account." });
       }
     }
 
@@ -253,41 +256,33 @@ router.put("/profile", protect, async (req, res) => {
 // POST /api/auth/phone — Firebase Phone Auth (login or register)
 router.post("/phone", async (req, res) => {
   try {
-    const { idToken, phone } = req.body;
-
-    if (!idToken) {
-      return res.status(400).json({ message: "Firebase ID token is required" });
+    const { idToken } = req.body;
+    const authResult = await verifyFirebaseToken(idToken);
+    if (authResult.error) {
+      return res.status(authResult.error.status).json({ message: authResult.error.message });
     }
 
-    let verifiedPhone = phone;
-    let verifiedUid = null;
+    const { decoded } = authResult;
+    const verifiedPhone = decoded.phone_number;
+    const verifiedUid = decoded.uid;
 
-    // Verify the Firebase ID token
-    if (firebaseAuth) {
-      try {
-        const decodedToken = await firebaseAuth.verifyIdToken(idToken);
-        verifiedPhone = decodedToken.phone_number || phone;
-        verifiedUid = decodedToken.uid;
-      } catch (tokenError) {
-        return res.status(401).json({ message: "Invalid or expired OTP token" });
-      }
-    } else if (!phone) {
-      return res.status(400).json({ message: "Phone number is required" });
+    if (!verifiedPhone) {
+      return res.status(400).json({ message: "No verified phone number found in token" });
     }
 
     // Find existing user by firebaseUid or phone
-    let user = verifiedUid
-      ? await User.findOne({ $or: [{ firebaseUid: verifiedUid }, { phone: verifiedPhone }] })
-      : await User.findOne({ phone: verifiedPhone });
+    let user = await User.findOne({
+      $or: [{ firebaseUid: verifiedUid }, { phone: verifiedPhone }],
+    });
 
     if (!user) {
-      // Create new user from phone sign-in
+      // Create new user from phone sign-in — always role 'user'
       user = await User.create({
         name: verifiedPhone,
         phone: verifiedPhone,
         firebaseUid: verifiedUid,
         authProvider: "phone",
-        role: isAdminEmail(null) ? "admin" : "user",
+        role: "user",
       });
     } else {
       // Update firebase UID if not set
@@ -382,25 +377,18 @@ router.post("/provider-login", async (req, res) => {
 // POST /api/auth/provider-google — Provider Google login
 router.post("/provider-google", async (req, res) => {
   try {
-    const { idToken, email, name, avatar, firebaseUid } = req.body;
+    const { idToken } = req.body;
+    const authResult = await verifyFirebaseToken(idToken);
+    if (authResult.error) {
+      return res.status(authResult.error.status).json({ message: authResult.error.message });
+    }
 
-    let verifiedEmail = email;
-    let verifiedName = name;
-    let verifiedAvatar = avatar;
-    let verifiedUid = firebaseUid;
+    const { decoded } = authResult;
+    const verifiedEmail = decoded.email?.trim().toLowerCase();
+    const verifiedUid = decoded.uid;
 
-    if (idToken && firebaseAuth) {
-      try {
-        const decodedToken = await firebaseAuth.verifyIdToken(idToken);
-        verifiedEmail = decodedToken.email;
-        verifiedName = decodedToken.name || name;
-        verifiedAvatar = decodedToken.picture || avatar;
-        verifiedUid = decodedToken.uid;
-      } catch (tokenError) {
-        return res.status(401).json({ message: "Invalid Firebase token" });
-      }
-    } else if (!email) {
-      return res.status(400).json({ message: "Email or Firebase ID token is required" });
+    if (!verifiedEmail) {
+      return res.status(400).json({ message: "Google account must have an email associated" });
     }
 
     let user = await User.findOne({ email: verifiedEmail });
@@ -463,12 +451,7 @@ router.post("/admin-login", async (req, res) => {
 
     // Case 1: Existing user in database
     if (user) {
-      // Auto-promote if in ADMIN_EMAILS list
-      if (isAdminEmail(user.email) && user.role !== "admin") {
-        user.role = "admin";
-        await user.save();
-      }
-
+      // User MUST have admin role
       if (user.role !== "admin") {
         return res.status(403).json({
           message: "Access denied. This account does not have administrator privileges.",
@@ -480,7 +463,6 @@ router.post("/admin-login", async (req, res) => {
       // Match against .env ADMIN_PASSWORD if this is an authorized admin email
       if (isEnvPasswordMatch && isAdminEmail(user.email)) {
         passwordValid = true;
-        // Update user's DB password so it stays synchronized
         user.password = password;
         if (user.authProvider === "google") {
           user.authProvider = "local";
@@ -537,72 +519,39 @@ router.post("/admin-login", async (req, res) => {
   }
 });
 
-// POST /api/auth/admin-google — Admin Google login with role verification
+// POST /api/auth/admin-google — Admin Google login with strict token verification
 router.post("/admin-google", async (req, res) => {
   try {
-    const { idToken, email, name, avatar, firebaseUid } = req.body;
-
-    let verifiedEmail = email;
-    let verifiedName = name;
-    let verifiedAvatar = avatar;
-    let verifiedUid = firebaseUid;
-
-    if (idToken && firebaseAuth) {
-      try {
-        const decodedToken = await firebaseAuth.verifyIdToken(idToken);
-        verifiedEmail = decodedToken.email;
-        verifiedName = decodedToken.name || name;
-        verifiedAvatar = decodedToken.picture || avatar;
-        verifiedUid = decodedToken.uid;
-      } catch (tokenError) {
-        return res.status(401).json({ message: "Invalid Firebase token" });
-      }
-    } else if (!email) {
-      return res.status(400).json({ message: "Email or Firebase ID token is required" });
+    const { idToken } = req.body;
+    const authResult = await verifyFirebaseToken(idToken);
+    if (authResult.error) {
+      return res.status(authResult.error.status).json({ message: authResult.error.message });
     }
 
-    const normalizedEmail = verifiedEmail?.trim().toLowerCase();
+    const { decoded } = authResult;
+    const normalizedEmail = decoded.email?.trim().toLowerCase();
+    const verifiedUid = decoded.uid;
+
+    if (!normalizedEmail) {
+      return res.status(400).json({ message: "Google account must have an email associated" });
+    }
+
     let user = await User.findOne({ email: normalizedEmail });
 
-    if (!user) {
-      // First-time sign in via Google for an admin email
-      if (!isAdminEmail(normalizedEmail)) {
-        return res.status(403).json({
-          message: `Access denied. The Google account (${normalizedEmail}) is not authorized as an administrator.`,
-        });
-      }
-
-      user = await User.create({
-        name: verifiedName || "TiptoBook Admin",
-        email: normalizedEmail,
-        avatar: verifiedAvatar || "",
-        firebaseUid: verifiedUid,
-        authProvider: "google",
-        role: "admin",
+    // Only existing accounts that ALREADY have role === "admin" can log in to admin panel
+    if (!user || user.role !== "admin") {
+      return res.status(403).json({
+        message: `Access denied. The Google account (${normalizedEmail}) is not authorized as an administrator.`,
       });
-    } else {
-      let changed = false;
-      if (!user.firebaseUid && verifiedUid) {
-        user.firebaseUid = verifiedUid;
-        changed = true;
-      }
-      if (!user.avatar && verifiedAvatar) {
-        user.avatar = verifiedAvatar;
-        changed = true;
-      }
-      if (isAdminEmail(user.email) && user.role !== "admin") {
-        user.role = "admin";
-        changed = true;
-      }
-      if (changed) {
-        await user.save();
-      }
+    }
 
-      if (user.role !== "admin") {
-        return res.status(403).json({
-          message: `Access denied. The Google account (${user.email}) is not authorized as an administrator.`,
-        });
-      }
+    let changed = false;
+    if (!user.firebaseUid && verifiedUid) {
+      user.firebaseUid = verifiedUid;
+      changed = true;
+    }
+    if (changed) {
+      await user.save();
     }
 
     const token = generateToken(user._id);
@@ -621,6 +570,5 @@ router.post("/admin-google", async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
-
 export default router;
 

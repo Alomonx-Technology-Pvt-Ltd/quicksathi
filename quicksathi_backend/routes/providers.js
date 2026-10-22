@@ -161,23 +161,52 @@ router.get("/status", protect, async (req, res) => {
   }
 });
 
-// PUT /api/providers/me — Update provider profile
+// PUT /api/providers/me — Update provider profile (safe fields only)
 router.put("/me", protect, providerOnly, async (req, res) => {
   try {
-    const provider = await Provider.findOneAndUpdate(
-      { user: req.user._id },
-      req.body,
-      { new: true, runValidators: true }
-    );
-    if (!provider) {
+    const currentProvider = await Provider.findOne({ user: req.user._id });
+    if (!currentProvider) {
       return res.status(404).json({ message: "Provider profile not found" });
     }
 
-    // When provider toggles online/offline, also update all their services' availability
+    // Explicit allowlist of fields a provider can edit — prevent tampering with rating, approvalStatus, or totalBookings
+    const allowedFields = [
+      "businessName",
+      "description",
+      "logo",
+      "location",
+      "phone",
+      "email",
+      "servicesOffered",
+      "experience",
+    ];
+
+    const updates = {};
+    for (const field of allowedFields) {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
+      }
+    }
+
+    // Toggling active status requires that the provider has already been approved by an admin
     if (req.body.isActive !== undefined) {
+      if (req.body.isActive && currentProvider.approvalStatus !== "approved") {
+        return res.status(400).json({ message: "Only approved providers can be active." });
+      }
+      updates.isActive = Boolean(req.body.isActive);
+    }
+
+    const provider = await Provider.findOneAndUpdate(
+      { user: req.user._id },
+      updates,
+      { new: true, runValidators: true }
+    );
+
+    // When provider toggles online/offline, also update all their services' availability
+    if (updates.isActive !== undefined) {
       await Service.updateMany(
         { provider: provider._id, approvalStatus: "approved" },
-        { available: req.body.isActive }
+        { available: updates.isActive }
       );
     }
 
@@ -368,20 +397,22 @@ router.patch("/bookings/:id/status", protect, providerOnly, async (req, res) => 
   }
 });
 
-// GET /api/providers — Public list of approved providers
+// GET /api/providers — Public list of approved providers (with privacy protections)
 router.get("/", async (req, res) => {
   try {
     const { category } = req.query;
     const filter = { approvalStatus: "approved", isActive: true };
     if (category) filter.categoryName = category;
 
+    // Explicit projection: NEVER expose documents (KYC), phone, or email to the public
     const providers = await Provider.find(filter)
+      .select("businessName businessType description logo category categoryName servicesOffered experience location.city rating totalBookings isActive")
       .populate("user", "name avatar")
       .sort("-rating");
 
     res.json(providers);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: "Failed to retrieve providers" });
   }
 });
 

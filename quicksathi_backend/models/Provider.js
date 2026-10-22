@@ -56,10 +56,13 @@ const providerSchema = new mongoose.Schema(
       default: "",
     },
     documents: {
-      idProof: { type: String, default: "" },
-      businessRegistration: { type: String, default: "" },
-      selfiePhoto: { type: String, default: "" },
-      other: [{ type: String }],
+      type: {
+        idProof: { type: String, default: "" },
+        businessRegistration: { type: String, default: "" },
+        selfiePhoto: { type: String, default: "" },
+        other: [{ type: String }],
+      },
+      select: false,
     },
     approvalStatus: {
       type: String,
