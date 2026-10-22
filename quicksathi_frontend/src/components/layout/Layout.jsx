@@ -922,6 +922,8 @@ const ContentLoader = () => (
 
 const Layout = () => {
   const location = useRouterLocation();
+  const isServicesPage =
+    location.pathname === "/services" || location.pathname === "/services/";
 
   return (
     <div
@@ -934,7 +936,7 @@ const Layout = () => {
           <Outlet />
         </Suspense>
       </main>
-      <Footer />
+      {!isServicesPage && <Footer />}
       <BottomNav />
       {/* TiptoBook AI Chatbot — floating bottom-right */}
       <ChatBot />

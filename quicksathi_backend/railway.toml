@@ -1,0 +1,22 @@
+# railway.toml — Railway deployment configuration for QuickSathi Backend
+# Docs: https://docs.railway.com/reference/config-as-code
+
+[build]
+# Railway uses Nixpacks by default — npm install is run automatically
+# If you need a custom build step, uncomment:
+# buildCommand = "npm install"
+
+[deploy]
+# Start command — same as package.json "start" script
+startCommand = "npm start"
+
+# Health check — Railway pings this to confirm the service is alive
+healthcheckPath = "/api/health"
+healthcheckTimeout = 300          # seconds to wait for health check to pass on deploy
+
+# Restart policy — auto-restart on crash
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
+
+# Number of replicas (1 for hobby/free tier)
+numReplicas = 1
