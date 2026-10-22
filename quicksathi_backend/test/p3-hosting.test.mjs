@@ -1,15 +1,23 @@
 // Host-neutral config (Round 4, R4.3): proxy hops and CORS origins come only from env vars.
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import express from "express";
 import { trustProxySetting, makeOriginChecker } from "../config/hosting.js";
 
-test("TRUST_PROXY: default one hop, numbers, false, and named values", () => {
+test("TRUST_PROXY: default one hop, numbers, true/false in any case, and named values Express accepts", () => {
   assert.equal(trustProxySetting(undefined), 1);
-  assert.equal(trustProxySetting(""), 1);
+  assert.equal(trustProxySetting(" "), 1);
   assert.equal(trustProxySetting("2"), 2);
   assert.equal(trustProxySetting("0"), 0);
   assert.equal(trustProxySetting("false"), false);
+  assert.equal(trustProxySetting("FALSE"), false);
+  assert.equal(trustProxySetting("true"), true);
+  assert.equal(trustProxySetting("True"), true);
   assert.equal(trustProxySetting("loopback"), "loopback");
+  // Whatever the operator types must not crash the server at boot.
+  for (const v of ["true", "False", "3", "loopback", "10.0.0.0/8, 127.0.0.1"]) {
+    assert.doesNotThrow(() => express().set("trust proxy", trustProxySetting(v)), v);
+  }
 });
 
 test("production CORS: exact origins and single-label preview suffixes only", () => {
