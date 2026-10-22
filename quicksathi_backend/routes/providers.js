@@ -395,6 +395,9 @@ router.patch("/bookings/:id/status", protect, providerOnly, async (req, res) => 
 });
 
 const MAX_START_ATTEMPTS = 5;
+// After this many replaced codes the provider can't guess further; the customer or an admin steps in
+// (admins can start the job from the booking page). 4 codes × 5 tries = 20 guesses out of 10,000.
+const MAX_START_REISSUES = 3;
 
 // POST /api/providers/bookings/:id/start — the customer's doorstep code starts the job and its timer.
 router.post("/bookings/:id/start", protect, otpLimiter, providerOnly, async (req, res) => {
@@ -409,26 +412,34 @@ router.post("/bookings/:id/start", protect, otpLimiter, providerOnly, async (req
     }
 
     // Count the attempt atomically before checking, so parallel guesses can't exceed the limit.
+    // Only a confirmed booking can be started, so tries on any other booking don't count.
     const booking = await Booking.findOneAndUpdate(
-      { _id: req.params.id, provider: provider._id },
+      { _id: req.params.id, provider: provider._id, status: "confirmed" },
       { $inc: { startOtpAttempts: 1 } },
       { new: true }
-    ).select("+startOtp +startOtpAttempts");
+    ).select("+startOtp +startOtpAttempts +startOtpReissues");
     if (!booking) {
-      return res.status(404).json({ message: "Booking not found or not assigned to you" });
-    }
-    if (booking.status !== "confirmed") {
-      return res.status(409).json({ message: `A ${booking.status.replace("_", " ")} booking can't be started` });
+      const other = await Booking.findOne({ _id: req.params.id, provider: provider._id }).select("status");
+      if (!other) return res.status(404).json({ message: "Booking not found or not assigned to you" });
+      return res.status(409).json({ message: `A ${other.status.replace("_", " ")} booking can't be started` });
     }
 
-    const reissue = async (message) => {
-      await Booking.updateOne({ _id: booking._id }, { $set: { startOtp: newStartOtp(), startOtpAttempts: 0 } });
+    const reissue = async (message, { counts = true } = {}) => {
+      if (counts && (booking.startOtpReissues || 0) >= MAX_START_REISSUES) {
+        return res.status(423).json({
+          message: "Too many wrong codes on this booking. Ask the customer to contact support; the job can be started from the admin panel.",
+        });
+      }
+      await Booking.updateOne(
+        { _id: booking._id },
+        { $set: { startOtp: newStartOtp(), startOtpAttempts: 0 }, ...(counts ? { $inc: { startOtpReissues: 1 } } : {}) }
+      );
       await notifyCustomer(booking, "New start code 🔐", `Your start code for booking ${booking.bookingId} was changed. Open My Bookings to see the new code.`);
       return res.status(429).json({ message });
     };
 
     if (!booking.startOtp) {
-      return reissue("A start code has been sent to the customer. Ask them to open My Bookings.");
+      return reissue("A start code has been sent to the customer. Ask them to open My Bookings.", { counts: false });
     }
     if (booking.startOtpAttempts > MAX_START_ATTEMPTS) {
       return reissue("Too many wrong codes. A new code has been sent to the customer.");
@@ -443,11 +454,6 @@ router.post("/bookings/:id/start", protect, otpLimiter, providerOnly, async (req
     }
 
     changeStatus(booking, "in_progress", { actorId: req.user._id, role: "provider" });
-    const now = new Date();
-    booking.startedAt = now;
-    booking.expectedEndAt = new Date(now.getTime() + (booking.durationMinutes || 60) * 60 * 1000);
-    booking.startOtp = undefined;
-    booking.startOtpAttempts = 0;
     await saveBooking(booking);
 
     await notifyCustomer(
@@ -473,7 +479,6 @@ router.post("/bookings/:id/complete", protect, providerOnly, async (req, res) =>
     }
 
     changeStatus(booking, "completed", { actorId: req.user._id, role: "provider" });
-    booking.completedAt = new Date();
     if (typeof req.body?.notes === "string") booking.completionNotes = req.body.notes.trim().slice(0, 1000);
     await saveBooking(booking);
 

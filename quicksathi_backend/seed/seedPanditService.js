@@ -3,6 +3,10 @@ import mongoose from "mongoose";
 import connectDB from "../config/db.js";
 import Category from "../models/Category.js";
 import Service from "../models/Service.js";
+import { assertSafeToSeed } from "./_guard.js";
+
+// It overwrites the pandit service (prices, featured, reviews), so it is not safe on production data.
+assertSafeToSeed("seed/seedPanditService.js");
 
 async function seedPanditService() {
   await connectDB();

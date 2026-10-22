@@ -60,10 +60,13 @@ api.interceptors.response.use(
   },
   (error) => {
     // Only treat a 401 as "your session expired" when we actually sent a session token and the call
-    // wasn't a login attempt itself (a wrong password is also a 401 and must show its own message).
+    // wasn't a sign-in attempt itself (a wrong password is also a 401 and must show its own message).
+    // Signed-in calls under /auth (/auth/me, /auth/profile) still end the session.
     const sentToken = Boolean(error.config?.headers?.Authorization);
-    const isAuthCall = String(error.config?.url || "").startsWith("/auth/");
-    if (error.response?.status === 401 && sentToken && !isAuthCall) {
+    const isSignInCall = /^\/auth\/(login|google|phone|provider-login|provider-google|admin-login|admin-google)\/?$/.test(
+      String(error.config?.url || "")
+    );
+    if (error.response?.status === 401 && sentToken && !isSignInCall) {
       localStorage.removeItem("qs_token");
       localStorage.removeItem("qs_user");
       localStorage.removeItem("qs_provider");
@@ -74,7 +77,8 @@ api.interceptors.response.use(
       if (path.startsWith("/admin")) {
         window.location.href = "/admin";
       } else if (needsAccount) {
-        window.location.href = `/login?redirect=${encodeURIComponent(path)}`;
+        const mode = path.startsWith("/provider/") ? "mode=provider&" : "";
+        window.location.href = `/login?${mode}redirect=${encodeURIComponent(path)}`;
       } else if (!path.includes("/login")) {
         window.location.reload();
       }

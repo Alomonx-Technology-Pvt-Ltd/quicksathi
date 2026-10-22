@@ -1666,9 +1666,10 @@ const seedData = async () => {
   assertSafeToSeed("seed/seedData.js");
   await connectDB();
 
-  console.log("🧹 Cleaning catalog (services & categories only; bookings, users and providers are never touched)...\n");
+  console.log("🧹 Cleaning catalog (seeded services & categories only; bookings, users, providers and provider-submitted services are never touched)...\n");
 
-  const deletedServices = await Service.deleteMany({});
+  // Provider-submitted services carry a provider; seeded catalog services don't.
+  const deletedServices = await Service.deleteMany({ provider: { $exists: false } });
   const deletedCategories = await Category.deleteMany({});
 
   console.log(`   Removed ${deletedServices.deletedCount} services`);

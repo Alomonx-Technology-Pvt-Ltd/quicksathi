@@ -66,6 +66,10 @@ router.post("/", protect, async (req, res) => {
     if (isRental(service) && paymentMethod !== "cod") {
       return res.status(400).json({ message: "Rentals are paid in cash once the driver confirms the final fare." });
     }
+    // Razorpay can't take less than ₹1: a coupon that covers the whole price means "pay after service".
+    if (paymentMethod === "razorpay" && q.amount < 1) {
+      return res.status(400).json({ message: "Nothing to pay online for this booking. Choose pay after service." });
+    }
 
     const bookingObjectId = new mongoose.Types.ObjectId();
     if (coupon && q.discountAmount > 0) {

@@ -7,6 +7,8 @@ import compression from "compression";
 import connectDB from "./config/db.js";
 import helmet from "helmet";
 import { apiLimiter, credentialLimiter, authLimiter, contactLimiter, aiLimiter, couponLimiter, geoLimiter, nominatimLimiter } from "./middleware/rateLimits.js";
+import { protect } from "./middleware/auth.js";
+import { adminOnly } from "./middleware/admin.js";
 
 // Import routes
 import authRoutes from "./routes/auth.js";
@@ -104,14 +106,7 @@ app.use(cors(corsOptions));
 // Express 5 requires named wildcards — use /*path instead of *
 app.options("/*path", cors(corsOptions));
 
-// Razorpay webhook needs the exact raw bytes to verify its signature, so it is parsed
-// before (and instead of) the JSON body parser.
-app.use("/api/payments/webhook", express.raw({ type: "application/json", limit: "1mb" }));
-// Large bodies only where base64 uploads happen (admin image upload, provider KYC); everything else is capped at 100 KB.
-const bigJson = express.json({ limit: "10mb" });
-app.use("/api/admin/upload", bigJson);
-app.use("/api/providers/register", bigJson);
-app.use(express.json({ limit: "100kb" }));
+// Rate limits run before any body is read, so a flood of large bodies is cut off cheaply.
 app.use("/api", apiLimiter);
 app.use(["/api/auth/login", "/api/auth/provider-login", "/api/auth/admin-login"], credentialLimiter);
 app.use("/api/auth", authLimiter);
@@ -120,6 +115,17 @@ app.use("/api/ai", aiLimiter);
 app.use("/api/coupons/validate", couponLimiter);
 app.use("/api/geo", geoLimiter);
 app.use("/api/geo/nominatim", nominatimLimiter);
+
+// Razorpay webhook needs the exact raw bytes to verify its signature, so it is parsed
+// before (and instead of) the JSON body parser.
+app.use("/api/payments/webhook", express.raw({ type: "application/json", limit: "1mb" }));
+// Large bodies only where base64 uploads happen (admin image upload, provider KYC), and only after the
+// caller is signed in (and an admin, for uploads): anonymous requests never get a 10 MB body parsed.
+// Everything else is capped at 100 KB.
+const bigJson = express.json({ limit: "10mb" });
+app.use("/api/admin/upload", protect, adminOnly, bigJson);
+app.use("/api/providers/register", protect, bigJson);
+app.use(express.json({ limit: "100kb" }));
 
 // ── Routes ──
 app.use("/api/auth", authRoutes);

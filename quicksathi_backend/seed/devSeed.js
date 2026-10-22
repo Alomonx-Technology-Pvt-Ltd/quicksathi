@@ -5,8 +5,9 @@
 //   3. seedPanditService.js   adds the pandit service (upsert by slug)
 //
 // Run in this order the result is the same catalog every time. The guard runs first, so none of the
-// steps can touch production or an unlisted database. (migrateACAppliances.js and seedPanditService.js are
-// additive and may still be run on their own, deliberately, against any database.)
+// steps can touch production or an unlisted database. migrateACAppliances.js is additive and may still be
+// run on its own against any database; seedPanditService.js overwrites the pandit service, so it has the
+// same guard as this script.
 import "dotenv/config";
 import { execFileSync } from "node:child_process";
 import path from "node:path";

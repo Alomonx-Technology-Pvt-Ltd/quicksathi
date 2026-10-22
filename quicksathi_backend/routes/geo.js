@@ -16,40 +16,60 @@ const cache = new Map(); // url -> { expires, body }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// Nominatim: strictly one request at a time, at least 1.1s apart. The queue is bounded: one client
-// sending many unique queries must not make every user's lookup wait minutes.
+// Nominatim: strictly one request at a time, at least 1.1s apart. The queue is bounded overall, and
+// each client may hold only a few places in it, so one visitor can't fill it and lock everyone out.
 const MAX_WAITING = 20;
+const MAX_WAITING_PER_CLIENT = 3;
 let nominatimGate = Promise.resolve();
 let lastNominatimCall = 0;
 let waiting = 0;
+const waitingByClient = new Map(); // client key -> places held in the queue
 class GeoBusyError extends Error {}
-function nominatimTurn() {
-  if (waiting >= MAX_WAITING) return Promise.reject(new GeoBusyError("busy"));
+function nominatimTurn(client) {
+  const mine = waitingByClient.get(client) || 0;
+  if (waiting >= MAX_WAITING || mine >= MAX_WAITING_PER_CLIENT) return Promise.reject(new GeoBusyError("busy"));
   waiting++;
+  waitingByClient.set(client, mine + 1);
   const turn = nominatimGate.then(async () => {
     const wait = lastNominatimCall + 1100 - Date.now();
     if (wait > 0) await sleep(wait);
     lastNominatimCall = Date.now();
   });
   nominatimGate = turn.catch(() => {});
-  return turn.finally(() => { waiting--; });
+  return turn.finally(() => {
+    waiting--;
+    const left = (waitingByClient.get(client) || 1) - 1;
+    if (left > 0) waitingByClient.set(client, left);
+    else waitingByClient.delete(client);
+  });
 }
 
-async function fetchJson(url, { throttled }) {
+// Identical lookups already on their way share one upstream call (and one queue place).
+const inFlight = new Map(); // url -> Promise<body>
+
+async function fetchJson(url, { throttled, client }) {
   const hit = cache.get(url);
   if (hit && hit.expires > Date.now()) return hit.body;
+  if (inFlight.has(url)) return inFlight.get(url);
 
-  if (throttled) await nominatimTurn();
-  const res = await fetch(url, {
-    headers: { "User-Agent": USER_AGENT, "Accept-Language": "en", Accept: "application/json" },
-    signal: AbortSignal.timeout(6000),
-  });
-  if (!res.ok) throw new Error(`Upstream ${res.status}`);
-  const body = await res.json();
-
-  if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value);
-  cache.set(url, { expires: Date.now() + CACHE_TTL_MS, body });
-  return body;
+  const request = (async () => {
+    if (throttled) await nominatimTurn(client);
+    const res = await fetch(url, {
+      headers: { "User-Agent": USER_AGENT, "Accept-Language": "en", Accept: "application/json" },
+      signal: AbortSignal.timeout(6000),
+    });
+    if (!res.ok) throw new Error(`Upstream ${res.status}`);
+    const body = await res.json();
+    if (cache.size >= CACHE_MAX) cache.delete(cache.keys().next().value);
+    cache.set(url, { expires: Date.now() + CACHE_TTL_MS, body });
+    return body;
+  })();
+  inFlight.set(url, request);
+  try {
+    return await request;
+  } finally {
+    inFlight.delete(url);
+  }
 }
 
 const parseQuery = (value) => {
@@ -77,7 +97,7 @@ router.get("/nominatim/search", async (req, res) => {
   if (!q) return bad(res, "q must be 2-120 characters");
   const url = `${NOMINATIM}/search?q=${encodeURIComponent(q)}&format=json&addressdetails=1&limit=${parseLimit(req.query.limit)}&countrycodes=in`;
   try {
-    ok(res, await fetchJson(url, { throttled: true }));
+    ok(res, await fetchJson(url, { throttled: true, client: req.ip }));
   } catch (err) {
     upstreamFailed(res, err);
   }
@@ -90,7 +110,7 @@ router.get("/nominatim/reverse", async (req, res) => {
   if (lat === null || lon === null) return bad(res, "lat and lon are required");
   const url = `${NOMINATIM}/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1&zoom=18`;
   try {
-    ok(res, await fetchJson(url, { throttled: true }));
+    ok(res, await fetchJson(url, { throttled: true, client: req.ip }));
   } catch (err) {
     upstreamFailed(res, err);
   }

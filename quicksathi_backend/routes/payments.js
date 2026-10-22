@@ -4,7 +4,7 @@ import Razorpay from "razorpay";
 import crypto from "crypto";
 import Booking from "../models/Booking.js";
 import Notification from "../models/Notification.js";
-import User from "../models/User.js";
+import { notifyAdmins } from "../services/adminAlerts.js";
 import { protect } from "../middleware/auth.js";
 
 const router = Router();
@@ -90,6 +90,7 @@ async function recordPayment(bookingId, paymentId) {
   );
   if (late) {
     notify(late.user, "Refund on its way", `Your payment for cancelled booking ${late.bookingId} arrived after the cancellation. We will refund it.`);
+    await notifyAdmins("Refund needed 💸", `Booking ${late.bookingId} was paid (${paymentId}) after it was cancelled. Refund ₹${late.amount} in the Razorpay dashboard.`);
     return "refund_pending";
   }
 
@@ -104,10 +105,7 @@ async function recordPayment(bookingId, paymentId) {
   );
   if (flagged.modifiedCount) {
     console.warn(`AUDIT ${new Date().toISOString()} booking ${current.bookingId}: ${note}`);
-    const admins = await User.find({ role: "admin", isActive: true }).select("_id");
-    await Promise.all(
-      admins.map((a) => notify(a._id, "Refund needed 💸", `Booking ${current.bookingId}: ${note}. Refund it in the Razorpay dashboard.`))
-    );
+    await notifyAdmins("Refund needed 💸", `Booking ${current.bookingId}: ${note}. Refund it in the Razorpay dashboard.`);
   }
   return "extra";
 }

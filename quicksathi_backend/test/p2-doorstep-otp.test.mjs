@@ -130,3 +130,30 @@ test("the old unguarded start/complete routes are gone", async () => {
   assert.equal((await s.api("POST", `/bookings/${booking._id}/verify-otp-start`, { token: providerUser.token, body: { otp: "4821" } })).status, 404);
   assert.equal((await s.api("POST", `/bookings/${booking._id}/complete-work`, { token: providerUser.token })).status, 404);
 });
+
+test("after 3 replaced codes the provider can't guess further", async () => {
+  const { providerUser, booking } = await setup();
+  await s.db.collection("bookings").updateOne({ _id: booking._id }, { $set: { startOtpReissues: 3, startOtpAttempts: 4 } });
+  const r = await start(booking, providerUser.token, "0000");
+  assert.equal(r.status, 423, r.text);
+  assert.equal((await reload(booking._id)).startOtp, "4821", "no new code may be issued after the cap");
+});
+
+test("tries on a booking that isn't confirmed don't use up the code's attempts", async () => {
+  const { providerUser, booking } = await setup({ status: "pending" });
+  assert.equal((await start(booking, providerUser.token, "4821")).status, 409);
+  assert.equal((await reload(booking._id)).startOtpAttempts, 0);
+});
+
+test("an admin starting a job also starts its timer and retires the start code", async () => {
+  const admin = await s.createUser({ role: "admin" });
+  const { booking } = await setup();
+  const res = await s.api("PATCH", `/admin/bookings/${booking._id}/status`, { token: admin.token, body: { status: "in_progress" } });
+  assert.equal(res.status, 200, res.text);
+  const after = await reload(booking._id);
+  assert.ok(after.startedAt && after.expectedEndAt, "timer not started");
+  assert.equal(after.startOtp, undefined, "the code still works after the job started");
+  const done = await s.api("PATCH", `/admin/bookings/${booking._id}/status`, { token: admin.token, body: { status: "completed" } });
+  assert.equal(done.status, 200, done.text);
+  assert.ok((await reload(booking._id)).completedAt);
+});

@@ -223,13 +223,18 @@ const PaymentPage = () => {
               🎉 Coupon {appliedCoupon.code} applied: You saved ₹{discountAmount.toLocaleString()}!
             </p>
           )}
+          {createdBooking?.bookingId && (
+            <p className="text-xs font-semibold mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>
+              Booking ID: {createdBooking.bookingId}
+            </p>
+          )}
           <p
             className="text-sm mb-8"
             style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
           >
-            {paymentMethod === "cod"
-              ? `Please keep ₹${finalAmount.toLocaleString()} cash ready for the service provider.`
-              : "Payment received successfully."}
+            {method === "cod"
+              ? `Please keep ₹${shownTotal.toLocaleString()} cash ready for the service provider${rental ? " (estimate: the driver confirms the final fare)" : ""}.`
+              : `Payment of ₹${shownTotal.toLocaleString()} received.`}
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link

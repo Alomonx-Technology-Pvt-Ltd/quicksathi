@@ -495,7 +495,7 @@ const AdminCategories = () => {
                     <input type="url" value={form.imageUrl} onChange={(e) => setForm((p) => ({ ...p, imageUrl: e.target.value }))} style={inputStyle} className="flex-1 px-3 py-2.5 rounded-xl text-sm border-0 outline-none" placeholder="https://..." />
                     <label className="px-4 py-2.5 rounded-xl text-xs font-semibold cursor-pointer flex items-center justify-center whitespace-nowrap" style={{ backgroundColor: "rgba(99,102,241,0.12)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.25)" }}>
                       {uploadingImg ? "Uploading..." : "Upload"}
-                      <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e.target.files[0], "imageUrl")} className="hidden" disabled={uploadingImg} />
+                      <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => handleImageUpload(e.target.files[0], "imageUrl")} className="hidden" disabled={uploadingImg} />
                     </label>
                   </div>
                   {form.imageUrl && <img src={form.imageUrl} alt="preview" className="mt-2 w-24 h-16 rounded-lg object-cover" style={{ border: "1px solid var(--admin-border)" }} />}
@@ -506,7 +506,7 @@ const AdminCategories = () => {
                     <input type="url" value={form.secondaryImageUrl} onChange={(e) => setForm((p) => ({ ...p, secondaryImageUrl: e.target.value }))} style={inputStyle} className="flex-1 px-3 py-2.5 rounded-xl text-sm border-0 outline-none" placeholder="https://..." />
                     <label className="px-4 py-2.5 rounded-xl text-xs font-semibold cursor-pointer flex items-center justify-center whitespace-nowrap" style={{ backgroundColor: "rgba(99,102,241,0.12)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.25)" }}>
                       {uploadingImg ? "Uploading..." : "Upload"}
-                      <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e.target.files[0], "secondaryImageUrl")} className="hidden" disabled={uploadingImg} />
+                      <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => handleImageUpload(e.target.files[0], "secondaryImageUrl")} className="hidden" disabled={uploadingImg} />
                     </label>
                   </div>
                   {form.secondaryImageUrl && <img src={form.secondaryImageUrl} alt="preview" className="mt-2 w-24 h-16 rounded-lg object-cover" style={{ border: "1px solid var(--admin-border)" }} />}
@@ -543,7 +543,7 @@ const AdminCategories = () => {
                       <input type="url" value={newSub.imageUrl} onChange={(e) => setNewSub((p) => ({ ...p, imageUrl: e.target.value }))} style={inputStyle} className="flex-1 px-3 py-2 rounded-lg text-sm border-0 outline-none" placeholder="Image URL" />
                       <label className="px-3 py-2 rounded-lg text-xs font-semibold cursor-pointer flex items-center justify-center whitespace-nowrap" style={{ backgroundColor: "rgba(99,102,241,0.12)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.25)" }}>
                         {uploadingImg ? "Uploading..." : "Upload"}
-                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e.target.files[0], "imageUrl", true)} className="hidden" disabled={uploadingImg} />
+                        <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => handleImageUpload(e.target.files[0], "imageUrl", true)} className="hidden" disabled={uploadingImg} />
                       </label>
                     </div>
                     <input type="number" value={newSub.displayOrder} onChange={(e) => setNewSub((p) => ({ ...p, displayOrder: Number(e.target.value) }))} style={inputStyle} className="px-3 py-2 rounded-lg text-sm border-0 outline-none" placeholder="Display order" />

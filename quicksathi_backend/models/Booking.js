@@ -122,6 +122,12 @@ const bookingSchema = new mongoose.Schema(
       default: 0,
       select: false,
     },
+    // How many times the code was replaced after too many wrong tries (capped in routes/providers.js).
+    startOtpReissues: {
+      type: Number,
+      default: 0,
+      select: false,
+    },
     durationMinutes: {
       type: Number,
       default: 60,
@@ -145,6 +151,8 @@ const bookingSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    // The estimate the customer booked at, kept when the final fare is confirmed (rentals).
+    estimatedAmount: { type: Number },
   },
   {
     timestamps: true,

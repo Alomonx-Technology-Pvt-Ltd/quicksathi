@@ -504,9 +504,24 @@ router.get("/providers/:id/documents", protect, adminOnly, async (req, res) => {
   }
 });
 
+// A provider who can no longer work (rejected, demoted, deleted) keeps no live services, so new
+// bookings aren't auto-assigned to a profile that can't act on them (bookings copy Service.provider).
+async function retireProviderServices(providerIds) {
+  if (providerIds.length) await Service.updateMany({ provider: { $in: providerIds } }, { available: false });
+}
+
 // PATCH /api/admin/providers/:id/approve — Approve a provider
 router.patch("/providers/:id/approve", protect, adminOnly, async (req, res) => {
   try {
+    const existing = await Provider.findById(req.params.id).populate("user", "isActive deletedAt");
+    if (!existing) {
+      return res.status(404).json({ message: "Provider not found" });
+    }
+    // Never revive a deleted or deactivated account as a working provider.
+    if (!existing.user || existing.user.deletedAt || !existing.user.isActive) {
+      return res.status(409).json({ message: "This provider's account is deleted or deactivated, so it can't be approved" });
+    }
+
     const provider = await Provider.findByIdAndUpdate(
       req.params.id,
       {
@@ -519,10 +534,6 @@ router.patch("/providers/:id/approve", protect, adminOnly, async (req, res) => {
       },
       { new: true }
     ).populate("user", "name email");
-
-    if (!provider) {
-      return res.status(404).json({ message: "Provider not found" });
-    }
 
     // Grant the provider role to a customer account only; never touch an admin's role.
     await User.updateOne({ _id: provider.user._id, role: "user" }, { role: "provider" });
@@ -554,6 +565,7 @@ router.patch("/providers/:id/reject", protect, adminOnly, async (req, res) => {
     if (provider.user) {
       await User.updateOne({ _id: provider.user._id, role: "provider" }, { role: "user" });
     }
+    await retireProviderServices([provider._id]);
 
     res.json({ message: "Provider rejected", provider });
   } catch (error) {
@@ -682,6 +694,13 @@ router.patch("/bookings/:id/fare", protect, adminOnly, async (req, res) => {
     const service = await Service.findById(booking.service).select("perKmRate");
     confirmFare(booking, req.body?.amount, { actorId: req.user._id, role: "admin", maxAmount: maxRentalFare(service, booking) });
     await booking.save();
+    // Same message the provider route sends: the customer must know what cash to keep ready.
+    await Notification.create({
+      recipient: booking.user,
+      title: "Final fare confirmed",
+      message: `Your trip fare for ${booking.bookingId} is ₹${booking.amount}, payable in cash.`,
+      type: "booking",
+    }).catch((err) => console.error("Fare notification error:", err?.message || err));
     res.json({ message: "Fare confirmed", booking });
   } catch (error) {
     if (error instanceof BookingStateError) return res.status(error.status).json({ message: error.message });
@@ -742,22 +761,30 @@ router.patch("/users/:id/role", protect, adminOnly, async (req, res) => {
     // application is approved in Providers (that is where KYC is reviewed).
     if (finalRole === "provider") {
       let providerProfile = await Provider.findOne({ user: user._id });
-      if (!providerProfile) {
-        const defaultCat = await Category.findOne({});
-        providerProfile = new Provider({
-          user: user._id,
-          businessName: `${user.name} Services`,
-          businessType: "Individual / Freelancer",
-          description: "",
-          category: defaultCat ? defaultCat._id : undefined,
-          categoryName: defaultCat ? defaultCat.name : "Uncategorized",
-          servicesOffered: [],
-          phone: user.phone || "",
-          email: user.email,
-          approvalStatus: "pending",
-        });
+      if (providerProfile) {
+        // An earlier profile (rejected, demoted, or never reviewed) goes back to the review queue.
+        providerProfile.approvalStatus = "pending";
+        providerProfile.isActive = false;
         await providerProfile.save();
+        return res.json({
+          message: "This user's existing provider application is back in review. Approve it under Providers to grant provider access.",
+          user,
+        });
       }
+      const defaultCat = await Category.findOne({});
+      providerProfile = new Provider({
+        user: user._id,
+        businessName: `${user.name} Services`,
+        businessType: "Individual / Freelancer",
+        description: "",
+        category: defaultCat ? defaultCat._id : undefined,
+        categoryName: defaultCat ? defaultCat.name : "Uncategorized",
+        servicesOffered: [],
+        phone: user.phone || "",
+        email: user.email,
+        approvalStatus: "pending",
+      });
+      await providerProfile.save();
       return res.json({
         message: "A provider application was created. Review and approve it under Providers to grant provider access.",
         user,
@@ -768,7 +795,9 @@ router.patch("/users/:id/role", protect, adminOnly, async (req, res) => {
     await user.save();
     // Leaving the provider role ends the provider profile too, so the account can't be assigned jobs.
     if (finalRole !== "provider") {
-      await Provider.updateMany({ user: user._id, isActive: true }, { isActive: false });
+      const ids = await Provider.find({ user: user._id }).distinct("_id");
+      await Provider.updateMany({ _id: { $in: ids }, isActive: true }, { isActive: false });
+      await retireProviderServices(ids);
     }
     res.json({ message: "User role updated successfully", user });
   } catch (error) {
@@ -794,7 +823,9 @@ router.delete("/users/:id", protect, adminOnly, async (req, res) => {
         $unset: { phone: "", firebaseUid: "", password: "", address: "", city: "", state: "", pincode: "" },
       }
     );
-    await Provider.updateMany({ user: user._id }, { isActive: false });
+    const providerIds = await Provider.find({ user: user._id }).distinct("_id");
+    await Provider.updateMany({ _id: { $in: providerIds } }, { isActive: false, approvalStatus: "rejected", rejectionReason: "Account deleted" });
+    await retireProviderServices(providerIds);
     res.json({ message: "User deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -1144,7 +1175,9 @@ router.get("/providers/approved", protect, adminOnly, async (req, res) => {
   try {
     const providers = await Provider.find({ approvalStatus: "approved", isActive: true })
       .populate("user", "name email phone role")
-      .select("businessName businessType categoryName experience location rating isActive user");
+      .select("businessName businessType categoryName experience location rating isActive user")
+      .sort("businessName")
+      .limit(500);
     res.json(providers);
   } catch (error) {
     res.status(500).json({ message: error.message });

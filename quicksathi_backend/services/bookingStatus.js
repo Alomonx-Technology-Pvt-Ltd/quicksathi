@@ -1,6 +1,7 @@
 // The one place that decides which booking status changes are legal.
 // Every route that changes a booking's status goes through changeStatus() and saves with saveBooking().
 import mongoose from "mongoose";
+import { notifyAdmins } from "./adminAlerts.js";
 
 export class BookingStateError extends Error {
   constructor(message, status = 409) {
@@ -55,6 +56,15 @@ export function changeStatus(booking, to, { actorId, role, reason = "" }) {
   booking.statusHistory.push({ from: booking.status, to, by: actorId, role, at: new Date() });
   booking.status = to;
 
+  // Side effects every route gets (provider start/complete and the admin status change alike).
+  const now = new Date();
+  if (to === "in_progress") {
+    booking.startedAt = now;
+    booking.expectedEndAt = new Date(now.getTime() + (booking.durationMinutes || 60) * 60 * 1000);
+    booking.startOtp = undefined; // the doorstep code is single-use
+    booking.startOtpAttempts = 0;
+  }
+  if (to === "completed") booking.completedAt = now;
   if (to === "cancelled") {
     booking.cancelledBy = role === "customer" ? "user" : role;
     booking.cancelReason = String(reason || "").slice(0, 500);
@@ -64,8 +74,12 @@ export function changeStatus(booking, to, { actorId, role, reason = "" }) {
   return booking;
 }
 
-/** Save a booking changed by changeStatus(); a concurrent change becomes a 409 instead of a lost update. */
+/**
+ * Save a booking changed by changeStatus(); a concurrent change becomes a 409 instead of a lost update.
+ * A booking that just became refund_pending raises an alert for the admins who process refunds.
+ */
 export async function saveBooking(booking) {
+  const refundDue = booking.isModified("paymentStatus") && booking.paymentStatus === "refund_pending";
   try {
     await booking.save();
   } catch (error) {
@@ -75,6 +89,9 @@ export async function saveBooking(booking) {
       throw new BookingStateError("This booking changed a moment ago (for example a payment just arrived). Reload and try again.");
     }
     throw error;
+  }
+  if (refundDue) {
+    await notifyAdmins("Refund needed 💸", `Paid booking ${booking.bookingId} was cancelled (by ${booking.cancelledBy}). Refund ₹${booking.amount} in the Razorpay dashboard.`);
   }
 }
 
@@ -109,6 +126,7 @@ export function confirmFare(booking, amount, { actorId, role, maxAmount }) {
     throw new BookingStateError(`Enter the final fare in whole rupees (up to ₹${maxAmount})`, 400);
   }
   const estimate = booking.amount;
+  booking.estimatedAmount = estimate;
   booking.amount = fare;
   booking.originalAmount = fare;
   booking.discountAmount = 0;

@@ -24,15 +24,17 @@ test("WP-12: a booking made at 00:30 IST lands in that IST day/month, not the pr
   const admin = await s.createUser({ role: "admin" });
   const customer = await s.createUser();
   const service = await s.createService();
-  const now = new Date();
-  // First moment of this IST month + 30 minutes, expressed in UTC (which is still the previous month's last day).
-  const istMonthStart = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1) - 5.5 * 3600 * 1000);
-  if (istMonthStart > now) return; // too early in the month for this assertion to be meaningful
+  const IST_MS = 5.5 * 3600 * 1000;
+  const istNow = new Date(Date.now() + IST_MS); // read with UTC getters = the IST calendar
+  // First moment of the CURRENT IST month, expressed in UTC (still the previous month's last day in UTC).
+  const istMonthStart = new Date(Date.UTC(istNow.getUTCFullYear(), istNow.getUTCMonth(), 1) - IST_MS);
+  // 00:30 IST on the 1st, or now if the month is younger than that (never a future booking).
+  const createdAt = new Date(Math.min(istMonthStart.getTime() + 30 * 60 * 1000, Date.now()));
   const lastMonth = async () => {
     const r = await s.api("GET", "/admin/stats", { token: admin.token });
     return r.body.monthlyRevenue[r.body.monthlyRevenue.length - 1].revenue;
   };
   const before = await lastMonth();
-  await s.createBooking({ user: customer, service, amount: 250, paymentStatus: "paid", status: "confirmed", extra: { createdAt: new Date(istMonthStart.getTime() + 30 * 60 * 1000) } });
+  await s.createBooking({ user: customer, service, amount: 250, paymentStatus: "paid", status: "confirmed", extra: { createdAt } });
   assert.equal((await lastMonth()) - before, 250);
 });

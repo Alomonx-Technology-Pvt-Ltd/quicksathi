@@ -99,7 +99,7 @@ Error boundary with automatic one-time reload on stale chunks after a deploy; a 
 
 1. Atlas: backups on; a separate **dev** database for developers.
 2. Render env: `JWT_SECRET` (new, ≥ 32 random chars — this logs everyone out), Firebase trio, Razorpay key/secret/**webhook secret**, `CLIENT_URL`, mail provider, Cloudinary. The server will not start without the required ones.
-3. Run the unique-index migration (dry run → apply).
+3. Run the migrations in `scripts/migrations/`, each as a dry run first, then `--apply`: `001-user-unique-indexes`, `002-booking-start-otp`, `003-private-kyc` (needs Cloudinary; until it runs, KYC files stay on public URLs), `004-provider-user-unique`. Then run `005-phone-linked-accounts` (report only) and review it. Details: [fix-plan-mvp §5](./fix-plan-mvp.md#5-deploy-order-production).
 4. Give each existing admin a way in. The shared `ADMIN_EMAILS`/`ADMIN_PASSWORD` pair no longer works as a pair: an admin can sign in with the password stored on **their own account** (it exists only if they logged in with the old shared password at least once, because the old code copied it onto their account), or with Google (the account must already exist with role `admin`). If an admin account does not exist, or nobody knows its password, run `node scripts/admin-account.mjs <email> --yes` (hidden password prompt, 12+ chars) to create it or reset the password. **The old shared password was circulated in chat: treat it as compromised and never reuse it.**
 5. Razorpay: create the webhook, then run one real test-mode payment (success, failure, closed window, webhook delivered).
 6. Reconcile any old bookings marked `paid` without a `razorpayPaymentId`.
@@ -117,11 +117,10 @@ Error boundary with automatic one-time reload on stale chunks after a deploy; a 
 ## 12. What is still open (in priority order)
 
 1. Real Razorpay test-mode run, then automated refunds.
-2. Private KYC files with signed URLs for admins (ADR 0006).
-3. Password change/reset for email accounts; session handling (JWT in `localStorage`).
-4. Integer-paise money, central error handler, remove the remaining per-route `error.message` 500s.
-5. Server-side rental route/distance.
-6. Prerendering for SEO; a full CSP.
-7. Quality: ~120 pre-existing lint errors, giant components (`Services.jsx`, `Hero.jsx`, `Layout.jsx`, `ProviderOnboarding.jsx`), eight near-identical category modals, 52 MB of unused images in `public/images/ac/`, accessibility (labels, focus management, reduced motion).
+2. Password change/reset for email accounts; session handling (JWT in `localStorage`).
+3. Integer-paise money, central error handler, remove the remaining per-route `error.message` 500s.
+4. Server-side rental route/distance.
+5. Prerendering for SEO; a full CSP.
+6. Quality: ~100 pre-existing lint errors, giant components (`Services.jsx`, `Hero.jsx`, `Layout.jsx`, `ProviderOnboarding.jsx`), eight near-identical category modals, 52 MB of unused images in `public/images/ac/`, accessibility (labels, focus management, reduced motion).
 
 The structural refactors (error handling, provider lifecycle, booking transitions, category pop-ups, etc.) are written up, with evidence and suggested order, in [architecture-backlog.md](./architecture-backlog.md). That is a deliberate second pass: do it after you are comfortable with everything above.

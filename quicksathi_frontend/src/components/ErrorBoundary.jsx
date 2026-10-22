@@ -1,6 +1,7 @@
 import { Component } from "react";
 
-const RELOAD_FLAG = "qs_chunk_reload";
+const RELOAD_FLAG = "qs_chunk_reload"; // time of the last automatic reload
+const RELOAD_EVERY_MS = 60_000;
 
 // A stale hashed chunk after a deploy ("Failed to fetch dynamically imported module") is fixed by one reload.
 const isChunkError = (error) =>
@@ -16,8 +17,11 @@ export default class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error) {
-    if (isChunkError(error) && !sessionStorage.getItem(RELOAD_FLAG)) {
-      sessionStorage.setItem(RELOAD_FLAG, "1");
+    // One automatic reload per minute: enough to pick up a new deploy every time one happens, without
+    // looping if the chunk is really missing.
+    const last = Number(sessionStorage.getItem(RELOAD_FLAG)) || 0;
+    if (isChunkError(error) && Date.now() - last > RELOAD_EVERY_MS) {
+      sessionStorage.setItem(RELOAD_FLAG, String(Date.now()));
       window.location.reload();
       return;
     }

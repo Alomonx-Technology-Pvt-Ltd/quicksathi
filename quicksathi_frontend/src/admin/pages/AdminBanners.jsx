@@ -661,7 +661,7 @@ const AdminBanners = () => {
                     <span>{uploading ? "Uploading..." : "Upload"}</span>
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/png,image/jpeg,image/webp"
                       className="hidden"
                       onChange={(e) => handleImageUpload(e.target.files?.[0])}
                     />

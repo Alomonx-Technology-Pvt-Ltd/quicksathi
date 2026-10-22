@@ -241,3 +241,14 @@ test("a rental with a per-km rate of 0 (priced by package) caps the final fare a
   assert.equal((await s.api("POST", `/providers/bookings/${id}/fare`, { token: providerUser.token, body: { amount: 4501 } })).status, 400);
   assert.equal((await s.api("POST", `/providers/bookings/${id}/fare`, { token: providerUser.token, body: { amount: 4500 } })).status, 200);
 });
+
+test("a coupon that covers the whole price can't make an unpayable online booking", async () => {
+  const customer = await s.createUser();
+  const service = await s.createService({ price: 500 });
+  const coupon = await s.createCoupon({ code: `FREE${Date.now()}`, discountType: "fixed", discountValue: 500 });
+  const body = { serviceId: String(service._id), packageTitle: "Standard", scheduledDate: date(), scheduledTime: "10:00", location: place, couponCode: coupon.code };
+  const online = await s.api("POST", "/bookings", { token: customer.token, body: { ...body, paymentMethod: "razorpay" } });
+  assert.equal(online.status, 400, online.text);
+  assert.equal((await s.db.collection("coupons").findOne({ _id: coupon._id })).usedCount || 0, 0, "the coupon was used up anyway");
+  assert.equal((await s.api("POST", "/bookings", { token: customer.token, body: { ...body, paymentMethod: "cod" } })).status, 201);
+});
