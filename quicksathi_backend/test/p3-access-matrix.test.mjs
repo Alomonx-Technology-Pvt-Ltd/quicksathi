@@ -135,12 +135,20 @@ async function discoverRoutes() {
   const files = Object.fromEntries([...server.matchAll(/import (\w+) from "\.\/routes\/(\w+)\.js"/g)].map((m) => [m[1], m[2]]));
   const mounts = [...server.matchAll(/app\.use\("(\/api\/[\w-]+)", (\w+)\)/g)].filter((m) => files[m[2]]);
   assert.ok(mounts.length >= 10, "could not read route mounts from server.js");
+  // Every router must be mounted the plain way, or its routes would be invisible to this test.
+  const mounted = new Set(mounts.map((m) => m[2]));
+  assert.deepEqual(
+    Object.keys(files).filter((name) => !mounted.has(name)),
+    [],
+    'router imported in server.js but not mounted as app.use("/api/x", router)'
+  );
 
   const found = new Map();
   for (const [, prefix, name] of mounts) {
     const router = (await import(`../routes/${files[name]}.js`)).default;
     for (const layer of router.stack) {
-      if (!layer.route) continue;
+      // Router-level middleware (router.use) could guard or open routes in ways this test can't see.
+      assert.ok(layer.route, `routes/${files[name]}.js has router-level middleware; put guards on each route instead`);
       const fns = layer.route.stack.map((l) => l.handle);
       const level = fns.includes(adminOnly) ? "admin" : fns.includes(providerOnly) ? "provider" : fns.includes(protect) ? "user" : "public";
       for (const method of Object.keys(layer.route.methods)) found.set(`${method.toUpperCase()} ${prefix}${layer.route.path}`, level);
