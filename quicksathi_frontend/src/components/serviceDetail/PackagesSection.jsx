@@ -36,7 +36,6 @@ const PackagesSection = ({
         <div className="divide-y divide-slate-100 border-y border-slate-100">
           {packages.map((pkg, i) => {
             const isSelected = i === selectedPkg;
-            const originalPrice = pkg.price ? Math.round(pkg.price * 1.25) : null;
             const pkgImage =
               pkg.image ||
               service.thumbnail ||
@@ -76,10 +75,10 @@ const PackagesSection = ({
                   <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium">
                     <Star size={13} className="fill-amber-400 text-amber-400" />
                     <span className="font-semibold text-slate-800">
-                      {service.rating || 4.8}
+                      {service.rating > 0 ? service.rating : "New"}
                     </span>
                     <span className="text-slate-500">
-                      ({(service.totalReviews || 2890).toLocaleString("en-IN")} reviews)
+                      ({(service.totalReviews ?? 0).toLocaleString("en-IN")} reviews)
                     </span>
                   </div>
 
@@ -115,13 +114,8 @@ const PackagesSection = ({
                   <div className="flex items-center justify-between mt-4 max-w-md pt-1">
                     <div className="flex items-baseline gap-2">
                       <span className="text-base sm:text-xl font-extrabold text-slate-900">
-                        ₹{(pkg.price || service.startingPrice || 349).toLocaleString("en-IN")}
+                        ₹{(pkg.price ?? 0).toLocaleString("en-IN")}
                       </span>
-                      {originalPrice && (
-                        <span className="text-xs text-slate-400 line-through font-normal">
-                          ₹{originalPrice.toLocaleString("en-IN")}
-                        </span>
-                      )}
                       {service.priceUnit && (
                         <span className="text-[11px] text-slate-500 font-normal">
                           /{service.priceUnit}

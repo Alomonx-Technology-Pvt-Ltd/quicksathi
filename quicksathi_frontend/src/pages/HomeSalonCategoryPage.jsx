@@ -70,16 +70,14 @@ const SUB_CATEGORIES = [
   },
 ];
 
-// ── Fallback services (shown instantly before API response) ──
+// Presentation extras (section, copy, images, FAQs) for salon services that exist in the database.
+// No prices, packages, ratings or review counts here: those only ever come from the API.
 const FALLBACK_SALON_SERVICES = [
   {
     _id: "hair-styling-care",
     slug: "hair-styling-care",
     name: "Hair Styling & Care",
     section: "Hair Styling & Care",
-    rating: 4.9,
-    totalReviews: 2100,
-    startingPrice: 499,
     priceUnit: "service",
     thumbnail:
       "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=600&auto=format&fit=crop",
@@ -89,18 +87,6 @@ const FALLBACK_SALON_SERVICES = [
     ],
     fullDescription:
       "Transform your look with our certified hairstylists. Services include precision haircut, blow dry, deep conditioning hair spa, keratin, hair coloring, and smoothening treatments using premium salon products — all delivered at your doorstep.",
-    packages: [
-      {
-        title: "Haircut & Blow Dry",
-        price: 499,
-        features: ["Styling consultation", "Precision haircut", "Blow dry styling"],
-      },
-      {
-        title: "Nourishing Hair Spa & Cut",
-        price: 1299,
-        features: ["Scalp massage", "Deep moisture mask", "Steam treatment", "Haircut & blow dry"],
-      },
-    ],
     faqs: [
       {
         question: "Do salon professionals bring their own products?",
@@ -117,9 +103,6 @@ const FALLBACK_SALON_SERVICES = [
     slug: "facial-cleanup",
     name: "Facial & Cleanup",
     section: "Facial & Cleanup",
-    rating: 4.8,
-    totalReviews: 1750,
-    startingPrice: 799,
     priceUnit: "session",
     thumbnail:
       "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=600&auto=format&fit=crop",
@@ -129,18 +112,6 @@ const FALLBACK_SALON_SERVICES = [
     ],
     fullDescription:
       "Restore natural radiance with customized facials: O3+ Whitening, Lotus Herbal, Cheryl's Glow, and Deep Cleansing cleanups tailored for your skin type — performed by trained professionals at your home.",
-    packages: [
-      {
-        title: "Fruit Cleanup & De-Tan",
-        price: 799,
-        features: ["Face scrub", "Steam & blackhead removal", "De-tan pack"],
-      },
-      {
-        title: "O3+ Radiant Glow Facial",
-        price: 1899,
-        features: ["Skin analysis", "O3+ D-tan", "Micro-massage", "Vitamin C serum", "Glow mask"],
-      },
-    ],
     faqs: [
       {
         question: "How long does the facial session take?",
@@ -153,9 +124,6 @@ const FALLBACK_SALON_SERVICES = [
     slug: "bridal-party-makeup",
     name: "Bridal & Party Makeup",
     section: "Bridal & Party Makeup",
-    rating: 4.9,
-    totalReviews: 1400,
-    startingPrice: 2500,
     priceUnit: "event",
     thumbnail:
       "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=600&auto=format&fit=crop",
@@ -165,18 +133,6 @@ const FALLBACK_SALON_SERVICES = [
     ],
     fullDescription:
       "Look stunning on your special occasion with celebrity makeup artists. HD Bridal Makeup, Engagement Look, Party Glam, Saree Draping, and Hair Artistry — all delivered at home.",
-    packages: [
-      {
-        title: "Party Glam Makeup",
-        price: 2500,
-        features: ["HD face makeup", "Hair styling", "Saree/dupatta draping", "Eyelashes"],
-      },
-      {
-        title: "Royal Bridal Airbrush Package",
-        price: 12000,
-        features: ["Airbrush HD makeup", "Trial session", "Bridal hairstyle", "Jewelry & outfit draping", "Premium lashes"],
-      },
-    ],
     faqs: [
       {
         question: "Do you offer makeup trial sessions?",
@@ -189,9 +145,6 @@ const FALLBACK_SALON_SERVICES = [
     slug: "manicure-pedicure",
     name: "Manicure & Pedicure",
     section: "Manicure & Pedicure",
-    rating: 4.7,
-    totalReviews: 1200,
-    startingPrice: 699,
     priceUnit: "session",
     thumbnail:
       "https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=600&auto=format&fit=crop",
@@ -201,18 +154,6 @@ const FALLBACK_SALON_SERVICES = [
     ],
     fullDescription:
       "Pamper your hands and feet with relaxing spa manicure, foot reflexology massage, nail shaping, cuticle care, and gel polish — by trained beauticians at your home.",
-    packages: [
-      {
-        title: "Classic Mani-Pedi Combo",
-        price: 699,
-        features: ["Soak & scrub", "Nail shaping", "Cuticle care", "Massage & polish"],
-      },
-      {
-        title: "Ice Cream Spa Mani-Pedi",
-        price: 1299,
-        features: ["Aroma soak", "Exfoliating scrub", "Creme mask", "Deep reflexology massage", "Gel polish"],
-      },
-    ],
     faqs: [
       {
         question: "Is warm water required for Mani-Pedi?",
@@ -225,9 +166,6 @@ const FALLBACK_SALON_SERVICES = [
     slug: "waxing-threading",
     name: "Waxing & Threading",
     section: "Waxing & Threading",
-    rating: 4.8,
-    totalReviews: 1900,
-    startingPrice: 399,
     priceUnit: "session",
     thumbnail:
       "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=600&auto=format&fit=crop",
@@ -237,18 +175,6 @@ const FALLBACK_SALON_SERVICES = [
     ],
     fullDescription:
       "Gentle, pain-free waxing services using RICA and Liposoluble wax for full body, legs, arms, and underarms with threading — performed by certified beauticians at your doorstep.",
-    packages: [
-      {
-        title: "Full Arms + Full Legs Waxing",
-        price: 599,
-        features: ["RICA peel-off wax", "Pre-wax oil", "Post-wax gel lotion"],
-      },
-      {
-        title: "Full Body RICA Waxing Package",
-        price: 1499,
-        features: ["Full arms", "Full legs", "Underarms", "Full back & stomach", "Free threading"],
-      },
-    ],
     faqs: [
       {
         question: "Is RICA wax suitable for sensitive skin?",
@@ -261,9 +187,6 @@ const FALLBACK_SALON_SERVICES = [
     slug: "mens-salon-spa",
     name: "Men's Salon & Spa",
     section: "Men's Salon & Spa",
-    rating: 4.8,
-    totalReviews: 980,
-    startingPrice: 349,
     priceUnit: "service",
     thumbnail:
       "https://images.unsplash.com/photo-1621605815971-fbc98d665033?q=80&w=600&auto=format&fit=crop",
@@ -273,18 +196,6 @@ const FALLBACK_SALON_SERVICES = [
     ],
     fullDescription:
       "Expert men's grooming at home — includes precision haircut, beard shaping, clean shave, de-tan facials, hair coloring, and body grooming by certified professionals.",
-    packages: [
-      {
-        title: "Haircut & Beard Styling",
-        price: 349,
-        features: ["Precision haircut", "Beard line-up & shape", "Cool towel finish"],
-      },
-      {
-        title: "Men's Grooming Combo",
-        price: 799,
-        features: ["Haircut", "Beard trimming", "De-tan cleanup", "Head & shoulder massage"],
-      },
-    ],
     faqs: [
       {
         question: "Do you bring your own salon tools?",
@@ -394,7 +305,7 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
               ...(fb || {}),
               ...ls,
               section: ls.section || fb?.section,
-              packages: ls.packages?.length > 0 ? ls.packages : fb?.packages || [],
+              packages: ls.packages || [],
               faqs: ls.faqs?.length > 0 ? ls.faqs : fb?.faqs || [],
             };
           })
@@ -432,8 +343,11 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
     }
   };
 
-  const handleBookService = (service) => {
-    navigate(`/booking/${service.slug || service._id}`);
+  // A packaged service is booked as one of its packages (the server refuses a booking without one).
+  const handleBookService = (service, pkg = service.packages?.[0]) => {
+    const params = new URLSearchParams({ name: service.name, price: String(pkg?.price ?? service.startingPrice ?? 0) });
+    if (pkg?.title) params.set("package", pkg.title);
+    navigate(`/booking/${service.slug || service._id}?${params.toString()}`);
   };
 
   return (
@@ -555,10 +469,6 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 text-xs font-semibold border border-slate-200/60 shadow-xs">
               <ShieldCheck size={12} className="text-emerald-600" />
               <span>80+ Partners</span>
-            </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 text-xs font-semibold border border-slate-200/60 shadow-xs">
-              <Star size={12} className="fill-amber-400 text-amber-400" />
-              <span>4.9 Rating</span>
             </div>
           </div>
         </div>

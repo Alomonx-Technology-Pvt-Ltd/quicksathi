@@ -110,51 +110,8 @@ const getServicesForSub = (sub, allServices, categoryVertical) => {
   //    (fallback that still respects the vertical boundary)
   if (categoryServices.length > 0) return categoryServices;
 
-  // 5. Generate structured fallback from the subcategory object itself
-  return [
-    {
-      _id: sub._id || sub.id || subName.replace(/\s+/g, "-"),
-      slug: sub.slug || subName.replace(/\s+/g, "-"),
-      name: sub.name,
-      rating: 4.8,
-      totalReviews: 1200,
-      startingPrice: sub.startingPrice || 499,
-      priceUnit: sub.priceUnit || "service",
-      thumbnail:
-        sub.imageUrl ||
-        sub.image ||
-        "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop",
-      bullets: [
-        sub.description || "Expert doorstep assistance by verified professionals.",
-        "Quality guarantee with upfront transparent pricing.",
-      ],
-      fullDescription:
-        sub.description ||
-        `${sub.name} by verified background-checked experts on TiptoBook. Complete satisfaction guaranteed.`,
-      packages: [
-        {
-          title: `Standard ${sub.name}`,
-          price: sub.startingPrice || 499,
-          features: ["Verified Professional", "Standard Service", "Safety Assurance"],
-        },
-        {
-          title: `Premium ${sub.name}`,
-          price: Math.round((sub.startingPrice || 499) * 1.8),
-          features: ["Top-Rated Specialist", "Deep Service & Inspection", "Extended Warranty"],
-        },
-      ],
-      faqs: [
-        {
-          question: "How do I book this service?",
-          answer: "Click 'BOOK' to select your preferred package, date, and address.",
-        },
-        {
-          question: "Are your professionals verified?",
-          answer: "Yes, all service partners undergo strict background checks and skill verification.",
-        },
-      ],
-    },
-  ];
+  // 5. Nothing in the catalog for this subcategory: show no section (never an invented service or price).
+  return [];
 };
 
 const Category = () => {
@@ -534,10 +491,10 @@ const Category = () => {
                         <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-600 font-medium">
                           <Star size={13} className="fill-amber-400 text-amber-400" />
                           <span className="font-semibold text-slate-800">
-                            {service.rating || 4.8}
+                            {service.rating > 0 ? service.rating : "New"}
                           </span>
                           <span className="text-slate-500">
-                            ({(service.totalReviews || 1240).toLocaleString("en-IN")} reviews)
+                            ({(service.totalReviews ?? 0).toLocaleString("en-IN")} reviews)
                           </span>
                         </div>
 
@@ -568,7 +525,7 @@ const Category = () => {
                         <div className="flex items-center justify-between mt-4 max-w-md pt-2">
                           <div className="flex items-baseline gap-1">
                             <span className="text-base sm:text-lg font-extrabold text-slate-900">
-                              ₹{(service.startingPrice || 499).toLocaleString("en-IN")}
+                              ₹{(service.startingPrice ?? 0).toLocaleString("en-IN")}
                             </span>
                             {service.priceUnit && (
                               <span className="text-[11px] text-slate-500 font-normal">
@@ -653,10 +610,10 @@ const Category = () => {
                   <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-600">
                     <Star size={12} className="fill-amber-400 text-amber-400" />
                     <span className="font-semibold text-slate-800">
-                      {selectedServiceForModal.rating || 4.8}
+                      {selectedServiceForModal.rating > 0 ? selectedServiceForModal.rating : "New"}
                     </span>
                     <span>
-                      ({(selectedServiceForModal.totalReviews || 1200).toLocaleString("en-IN")} reviews)
+                      ({(selectedServiceForModal.totalReviews ?? 0).toLocaleString("en-IN")} reviews)
                     </span>
                   </div>
                 </div>
@@ -779,7 +736,7 @@ const Category = () => {
                 <div>
                   <span className="text-[11px] text-slate-400 block font-medium">Starting from</span>
                   <span className="text-lg font-bold text-slate-900">
-                    ₹{(selectedServiceForModal.startingPrice || 499).toLocaleString("en-IN")}
+                    ₹{(selectedServiceForModal.startingPrice ?? 0).toLocaleString("en-IN")}
                   </span>
                 </div>
 

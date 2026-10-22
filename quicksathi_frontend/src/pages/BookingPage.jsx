@@ -171,7 +171,7 @@ const BookingPage = () => {
   const calculatedRentalPrice =
     distanceKm > 0
       ? Math.round(distanceKm * perKmRate)
-      : initialPrice || service?.startingPrice || 1499;
+      : initialPrice || service?.startingPrice || 0;
 
   const finalAmount = isRental ? calculatedRentalPrice : initialPrice || service?.startingPrice || 0;
 

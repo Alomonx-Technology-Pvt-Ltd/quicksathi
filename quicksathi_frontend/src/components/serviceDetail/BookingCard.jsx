@@ -37,9 +37,8 @@ const BookingCard = ({ service, pkg }) => {
   // Calculate trip price based on distance
   const distanceKm = routeInfo?.distanceKm || 0;
   const distancePrice = Math.round(distanceKm * perKmRate);
-  const basePkgPrice = pkg?.price ?? service?.startingPrice ?? 349;
+  const basePkgPrice = pkg?.price ?? service?.startingPrice ?? 0;
   const tripTotal = isRental && distanceKm > 0 ? distancePrice : basePkgPrice;
-  // (No struck-through "original price": we only show real prices.)
 
   // Format duration
   const formatDuration = (min) => {
@@ -210,7 +209,6 @@ const BookingCard = ({ service, pkg }) => {
           <span className="text-3xl font-extrabold text-slate-900 tracking-tight">
             ₹{tripTotal.toLocaleString("en-IN")}
           </span>
-          {/* removed fabricated 1.25x strike-through price */}
           {service?.priceUnit && !isRental && (
             <span className="text-xs text-slate-500 font-normal">
               /{service.priceUnit}
