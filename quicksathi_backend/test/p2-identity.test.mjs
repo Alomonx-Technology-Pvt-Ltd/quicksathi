@@ -104,3 +104,17 @@ test("an admin set up by admin-account.mjs keeps that password after a Google si
   const login = await s.api("POST", "/auth/admin-login", { body: { email, password: "Correct-Horse-Battery-9" } });
   assert.equal(login.status, 200, "Google sign-in deleted the emergency admin password");
 });
+
+test("Google sign-in needs a verified Google email", async () => {
+  const email = `${uid("unverified")}@example.test`;
+  const res = await s.api("POST", "/auth/google", { body: { idToken: fakeToken({ uid: uid("g"), email, email_verified: false, name: "X" }) } });
+  assert.equal(res.status, 401);
+  assert.equal(await s.db.collection("users").countDocuments({ email }), 0, "an account was created from an unverified email");
+});
+
+test("admin Google sign-in refuses a verified account that isn't an admin", async () => {
+  const customer = await localUser({ emailVerified: true });
+  const res = await s.api("POST", "/auth/admin-google", { body: { idToken: google(customer.email) } });
+  assert.equal(res.status, 403);
+  assert.equal((await s.db.collection("users").findOne({ _id: customer._id })).role, "user");
+});

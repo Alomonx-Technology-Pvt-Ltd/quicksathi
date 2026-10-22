@@ -16,8 +16,8 @@ test("WP-11: banners accept site paths and https links", async () => {
   }
 });
 
-test("WP-11: banners reject javascript:, data:, protocol-relative and plain-http links", async () => {
-  for (const link of ["javascript:alert(1)", "data:text/html,x", "//evil.example", "http://insecure.example", "mailto:a@b.c"]) {
+test("WP-11: banners reject javascript:, data:, protocol-relative, backslash and plain-http links", async () => {
+  for (const link of ["javascript:alert(1)", "data:text/html,x", "//evil.example", "/\\evil.example", "/\\/evil.example", "https://ok.example\\@evil", "http://insecure.example", "mailto:a@b.c"]) {
     const res = await s.api("POST", "/banners", { token: admin.token, body: { ...base, link } });
     assert.equal(res.status, 400, `${link} -> ${res.status}`);
   }

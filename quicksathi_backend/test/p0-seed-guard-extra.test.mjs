@@ -23,3 +23,12 @@ test("WP-6: on an allowed dev database the seed builds a catalog and leaves book
   assert.ok((await s.db.collection("services").countDocuments({ approvalStatus: { $ne: "pending" } })) > 10, "catalog was not seeded");
   assert.equal(await s.db.collection("bookings").countDocuments({ bookingId: /^QS-(PHOTO|DECOR|CAR|PLUMB)-/ }), 0, "fake sample bookings were created");
 });
+
+test("WP-6: the catalog wipe keeps services that providers submitted", async () => {
+  const { provider } = await s.createProvider();
+  const service = await s.createService({ approvalStatus: "pending" });
+  await s.db.collection("services").updateOne({ _id: service._id }, { $set: { provider: provider._id } });
+  const run = await s.runScript("seed/seedData.js");
+  assert.equal(run.code, 0, run.out.slice(-600));
+  assert.ok(await s.db.collection("services").findOne({ _id: service._id }), "a provider's submitted service was deleted");
+});

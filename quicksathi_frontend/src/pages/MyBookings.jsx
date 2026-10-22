@@ -53,10 +53,16 @@ const MyBookings = () => {
   }, [isAuthenticated]);
 
   const handleCancel = async (bookingId) => {
-    if (!window.confirm("Are you sure you want to cancel this booking?")) return;
+    const booking = bookings.find((b) => b._id === bookingId);
+    const paidOnline = booking?.paymentStatus === "paid";
+    const reason = window.prompt(
+      `Cancel this booking?${paidOnline ? "\n\nYou paid online: the full amount will be refunded to your original payment method." : ""}\n\nReason (optional):`,
+      ""
+    );
+    if (reason === null) return; // dialog dismissed: keep the booking
     try {
       setCancelling(bookingId);
-      await api.patch(`/bookings/${bookingId}/cancel`);
+      await api.patch(`/bookings/${bookingId}/cancel`, { reason: reason.trim() });
       setBookings((prev) =>
         prev.map((b) => (b._id === bookingId ? { ...b, status: "cancelled" } : b))
       );

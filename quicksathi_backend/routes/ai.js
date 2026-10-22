@@ -11,7 +11,8 @@ const GROQ_MODELS = [
   "qwen/qwen3.8-27b",
 ];
 
-const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+// Overridable for an API proxy (and the test suite's fake Groq server).
+const GROQ_API_URL = process.env.GROQ_API_URL || "https://api.groq.com/openai/v1/chat/completions";
 
 const DEFAULT_SYSTEM_PROMPT = `You are TiptoBook's AI assistant — a friendly, professional, and knowledgeable chatbot for TiptoBook, a trusted local services marketplace platform based in India (NOTE: "Book" in TiptoBook refers to booking appointments with service professionals, NOT books or literature!).
 
@@ -65,7 +66,7 @@ function isRefusal(text) {
 
 /**
  * POST /api/ai/chat
- * Body: { messages: Array<{role, content}>, systemPrompt?: string }
+ * Body: { messages: Array<{role: "user"|"assistant", content}> } (any client system prompt is ignored)
  * Returns: { content: string, model: string, isFallback?: boolean }
  *
  * Guaranteed 100% uptime:

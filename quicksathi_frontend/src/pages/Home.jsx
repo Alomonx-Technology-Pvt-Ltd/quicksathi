@@ -90,6 +90,7 @@ const Home = () => {
       <HomeFeaturedServices
         categories={categories}
         services={services}
+        loading={loading}
         onBookNow={handleBookNow}
       />
       <SpotlightPromoBanners />

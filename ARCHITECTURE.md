@@ -72,8 +72,8 @@ docs/                  review, fix plan, ADRs, walkthrough
 
 1. `config/validateEnv.js` — in production the process **exits** if required configuration is missing or unsafe. `config/firebase.js` likewise exits in production if Firebase Admin can't initialise.
 2. `helmet`, `trust proxy` (`TRUST_PROXY` hops, default 1), `compression`, CORS (`config/hosting.js`: `CLIENT_URL`, `CORS_ORIGINS`, preview suffixes in `CORS_ORIGIN_PATTERNS`, any localhost port).
-3. Body parsing: `express.raw` for `/api/payments/webhook` (signature needs the exact bytes); `express.json` 10 MB only for `/api/admin/upload` and `/api/providers/register` (base64 images); **100 KB** everywhere else.
-4. Rate limits (`middleware/rateLimits.js`): global 600/min/IP; failed credential logins 10/15 min; auth 30/min; contact 5/h; AI chat 20/h; coupon validation 10/min; geocoding 60/min.
+3. Rate limits (`middleware/rateLimits.js`), before any body is read: global 600/min/IP; failed credential logins 10/15 min; auth 30/min; contact 5/h; AI chat 20/h; coupon validation 10/min; geocoding 60/min (Nominatim 20/min, at most 3 queued per client); doorstep start code 10/min per provider.
+4. Body parsing: `express.raw` for `/api/payments/webhook` (signature needs the exact bytes); `express.json` 10 MB only for `/api/admin/upload` (after `protect` + `adminOnly`) and `/api/providers/register` (after `protect`), so anonymous requests never get a large body parsed; **100 KB** everywhere else.
 5. Routers under `/api/*`. Authenticated routes use `protect` (verifies the JWT **and reloads the user from the DB on every request**, so deactivation and role changes take effect immediately), then `adminOnly` / `providerOnly` where needed.
 6. 404, then the error handler: middleware 4xx errors keep their status; unexpected errors are a generic 500 in production.
 
@@ -94,7 +94,7 @@ sequenceDiagram
   B->>A: later calls: Authorization: Bearer <JWT>
 ```
 
-- Identity comes **only** from a verified Firebase token (`routes/auth.js → verifyFirebaseIdentity`). Request-body email/uid/phone are never trusted. Email+password accounts (`/register`, `/login`) exist alongside.
+- Identity comes **only** from a verified Firebase token (`routes/auth.js → verifyFirebaseIdentity`). Request-body email/uid/phone are never trusted. New accounts are created only through Google or phone sign-in; existing email+password accounts can still sign in (`/login`). `User.tokensValidAfter` ends earlier logins when an unverified sign-up is taken back by its Google owner or an admin password is reset.
 - The backend issues its own JWT (`JWT_EXPIRES_IN`, default 7d) stored in `localStorage` (`qs_token`) by the SPA.
 - Roles: `user` (customer), `provider`, `admin`. Stored on `User.role`.
   - **Admin is never derived from an email address.** Grant it with `node scripts/grant-admin.mjs <email> --yes` or from the admin Users page (target must have a verified email).
@@ -147,7 +147,7 @@ Rules that must stay true (each has tests):
 - **Coupons** are validated by one function (`couponProblem`) and redeemed atomically (`findOneAndUpdate` guarded on per-user use and `usageLimit`); a failed booking releases the redemption, and so does cancelling a booking before any money was collected. An invalid coupon fails the booking rather than being silently ignored.
 - **A booking is never created `paid`.** Online bookings become paid only through `/payments/verify` or the webhook (`recordPayment`: one atomic, idempotent update; the webhook amount must equal `booking.amount × 100`; the webhook can also find a booking through the Razorpay order notes). Payment confirms a pending online booking; providers/admins can't confirm it before. A payment that arrives after cancellation becomes `refund_pending`.
 - **Status changes go through `services/bookingStatus.js`** (one transition map + `statusHistory` audit). Customers may only cancel while `pending`/`confirmed`; providers accept/cancel with `PATCH /providers/bookings/:id/status`, **start** with the customer's doorstep code (`POST …/start`) and **finish** with `POST …/complete`; admins can also cancel in-progress jobs. `completed` does **not** imply `paid`; cash is recorded by an explicit *cash collected* action. Cancelling a paid booking sets `paymentStatus = refund_pending` (refunds are manual today; admin Bookings has a *refund pending* queue).
-- **Doorstep start code**: 4 random digits (`crypto.randomInt`), `select: false`, returned only to the booking's customer while it is `confirmed`; 5 wrong tries replace it; per-provider rate limit.
+- **Doorstep start code**: 4 random digits (`crypto.randomInt`), `select: false`, returned only to the booking's customer while it is `confirmed`; 5 wrong tries replace it, at most 3 times per booking (then an admin starts the job); per-provider rate limit. `changeStatus` sets the job timer and clears the code whichever route starts the job.
 - **Time** is Asia/Kolkata: past-slot validation, coupon "valid until" dates (a date-only value means end of that day IST) and dashboard buckets all use IST.
 
 ## 6. Data model
@@ -155,7 +155,7 @@ Rules that must stay true (each has tests):
 | Model | Purpose / notable fields |
 |---|---|
 | `User` | `role`, `authProvider`, `emailVerified`, `firebaseUid`, `phone` (E.164), `isActive`, `deletedAt` (soft delete → anonymised). Unique partial indexes on `phone` and `firebaseUid`. |
-| `Provider` | One per provider user. `approvalStatus` (`pending/approved/rejected`), `isActive`, `rating`, `documents.*` (**`select: false`**, KYC image URLs). |
+| `Provider` | One per provider user. `approvalStatus` (`pending/approved/rejected`), `isActive`, `rating`, `documents.*` (**`select: false`**, private Cloudinary references; admins open them through 5-minute signed links from `GET /api/admin/providers/:id/documents`). Rejecting, demoting or deleting a provider turns its services off. |
 | `Category` | `vertical`, `subCategories[]`, `active`, `comingSoon`. |
 | `Service` | `slug` (unique), `category`, `packages[]`, `startingPrice`, `serviceMode` (`RENTAL` uses `perKmRate`), `cities[]` (empty = everywhere), `available`, `approvalStatus`. Only `approved && available` services are public. |
 | `Booking` | `bookingId` (`QS-…`), `user`, `service`, `provider`, amounts (`originalAmount`, `discountAmount`, `amount`, in rupees), `paymentMethod/Status`, `razorpayOrderId/PaymentId` (unique sparse), `status`, `statusHistory[]`. |
@@ -198,12 +198,13 @@ Backend variables (`quicksathi_backend/.env.example` is the template):
 | `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET` | ✅ | payments |
 | `BREVO_API_KEY` or `SMTP_USER`+`SMTP_PASS` (+ `BREVO_SENDER_*`/`SMTP_SENDER`) | warns | email |
 | `CLOUDINARY_*` | warns | uploads |
-| `GROQ_API_KEY` | optional | AI chat (else rule-based fallback) |
+| `GROQ_API_KEY` (+ optional `GROQ_API_URL` proxy) | optional | AI chat (else rule-based fallback) |
 | `ADMIN_EMAILS` | optional | only used as *recipients* of contact-form emails; **grants no privileges** |
 | `GEO_USER_AGENT`, `GEO_NOMINATIM_URL`, `GEO_PHOTON_URL` | optional | geocoding proxy |
-| `CORS_ORIGINS`, `CORS_ORIGIN_PATTERNS` | optional | extra allowed origins (e.g. staging) and preview-host suffixes (`--tiptobook.netlify.app`, `.tiptobook.pages.dev`); see `config/hosting.js` |
-| `TRUST_PROXY` | optional | reverse proxies in front of the app (default 1); check the `trust-proxy check` log line after deploying to a new host |
+| `CORS_ORIGINS`, `CORS_ORIGIN_PATTERNS` | optional | extra allowed origins (e.g. staging) and preview-host suffixes under hosts nobody else can claim (`.tiptobook.pages.dev`, `.<account>.workers.dev`); see `config/hosting.js` |
+| `TRUST_PROXY` | optional | reverse proxies in front of the app (default 1; `true`/`false`, a number, or Express names/IPs); check the `trust-proxy check` log line after deploying to a new host |
 | `SELF_PING_URL` | optional | this API's public URL, pinged every 14 min on hosts whose free tier sleeps (Render) |
+| `SEED_DB_ALLOWLIST`, `SITE_URL`, `ADMIN_NEW_PASSWORD` | scripts only | dev seed's extra allowed databases; sitemap base URL; `admin-account.mjs` password |
 | `PORT` | set by the host | defaults to 5050 locally (5000 clashes with macOS AirPlay) |
 
 **Hosting is vendor-independent** (decision f in `docs/fix-plan-mvp.md`): the frontend is static files for any host (Cloudflare Workers today, set up with `wrangler.jsonc`; Hostinger, Vercel and Cloudflare Pages also covered; all generated from `hosting/policy.json`), and the API is a Docker image (`quicksathi_backend/Dockerfile`, built by Railway automatically; CI builds and boots it) or plain `npm ci && npm start` (`render.yaml`). Target domains: `tiptobook.com` + `api.tiptobook.com`, with a staging pair.

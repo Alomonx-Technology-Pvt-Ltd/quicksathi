@@ -114,3 +114,33 @@ test("broadcasts never reach soft-deleted accounts", async () => {
   const res = await s.api("POST", "/admin/send-email", { ...as(admin.token), body: { recipientType: "individual", email: placeholder, subject: "Hi", body: "Hello" } });
   assert.equal(res.status, 400, res.text);
 });
+
+test("rejecting a provider takes their services offline, so no new booking is assigned to them", async () => {
+  const admin = await s.createUser({ role: "admin" });
+  const { provider } = await s.createProvider();
+  const service = await s.createService();
+  await s.db.collection("services").updateOne({ _id: service._id }, { $set: { provider: provider._id } });
+  const res = await s.api("PATCH", `/admin/providers/${provider._id}/reject`, { ...as(admin.token), body: { reason: "docs unclear" } });
+  assert.equal(res.status, 200, res.text);
+  assert.equal((await s.db.collection("services").findOne({ _id: service._id })).available, false);
+});
+
+test("a deleted account's provider profile can't be approved back to life", async () => {
+  const admin = await s.createUser({ role: "admin" });
+  const { provider, user } = await s.createProvider({ approvalStatus: "pending" });
+  assert.equal((await s.api("DELETE", `/admin/users/${user._id}`, as(admin.token))).status, 200);
+  const res = await s.api("PATCH", `/admin/providers/${provider._id}/approve`, as(admin.token));
+  assert.equal(res.status, 409, res.text);
+  assert.equal((await userRow(user._id)).role, "user");
+  assert.equal((await providerRow(provider._id)).isActive, false);
+});
+
+test("cancelling a paid booking alerts the admins to refund it", async () => {
+  const admin = await s.createUser({ role: "admin" });
+  const customer = await s.createUser();
+  const service = await s.createService();
+  const booking = await s.createBooking({ user: customer, service, status: "confirmed", paymentStatus: "paid", paymentMethod: "razorpay" });
+  assert.equal((await s.api("PATCH", `/bookings/${booking._id}/cancel`, as(customer.token))).status, 200);
+  const feed = await s.api("GET", "/admin/notifications", as(admin.token));
+  assert.ok(feed.body.some((a) => a.title.startsWith("Refund needed") && a.message.includes(booking.bookingId)), JSON.stringify(feed.body).slice(0, 400));
+});

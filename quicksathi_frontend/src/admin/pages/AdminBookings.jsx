@@ -209,7 +209,13 @@ const AdminBookings = () => {
                     <span className="text-[9px] uppercase font-bold tracking-wider" style={{ color: "var(--admin-text-muted)" }}>
                       <IndianRupee size={10} className="inline mr-1" style={{ verticalAlign: "middle" }} />Billing
                     </span>
-                    <span className="text-sm font-bold" style={{ color: "var(--admin-text-primary)" }}>₹{b.amount?.toLocaleString()}{b.fareConfirmed === false ? " (est.)" : ""}</span>
+                    <span className="text-sm font-bold" style={{ color: "var(--admin-text-primary)" }}>
+                      ₹{b.amount?.toLocaleString()}
+                      {b.fareConfirmed === false ? " (est.)" : ""}
+                      {b.estimatedAmount != null && b.fareConfirmed !== false && (
+                        <span className="text-[10px] font-normal" style={{ color: "var(--admin-text-muted)" }}> (est. ₹{b.estimatedAmount.toLocaleString()})</span>
+                      )}
+                    </span>
                     <span className="text-[10px] font-bold uppercase" style={{ color: b.paymentMethod === "razorpay" ? "#3b82f6" : "#22c55e" }}>
                       {b.paymentMethod === "razorpay" ? "💳 Online" : "💵 COD"}
                     </span>

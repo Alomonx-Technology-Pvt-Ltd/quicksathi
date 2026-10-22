@@ -24,7 +24,7 @@ const Login = () => {
 
   // Complete profile state (for new phone users)
   const [showCompleteProfile, setShowCompleteProfile] = useState(false);
-  const [profileData, setProfileData] = useState({ name: "", email: "" });
+  const [profileData, setProfileData] = useState({ name: "" });
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -249,7 +249,7 @@ const Login = () => {
             <>
               <div className="rounded-2xl p-4 mb-4" style={{ backgroundColor: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.15)" }}>
                 <p className="text-xs m-0" style={{ fontFamily: "var(--font-body)", color: "#22c55e" }}>
-                  ✓ Phone verified! Just add your name and email to get started.
+                  ✓ Phone verified! Just add your name to get started.
                 </p>
               </div>
 
@@ -269,23 +269,6 @@ const Login = () => {
                     className={inputClass}
                     style={inputStyle}
                   />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
-                    style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
-                    Email (optional)
-                  </label>
-                  <input
-                    type="email"
-                    value={profileData.email}
-                    onChange={(e) => { setProfileData((p) => ({ ...p, email: e.target.value })); setError(""); }}
-                    placeholder="you@example.com"
-                    className={inputClass}
-                    style={inputStyle}
-                  />
-                  <p className="text-[10px] mt-1.5" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-muted)" }}>
-                    We'll use this for booking confirmations & receipts
-                  </p>
                 </div>
 
                 <button

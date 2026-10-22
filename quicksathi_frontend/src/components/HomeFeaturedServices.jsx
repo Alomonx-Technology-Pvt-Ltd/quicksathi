@@ -409,13 +409,13 @@ const SECTION_MATCHERS = {
 const HomeFeaturedServices = ({
   categories: propCategories = [],
   services: propServices = [],
+  loading = false,
   onBookNow,
 }) => {
   // Data comes from the parent (Home → useCatalog). No fetching and no mock fallback here, so the
   // featured grid always respects the visitor's city filter.
   const realServices = propServices;
   const realCategories = propCategories;
-  const loading = false;
 
   // Group services by category section using the precise matchers
   const groupedData = useMemo(() => {
