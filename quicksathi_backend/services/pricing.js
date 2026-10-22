@@ -14,6 +14,9 @@ export class PricingError extends Error {
 
 const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 const MAX_RENTAL_KM = 3000;
+// A rental priced by package (no per-km rate) has no distance to cap the final fare with: allow up to
+// this multiple of the booked estimate (extra hours/km), which still catches an extra zero typed by mistake.
+const PACKAGE_RENTAL_FARE_MULTIPLE = 3;
 
 /** Resolve a serviceId given as ObjectId, slug or exact name. Public-visible services only. */
 export async function resolveService(serviceId) {
@@ -45,10 +48,15 @@ export function basePriceFor(service, { packageIndex, packageTitle, distanceKm }
   const km = Number(distanceKm);
   // Rentals: an ESTIMATE from the customer's route (client-reported distance). The provider confirms
   // the final fare and the customer pays cash (see confirmFare in bookingStatus.js).
-  const price =
-    service.serviceMode === "RENTAL" && service.perKmRate > 0 && km > 0
-      ? Math.round(Math.min(km, MAX_RENTAL_KM) * service.perKmRate)
-      : pkg ? pkg.price : service.startingPrice;
+  const distancePriced = service.serviceMode === "RENTAL" && service.perKmRate > 0 && km > 0;
+  // startingPrice is only the price of a service WITHOUT packages; a packaged service is booked as one
+  // of its packages, otherwise the booking would have no package at a "from" price.
+  if (!distancePriced && packages.length && !pkg) {
+    throw new PricingError(400, "Choose one of this service's packages");
+  }
+  const price = distancePriced
+    ? Math.round(Math.min(km, MAX_RENTAL_KM) * service.perKmRate)
+    : pkg ? pkg.price : service.startingPrice;
   if (!Number.isFinite(price) || price <= 0) {
     throw new PricingError(400, "This service has no bookable price");
   }
@@ -57,8 +65,15 @@ export function basePriceFor(service, { packageIndex, packageTitle, distanceKm }
 
 export const isRental = (service) => service?.serviceMode === "RENTAL";
 
-/** Highest fare a provider may confirm for a rental (same cap as the estimate). */
-export const maxRentalFare = (service) => Math.round(MAX_RENTAL_KM * (service?.perKmRate || 0));
+/**
+ * Highest final fare a provider/admin may confirm for a rental: the per-km cap when the service has a
+ * per-km rate, otherwise a multiple of the booking's estimate. Never 0 (confirmFare rejects a missing cap).
+ */
+export function maxRentalFare(service, booking) {
+  if (service?.perKmRate > 0) return Math.round(MAX_RENTAL_KM * service.perKmRate);
+  const estimate = booking?.originalAmount || booking?.amount || 0;
+  return Math.round(estimate * PACKAGE_RENTAL_FARE_MULTIPLE);
+}
 
 export function discountFor(coupon, basePrice) {
   let discount;

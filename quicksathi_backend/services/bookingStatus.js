@@ -1,5 +1,6 @@
 // The one place that decides which booking status changes are legal.
-// Every route that changes a booking's status goes through changeStatus().
+// Every route that changes a booking's status goes through changeStatus() and saves with saveBooking().
+import mongoose from "mongoose";
 
 export class BookingStateError extends Error {
   constructor(message, status = 409) {
@@ -31,8 +32,11 @@ export function allowedNext(from, role) {
 }
 
 /**
- * Apply a status change to a booking document (does not save).
+ * Apply a status change to a booking document (does not save: use saveBooking()).
  * role: "customer" | "provider" | "admin"
+ * The save only applies if status and paymentStatus are still what was read here: a payment landing
+ * between the read and the save (routes/payments.js updates atomically) must not be overwritten,
+ * or a paid booking could end up cancelled without its refund flag.
  */
 export function changeStatus(booking, to, { actorId, role, reason = "" }) {
   if (!STATUSES.includes(to)) throw new BookingStateError("Invalid status", 400);
@@ -45,6 +49,8 @@ export function changeStatus(booking, to, { actorId, role, reason = "" }) {
     throw new BookingStateError("This online booking is awaiting payment; it is confirmed automatically once paid");
   }
 
+  booking.$where = { ...(booking.$where || {}), status: booking.status, paymentStatus: booking.paymentStatus };
+
   booking.statusHistory = booking.statusHistory || [];
   booking.statusHistory.push({ from: booking.status, to, by: actorId, role, at: new Date() });
   booking.status = to;
@@ -56,6 +62,20 @@ export function changeStatus(booking, to, { actorId, role, reason = "" }) {
     if (booking.paymentStatus === "paid") booking.paymentStatus = "refund_pending";
   }
   return booking;
+}
+
+/** Save a booking changed by changeStatus(); a concurrent change becomes a 409 instead of a lost update. */
+export async function saveBooking(booking) {
+  try {
+    await booking.save();
+  } catch (error) {
+    // No document matched the save's filter. Mongoose reports it as a VersionError when the save also
+    // bumps __v (statusHistory changed), otherwise as DocumentNotFoundError.
+    if (error instanceof mongoose.Error.DocumentNotFoundError || error instanceof mongoose.Error.VersionError) {
+      throw new BookingStateError("This booking changed a moment ago (for example a payment just arrived). Reload and try again.");
+    }
+    throw error;
+  }
 }
 
 /** Cash-on-delivery money is "paid" only when someone explicitly confirms the cash was collected. */
@@ -83,8 +103,10 @@ export function confirmFare(booking, amount, { actorId, role, maxAmount }) {
   }
   if (booking.paymentStatus !== "pending") throw new BookingStateError("This booking is already paid");
   const fare = Number(amount);
-  if (!Number.isInteger(fare) || fare < 1 || (maxAmount && fare > maxAmount)) {
-    throw new BookingStateError(`Enter the final fare in whole rupees${maxAmount ? ` (up to ₹${maxAmount})` : ""}`, 400);
+  // No cap means the code doesn't know what the trip should cost: refuse rather than accept any amount.
+  if (!(maxAmount > 0)) throw new BookingStateError("This trip has no estimate to check the fare against. Ask support to set it.", 400);
+  if (!Number.isInteger(fare) || fare < 1 || fare > maxAmount) {
+    throw new BookingStateError(`Enter the final fare in whole rupees (up to ₹${maxAmount})`, 400);
   }
   const estimate = booking.amount;
   booking.amount = fare;
