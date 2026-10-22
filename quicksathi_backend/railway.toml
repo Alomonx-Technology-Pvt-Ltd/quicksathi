@@ -2,9 +2,7 @@
 # Docs: https://docs.railway.com/reference/config-as-code
 
 [build]
-# Railway uses Nixpacks by default — npm install is run automatically
-# If you need a custom build step, uncomment:
-# buildCommand = "npm install"
+# Railway builds ./Dockerfile when it exists (it does), so nixpacks.toml is not used.
 
 [deploy]
 # Start command — same as package.json "start" script
