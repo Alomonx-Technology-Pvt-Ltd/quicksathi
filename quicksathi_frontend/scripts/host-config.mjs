@@ -4,11 +4,15 @@
 //   node scripts/host-config.mjs --check  exit 1 if any file differs (CI)
 //
 // Outputs:
-//   public/_headers   Netlify + Cloudflare Pages headers (copied into dist/ by Vite)
-//   netlify.toml      Netlify SPA fallback (Cloudflare Pages serves index.html for unknown paths itself
-//                     when there is no 404.html, so the fallback is not in a shared _redirects file)
-//   public/.htaccess  Apache / LiteSpeed (Hostinger): headers, caching, SPA fallback
-//   vercel.json       Vercel: headers, caching, SPA fallback
+//   wrangler.jsonc       Cloudflare Workers (static assets): SPA fallback via not_found_handling.
+//                        A "/* /index.html 200" rule in _redirects breaks Workers deploys (infinite loop).
+//   public/_headers      Cloudflare Workers/Pages + Netlify headers (copied into dist/ by Vite)
+//   public/.assetsignore files in dist/ that Cloudflare must not publish (.htaccess)
+//   public/.htaccess     Apache / LiteSpeed (Hostinger): headers, caching, SPA fallback
+//   vercel.json          Vercel: headers, caching, SPA fallback
+// Cloudflare Pages needs no fallback file (it serves index.html for unknown paths when there is no
+// 404.html). Netlify would need a "/* /index.html 200" rule added in its own settings; netlify.toml is
+// not generated because a copy of it was blamed for breaking the Cloudflare deploy (main, 60e10bb).
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -30,19 +34,23 @@ const headersFile = [
   "",
 ].join("\n");
 
-const netlifyToml = [
-  `# ${banner}`,
-  "# Headers come from public/_headers (shared with Cloudflare Pages).",
-  "[build]",
-  '  command = "npm run build"',
-  '  publish = "dist"',
-  "",
-  "[[redirects]]",
-  '  from = "/*"',
-  `  to = "${policy.spaFallback}"`,
-  "  status = 200",
+// Cloudflare Workers Builds deploys with `npx wrangler deploy` from quicksathi_frontend/; the Worker's
+// name must match the one connected in the Cloudflare dashboard.
+const wranglerJsonc = [
+  `// ${banner}`,
+  JSON.stringify(
+    {
+      name: policy.cloudflare.workerName,
+      compatibility_date: policy.cloudflare.compatibilityDate,
+      assets: { directory: "./dist", not_found_handling: "single-page-application" },
+    },
+    null,
+    2
+  ),
   "",
 ].join("\n");
+
+const assetsIgnore = [`# ${banner}`, ".htaccess", ""].join("\n");
 
 const apacheQuote = (v) => `"${v.replace(/"/g, '\\"')}"`;
 const htaccess = [
@@ -88,8 +96,9 @@ const vercelJson = JSON.stringify(
 ) + "\n";
 
 const outputs = {
+  "wrangler.jsonc": wranglerJsonc,
   "public/_headers": headersFile,
-  "netlify.toml": netlifyToml,
+  "public/.assetsignore": assetsIgnore,
   "public/.htaccess": htaccess,
   "vercel.json": vercelJson,
 };

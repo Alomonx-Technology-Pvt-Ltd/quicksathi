@@ -77,5 +77,5 @@ jobs:
       # Remove continue-on-error once `npm run lint` is clean.
       - run: npm run lint
         continue-on-error: true
-      # Netlify / Cloudflare Pages / Apache / Vercel config must match hosting/policy.json.
+      # Cloudflare Workers / Apache / Vercel config must match hosting/policy.json.
       - run: npm run host-config:check
