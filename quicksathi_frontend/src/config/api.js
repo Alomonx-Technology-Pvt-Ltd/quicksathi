@@ -1,6 +1,13 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+let rawApiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+if (rawApiUrl && !rawApiUrl.startsWith("http://") && !rawApiUrl.startsWith("https://")) {
+  rawApiUrl = `https://${rawApiUrl}`;
+}
+if (rawApiUrl && !rawApiUrl.endsWith("/api")) {
+  rawApiUrl = `${rawApiUrl.replace(/\/+$/, "")}/api`;
+}
+const API_BASE_URL = rawApiUrl;
 
 // ── In-memory response cache ─────────────────────────────────────────────────
 // Caches GET responses for CACHE_TTL_MS so repeat navigations are instant.
