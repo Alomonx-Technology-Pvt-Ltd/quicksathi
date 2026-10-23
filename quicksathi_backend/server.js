@@ -78,6 +78,11 @@ const corsOptions = {
       return callback(null, true);
     }
 
+    // Allow any Cloudflare Pages deployment URL for this project
+    if (/^https:\/\/(quicksathi|tipto|tiptobook)[a-z0-9-]*\.pages\.dev$/i.test(origin)) {
+      return callback(null, true);
+    }
+
     // Allow any Railway deployment URL (*.up.railway.app)
     if (/^https:\/\/[a-z0-9-]+\.up\.railway\.app$/i.test(origin)) {
       return callback(null, true);
