@@ -1,0 +1,13 @@
+node_modules
+npm-debug.log
+.env
+.env.*
+!.env.example
+config/firebase-service-account.json
+test
+coverage
+*.log
+.git
+.DS_Store
+Dockerfile
+.dockerignore
