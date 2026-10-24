@@ -229,6 +229,10 @@ const Category = () => {
       "cctv-security": 31,
       ac: 1,
       "ac-appliances": 1,
+      construction: 40,
+      "construction-interior": 40,
+      "construction-and-interior-design": 40,
+      interior: 40,
     };
     if (aliasMap[cid]) {
       match = mockCategories.find((c) => c.id === aliasMap[cid]);
