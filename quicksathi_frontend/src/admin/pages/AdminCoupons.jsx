@@ -140,7 +140,7 @@ const AdminCoupons = () => {
         minOrderAmount: Number(form.minOrderAmount) || 0,
         maxDiscountAmount: form.maxDiscountAmount ? Number(form.maxDiscountAmount) : null,
         usageLimit: form.usageLimit ? Number(form.usageLimit) : null,
-        validUntil: form.validUntil ? new Date(form.validUntil).toISOString() : null,
+        validUntil: form.validUntil || null, // date-only: the server treats it as end of that day (IST)
       };
 
       if (editingId) {

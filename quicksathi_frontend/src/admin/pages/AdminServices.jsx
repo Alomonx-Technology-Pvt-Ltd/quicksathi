@@ -605,7 +605,7 @@ const AdminServices = () => {
                     <input type="text" value={form.thumbnail} onChange={(e) => setForm((p) => ({ ...p, thumbnail: e.target.value }))} style={inputStyle} className="flex-1 px-3 py-2.5 rounded-xl text-sm border-0 outline-none font-mono" placeholder="https://... or /images/..." />
                     <label className="px-4 py-2.5 rounded-xl text-xs font-semibold border-0 cursor-pointer flex items-center justify-center bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/20 whitespace-nowrap">
                       {uploadingImg ? "Uploading..." : "Upload"}
-                      <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e.target.files[0], "thumbnail")} className="hidden" disabled={uploadingImg} />
+                      <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => handleImageUpload(e.target.files[0], "thumbnail")} className="hidden" disabled={uploadingImg} />
                     </label>
                   </div>
                   {form.thumbnail && <img src={form.thumbnail} alt="preview" className="mt-2 w-20 h-14 rounded-lg object-cover" style={{ border: "1px solid rgba(255,255,255,0.1)" }} />}
@@ -616,7 +616,7 @@ const AdminServices = () => {
                     <input type="text" value={form.bannerImage} onChange={(e) => setForm((p) => ({ ...p, bannerImage: e.target.value }))} style={inputStyle} className="flex-1 px-3 py-2.5 rounded-xl text-sm border-0 outline-none font-mono" placeholder="https://... or /images/..." />
                     <label className="px-4 py-2.5 rounded-xl text-xs font-semibold border-0 cursor-pointer flex items-center justify-center bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/20 whitespace-nowrap">
                       {uploadingImg ? "Uploading..." : "Upload"}
-                      <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e.target.files[0], "bannerImage")} className="hidden" disabled={uploadingImg} />
+                      <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => handleImageUpload(e.target.files[0], "bannerImage")} className="hidden" disabled={uploadingImg} />
                     </label>
                   </div>
                   {form.bannerImage && <img src={form.bannerImage} alt="preview" className="mt-2 w-20 h-14 rounded-lg object-cover" style={{ border: "1px solid rgba(255,255,255,0.1)" }} />}
@@ -630,7 +630,7 @@ const AdminServices = () => {
                   <input type="text" value={newGalleryUrl} onChange={(e) => setNewGalleryUrl(e.target.value)} style={inputStyle} className="flex-1 px-3 py-2 rounded-xl text-sm border-0 outline-none font-mono" placeholder="https://... or /images/..." />
                   <label className="px-4 py-2 rounded-xl text-xs font-semibold border-0 cursor-pointer flex items-center justify-center bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/20 whitespace-nowrap">
                     {uploadingImg ? "Uploading..." : "Upload File"}
-                    <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e.target.files[0], "", true)} className="hidden" disabled={uploadingImg} />
+                    <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => handleImageUpload(e.target.files[0], "", true)} className="hidden" disabled={uploadingImg} />
                   </label>
                   <button type="button" onClick={addGalleryUrl} className="px-4 py-2 rounded-xl text-xs border border-white/10 cursor-pointer font-semibold bg-white/5 text-white hover:bg-white/10">Add Link</button>
                 </div>

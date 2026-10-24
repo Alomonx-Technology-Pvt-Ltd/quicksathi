@@ -3,6 +3,10 @@ import mongoose from "mongoose";
 import connectDB from "../config/db.js";
 import Category from "../models/Category.js";
 import Service from "../models/Service.js";
+import { assertSafeToSeed } from "./_guard.js";
+
+// It overwrites the pandit service (prices, featured, reviews), so it is not safe on production data.
+assertSafeToSeed("seed/seedPanditService.js");
 
 async function seedPanditService() {
   await connectDB();
@@ -229,12 +233,8 @@ async function seedPanditService() {
     console.log("✅ Pandit Service created successfully!");
   }
 
-  // 4. Update provider locations across all services to Pan-India
-  const updateResult = await Service.updateMany(
-    { "providers.location": "Patna" },
-    { $set: { "providers.$[].location": "Pan-India" } }
-  );
-  console.log(`✅ Updated ${updateResult.modifiedCount} services to Pan-India provider location.`);
+  // (Removed) This script used to rewrite the provider location of EVERY service from "Patna" to "Pan-India".
+  // A seed for one service must only touch that service.
 
   await mongoose.disconnect();
   console.log("MongoDB disconnected. Pandit seeding complete!");

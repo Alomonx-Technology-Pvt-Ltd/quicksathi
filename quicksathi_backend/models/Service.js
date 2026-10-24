@@ -112,6 +112,12 @@ const serviceSchema = new mongoose.Schema(
       default: 10, // ₹10 per km default
       min: 0,
     },
+    // Allotted time for the provider's live service timer (minutes). Bookings copy it at creation.
+    durationMinutes: {
+      type: Number,
+      min: 15,
+      max: 1440,
+    },
     // Cities where this service is available.
     // Empty array = "Available Everywhere" (shows in all city filters).
     cities: [{ type: String, trim: true }],

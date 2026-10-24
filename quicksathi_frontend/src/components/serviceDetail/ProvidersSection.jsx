@@ -56,9 +56,11 @@ const ProvidersSection = ({ providers = [] }) => {
                 )}
               </div>
 
-              <div className="mt-2 text-xs font-bold text-purple-700">
-                Starting ₹{(provider.startingPrice || 349).toLocaleString("en-IN")}
-              </div>
+              {provider.startingPrice > 0 && (
+                <div className="mt-2 text-xs font-bold text-purple-700">
+                  Starting ₹{provider.startingPrice.toLocaleString("en-IN")}
+                </div>
+              )}
             </div>
           </div>
         ))}

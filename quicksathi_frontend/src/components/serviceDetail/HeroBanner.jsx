@@ -165,9 +165,9 @@ const HeroBanner = ({ service, allImages = [], activeImg = 0, setActiveImg }) =>
               {/* Star Rating */}
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 font-semibold border border-slate-200/60 shadow-xs">
                 <Star size={12} className="fill-amber-400 text-amber-400" />
-                <span>{service.rating || 4.8} Rating</span>
+                <span>{service.rating > 0 ? `${service.rating} Rating` : "New"}</span>
                 <span className="text-slate-500 font-normal">
-                  ({(service.totalReviews || 2890).toLocaleString("en-IN")} reviews)
+                  ({(service.totalReviews ?? 0).toLocaleString("en-IN")} reviews)
                 </span>
               </div>
 
@@ -198,7 +198,7 @@ const HeroBanner = ({ service, allImages = [], activeImg = 0, setActiveImg }) =>
             <span className="text-xs text-slate-500 font-medium">Starting from</span>
             <div className="flex items-baseline gap-1">
               <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                ₹{(service.startingPrice || 349).toLocaleString("en-IN")}
+                ₹{(service.startingPrice ?? 0).toLocaleString("en-IN")}
               </span>
               {service.priceUnit && (
                 <span className="text-xs text-slate-500 font-normal">

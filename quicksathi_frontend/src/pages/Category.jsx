@@ -17,8 +17,7 @@ import {
 import api from "../config/api";
 import SEO from "../components/SEO";
 import { useLocation } from "../context/LocationContext";
-import { mockCategories } from "../data/mockCategories";
-import { mockServices } from "../data/mockServices";
+import { useCatalog } from "../hooks/useCatalog";
 import ACCategoryPage from "./ACCategoryPage";
 import HomeSalonCategoryPage from "./HomeSalonCategoryPage";
 import CategorySpotlightBanner from "../components/CategorySpotlightBanner";
@@ -111,51 +110,8 @@ const getServicesForSub = (sub, allServices, categoryVertical) => {
   //    (fallback that still respects the vertical boundary)
   if (categoryServices.length > 0) return categoryServices;
 
-  // 5. Generate structured fallback from the subcategory object itself
-  return [
-    {
-      _id: sub._id || sub.id || subName.replace(/\s+/g, "-"),
-      slug: sub.slug || subName.replace(/\s+/g, "-"),
-      name: sub.name,
-      rating: 4.8,
-      totalReviews: 1200,
-      startingPrice: sub.startingPrice || 499,
-      priceUnit: sub.priceUnit || "service",
-      thumbnail:
-        sub.imageUrl ||
-        sub.image ||
-        "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop",
-      bullets: [
-        sub.description || "Expert doorstep assistance by verified professionals.",
-        "Quality guarantee with upfront transparent pricing.",
-      ],
-      fullDescription:
-        sub.description ||
-        `${sub.name} by verified background-checked experts on TiptoBook. Complete satisfaction guaranteed.`,
-      packages: [
-        {
-          title: `Standard ${sub.name}`,
-          price: sub.startingPrice || 499,
-          features: ["Verified Professional", "Standard Service", "Safety Assurance"],
-        },
-        {
-          title: `Premium ${sub.name}`,
-          price: Math.round((sub.startingPrice || 499) * 1.8),
-          features: ["Top-Rated Specialist", "Deep Service & Inspection", "Extended Warranty"],
-        },
-      ],
-      faqs: [
-        {
-          question: "How do I book this service?",
-          answer: "Click 'BOOK' to select your preferred package, date, and address.",
-        },
-        {
-          question: "Are your professionals verified?",
-          answer: "Yes, all service partners undergo strict background checks and skill verification.",
-        },
-      ],
-    },
-  ];
+  // 5. Nothing in the catalog for this subcategory: show no section (never an invented service or price).
+  return [];
 };
 
 const Category = () => {
@@ -197,101 +153,31 @@ const Category = () => {
     return null;
   }, [street, road, locality, city, fullLocation]);
 
-  // Instant render: find mock category for this id immediately
-  const findMock = (catId) => {
-    if (!catId) return null;
-    const cid = String(catId).toLowerCase();
-
-    let match = mockCategories.find(
-      (c) => (c.id || c._id)?.toString().toLowerCase() === cid
-    );
-    if (match) return match;
-
-    const cleanVert = cid.toUpperCase().replace(/-/g, "_");
-    match = mockCategories.find((c) => c.vertical?.toUpperCase() === cleanVert);
-    if (match) return match;
-
-    const aliasMap = {
-      wedding: 10,
-      weddings: 10,
-      "vehicle-rental": 6,
-      rental: 6,
-      "home-tuition": 15,
-      tuition: 15,
-      "house-help": 20,
-      help: 20,
-      "home-salon": 25,
-      salon: 25,
-      "house-services": 31,
-      repair: 31,
-      painting: 35,
-      cctv: 31,
-      "cctv-security": 31,
-      ac: 1,
-      "ac-appliances": 1,
-      construction: 40,
-      "construction-interior": 40,
-      "construction-and-interior-design": 40,
-      interior: 40,
-    };
-    if (aliasMap[cid]) {
-      match = mockCategories.find((c) => c.id === aliasMap[cid]);
-      if (match) return match;
-    }
-
-    const cleanName = cid.replace(/-/g, " ");
-    return (
-      mockCategories.find(
-        (c) =>
-          c.name?.toLowerCase() === cleanName ||
-          c.name?.toLowerCase().includes(cleanName) ||
-          cleanName.includes(c.name?.toLowerCase())
-      ) ?? null
-    );
-  };
-
-  const [category, setCategory] = useState(() => findMock(id));
-  const [services, setServices] = useState(() => mockServices);
+  // The category (and its sub-categories) come from the API. The backend resolves ids, slugs and
+  // legacy aliases, so no client-side alias table or mock data is needed.
+  const [category, setCategory] = useState(null);
+  const [status, setStatus] = useState("loading"); // loading | ready | notfound | error
+  const { services } = useCatalog({ city });
   const [activeSection, setActiveSection] = useState("all");
   const [selectedServiceForModal, setSelectedServiceForModal] = useState(null);
   const sectionRefs = useRef({});
 
-  // Background fetch — upgrades mock → real data
   useEffect(() => {
-    const fetchCategory = async () => {
-      try {
-        const { data } = await api.get(`/categories/${id}`);
-        if (data) {
-          setCategory(data);
-          return;
-        }
-      } catch {
-        // fallback to full list
-      }
-      try {
-        const { data } = await api.get("/categories");
-        const found = data?.find((cat) => {
-          const catId = (cat._id || cat.id)?.toString();
-          const cleanParam = String(id).toLowerCase().replace(/-/g, "_");
-          return catId === String(id) || cat.vertical?.toLowerCase() === cleanParam;
-        });
-        if (found) setCategory(found);
-      } catch {
-        // Keep mock already displayed
-      }
-    };
-    fetchCategory();
-  }, [id]);
-
-  // Fetch real-time services from backend
-  useEffect(() => {
+    let cancelled = false;
     api
-      .get("/services")
+      .get(`/categories/${encodeURIComponent(id)}`)
       .then(({ data }) => {
-        if (data && data.length > 0) setServices(data);
+        if (cancelled) return;
+        setCategory(data);
+        setStatus("ready");
       })
-      .catch(() => {});
-  }, []);
+      .catch((err) => {
+        if (cancelled) return;
+        setCategory(null);
+        setStatus(err.response?.status === 404 ? "notfound" : "error");
+      });
+    return () => { cancelled = true; };
+  }, [id]);
 
   // Delegate AC category to ACCategoryPage for tailored multi-package experience
   if (
@@ -315,8 +201,10 @@ const Category = () => {
 
   if (!category) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white text-slate-800 text-xl font-semibold">
-        Category not found
+      <div className="min-h-screen flex items-center justify-center bg-white text-slate-800 text-xl font-semibold px-6 text-center">
+        {status === "loading" && "Loading…"}
+        {status === "notfound" && (<><meta name="robots" content="noindex" />Category not found</>)}
+        {status === "error" && "We couldn't load this category. Please refresh and try again."}
       </div>
     );
   }
@@ -603,10 +491,10 @@ const Category = () => {
                         <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-600 font-medium">
                           <Star size={13} className="fill-amber-400 text-amber-400" />
                           <span className="font-semibold text-slate-800">
-                            {service.rating || 4.8}
+                            {service.rating > 0 ? service.rating : "New"}
                           </span>
                           <span className="text-slate-500">
-                            ({(service.totalReviews || 1240).toLocaleString("en-IN")} reviews)
+                            ({(service.totalReviews ?? 0).toLocaleString("en-IN")} reviews)
                           </span>
                         </div>
 
@@ -637,7 +525,7 @@ const Category = () => {
                         <div className="flex items-center justify-between mt-4 max-w-md pt-2">
                           <div className="flex items-baseline gap-1">
                             <span className="text-base sm:text-lg font-extrabold text-slate-900">
-                              ₹{(service.startingPrice || 499).toLocaleString("en-IN")}
+                              ₹{(service.startingPrice ?? 0).toLocaleString("en-IN")}
                             </span>
                             {service.priceUnit && (
                               <span className="text-[11px] text-slate-500 font-normal">
@@ -722,10 +610,10 @@ const Category = () => {
                   <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-600">
                     <Star size={12} className="fill-amber-400 text-amber-400" />
                     <span className="font-semibold text-slate-800">
-                      {selectedServiceForModal.rating || 4.8}
+                      {selectedServiceForModal.rating > 0 ? selectedServiceForModal.rating : "New"}
                     </span>
                     <span>
-                      ({(selectedServiceForModal.totalReviews || 1200).toLocaleString("en-IN")} reviews)
+                      ({(selectedServiceForModal.totalReviews ?? 0).toLocaleString("en-IN")} reviews)
                     </span>
                   </div>
                 </div>
@@ -848,7 +736,7 @@ const Category = () => {
                 <div>
                   <span className="text-[11px] text-slate-400 block font-medium">Starting from</span>
                   <span className="text-lg font-bold text-slate-900">
-                    ₹{(selectedServiceForModal.startingPrice || 499).toLocaleString("en-IN")}
+                    ₹{(selectedServiceForModal.startingPrice ?? 0).toLocaleString("en-IN")}
                   </span>
                 </div>
 
