@@ -40,7 +40,7 @@ if (typeof window !== "undefined") {
 }
 
 export const getGoogleMapsApiKey = () => {
-  return import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "";
+  return import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "AIzaSyDMeJOWboG_mZbFtz41dZ1akENamOqvbpY";
 };
 
 export const isGoogleMapsAvailable = () => {

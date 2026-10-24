@@ -659,59 +659,108 @@ const POPUP_CATEGORIES = [
     badgeColor: "bg-pink-600 text-white",
     sections: [
       {
-        title: "SALON & GROOMING SERVICES",
+        title: "WOMEN'S BEAUTY & SALON",
         items: [
           {
             id: "salon-women",
-            name: "Women's Beauty Services",
+            name: "Women's Beauty",
             badge: "Women",
+            badgeColor: "bg-pink-600 text-white",
             image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=480&auto=format&fit=crop",
             fallbackIcon: "/icons/categories/home-salon.png",
             route: "/category/home-salon?gender=women",
           },
           {
-            id: "salon-men",
-            name: "Men's Grooming",
-            badge: "Men",
-            image: "https://images.unsplash.com/photo-1622286342621-4bd786c2447c?q=80&w=480&auto=format&fit=crop",
-            fallbackIcon: "/icons/categories/home-salon.png",
-            route: "/category/home-salon?gender=men",
-          },
-          {
-            id: "hair-styling",
+            id: "hair-styling-care",
             name: "Hair Styling & Care",
+            badge: "Popular",
+            badgeColor: "bg-pink-600 text-white",
             image: "https://images.unsplash.com/photo-1562322140-8baeececf3df?q=80&w=300&auto=format&fit=crop",
             fallbackIcon: "/icons/categories/home-salon.png",
-            route: "/category/home-salon",
+            route: "/service/hair-styling-care",
           },
           {
             id: "facial-cleanup",
             name: "Facial & Cleanup",
             image: "https://images.unsplash.com/photo-1570172619644-dfd03ed5d881?q=80&w=300&auto=format&fit=crop",
             fallbackIcon: "/icons/categories/home-salon.png",
-            route: "/category/home-salon",
+            route: "/service/facial-cleanup",
           },
           {
-            id: "bridal-makeup",
+            id: "bridal-party-makeup",
             name: "Bridal & Party Makeup",
             badge: "Luxury",
+            badgeColor: "bg-purple-600 text-white",
             image: "https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?q=80&w=300&auto=format&fit=crop",
             fallbackIcon: "/icons/categories/home-salon.png",
-            route: "/category/home-salon",
+            route: "/service/bridal-party-makeup",
           },
           {
             id: "manicure-pedicure",
             name: "Manicure & Pedicure",
             image: "https://images.unsplash.com/photo-1604654894610-df63bc536371?q=80&w=300&auto=format&fit=crop",
             fallbackIcon: "/icons/categories/home-salon.png",
-            route: "/category/home-salon",
+            route: "/service/manicure-pedicure",
           },
           {
             id: "waxing-threading",
             name: "Waxing & Threading",
             image: "https://images.unsplash.com/photo-1519415510236-718bdfcd89c8?q=80&w=300&auto=format&fit=crop",
             fallbackIcon: "/icons/categories/home-salon.png",
-            route: "/category/home-salon",
+            route: "/service/waxing-threading",
+          },
+        ],
+      },
+      {
+        title: "MEN'S GROOMING & SALON",
+        items: [
+          {
+            id: "salon-men",
+            name: "Men's Grooming",
+            badge: "Men",
+            badgeColor: "bg-blue-600 text-white",
+            image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1792823993/TiptoBook/services/mens-grooming-main.jpg",
+            fallbackIcon: "/icons/categories/home-salon.png",
+            route: "/category/home-salon?gender=men",
+          },
+          {
+            id: "mens-haircut",
+            name: "Haircut & Styling",
+            badge: "Popular",
+            badgeColor: "bg-blue-600 text-white",
+            image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1792823995/TiptoBook/services/mens-haircut-main.jpg",
+            fallbackIcon: "/icons/categories/home-salon.png",
+            route: "/service/mens-haircut",
+          },
+          {
+            id: "beard-grooming",
+            name: "Beard Shaping & Trim",
+            image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1792823995/TiptoBook/services/beard-grooming-main.jpg",
+            fallbackIcon: "/icons/categories/home-salon.png",
+            route: "/service/beard-grooming",
+          },
+          {
+            id: "mens-facial",
+            name: "Men's Facial & Glow",
+            image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1792823997/TiptoBook/services/mens-facial-main.jpg",
+            fallbackIcon: "/icons/categories/home-salon.png",
+            route: "/service/mens-facial",
+          },
+          {
+            id: "mens-shave",
+            name: "Clean Shave & D-Tan",
+            image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1792823998/TiptoBook/services/mens-shave-main.jpg",
+            fallbackIcon: "/icons/categories/home-salon.png",
+            route: "/service/mens-shave",
+          },
+          {
+            id: "mens-massage",
+            name: "Head & Scalp Massage",
+            badge: "Relax",
+            badgeColor: "bg-emerald-600 text-white",
+            image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1792823999/TiptoBook/services/mens-massage-main.jpg",
+            fallbackIcon: "/icons/categories/home-salon.png",
+            route: "/service/mens-massage",
           },
         ],
       },
@@ -980,12 +1029,12 @@ const Services = () => {
     }
   }, [searchParams]);
 
-  // Switch category handler
+  // Switch category handler — instant scroll to prevent visual content tearing/glitch
   const handleSelectCategory = (catId) => {
     setActiveCategoryId(catId);
     setSearchQuery("");
     if (rightContentRef.current) {
-      rightContentRef.current.scrollTo({ top: 0, behavior: "smooth" });
+      rightContentRef.current.scrollTo({ top: 0, behavior: "instant" });
     }
   };
 
@@ -1069,22 +1118,27 @@ const Services = () => {
     }
   }, [isSearchOpen]);
 
-  // ── Auto-scroll carousel banners in "For You" ──────────────────────────────
+  // ── Auto-scroll carousel banners in "For You" (stable timer without jitter) ──
   useEffect(() => {
     if (activeCategoryId !== "for-you" || isBannerHovered || carouselBanners.length <= 1) return;
     const interval = setInterval(() => {
-      if (bannerScrollRef.current) {
-        const nextIndex = (bannerIndex + 1) % carouselBanners.length;
-        setBannerIndex(nextIndex);
-        const cardWidth = bannerScrollRef.current.querySelector(".promo-banner-slide")?.offsetWidth || 340;
-        bannerScrollRef.current.scrollTo({
-          left: nextIndex * (cardWidth + 12),
+      const container = bannerScrollRef.current;
+      if (!container) return;
+
+      setBannerIndex((prev) => {
+        const next = (prev + 1) % carouselBanners.length;
+        const card = container.querySelector(".promo-banner-slide");
+        const cardWidth = card?.offsetWidth || 340;
+        container.scrollTo({
+          left: next * (cardWidth + 12),
           behavior: "smooth",
         });
-      }
-    }, 3600);
+        return next;
+      });
+    }, 4500);
+
     return () => clearInterval(interval);
-  }, [activeCategoryId, isBannerHovered, bannerIndex, carouselBanners.length]);
+  }, [activeCategoryId, isBannerHovered, carouselBanners.length]);
 
   const handleBannerScrollBy = (dir) => {
     if (!bannerScrollRef.current) return;
@@ -1205,37 +1259,34 @@ const Services = () => {
                   key={cat.id}
                   type="button"
                   onClick={() => handleSelectCategory(cat.id)}
-                  className={`relative w-full py-2.5 sm:py-3 px-1.5 flex flex-col items-center justify-center gap-1.5 transition-all text-center border-0 cursor-pointer ${
+                  className={`group relative w-full py-2.5 sm:py-3 px-1.5 flex flex-col items-center justify-center gap-1.5 transition-all text-center border-0 cursor-pointer ${
                     isActive
                       ? "bg-white shadow-xs font-semibold text-blue-600"
-                      : "bg-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-100/60 font-medium"
+                      : "bg-transparent text-slate-600 hover:text-slate-900 hover:bg-slate-200/50 font-medium"
                   }`}
                 >
-                  {/* Active Indicator Bar (Signature blue strip on the left edge) */}
-                  {isActive && (
-                    <motion.div
-                      layoutId="categoryActiveIndicator"
-                      className="absolute left-0 top-1 bottom-1 w-[3.5px] rounded-r-md bg-[#0b4fd8]"
-                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
-                    />
-                  )}
+                  {/* Stable Active Indicator Bar — zero flicker across renders */}
+                  <span
+                    className={`absolute left-0 top-1.5 bottom-1.5 w-[3.5px] rounded-r-md transition-all duration-200 ${
+                      isActive ? "bg-blue-600 opacity-100 scale-y-100" : "bg-transparent opacity-0 scale-y-50"
+                    }`}
+                  />
 
                   {/* Category Thumbnail Container (Circle / Soft Rounded Square) */}
                   <div
-                    className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center p-1.5 transition-transform duration-200 ${
+                    className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center p-1.5 transition-all duration-200 ${
                       isActive
-                        ? "bg-blue-50/80 scale-105 shadow-xs"
-                        : "bg-white/90 border border-slate-200/50 shadow-2xs"
+                        ? "bg-blue-50 text-blue-600 scale-105 shadow-xs border border-blue-200/50"
+                        : "bg-white/95 border border-slate-200/70 shadow-2xs group-hover:scale-102"
                     }`}
                   >
                     {cat.isCustomIcon ? (
-                      /* Human E-commerce Purple Shopping Gift Bag Icon (NO AI STAR FEEL) */
                       <ForYouBagIcon />
                     ) : cat.iconUrl ? (
                       <img
                         src={cat.iconUrl}
                         alt={cat.name}
-                        className="w-full h-full object-contain"
+                        className="w-full h-full object-contain select-none"
                         loading="lazy"
                         onError={(e) => {
                           e.currentTarget.onerror = null;
@@ -1247,10 +1298,10 @@ const Services = () => {
 
                   {/* Category Title Below Thumbnail (Max 2 lines, centered) */}
                   <span
-                    className={`text-[10px] sm:text-[11.5px] leading-tight line-clamp-2 px-0.5 tracking-tight ${
+                    className={`text-[10px] sm:text-[11.5px] leading-tight line-clamp-2 px-0.5 tracking-tight transition-colors duration-150 ${
                       isActive
-                        ? "text-[#0b4fd8] font-bold"
-                        : "text-slate-700 font-medium"
+                        ? "text-blue-600 font-bold"
+                        : "text-slate-700 font-medium group-hover:text-slate-900"
                     }`}
                   >
                     {cat.shortName || cat.name}
@@ -1305,42 +1356,43 @@ const Services = () => {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2.5 sm:gap-4 md:gap-5">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3.5 md:gap-4.5">
                   {searchResults.map((item) => (
-                    <motion.div
+                    <Link
                       key={item.id}
-                      whileHover={{ y: -2, scale: 1.02 }}
-                      whileTap={{ scale: 0.97 }}
-                      transition={{ duration: 0.12, ease: "easeOut" }}
-                      className="w-full"
+                      to={item.destinationUrl}
+                      className="group flex flex-col items-center text-center p-1.5 sm:p-2 rounded-2xl bg-transparent hover:bg-slate-50/80 transition-colors duration-150 cursor-pointer outline-none relative border-0 no-underline w-full"
                     >
-                      <Link
-                        to={item.destinationUrl}
-                        className="group flex flex-col items-center text-center p-1.5 sm:p-2.5 rounded-2xl bg-transparent hover:bg-slate-50/90 transition-colors duration-150 cursor-pointer outline-none relative border-0 no-underline w-full"
-                        style={{ transform: "translateZ(0)" }}
-                      >
-                        {/* Clean High-res Image / Icon Thumbnail */}
-                        <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 flex items-center justify-center relative p-1 shrink-0 aspect-square">
-                          <img
-                            src={item.image || item.icon}
-                            alt={item.name}
-                            loading="eager"
-                            decoding="async"
-                            draggable="false"
-                            className="w-full h-full object-cover rounded-2xl drop-shadow-xs group-hover:scale-105 transition-transform duration-200 ease-out select-none pointer-events-none"
-                            onError={(e) => {
-                              e.currentTarget.onerror = null;
-                              e.currentTarget.src = item.fallbackIcon || "/icons/categories/house-help.png";
-                            }}
-                          />
-                        </div>
+                      {/* Clean High-res Image / Icon Thumbnail */}
+                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center shrink-0 aspect-square">
+                        {item.badge && (
+                          <span
+                            className={`absolute -top-1 -right-1.5 text-[8.5px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                              item.badgeColor || "bg-blue-600 text-white"
+                            } tracking-wide shadow-xs z-10 pointer-events-none whitespace-nowrap`}
+                          >
+                            {item.badge}
+                          </span>
+                        )}
+                        <img
+                          src={item.image || item.icon}
+                          alt={item.name}
+                          loading="lazy"
+                          decoding="async"
+                          draggable="false"
+                          className="w-full h-full object-cover rounded-2xl drop-shadow-xs group-hover:scale-108 transition-transform duration-200 ease-out select-none pointer-events-none"
+                          onError={(e) => {
+                            e.currentTarget.onerror = null;
+                            e.currentTarget.src = item.fallbackIcon || "/icons/categories/house-help.png";
+                          }}
+                        />
+                      </div>
 
-                        {/* Title ONLY */}
-                        <span className="mt-2 text-[11px] sm:text-[12.5px] font-semibold text-slate-800 group-hover:text-indigo-600 leading-snug line-clamp-2 transition-colors duration-150 text-center">
-                          {item.name}
-                        </span>
-                      </Link>
-                    </motion.div>
+                      {/* Title */}
+                      <span className="mt-2 text-[11px] sm:text-[12px] font-semibold text-slate-800 group-hover:text-blue-600 leading-snug line-clamp-2 transition-colors duration-150 text-center">
+                        {item.name}
+                      </span>
+                    </Link>
                   ))}
                 </div>
               )}
@@ -1348,7 +1400,36 @@ const Services = () => {
           ) : (
             /* STANDARD CATEGORY VIEW */
             <div className="w-full pb-10">
-
+              {/* Category Spotlight Header (Rich, clean presentation for selected vertical) */}
+              {activeCategory.id !== "for-you" && (
+                <div className="mb-5 sm:mb-6 rounded-2xl p-4 sm:p-5 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white relative overflow-hidden shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 border border-slate-800">
+                  <div className="relative z-10 max-w-lg">
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <span className="text-[10px] font-bold tracking-widest uppercase px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30">
+                        {activeCategory.shortName || "Service Vertical"}
+                      </span>
+                      <span className="text-xs text-emerald-400 flex items-center gap-1 font-medium">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Verified & Available
+                      </span>
+                    </div>
+                    <h2 className="text-lg sm:text-2xl font-bold tracking-tight text-white m-0">
+                      {activeCategory.name}
+                    </h2>
+                    <p className="text-xs sm:text-sm text-slate-300 mt-1 m-0 line-clamp-2">
+                      {activeCategory.bannerSubtitle || activeCategory.description || "Choose from expert services with upfront transparent pricing."}
+                    </p>
+                  </div>
+                  {activeCategory.categoryLink && (
+                    <Link
+                      to={activeCategory.categoryLink}
+                      className="relative z-10 shrink-0 inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-white text-slate-900 hover:bg-blue-50 hover:text-blue-600 shadow-sm transition-all no-underline"
+                    >
+                      <span>Explore Category</span>
+                      <ChevronRight size={13} />
+                    </Link>
+                  )}
+                </div>
+              )}
 
               {/* ──────────────────────────────────────────────────────────
                   "FOR YOU" SECTION AUTO-SCROLLING BANNERS (Same as Home)
@@ -1473,51 +1554,43 @@ const Services = () => {
                         const item = getEnrichedItem(rawItem);
 
                         return (
-                          <motion.div
+                          <Link
                             key={item.id}
-                            whileHover={{ y: -2, scale: 1.02 }}
-                            whileTap={{ scale: 0.96 }}
-                            transition={{ duration: 0.12, ease: "easeOut" }}
-                            className="w-full"
+                            to={item.destinationUrl}
+                            className="group flex flex-col items-center text-center p-1.5 sm:p-2 rounded-2xl bg-transparent hover:bg-slate-50/80 transition-colors duration-150 cursor-pointer outline-none relative border-0 no-underline w-full"
                           >
-                            <Link
-                              to={item.destinationUrl}
-                              className="group flex flex-col items-center text-center p-2 sm:p-2.5 rounded-2xl bg-transparent hover:bg-slate-50/80 transition-colors duration-150 cursor-pointer outline-none relative border-0 no-underline w-full"
-                              style={{ transform: "translateZ(0)" }}
-                            >
+                            {/* Clean High-res Image / Icon Thumbnail */}
+                            <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center shrink-0 aspect-square">
                               {/* Optional Badge from popup (e.g. Popular, New, Foundation, Security) */}
                               {item.badge && (
                                 <span
-                                  className={`absolute top-0.5 right-1 sm:top-1 sm:right-2 text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                                    item.badgeColor || activeCategory.badgeColor || "bg-indigo-600 text-white"
-                                  } tracking-wide shadow-xs z-10 pointer-events-none`}
+                                  className={`absolute -top-1 -right-1.5 text-[8.5px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                                    item.badgeColor || activeCategory.badgeColor || "bg-blue-600 text-white"
+                                  } tracking-wide shadow-xs z-10 pointer-events-none whitespace-nowrap`}
                                 >
                                   {item.badge}
                                 </span>
                               )}
 
-                              {/* Clean High-res Image / Icon Thumbnail */}
-                              <div className="w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center relative p-1 shrink-0 aspect-square">
-                                <img
-                                  src={item.image || item.icon}
-                                  alt={item.name}
-                                  loading="eager"
-                                  decoding="async"
-                                  draggable="false"
-                                  className="w-full h-full object-cover rounded-2xl drop-shadow-xs group-hover:scale-108 transition-transform duration-200 ease-out select-none pointer-events-none"
-                                  onError={(e) => {
-                                    e.currentTarget.onerror = null;
-                                    e.currentTarget.src = item.fallbackIcon || "/icons/categories/house-help.png";
-                                  }}
-                                />
-                              </div>
+                              <img
+                                src={item.image || item.icon}
+                                alt={item.name}
+                                loading="lazy"
+                                decoding="async"
+                                draggable="false"
+                                className="w-full h-full object-cover rounded-2xl drop-shadow-xs group-hover:scale-108 transition-transform duration-200 ease-out select-none pointer-events-none"
+                                onError={(e) => {
+                                  e.currentTarget.onerror = null;
+                                  e.currentTarget.src = item.fallbackIcon || "/icons/categories/house-help.png";
+                                }}
+                              />
+                            </div>
 
-                              {/* Title ONLY */}
-                              <span className="mt-2 text-[11px] sm:text-[12px] font-semibold text-slate-800 group-hover:text-indigo-600 leading-snug line-clamp-2 transition-colors duration-150 text-center">
-                                {item.name}
-                              </span>
-                            </Link>
-                          </motion.div>
+                            {/* Title ONLY */}
+                            <span className="mt-2 text-[11px] sm:text-[12px] font-semibold text-slate-800 group-hover:text-blue-600 leading-snug line-clamp-2 transition-colors duration-150 text-center">
+                              {item.name}
+                            </span>
+                          </Link>
                         );
                       })}
                     </div>

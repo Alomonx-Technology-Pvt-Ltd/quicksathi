@@ -61,11 +61,31 @@ const SUB_CATEGORIES = [
     gender: "women",
   },
   {
-    id: "mens-salon-spa",
-    name: "Men's Salon & Spa",
-    image:
-      "https://images.unsplash.com/photo-1621605815971-fbc98d665033?q=80&w=300&auto=format&fit=crop",
-    keywords: ["men", "men's", "male", "beard", "grooming", "facial for men"],
+    id: "mens-haircut-styling",
+    name: "Haircut & Styling",
+    image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1792823995/TiptoBook/services/mens-haircut-main.jpg",
+    keywords: ["haircut", "styling", "fade", "hair", "cut", "men"],
+    gender: "men",
+  },
+  {
+    id: "beard-grooming-shave",
+    name: "Beard & Shave",
+    image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1792823995/TiptoBook/services/beard-grooming-main.jpg",
+    keywords: ["beard", "trim", "shaping", "shave", "moustache", "men"],
+    gender: "men",
+  },
+  {
+    id: "mens-facial-glow",
+    name: "Facial & De-Tan",
+    image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1792823997/TiptoBook/services/mens-facial-main.jpg",
+    keywords: ["facial", "glow", "de-tan", "scrub", "clean", "men"],
+    gender: "men",
+  },
+  {
+    id: "mens-massage-spa",
+    name: "Massage & Relaxation",
+    image: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1792823999/TiptoBook/services/mens-massage-main.jpg",
+    keywords: ["massage", "head", "scalp", "relax", "spa", "men"],
     gender: "men",
   },
 ];

@@ -1,6 +1,30 @@
 import axios from "axios";
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5050/api";
+const isLocalhost =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" ||
+   window.location.hostname === "127.0.0.1");
+
+// VITE_API_URL wins. Without it, a deployed site falls back to the Railway API (temporary: the
+// Cloudflare build doesn't pass VITE_API_URL yet) and local development uses the local backend.
+const DEFAULT_REMOTE_API = "https://tiptobook.up.railway.app/api";
+
+let rawApiUrl =
+  import.meta.env.VITE_API_URL ||
+  (isLocalhost ? "http://localhost:5050/api" : DEFAULT_REMOTE_API);
+
+// If running on a deployed website, never call localhost
+if (!isLocalhost && rawApiUrl.includes("localhost")) {
+  rawApiUrl = DEFAULT_REMOTE_API;
+}
+
+if (rawApiUrl && !rawApiUrl.startsWith("http://") && !rawApiUrl.startsWith("https://")) {
+  rawApiUrl = `https://${rawApiUrl}`;
+}
+if (rawApiUrl && !rawApiUrl.endsWith("/api")) {
+  rawApiUrl = `${rawApiUrl.replace(/\/+$/, "")}/api`;
+}
+const API_BASE_URL = rawApiUrl;
 
 // ── In-memory response cache ─────────────────────────────────────────────────
 // Caches GET responses for CACHE_TTL_MS so repeat navigations are instant.
