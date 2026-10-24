@@ -3,6 +3,7 @@ import api, { clearCache } from "../../config/api";
 import { uploadImageFile } from "../../utils/imageUpload";
 import { Pencil, Power, Trash2, Layers, Hash, Hourglass } from "lucide-react";
 
+// Must match the enum in quicksathi_backend/models/Category.js (fixed list; adding one is a code change).
 const PLATFORM_VERTICALS = [
   { value: "CONSTRUCTION", label: "Construction & Interior Design", desc: "Civil works, remodeling, false ceiling, architectural design" },
   { value: "HOUSE_SERVICES", label: "Home Services & Repair", desc: "Plumbing, electrical, carpentry, painting & waterproofing" },
@@ -13,7 +14,7 @@ const PLATFORM_VERTICALS = [
   { value: "HOME_TUITION", label: "Home Tuition", desc: "Academic coaching by grade tiers (KG to Class 12)" },
   { value: "HOME_SALON", label: "Home Salon & Beauty", desc: "At-home beauty, grooming, spa & styling" },
   { value: "CCTV_SECURITY", label: "CCTV & Smart Security", desc: "Camera installation, smart locks, intercoms" },
-  { value: "CUSTOM", label: "+ Custom / New Vertical (Create custom module)", desc: "Define a brand-new service module" },
+  { value: "PAINTING", label: "Painting & Waterproofing", desc: "Interior/exterior painting, textures, damp-proofing" },
 ];
 
 const TYPES = ["SERVICE_ONLY", "PRODUCT_ONLY", "BOTH"];
@@ -52,9 +53,7 @@ const AdminCategories = () => {
   const [saving, setSaving] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
 
-  // Custom vertical support & smart auto-detection
-  const [isCustomVertical, setIsCustomVertical] = useState(false);
-  const [customVerticalCode, setCustomVerticalCode] = useState("");
+  // Smart vertical auto-detection (until the admin picks one)
   const [userSelectedVertical, setUserSelectedVertical] = useState(false);
 
   // Subcategory form
@@ -122,27 +121,17 @@ const AdminCategories = () => {
   const openAddForm = () => {
     setEditingId(null);
     setForm({ ...emptyCategory, vertical: "CONSTRUCTION" });
-    setIsCustomVertical(false);
-    setCustomVerticalCode("");
     setUserSelectedVertical(false);
     setShowForm(true);
   };
 
   const openEditForm = (cat) => {
     setEditingId(cat._id);
-    const isPreset = PLATFORM_VERTICALS.some((p) => p.value === cat.vertical && p.value !== "CUSTOM");
-    if (isPreset) {
-      setIsCustomVertical(false);
-      setCustomVerticalCode("");
-    } else {
-      setIsCustomVertical(true);
-      setCustomVerticalCode(cat.vertical || "");
-    }
     setUserSelectedVertical(true);
     setForm({
       name: cat.name || "",
       description: cat.description || "",
-      vertical: isPreset ? cat.vertical : "CUSTOM",
+      vertical: cat.vertical || "",
       type: cat.type || "BOTH",
       imageUrl: cat.imageUrl || "",
       secondaryImageUrl: cat.secondaryImageUrl || "",
@@ -158,8 +147,6 @@ const AdminCategories = () => {
     setEditingId(null);
     setForm({ ...emptyCategory });
     setNewSub({ ...emptySubCategory });
-    setIsCustomVertical(false);
-    setCustomVerticalCode("");
     setUserSelectedVertical(false);
   };
 
@@ -169,34 +156,20 @@ const AdminCategories = () => {
       const updated = { ...prev, name: val };
       if (!userSelectedVertical && !editingId) {
         const lower = val.toLowerCase();
-        if (/construct|interior|renovat|civil|build|false ceiling|architect/i.test(lower)) {
-          updated.vertical = "CONSTRUCTION";
-          setIsCustomVertical(false);
-        } else if (/salon|beauty|makeup|hair|spa|grooming/i.test(lower)) {
-          updated.vertical = "HOME_SALON";
-          setIsCustomVertical(false);
-        } else if (/tuition|tutor|class|coaching|teach|school/i.test(lower)) {
-          updated.vertical = "HOME_TUITION";
-          setIsCustomVertical(false);
-        } else if (/wedding|event|party|cater|stage|mandap/i.test(lower)) {
-          updated.vertical = "WEDDING";
-          setIsCustomVertical(false);
-        } else if (/vehicle|car|bike|rental|cab|taxi|driver/i.test(lower)) {
-          updated.vertical = "VEHICLE_RENTAL";
-          setIsCustomVertical(false);
-        } else if (/ac|air condition|appliance|fridge|washing|microwave/i.test(lower)) {
-          updated.vertical = "AC_APPLIANCES";
-          setIsCustomVertical(false);
-        } else if (/repair|plumb|electric|carpenter|paint|waterproof/i.test(lower)) {
-          updated.vertical = "HOUSE_SERVICES";
-          setIsCustomVertical(false);
-        } else if (/maid|cook|house help|cleaning|babysitt|nanny|laundry|iron/i.test(lower)) {
-          updated.vertical = "HOUSE_HELP";
-          setIsCustomVertical(false);
-        } else if (/cctv|camera|security|lock/i.test(lower)) {
-          updated.vertical = "CCTV_SECURITY";
-          setIsCustomVertical(false);
-        }
+        const rules = [
+          [/construct|interior|renovat|civil|build|false ceiling|architect/i, "CONSTRUCTION"],
+          [/salon|beauty|makeup|hair|spa|grooming/i, "HOME_SALON"],
+          [/tuition|tutor|class|coaching|teach|school/i, "HOME_TUITION"],
+          [/wedding|event|party|cater|stage|mandap/i, "WEDDING"],
+          [/vehicle|car|bike|rental|cab|taxi|driver/i, "VEHICLE_RENTAL"],
+          [/ac|air condition|appliance|fridge|washing|microwave/i, "AC_APPLIANCES"],
+          [/paint|waterproof/i, "PAINTING"],
+          [/repair|plumb|electric|carpenter/i, "HOUSE_SERVICES"],
+          [/maid|cook|house help|cleaning|babysitt|nanny|laundry|iron/i, "HOUSE_HELP"],
+          [/cctv|camera|security|lock/i, "CCTV_SECURITY"],
+        ];
+        const hit = rules.find(([re]) => re.test(lower));
+        if (hit) updated.vertical = hit[1];
       }
       return updated;
     });
@@ -206,14 +179,7 @@ const AdminCategories = () => {
     e.preventDefault();
     setSaving(true);
     try {
-      const finalVertical = isCustomVertical
-        ? (customVerticalCode.trim() || form.name.trim().toUpperCase().replace(/[^A-Z0-9]+/g, "_") || "OTHER").toUpperCase()
-        : form.vertical;
-
-      const payload = {
-        ...form,
-        vertical: finalVertical,
-      };
+      const payload = { ...form };
 
       if (editingId) {
         await api.put(`/admin/categories/${editingId}`, payload);
@@ -472,48 +438,27 @@ const AdminCategories = () => {
                     Service Vertical (Business Module) *
                   </label>
                   <select
-                    value={isCustomVertical ? "CUSTOM" : form.vertical}
+                    value={form.vertical}
                     onChange={(e) => {
                       setUserSelectedVertical(true);
-                      if (e.target.value === "CUSTOM") {
-                        setIsCustomVertical(true);
-                        setForm((p) => ({ ...p, vertical: "CUSTOM" }));
-                      } else {
-                        setIsCustomVertical(false);
-                        setForm((p) => ({ ...p, vertical: e.target.value }));
-                      }
+                      setForm((p) => ({ ...p, vertical: e.target.value }));
                     }}
                     required
                     style={inputStyle}
                     className="w-full px-3 py-2.5 rounded-xl text-sm border-0 outline-none"
                   >
+                    {!PLATFORM_VERTICALS.some((v) => v.value === form.vertical) && (
+                      <option value="" disabled>Choose a vertical</option>
+                    )}
                     {PLATFORM_VERTICALS.map((v) => (
                       <option key={v.value} value={v.value}>
                         {v.label}
                       </option>
                     ))}
                   </select>
-
-                  {isCustomVertical ? (
-                    <div className="mt-2">
-                      <input
-                        type="text"
-                        value={customVerticalCode}
-                        onChange={(e) => setCustomVerticalCode(e.target.value.toUpperCase().replace(/\s+/g, "_"))}
-                        placeholder="e.g. SOLAR_ENERGY, PET_CARE"
-                        style={inputStyle}
-                        className="w-full px-3 py-2 rounded-xl text-xs border-0 outline-none"
-                        required
-                      />
-                      <p className="text-[10px] mt-1 m-0" style={{ color: "var(--admin-text-muted)" }}>
-                        Internal uppercase key for routing & provider matching.
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="text-[11px] mt-1.5 m-0 leading-tight" style={{ color: "var(--admin-text-muted)" }}>
-                      ↳ {PLATFORM_VERTICALS.find((v) => v.value === form.vertical)?.desc || "Platform service vertical"}
-                    </p>
-                  )}
+                  <p className="text-[11px] mt-1.5 m-0 leading-tight" style={{ color: "var(--admin-text-muted)" }}>
+                    ↳ {PLATFORM_VERTICALS.find((v) => v.value === form.vertical)?.desc || "Platform service vertical"}
+                  </p>
                 </div>
               </div>
 
@@ -550,7 +495,7 @@ const AdminCategories = () => {
                     <input type="url" value={form.imageUrl} onChange={(e) => setForm((p) => ({ ...p, imageUrl: e.target.value }))} style={inputStyle} className="flex-1 px-3 py-2.5 rounded-xl text-sm border-0 outline-none" placeholder="https://..." />
                     <label className="px-4 py-2.5 rounded-xl text-xs font-semibold cursor-pointer flex items-center justify-center whitespace-nowrap" style={{ backgroundColor: "rgba(99,102,241,0.12)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.25)" }}>
                       {uploadingImg ? "Uploading..." : "Upload"}
-                      <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e.target.files[0], "imageUrl")} className="hidden" disabled={uploadingImg} />
+                      <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => handleImageUpload(e.target.files[0], "imageUrl")} className="hidden" disabled={uploadingImg} />
                     </label>
                   </div>
                   {form.imageUrl && <img src={form.imageUrl} alt="preview" className="mt-2 w-24 h-16 rounded-lg object-cover" style={{ border: "1px solid var(--admin-border)" }} />}
@@ -561,7 +506,7 @@ const AdminCategories = () => {
                     <input type="url" value={form.secondaryImageUrl} onChange={(e) => setForm((p) => ({ ...p, secondaryImageUrl: e.target.value }))} style={inputStyle} className="flex-1 px-3 py-2.5 rounded-xl text-sm border-0 outline-none" placeholder="https://..." />
                     <label className="px-4 py-2.5 rounded-xl text-xs font-semibold cursor-pointer flex items-center justify-center whitespace-nowrap" style={{ backgroundColor: "rgba(99,102,241,0.12)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.25)" }}>
                       {uploadingImg ? "Uploading..." : "Upload"}
-                      <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e.target.files[0], "secondaryImageUrl")} className="hidden" disabled={uploadingImg} />
+                      <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => handleImageUpload(e.target.files[0], "secondaryImageUrl")} className="hidden" disabled={uploadingImg} />
                     </label>
                   </div>
                   {form.secondaryImageUrl && <img src={form.secondaryImageUrl} alt="preview" className="mt-2 w-24 h-16 rounded-lg object-cover" style={{ border: "1px solid var(--admin-border)" }} />}
@@ -598,7 +543,7 @@ const AdminCategories = () => {
                       <input type="url" value={newSub.imageUrl} onChange={(e) => setNewSub((p) => ({ ...p, imageUrl: e.target.value }))} style={inputStyle} className="flex-1 px-3 py-2 rounded-lg text-sm border-0 outline-none" placeholder="Image URL" />
                       <label className="px-3 py-2 rounded-lg text-xs font-semibold cursor-pointer flex items-center justify-center whitespace-nowrap" style={{ backgroundColor: "rgba(99,102,241,0.12)", color: "#818cf8", border: "1px solid rgba(99,102,241,0.25)" }}>
                         {uploadingImg ? "Uploading..." : "Upload"}
-                        <input type="file" accept="image/*" onChange={(e) => handleImageUpload(e.target.files[0], "imageUrl", true)} className="hidden" disabled={uploadingImg} />
+                        <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => handleImageUpload(e.target.files[0], "imageUrl", true)} className="hidden" disabled={uploadingImg} />
                       </label>
                     </div>
                     <input type="number" value={newSub.displayOrder} onChange={(e) => setNewSub((p) => ({ ...p, displayOrder: Number(e.target.value) }))} style={inputStyle} className="px-3 py-2 rounded-lg text-sm border-0 outline-none" placeholder="Display order" />

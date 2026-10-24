@@ -7,7 +7,6 @@ import {
   CheckCircle2,
   AlertCircle,
   Upload,
-  User,
   Building2,
   Briefcase,
   Phone,
@@ -71,7 +70,7 @@ const APPLIANCE_PRESETS = [
 const EXPERIENCE_OPTIONS = ["1 - 2 Years", "3 - 5 Years", "5 - 10 Years", "10+ Years"];
 
 const ProviderOnboarding = () => {
-  const { isAuthenticated, user, register } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [searchParams] = useSearchParams();
   const categoryQuery = searchParams.get("category");
   const [step, setStep] = useState(0);
@@ -108,8 +107,6 @@ const ProviderOnboarding = () => {
     pincode: "",
     phone: "",
     email: user?.email || "",
-    ownerName: "",
-    password: "",
     idProof: null,
     businessReg: null,
     selfiePhoto: null,
@@ -264,6 +261,7 @@ const ProviderOnboarding = () => {
 
   const validateStep = (currentStep) => {
     if (currentStep === 0) {
+      if (!isAuthenticated) return "Please sign in with Google or phone first (button above).";
       if (!formData.businessName.trim()) return "Business or professional name is required.";
       if (formData.businessName.trim().length < 3) return "Business name must be at least 3 characters.";
       if (!formData.businessType) return "Please select an organization type.";
@@ -272,11 +270,6 @@ const ProviderOnboarding = () => {
         return "Please enter a valid 10-digit Indian phone number (e.g. 9876543210).";
       if (!formData.email.trim()) return "Email address is required.";
       if (!EMAIL_REGEX.test(formData.email.trim())) return "Please enter a valid email address.";
-      if (!isAuthenticated) {
-        if (!formData.ownerName.trim()) return "Owner full name is required to create your partner account.";
-        if (formData.ownerName.trim().length < 2) return "Owner name must be at least 2 characters.";
-        if (!formData.password || formData.password.length < 6) return "Password must be at least 6 characters.";
-      }
     }
     if (currentStep === 1) {
       if (!formData.category) return "Please select a service category.";
@@ -310,10 +303,6 @@ const ProviderOnboarding = () => {
     setSubmitting(true);
     setError("");
     try {
-      if (!isAuthenticated) {
-        await register(formData.ownerName, formData.email, formData.password, formData.phone);
-      }
-
       const activeCat = categories.find((c) => String(c._id || c.id) === String(formData.category));
       const idProofUrl = formData.idProof ? await readFileAsDataUrl(formData.idProof) : "";
       const businessRegUrl = formData.businessReg ? await readFileAsDataUrl(formData.businessReg) : "";
@@ -594,6 +583,27 @@ const ProviderOnboarding = () => {
                     transition={{ duration: 0.22 }}
                     className="flex flex-col gap-4.5"
                   >
+                    {!isAuthenticated && (
+                      <div className="pb-4 border-b border-slate-100 flex flex-col gap-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs">
+                            <Lock size={13} />
+                          </div>
+                          <span className="text-xs font-bold text-slate-800">Sign in to apply</span>
+                        </div>
+                        <p className="text-xs text-slate-600 m-0">
+                          Partner accounts use Google or phone sign-in, so we know the email or number is really yours.
+                          Sign in first; you come straight back here.
+                        </p>
+                        <Link
+                          to={`/login?redirect=${encodeURIComponent(`/provider/onboarding${searchParams.toString() ? `?${searchParams}` : ""}`)}`}
+                          className="self-start px-4 py-2 rounded-xl text-xs font-bold bg-purple-600 text-white no-underline hover:bg-purple-700 transition-colors"
+                        >
+                          Sign in with Google or Phone
+                        </Link>
+                      </div>
+                    )}
+
                     <div>
                       <label className="block text-[11px] font-bold uppercase tracking-wider mb-1.5 text-slate-700">
                         Business / Professional Name *
@@ -680,53 +690,6 @@ const ProviderOnboarding = () => {
                       </div>
                     </div>
 
-                    {!isAuthenticated && (
-                      <div className="pt-4 border-t border-slate-100 flex flex-col gap-4">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs">
-                            <Lock size={13} />
-                          </div>
-                          <span className="text-xs font-bold text-slate-800">
-                            Create Partner Login Credentials
-                          </span>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-[11px] font-bold uppercase tracking-wider mb-1.5 text-slate-700">
-                              Owner Full Name *
-                            </label>
-                            <div className="relative">
-                              <User size={16} className="absolute left-3.5 top-3.5 text-slate-400 pointer-events-none" />
-                              <input
-                                name="ownerName"
-                                value={formData.ownerName}
-                                onChange={handleChange}
-                                placeholder="e.g. Amit Kumar"
-                                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-purple-600 focus:ring-2 focus:ring-purple-500/20 text-sm outline-none transition-all"
-                              />
-                            </div>
-                          </div>
-
-                          <div>
-                            <label className="block text-[11px] font-bold uppercase tracking-wider mb-1.5 text-slate-700">
-                              Create Password *
-                            </label>
-                            <div className="relative">
-                              <Lock size={16} className="absolute left-3.5 top-3.5 text-slate-400 pointer-events-none" />
-                              <input
-                                name="password"
-                                type="password"
-                                value={formData.password}
-                                onChange={handleChange}
-                                placeholder="Min. 6 characters"
-                                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:border-purple-600 focus:ring-2 focus:ring-purple-500/20 text-sm outline-none transition-all"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    )}
                   </motion.div>
                 )}
 

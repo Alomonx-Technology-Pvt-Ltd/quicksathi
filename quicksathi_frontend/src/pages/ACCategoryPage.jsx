@@ -20,7 +20,6 @@ import {
 import api from "../config/api";
 import SEO from "../components/SEO";
 import { useLocation } from "../context/LocationContext";
-import { mockServices } from "../data/mockServices";
 import CategorySpotlightBanner from "../components/CategorySpotlightBanner";
 
 // ── Sub-category quick selection tiles matching reference ──
@@ -45,16 +44,14 @@ const SUB_CATEGORIES = [
   },
 ];
 
-// Fallback 7 AC services strictly matching user reference
+// Presentation extras (section, copy, images, FAQs) for AC services that exist in the database.
+// No prices, packages, ratings or review counts here: those only ever come from the API.
 const FALLBACK_AC_SERVICES = [
   {
     _id: "ac-checkup",
     slug: "ac-checkup",
     name: "AC Check-up",
     section: "Repair & Services",
-    rating: 4.7,
-    totalReviews: 8831,
-    startingPrice: 299,
     priceUnit: "visit",
     thumbnail: "/images/ac/ac-checkup.webp",
     bullets: [
@@ -63,10 +60,6 @@ const FALLBACK_AC_SERVICES = [
     ],
     fullDescription:
       "Get a thorough AC health check-up by certified technicians. Includes compressor testing, gas pressure check, thermostat calibration, electrical connection audit, and a detailed report with repair recommendations. Visitation fee will be adjusted in the final repair quote.",
-    packages: [
-      { title: "Split AC Check-up", price: 299, features: ["Compressor & gas pressure test", "Thermostat calibration", "Electrical check", "Diagnosis report"] },
-      { title: "Window AC Check-up", price: 249, features: ["Full unit inspection", "Cooling efficiency test", "Filter & coil check"] },
-    ],
     faqs: [
       { question: "Will the check-up fee be adjusted if I proceed with repair?", answer: "Yes, the visitation fee is fully adjusted against the final repair bill." },
       { question: "How long does the check-up take?", answer: "A standard AC check-up takes about 20-30 minutes." },
@@ -77,9 +70,6 @@ const FALLBACK_AC_SERVICES = [
     slug: "foam-jet-ac-service",
     name: "Foam Jet AC Service",
     section: "Repair & Services",
-    rating: 4.6,
-    totalReviews: 8853,
-    startingPrice: 699,
     priceUnit: "AC",
     thumbnail: "/images/ac/foam-jet.webp",
     bullets: [
@@ -88,10 +78,6 @@ const FALLBACK_AC_SERVICES = [
     ],
     fullDescription:
       "Our flagship deep cleaning service. Uses specialized foam spray to melt stubborn dirt and high-pressure jet wash to flush out deep-seated grime from the indoor cooling coil and outdoor condenser.",
-    packages: [
-      { title: "1 Split AC Foam Jet Service", price: 699, features: ["2X deeper foam cleaning", "High-pressure jet flush", "Indoor jacket protection", "Outdoor unit wash"] },
-      { title: "2 ACs Foam Jet Combo", price: 1299, features: ["2 Split ACs deep cleaning", "Condenser coil descaling", "Drain pipe flush"] },
-    ],
     faqs: [
       { question: "Will water spill inside the room?", answer: "No! Technicians install a waterproof catch jacket around the indoor unit." },
     ],
@@ -101,9 +87,6 @@ const FALLBACK_AC_SERVICES = [
     slug: "ac-gas-refill",
     name: "Gas Refill & Check-up",
     section: "Gas Refill",
-    rating: 4.7,
-    totalReviews: 9069,
-    startingPrice: 2499,
     priceUnit: "refill",
     thumbnail: "/images/ac/gas-refill.webp",
     bullets: [
@@ -112,10 +95,6 @@ const FALLBACK_AC_SERVICES = [
     ],
     fullDescription:
       "Complete AC gas replenishment solution. Includes electronic leak detection, brazing/repair of copper pipe leaks, vacuum flushing of lines, and precision gas recharge (R32 / R410A / R22) with warranty.",
-    packages: [
-      { title: "Complete Gas Refill (R32/R410A)", price: 2499, features: ["Nitrogen leak test", "Minor leak fixing & vacuuming", "100% genuine refrigerant", "60-day cooling warranty"] },
-      { title: "Gas Top-up & Leak Check", price: 1499, features: ["Gas pressure check", "Up to 30% top-up recharge", "Leak testing report"] },
-    ],
     faqs: [
       { question: "Is there any warranty on gas refill?", answer: "Yes, we provide a 60-day cooling and leak-free warranty on complete gas refills." },
     ],
@@ -125,9 +104,6 @@ const FALLBACK_AC_SERVICES = [
     slug: "ac-installation",
     name: "AC Installation",
     section: "Install & Uninstall",
-    rating: 4.7,
-    totalReviews: 8935,
-    startingPrice: 1199,
     priceUnit: "AC",
     thumbnail: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315766/TiptoBook/services/ac-installation.jpg",
     bullets: [
@@ -136,10 +112,6 @@ const FALLBACK_AC_SERVICES = [
     ],
     fullDescription:
       "Professional AC installation by certified technicians. Includes indoor unit mounting, outdoor bracket fixing, copper pipe connection, electrical wiring, drain pipe routing, vacuum test, and performance verification.",
-    packages: [
-      { title: "Split AC Standard Installation", price: 1199, features: ["Indoor bracket & unit mounting", "Outdoor unit placement & fixing", "Core drilling (standard brick wall)", "Copper piping & wiring connection", "Vacuum testing & demo"] },
-      { title: "Window AC Installation", price: 699, features: ["Window frame bracket setup", "Unit leveling & sealing", "Power connection & testing"] },
-    ],
     faqs: [
       { question: "Are copper pipes and stand included?", answer: "Standard brackets and piping provided with the new AC are used. Extra copper pipes or stands are billed at standardized rates." },
     ],
@@ -149,9 +121,6 @@ const FALLBACK_AC_SERVICES = [
     slug: "ac-uninstallation",
     name: "AC Uninstallation",
     section: "Install & Uninstall",
-    rating: 4.7,
-    totalReviews: 8829,
-    startingPrice: 499,
     priceUnit: "AC",
     thumbnail: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315767/TiptoBook/services/ac-uninstallation.jpg",
     bullets: [
@@ -160,10 +129,6 @@ const FALLBACK_AC_SERVICES = [
     ],
     fullDescription:
       "Damage-free AC uninstallation with complete gas recovery/pump down. Certified technicians safely dismount indoor & outdoor units, seal copper tubes to prevent moisture, and wrap units for transit or renovation.",
-    packages: [
-      { title: "Split AC Uninstallation", price: 499, features: ["Gas pump down (zero gas loss)", "Indoor & outdoor unit dismount", "Copper pipe coil & tube sealing", "Bracket removal"] },
-      { title: "Window AC Uninstallation", price: 349, features: ["Unit dismantling from window", "Frame removal & clean-up"] },
-    ],
     faqs: [
       { question: "Will gas be lost during uninstallation?", answer: "No! Technicians perform a pump down to trap all refrigerant inside the compressor." },
     ],
@@ -187,7 +152,8 @@ const ACCategoryPage = ({ category: propCategory }) => {
   const [isCityDropdownOpen, setIsCityDropdownOpen] = useState(false);
   const [activeSection, setActiveSection] = useState("all");
   const [selectedServiceForModal, setSelectedServiceForModal] = useState(null);
-  const [liveServices, setLiveServices] = useState(FALLBACK_AC_SERVICES);
+  const [liveServices, setLiveServices] = useState([]);
+  const [loadState, setLoadState] = useState("loading"); // loading | ready | error
   const sectionRefs = useRef({});
 
   // Escape key & background scroll lock for detail modal
@@ -228,61 +194,46 @@ const ACCategoryPage = ({ category: propCategory }) => {
   }, [street, road, locality, city, fullLocation]);
 
   // Fetch live services from backend
+  // The list is exactly what the API returns. FALLBACK_AC_SERVICES only supplies presentation extras
+  // (section, bullets) for services that exist in the database; it never adds a service or a price.
   useEffect(() => {
-    const fetchServices = async () => {
-      try {
-        const { data } = await api.get("/services");
-        if (data && data.length > 0) {
-          // Filter for AC services
-          const acSvcs = data.filter((s) => {
-            const name = (s.name || "").toLowerCase();
-            const catName = (s.categoryName || "").toLowerCase();
-            const tags = (s.tags || []).map((t) => t.toLowerCase());
-            return (
-              name.includes("ac") ||
-              name.includes("air conditioner") ||
-              catName.includes("ac") ||
-              catName.includes("appliance") ||
-              tags.includes("ac")
+    let cancelled = false;
+    api
+      .get("/services")
+      .then(({ data }) => {
+        if (cancelled) return;
+        const acSvcs = (data || []).filter((s) => {
+          const name = (s.name || "").toLowerCase();
+          const catName = (s.categoryName || "").toLowerCase();
+          const tags = (s.tags || []).map((t) => t.toLowerCase());
+          return (
+            /\bac\b/.test(name) ||
+            name.includes("air conditioner") ||
+            /\bac\b/.test(catName) ||
+            catName.includes("appliance") ||
+            tags.includes("ac")
+          );
+        });
+        setLiveServices(
+          acSvcs.map((ls) => {
+            const fb = FALLBACK_AC_SERVICES.find(
+              (f) => f.slug === ls.slug || f.name.toLowerCase() === (ls.name || "").toLowerCase()
             );
-          });
-
-          if (acSvcs.length > 0) {
-            // Map live services to our structure, filling in any display fields from fallback
-            const merged = FALLBACK_AC_SERVICES.map((fb) => {
-              const matchedLive = acSvcs.find(
-                (ls) =>
-                  ls.slug === fb.slug ||
-                  ls.name.toLowerCase() === fb.name.toLowerCase()
-              );
-              if (matchedLive) {
-                return {
-                  ...fb,
-                  _id: matchedLive._id || fb._id,
-                  thumbnail: matchedLive.thumbnail || fb.thumbnail,
-                  bannerImage: matchedLive.bannerImage || fb.bannerImage,
-                  startingPrice: matchedLive.startingPrice || fb.startingPrice,
-                  rating: matchedLive.rating || fb.rating,
-                  totalReviews: matchedLive.totalReviews || fb.totalReviews,
-                  packages: matchedLive.packages?.length > 0 ? matchedLive.packages : fb.packages,
-                  faqs: matchedLive.faqs?.length > 0 ? matchedLive.faqs : fb.faqs,
-                };
-              }
-              return fb;
-            });
-
-            // Append any additional live AC services created by admin
-            const matchedSlugs = new Set(FALLBACK_AC_SERVICES.map((fb) => fb.slug));
-            const newLive = acSvcs.filter((ls) => !matchedSlugs.has(ls.slug));
-            setLiveServices([...merged, ...newLive]);
-          }
-        }
-      } catch (err) {
-        // Keep fallback data
-      }
-    };
-
-    fetchServices();
+            return {
+              ...(fb || {}),
+              ...ls,
+              section: ls.section || fb?.section,
+              packages: ls.packages || [],
+              faqs: ls.faqs?.length > 0 ? ls.faqs : fb?.faqs || [],
+            };
+          })
+        );
+        setLoadState("ready");
+      })
+      .catch(() => {
+        if (!cancelled) setLoadState("error");
+      });
+    return () => { cancelled = true; };
   }, []);
 
   // Group services by section
@@ -318,8 +269,11 @@ const ACCategoryPage = ({ category: propCategory }) => {
     }
   };
 
-  const handleBookService = (service) => {
-    navigate(`/booking/${service.slug || service._id}`);
+  // A packaged service is booked as one of its packages (the server refuses a booking without one).
+  const handleBookService = (service, pkg = service.packages?.[0]) => {
+    const params = new URLSearchParams({ name: service.name, price: String(pkg?.price ?? service.startingPrice ?? 0) });
+    if (pkg?.title) params.set("package", pkg.title);
+    navigate(`/booking/${service.slug || service._id}?${params.toString()}`);
   };
 
   return (
@@ -405,7 +359,7 @@ const ACCategoryPage = ({ category: propCategory }) => {
             AC Services near you
           </h1>
 
-          {/* Trust Badges: 200+ Happy Customers, 50+ Partners, 4.8 Rating */}
+          {/* Trust Badges: 200+ Happy Customers, 50+ Partners */}
           <div className="flex items-center gap-2 sm:gap-2.5 mt-3 flex-wrap">
             {/* 200+ happy customer */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 text-xs font-semibold border border-slate-200/60 shadow-xs">
@@ -417,12 +371,6 @@ const ACCategoryPage = ({ category: propCategory }) => {
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 text-xs font-semibold border border-slate-200/60 shadow-xs">
               <ShieldCheck size={12} className="text-emerald-600" />
               <span>50+ Partners</span>
-            </div>
-
-            {/* 4.8 rating */}
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 text-xs font-semibold border border-slate-200/60 shadow-xs">
-              <Star size={12} className="fill-amber-400 text-amber-400" />
-              <span>4.8 Rating</span>
             </div>
           </div>
         </div>
@@ -491,6 +439,13 @@ const ACCategoryPage = ({ category: propCategory }) => {
 
         {/* ── Service Sections (Grouped matching reference screenshot) ── */}
         <div className="mt-6 flex flex-col gap-10">
+          {loadState !== "loading" && liveServices.length === 0 && (
+            <p role="status" className="text-center text-slate-500 py-12">
+              {loadState === "error"
+                ? "We couldn't load AC services right now. Please refresh and try again."
+                : "AC services aren't available yet. Please check back soon."}
+            </p>
+          )}
           {SUB_CATEGORIES.map((sub) => {
             const servicesInSection = groupedServices[sub.name] || [];
             if (servicesInSection.length === 0) return null;
@@ -527,10 +482,10 @@ const ACCategoryPage = ({ category: propCategory }) => {
                         <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-600 font-medium">
                           <Star size={13} className="fill-amber-400 text-amber-400" />
                           <span className="font-semibold text-slate-800">
-                            {service.rating || 4.7}
+                            {service.rating > 0 ? service.rating : "New"}
                           </span>
                           <span className="text-slate-500">
-                            ({(service.totalReviews || 8800).toLocaleString("en-IN")} reviews)
+                            ({(service.totalReviews ?? 0).toLocaleString("en-IN")} reviews)
                           </span>
                         </div>
 
@@ -561,7 +516,7 @@ const ACCategoryPage = ({ category: propCategory }) => {
                         <div className="flex items-center justify-between mt-4 max-w-md pt-2">
                           <div className="flex items-baseline gap-1">
                             <span className="text-base sm:text-lg font-extrabold text-slate-900">
-                              ₹{(service.startingPrice || 299).toLocaleString("en-IN")}
+                              ₹{(service.startingPrice ?? 0).toLocaleString("en-IN")}
                             </span>
                             {service.priceUnit && (
                               <span className="text-[11px] text-slate-500 font-normal">
@@ -630,10 +585,10 @@ const ACCategoryPage = ({ category: propCategory }) => {
                   <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-600">
                     <Star size={12} className="fill-amber-400 text-amber-400" />
                     <span className="font-semibold text-slate-800">
-                      {selectedServiceForModal.rating}
+                      {selectedServiceForModal.rating > 0 ? selectedServiceForModal.rating : "New"}
                     </span>
                     <span>
-                      ({(selectedServiceForModal.totalReviews || 8800).toLocaleString("en-IN")} reviews)
+                      ({(selectedServiceForModal.totalReviews ?? 0).toLocaleString("en-IN")} reviews)
                     </span>
                   </div>
                 </div>
@@ -746,7 +701,7 @@ const ACCategoryPage = ({ category: propCategory }) => {
                 <div>
                   <span className="text-[11px] text-slate-400 block font-medium">Starting from</span>
                   <span className="text-lg font-bold text-slate-900">
-                    ₹{(selectedServiceForModal.startingPrice || 299).toLocaleString("en-IN")}
+                    ₹{(selectedServiceForModal.startingPrice ?? 0).toLocaleString("en-IN")}
                   </span>
                 </div>
 

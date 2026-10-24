@@ -15,7 +15,6 @@ import {
   Check,
 } from "lucide-react";
 import api from "../config/api";
-import { mockServices } from "../data/mockServices";
 import AboutSection from "../components/serviceDetail/AboutSection";
 import HeroBanner from "../components/serviceDetail/HeroBanner";
 import PackagesSection from "../components/serviceDetail/PackagesSection";
@@ -29,27 +28,8 @@ const ServiceDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
 
-  const findInitialService = (targetId) => {
-    if (!targetId) return null;
-    const tid = String(targetId).toLowerCase().trim();
-    return (
-      mockServices.find(
-        (s) =>
-          String(s.id) === tid ||
-          String(s._id) === tid ||
-          s.slug?.toLowerCase() === tid ||
-          s.name?.toLowerCase() === tid ||
-          s.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-") === tid ||
-          (Array.isArray(s.aliasSlugs) && s.aliasSlugs.map((a) => a.toLowerCase()).includes(tid)) ||
-          ((tid === "cctv" || tid === "cctv-installation" || tid === "home-cctv") &&
-            (s.slug?.includes("cctv") || s.name?.toLowerCase().includes("cctv")))
-      ) || null
-    );
-  };
-
-  const initialService = findInitialService(id);
-  const [service, setService] = useState(initialService);
-  const [loading, setLoading] = useState(!initialService);
+  const [service, setService] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeImg, setActiveImg] = useState(0);
   const [openFaq, setOpenFaq] = useState(null);
@@ -58,42 +38,39 @@ const ServiceDetail = () => {
   const [selectedPkgForModal, setSelectedPkgForModal] = useState(null);
   const [activeNavTab, setActiveNavTab] = useState("packages");
 
-  // Fetch real-time service data
+  // Fetch the service from the API (the only source of truth for prices and availability)
   useEffect(() => {
+    let cancelled = false;
     const fetchService = async () => {
       try {
-        if (!service) setLoading(true);
+        setLoading(true);
         setError(null);
+        setService(null);
 
         const { data } = await api.get(`/services/${id}`);
-
-        if (data) {
-          setService(data);
-        }
+        if (cancelled) return;
+        setService(data);
 
         setCategoryComingSoon(false);
         if (data?.category) {
           try {
             const { data: cat } = await api.get(`/categories/${data.category}`);
-            setCategoryComingSoon(!!cat?.comingSoon);
+            if (!cancelled) setCategoryComingSoon(!!cat?.comingSoon);
           } catch {
             // non-fatal
           }
         }
       } catch (err) {
-        console.warn("Backend failed, checking mock data");
-        const match = findInitialService(id);
-        if (match) {
-          setService(match);
-        } else if (!service) {
-          setError(err.response?.data?.message || "Service not found");
+        if (!cancelled) {
+          setError(err.response?.status === 404 ? "This service is not available." : err.response?.data?.message || "We couldn't load this service. Please try again.");
         }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     fetchService();
+    return () => { cancelled = true; };
   }, [id]);
 
   // Escape key & background scroll lock for detail modal
@@ -128,7 +105,7 @@ const ServiceDetail = () => {
   const handleBookNow = (targetPkg) => {
     const pkgToBook = targetPkg || service.packages?.[selectedPkg];
     const serviceId = service.slug || service._id || service.id || id;
-    const price = pkgToBook?.price || service.startingPrice || 349;
+    const price = pkgToBook?.price ?? service.startingPrice ?? 0;
     const params = new URLSearchParams({
       name: service.name,
       package: pkgToBook?.title ?? "",
@@ -184,7 +161,7 @@ const ServiceDetail = () => {
 
   const pkg = service.packages?.[selectedPkg];
   const isRental = service.serviceMode === "RENTAL";
-  const activePkgPrice = pkg?.price || service.startingPrice || 349;
+  const activePkgPrice = pkg?.price ?? service.startingPrice ?? 0;
 
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-20 sm:pb-28 overflow-x-hidden selection:bg-purple-100 selection:text-purple-900">
@@ -390,10 +367,10 @@ const ServiceDetail = () => {
                   <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-600">
                     <Star size={12} className="fill-amber-400 text-amber-400" />
                     <span className="font-semibold text-slate-800">
-                      {service.rating || 4.8}
+                      {service.rating > 0 ? service.rating : "New"}
                     </span>
                     <span>
-                      ({(service.totalReviews || 2890).toLocaleString("en-IN")} reviews)
+                      ({(service.totalReviews ?? 0).toLocaleString("en-IN")} reviews)
                     </span>
                   </div>
                 </div>
@@ -498,7 +475,7 @@ const ServiceDetail = () => {
                     Package Price
                   </span>
                   <span className="text-xl font-extrabold text-slate-900">
-                    ₹{(selectedPkgForModal.price || service.startingPrice || 349).toLocaleString("en-IN")}
+                    ₹{(selectedPkgForModal.price ?? service.startingPrice ?? 0).toLocaleString("en-IN")}
                   </span>
                 </div>
 

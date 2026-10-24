@@ -37,9 +37,8 @@ const BookingCard = ({ service, pkg }) => {
   // Calculate trip price based on distance
   const distanceKm = routeInfo?.distanceKm || 0;
   const distancePrice = Math.round(distanceKm * perKmRate);
-  const basePkgPrice = pkg?.price ?? service?.startingPrice ?? 349;
+  const basePkgPrice = pkg?.price ?? service?.startingPrice ?? 0;
   const tripTotal = isRental && distanceKm > 0 ? distancePrice : basePkgPrice;
-  const originalPrice = tripTotal ? Math.round(tripTotal * 1.25) : null;
 
   // Format duration
   const formatDuration = (min) => {
@@ -173,9 +172,10 @@ const BookingCard = ({ service, pkg }) => {
                 <span className="font-bold text-slate-900">{formatDuration(routeInfo.durationMin)}</span>
               </div>
               <div className="flex items-center justify-between pt-1 border-t border-purple-200/60">
-                <span className="font-bold text-slate-900">Trip Total:</span>
+                <span className="font-bold text-slate-900">Estimated fare:</span>
                 <span className="text-base font-extrabold text-purple-700">₹{distancePrice.toLocaleString()}</span>
               </div>
+              <p className="text-[11px] text-slate-500 m-0">The driver confirms the final fare at the end of the trip. Pay in cash.</p>
             </div>
           )}
 
@@ -209,11 +209,6 @@ const BookingCard = ({ service, pkg }) => {
           <span className="text-3xl font-extrabold text-slate-900 tracking-tight">
             ₹{tripTotal.toLocaleString("en-IN")}
           </span>
-          {originalPrice && (
-            <span className="text-sm text-slate-400 line-through">
-              ₹{originalPrice.toLocaleString("en-IN")}
-            </span>
-          )}
           {service?.priceUnit && !isRental && (
             <span className="text-xs text-slate-500 font-normal">
               /{service.priceUnit}

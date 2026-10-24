@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { sendMail, sendTestEmail } from "../services/emailService.js";
+import { sendMail, sendTestEmail, escapeHtml } from "../services/emailService.js";
 import User from "../models/User.js";
 import Provider from "../models/Provider.js";
 import Booking from "../models/Booking.js";
@@ -8,6 +8,10 @@ import Category from "../models/Category.js";
 import Notification from "../models/Notification.js";
 import { protect } from "../middleware/auth.js";
 import { adminOnly } from "../middleware/admin.js";
+import { adminUpdateBookingStatus } from "./bookings.js";
+import { markCashCollected, confirmFare, BookingStateError } from "../services/bookingStatus.js";
+import { maxRentalFare } from "../services/pricing.js";
+import { kycViewUrl } from "../services/kyc.js";
 import { v2 as cloudinary } from "cloudinary";
 
 const router = Router();
@@ -18,19 +22,27 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
+// Query-string helpers: only plain strings reach a filter (no ?x[$ne]= objects) and lists are bounded.
+const str = (v) => (typeof v === "string" && v ? v : undefined);
+const clampLimit = (v, fallback, max = 200) => Math.min(Math.max(parseInt(v, 10) || fallback, 1), max);
+const escapeRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 // ─── DASHBOARD STATS ───────────────────────────────────
 
 // GET /api/admin/stats — Dashboard stats (real data from MongoDB)
 router.get("/stats", protect, adminOnly, async (req, res) => {
   try {
-    const sixMonthsAgo = new Date();
-    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
-    sixMonthsAgo.setDate(1);
-    sixMonthsAgo.setHours(0,0,0,0);
-
-    const startOfWeek = new Date();
-    startOfWeek.setDate(startOfWeek.getDate() - 6);
-    startOfWeek.setHours(0,0,0,0);
+    // All dashboard buckets are in India time (the server runs in UTC on Render).
+    const IST_MS = 5.5 * 3600 * 1000;
+    const istNow = new Date(Date.now() + IST_MS);
+    const istYear = istNow.getUTCFullYear();
+    const istMonth = istNow.getUTCMonth();
+    const monthStartIst = (offset) => new Date(Date.UTC(istYear, istMonth - offset, 1) - IST_MS);
+    const sixMonthsAgo = monthStartIst(5);
+    const startOfWeek = new Date(Date.UTC(istYear, istMonth, istNow.getUTCDate() - 6) - IST_MS);
+    const TZ = "Asia/Kolkata";
+    // Revenue = money actually received: paid bookings that weren't cancelled or refunded.
+    const paidMatch = { paymentStatus: "paid", status: { $ne: "cancelled" } };
 
     const [
       totalUsers,
@@ -43,28 +55,28 @@ router.get("/stats", protect, adminOnly, async (req, res) => {
       monthlyRevenueAgg,
       dailyBookingsAgg
     ] = await Promise.all([
-      User.countDocuments(),
-      Provider.countDocuments({ approvalStatus: "approved" }),
+      User.countDocuments({ deletedAt: { $exists: false } }),
+      Provider.countDocuments({ approvalStatus: "approved", isActive: true }),
       Provider.countDocuments({ approvalStatus: "pending" }),
       Booking.countDocuments(),
       Service.countDocuments(),
       Category.countDocuments(),
       Booking.aggregate([
-        { $match: { $or: [{ paymentStatus: "paid" }, { status: "completed" }] } },
+        { $match: paidMatch },
         { $group: { _id: null, total: { $sum: "$amount" } } },
       ]),
       Booking.aggregate([
         { 
           $match: { 
-            $or: [{ paymentStatus: "paid" }, { status: "completed" }],
+            ...paidMatch,
             createdAt: { $gte: sixMonthsAgo }
           } 
         },
         {
           $group: {
             _id: {
-              year: { $year: "$createdAt" },
-              month: { $month: "$createdAt" }
+              year: { $year: { date: "$createdAt", timezone: TZ } },
+              month: { $month: { date: "$createdAt", timezone: TZ } }
             },
             revenue: { $sum: "$amount" }
           }
@@ -79,7 +91,7 @@ router.get("/stats", protect, adminOnly, async (req, res) => {
         },
         {
           $group: {
-            _id: { $dayOfWeek: "$createdAt" },
+          _id: { $dayOfWeek: { date: "$createdAt", timezone: TZ } },
             count: { $sum: 1 }
           }
         }
@@ -90,11 +102,10 @@ router.get("/stats", protect, adminOnly, async (req, res) => {
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const monthlyRevenue = [];
     for (let i = 5; i >= 0; i--) {
-      const d = new Date();
-      d.setMonth(d.getMonth() - i);
-      const year = d.getFullYear();
-      const month = d.getMonth() + 1;
-      const label = monthNames[d.getMonth()];
+      const d = new Date(Date.UTC(istYear, istMonth - i, 1));
+      const year = d.getUTCFullYear();
+      const month = d.getUTCMonth() + 1;
+      const label = monthNames[d.getUTCMonth()];
       
       const match = monthlyRevenueAgg.find(r => r._id.year === year && r._id.month === month);
       monthlyRevenue.push({
@@ -107,10 +118,9 @@ router.get("/stats", protect, adminOnly, async (req, res) => {
     const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const weeklyBookings = [];
     for (let i = 6; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dayOfWeek = d.getDay() + 1; // MongoDB $dayOfWeek is 1-indexed (Sunday = 1)
-      const label = dayNames[d.getDay()];
+      const d = new Date(istNow.getTime() - i * 24 * 3600 * 1000); // shifted clock: use UTC getters for IST fields
+      const dayOfWeek = d.getUTCDay() + 1; // MongoDB $dayOfWeek is 1-indexed (Sunday = 1)
+      const label = dayNames[d.getUTCDay()];
       
       const match = dailyBookingsAgg.find(b => b._id === dayOfWeek);
       weeklyBookings.push({
@@ -140,32 +150,32 @@ router.get("/stats", protect, adminOnly, async (req, res) => {
 // GET /api/admin/services — List ALL services (including unavailable)
 router.get("/services", protect, adminOnly, async (req, res) => {
   try {
-    const { category, search, page = 1, limit = 50 } = req.query;
+    const category = str(req.query.category);
+    const search = str(req.query.search);
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = clampLimit(req.query.limit, 50);
     const filter = {};
 
-    if (category) filter.category = category;
+    if (category && /^[a-f0-9]{24}$/i.test(category)) filter.category = category;
     if (search) {
-      filter.$or = [
-        { name: { $regex: search, $options: "i" } },
-        { categoryName: { $regex: search, $options: "i" } },
-        { tags: { $regex: search, $options: "i" } },
-      ];
+      const rx = new RegExp(escapeRegex(search.slice(0, 100)), "i");
+      filter.$or = [{ name: rx }, { categoryName: rx }, { tags: rx }];
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    const skip = (page - 1) * limit;
     const [services, total] = await Promise.all([
       Service.find(filter)
         .sort("-createdAt")
         .skip(skip)
-        .limit(parseInt(limit)),
+        .limit(limit),
       Service.countDocuments(filter),
     ]);
 
     res.json({
       services,
       total,
-      page: parseInt(page),
-      totalPages: Math.ceil(total / parseInt(limit)),
+      page,
+      totalPages: Math.ceil(total / limit),
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -192,7 +202,7 @@ router.post("/services", protect, adminOnly, async (req, res) => {
       slug, name, shortDescription, fullDescription,
       category, categoryName, thumbnail, bannerImage, gallery,
       startingPrice, priceUnit, rating, totalReviews, experience,
-      available, serviceMode, tags, featured, packages, faqs, reviews, providers,
+      available, serviceMode, tags, featured, packages, faqs, reviews, providers, cities, perKmRate,
     } = req.body;
 
     // Auto-generate slug if not provided
@@ -227,6 +237,8 @@ router.post("/services", protect, adminOnly, async (req, res) => {
       faqs: faqs || [],
       reviews: reviews || [],
       providers: providers || [],
+      cities: Array.isArray(cities) ? cities : [],
+      ...(perKmRate ? { perKmRate: Number(perKmRate) } : {}),
     });
 
     res.status(201).json(service);
@@ -235,17 +247,24 @@ router.post("/services", protect, adminOnly, async (req, res) => {
   }
 });
 
-// PUT /api/admin/services/:id — Update a service (any field)
+// Fields an admin may change on an existing service. Ratings/reviews come from customers, and
+// approval/ownership have their own routes, so they are never taken from this body.
+const SERVICE_EDITABLE_FIELDS = [
+  "slug", "name", "shortDescription", "fullDescription", "category", "categoryName",
+  "thumbnail", "bannerImage", "gallery", "startingPrice", "priceUnit", "experience",
+  "available", "serviceMode", "tags", "featured", "packages", "faqs", "cities", "perKmRate", "durationMinutes",
+];
+
+const pickFields = (body = {}, fields) =>
+  Object.fromEntries(fields.filter((f) => body[f] !== undefined).map((f) => [f, body[f]]));
+
+// PUT /api/admin/services/:id — Update a service (allow-listed fields)
 router.put("/services/:id", protect, adminOnly, async (req, res) => {
   try {
-    const updateData = { ...req.body };
-    delete updateData._id;
-    delete updateData.__v;
-    delete updateData.createdAt;
-    delete updateData.updatedAt;
+    const updateData = pickFields(req.body, SERVICE_EDITABLE_FIELDS);
 
     if (updateData.category && typeof updateData.category === "object") {
-      updateData.category = updateData.category._id || updateData.category;
+      updateData.category = updateData.category._id;
     }
 
     // If slug is being changed, check uniqueness
@@ -350,16 +369,22 @@ router.post("/categories", protect, adminOnly, async (req, res) => {
 
     res.status(201).json(category);
   } catch (error) {
+    if (error?.name === "ValidationError") return res.status(400).json({ message: error.message });
     res.status(500).json({ message: error.message });
   }
 });
 
-// PUT /api/admin/categories/:id — Update a category
+const CATEGORY_EDITABLE_FIELDS = [
+  "name", "description", "vertical", "type", "imageUrl", "secondaryImageUrl", "iconUrl",
+  "displayOrder", "active", "comingSoon", "subCategories",
+];
+
+// PUT /api/admin/categories/:id — Update a category (allow-listed fields)
 router.put("/categories/:id", protect, adminOnly, async (req, res) => {
   try {
     const category = await Category.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      pickFields(req.body, CATEGORY_EDITABLE_FIELDS),
       { new: true, runValidators: true }
     );
 
@@ -369,6 +394,7 @@ router.put("/categories/:id", protect, adminOnly, async (req, res) => {
 
     res.json(category);
   } catch (error) {
+    if (error?.name === "ValidationError") return res.status(400).json({ message: error.message });
     res.status(500).json({ message: error.message });
   }
 });
@@ -441,14 +467,15 @@ router.patch("/categories/:id/coming-soon", protect, adminOnly, async (req, res)
 // GET /api/admin/providers — List all providers with status filter
 router.get("/providers", protect, adminOnly, async (req, res) => {
   try {
-    const { status } = req.query;
+    const status = str(req.query.status);
     const filter = {};
     if (status) filter.approvalStatus = status;
 
+    // KYC documents are not in this list; admins open them through /providers/:id/documents (signed, short-lived).
     const providers = await Provider.find(filter)
-      .select("+documents")
       .populate("user", "name email avatar phone")
-      .sort("-createdAt");
+      .sort("-createdAt")
+      .limit(500);
 
     res.json(providers);
   } catch (error) {
@@ -456,25 +483,60 @@ router.get("/providers", protect, adminOnly, async (req, res) => {
   }
 });
 
+// GET /api/admin/providers/:id/documents — KYC files as short-lived signed links (admins only).
+router.get("/providers/:id/documents", protect, adminOnly, async (req, res) => {
+  try {
+    const provider = await Provider.findById(req.params.id).select(
+      "+documents.idProof +documents.businessRegistration +documents.selfiePhoto +documents.other"
+    );
+    if (!provider) return res.status(404).json({ message: "Provider not found" });
+    const d = provider.documents || {};
+    res.set("Cache-Control", "no-store");
+    res.json({
+      expiresInSeconds: 300,
+      selfiePhoto: kycViewUrl(d.selfiePhoto),
+      idProof: kycViewUrl(d.idProof),
+      businessRegistration: kycViewUrl(d.businessRegistration),
+      other: (d.other || []).map((ref) => kycViewUrl(ref)),
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// A provider who can no longer work (rejected, demoted, deleted) keeps no live services, so new
+// bookings aren't auto-assigned to a profile that can't act on them (bookings copy Service.provider).
+async function retireProviderServices(providerIds) {
+  if (providerIds.length) await Service.updateMany({ provider: { $in: providerIds } }, { available: false });
+}
+
 // PATCH /api/admin/providers/:id/approve — Approve a provider
 router.patch("/providers/:id/approve", protect, adminOnly, async (req, res) => {
   try {
+    const existing = await Provider.findById(req.params.id).populate("user", "isActive deletedAt");
+    if (!existing) {
+      return res.status(404).json({ message: "Provider not found" });
+    }
+    // Never revive a deleted or deactivated account as a working provider.
+    if (!existing.user || existing.user.deletedAt || !existing.user.isActive) {
+      return res.status(409).json({ message: "This provider's account is deleted or deactivated, so it can't be approved" });
+    }
+
     const provider = await Provider.findByIdAndUpdate(
       req.params.id,
       {
         approvalStatus: "approved",
         approvedBy: req.user._id,
         approvedAt: new Date(),
+        // Re-approval after a rejection restores the profile.
+        isActive: true,
+        rejectionReason: "",
       },
       { new: true }
     ).populate("user", "name email");
 
-    if (!provider) {
-      return res.status(404).json({ message: "Provider not found" });
-    }
-
-    // Promote user role to provider
-    await User.findByIdAndUpdate(provider.user._id, { role: "provider" });
+    // Grant the provider role to a customer account only; never touch an admin's role.
+    await User.updateOne({ _id: provider.user._id, role: "user" }, { role: "provider" });
 
     res.json({ message: "Provider approved", provider });
   } catch (error) {
@@ -490,6 +552,7 @@ router.patch("/providers/:id/reject", protect, adminOnly, async (req, res) => {
       {
         approvalStatus: "rejected",
         rejectionReason: req.body.reason || "",
+        isActive: false,
       },
       { new: true }
     ).populate("user", "name email");
@@ -497,6 +560,12 @@ router.patch("/providers/:id/reject", protect, adminOnly, async (req, res) => {
     if (!provider) {
       return res.status(404).json({ message: "Provider not found" });
     }
+
+    // A rejected (or previously approved, now rejected) provider must lose provider access too.
+    if (provider.user) {
+      await User.updateOne({ _id: provider.user._id, role: "provider" }, { role: "user" });
+    }
+    await retireProviderServices([provider._id]);
 
     res.json({ message: "Provider rejected", provider });
   } catch (error) {
@@ -518,6 +587,9 @@ router.patch("/services/:id/assign-provider", protect, adminOnly, async (req, re
       if (!provider) {
         return res.status(404).json({ message: "Provider not found" });
       }
+      if (provider.approvalStatus !== "approved" || !provider.isActive) {
+        return res.status(400).json({ message: "Only approved, active providers can be assigned to services" });
+      }
       service.provider = provider._id;
     } else {
       service.provider = undefined;
@@ -535,49 +607,56 @@ router.patch("/services/:id/assign-provider", protect, adminOnly, async (req, re
 router.patch("/bookings/:id/assign", protect, adminOnly, async (req, res) => {
   try {
     const { providerId } = req.body;
-    const booking = await Booking.findById(req.params.id);
-    if (!booking) {
+    const exists = await Booking.exists({ _id: req.params.id });
+    if (!exists) {
       return res.status(404).json({ message: "Booking not found" });
     }
 
+    let provider = null;
     if (providerId) {
-      const provider = await Provider.findById(providerId);
+      provider = await Provider.findById(providerId);
       if (!provider) {
         return res.status(404).json({ message: "Provider not found" });
       }
-      booking.provider = provider._id;
-      if (booking.status === "pending") {
-        booking.status = "confirmed";
+      if (provider.approvalStatus !== "approved" || !provider.isActive) {
+        return res.status(400).json({ message: "Only approved, active providers can be assigned to bookings" });
       }
-
-      // Notify the provider
-      try {
-        await Notification.create({
-          recipient: provider.user,
-          title: "New Job Assigned! 💼",
-          message: `You have been assigned to booking ${booking.bookingId || ""} for ${booking.serviceName}.`,
-          type: "booking",
-        });
-      } catch (notifError) {
-        console.error("Failed to notify provider:", notifError);
-      }
-
-      // Notify the user
-      try {
-        await Notification.create({
-          recipient: booking.user,
-          title: "Provider Assigned 👨‍🔧",
-          message: `Your booking for ${booking.serviceName} has been assigned to ${provider.businessName}.`,
-          type: "booking",
-        });
-      } catch (notifError) {
-        console.error("Failed to notify user:", notifError);
-      }
-    } else {
-      booking.provider = undefined;
     }
 
-    await booking.save();
+    // Conditional update: a booking cancelled or started meanwhile is never (re)assigned or revived.
+    const booking = await Booking.findOneAndUpdate(
+      { _id: req.params.id, status: { $in: ["pending", "confirmed"] } },
+      provider ? { $set: { provider: provider._id } } : { $unset: { provider: "" } },
+      { new: true }
+    );
+    if (!booking) {
+      return res.status(409).json({ message: "Only pending or confirmed bookings can be (re)assigned" });
+    }
+
+    if (provider) {
+      // Assigning confirms a pending job, except an online booking that isn't paid yet (its payment confirms it).
+      const awaitingPayment = booking.paymentMethod === "razorpay" && booking.paymentStatus !== "paid";
+      if (booking.status === "pending" && !awaitingPayment) {
+        await Booking.updateOne(
+          { _id: booking._id, status: "pending" },
+          { $set: { status: "confirmed" }, $push: { statusHistory: { from: "pending", to: "confirmed", by: req.user._id, role: "admin", at: new Date(), note: "provider assigned" } } }
+        );
+      }
+
+      // Notify only after the assignment is saved.
+      Notification.create({
+        recipient: provider.user,
+        title: "New Job Assigned! 💼",
+        message: `You have been assigned to booking ${booking.bookingId || ""} for ${booking.serviceName}.`,
+        type: "booking",
+      }).catch((e) => console.error("Failed to notify provider:", e));
+      Notification.create({
+        recipient: booking.user,
+        title: "Provider Assigned 👨‍🔧",
+        message: `Your booking for ${booking.serviceName} has been assigned to ${provider.businessName}.`,
+        type: "booking",
+      }).catch((e) => console.error("Failed to notify user:", e));
+    }
 
     const updatedBooking = await Booking.findById(booking._id)
       .populate("user", "name email phone")
@@ -590,15 +669,62 @@ router.patch("/bookings/:id/assign", protect, adminOnly, async (req, res) => {
   }
 });
 
+// PATCH /api/admin/bookings/:id/status — Change a booking's status (same rules as the state machine)
+router.patch("/bookings/:id/status", protect, adminOnly, adminUpdateBookingStatus);
 
+// POST /api/admin/bookings/:id/cash-collected — Confirm cash received for a COD booking
+router.post("/bookings/:id/cash-collected", protect, adminOnly, async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+    markCashCollected(booking, { actorId: req.user._id, role: "admin" });
+    await booking.save();
+    res.json({ message: "Marked as paid", booking });
+  } catch (error) {
+    if (error instanceof BookingStateError) return res.status(error.status).json({ message: error.message });
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// PATCH /api/admin/bookings/:id/fare — rentals: record the final fare (same rules as the provider route)
+router.patch("/bookings/:id/fare", protect, adminOnly, async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id);
+    if (!booking) return res.status(404).json({ message: "Booking not found" });
+    const service = await Service.findById(booking.service).select("perKmRate");
+    confirmFare(booking, req.body?.amount, { actorId: req.user._id, role: "admin", maxAmount: maxRentalFare(service, booking) });
+    await booking.save();
+    // Same message the provider route sends: the customer must know what cash to keep ready.
+    await Notification.create({
+      recipient: booking.user,
+      title: "Final fare confirmed",
+      message: `Your trip fare for ${booking.bookingId} is ₹${booking.amount}, payable in cash.`,
+      type: "booking",
+    }).catch((err) => console.error("Fare notification error:", err?.message || err));
+    res.json({ message: "Fare confirmed", booking });
+  } catch (error) {
+    if (error instanceof BookingStateError) return res.status(error.status).json({ message: error.message });
+    res.status(500).json({ message: error.message });
+  }
+});
 
 // ─── USERS ─────────────────────────────────────────────
 
-// GET /api/admin/users — List all users
+// GET /api/admin/users — Paginated user list: ?page=1&limit=50&search=
 router.get("/users", protect, adminOnly, async (req, res) => {
   try {
-    const users = await User.find().sort("-createdAt").limit(100);
-    res.json(users);
+    const page = Math.max(parseInt(req.query.page, 10) || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 50, 1), 100);
+    const filter = { deletedAt: { $exists: false } };
+    if (typeof req.query.search === "string" && req.query.search.trim()) {
+      const rx = new RegExp(req.query.search.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+      filter.$or = [{ name: rx }, { email: rx }, { phone: rx }];
+    }
+    const [users, total] = await Promise.all([
+      User.find(filter).sort("-createdAt").skip((page - 1) * limit).limit(limit),
+      User.countDocuments(filter),
+    ]);
+    res.json({ users, total, page, totalPages: Math.ceil(total / limit) });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -615,48 +741,64 @@ router.patch("/users/:id/role", protect, adminOnly, async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    
+
     // Map "client" to "user" for DB schema enum compliance
     const finalRole = role === "client" ? "user" : role;
-    user.role = finalRole;
-    await user.save();
 
-    // If making user a provider, create/approve their Provider profile
-    if (finalRole === "provider") {
-      let providerProfile = await Provider.findOne({ user: user._id });
-      if (!providerProfile) {
-        // Find first available Category to link by default
-        const defaultCat = await Category.findOne({});
-        providerProfile = new Provider({
-          user: user._id,
-          businessName: `${user.name} Services`,
-          businessType: "Individual / Freelancer",
-          description: "Professional services provided on TiptoBook.",
-          category: defaultCat ? defaultCat._id : undefined,
-          categoryName: defaultCat ? defaultCat.name : "Uncategorized",
-          servicesOffered: [],
-          experience: "1 Year",
-          location: {
-            address: "",
-            city: "Patna",
-            state: "Bihar",
-            pincode: ""
-          },
-          phone: user.phone || "",
-          email: user.email,
-          approvalStatus: "approved",
-          approvedBy: req.user._id,
-          approvedAt: new Date()
-        });
-        await providerProfile.save();
-      } else if (providerProfile.approvalStatus !== "approved") {
-        providerProfile.approvalStatus = "approved";
-        providerProfile.approvedBy = req.user._id;
-        providerProfile.approvedAt = new Date();
-        await providerProfile.save();
+    if (user.role === "admin" && finalRole !== "admin") {
+      if (String(user._id) === String(req.user._id)) {
+        return res.status(400).json({ message: "You can't remove your own admin access" });
+      }
+      if ((await User.countDocuments({ role: "admin", isActive: true })) <= 1) {
+        return res.status(400).json({ message: "You can't remove the last administrator" });
       }
     }
+    if (finalRole === "admin" && !user.emailVerified) {
+      return res.status(400).json({ message: "This user's email isn't verified. Ask them to sign in with Google first." });
+    }
 
+    // Promoting to provider only creates a PENDING application. The provider role is granted when the
+    // application is approved in Providers (that is where KYC is reviewed).
+    if (finalRole === "provider") {
+      let providerProfile = await Provider.findOne({ user: user._id });
+      if (providerProfile) {
+        // An earlier profile (rejected, demoted, or never reviewed) goes back to the review queue.
+        providerProfile.approvalStatus = "pending";
+        providerProfile.isActive = false;
+        await providerProfile.save();
+        return res.json({
+          message: "This user's existing provider application is back in review. Approve it under Providers to grant provider access.",
+          user,
+        });
+      }
+      const defaultCat = await Category.findOne({});
+      providerProfile = new Provider({
+        user: user._id,
+        businessName: `${user.name} Services`,
+        businessType: "Individual / Freelancer",
+        description: "",
+        category: defaultCat ? defaultCat._id : undefined,
+        categoryName: defaultCat ? defaultCat.name : "Uncategorized",
+        servicesOffered: [],
+        phone: user.phone || "",
+        email: user.email,
+        approvalStatus: "pending",
+      });
+      await providerProfile.save();
+      return res.json({
+        message: "A provider application was created. Review and approve it under Providers to grant provider access.",
+        user,
+      });
+    }
+
+    user.role = finalRole;
+    await user.save();
+    // Leaving the provider role ends the provider profile too, so the account can't be assigned jobs.
+    if (finalRole !== "provider") {
+      const ids = await Provider.find({ user: user._id }).distinct("_id");
+      await Provider.updateMany({ _id: { $in: ids }, isActive: true }, { isActive: false });
+      await retireProviderServices(ids);
+    }
     res.json({ message: "User role updated successfully", user });
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -670,29 +812,49 @@ router.delete("/users/:id", protect, adminOnly, async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    await user.deleteOne();
+    if (user.role === "admin") {
+      return res.status(400).json({ message: "Administrators can't be deleted. Change their role first." });
+    }
+    // Soft delete: keep the row (bookings and payments still point at it) but anonymise personal data and disable access.
+    await User.updateOne(
+      { _id: user._id },
+      {
+        $set: { isActive: false, deletedAt: new Date(), name: "Deleted user", email: `deleted+${user._id}@deleted.invalid`, avatar: "", role: "user" },
+        $unset: { phone: "", firebaseUid: "", password: "", address: "", city: "", state: "", pincode: "" },
+      }
+    );
+    const providerIds = await Provider.find({ user: user._id }).distinct("_id");
+    await Provider.updateMany({ _id: { $in: providerIds } }, { isActive: false, approvalStatus: "rejected", rejectionReason: "Account deleted" });
+    await retireProviderServices(providerIds);
     res.json({ message: "User deleted successfully" });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-// POST /api/admin/upload — Upload base64 or URL image to Cloudinary
+// Images only (no SVG: it can carry script), as a base64 data URL, at most ~5 MB.
+const IMAGE_DATA_URL = /^data:image\/(png|jpe?g|webp);base64,[A-Za-z0-9+/]+=*$/;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
+// POST /api/admin/upload — Upload a base64 image to Cloudinary
 router.post("/upload", protect, adminOnly, async (req, res) => {
   try {
     const { image } = req.body;
-    if (!image) {
-      return res.status(400).json({ message: "No image data provided" });
+    if (typeof image !== "string" || !IMAGE_DATA_URL.test(image)) {
+      return res.status(400).json({ message: "Upload a PNG, JPEG or WebP image" });
+    }
+    if (Math.floor((image.length - image.indexOf(",") - 1) * 0.75) > MAX_IMAGE_BYTES) {
+      return res.status(413).json({ message: "Image is larger than 5 MB" });
     }
 
     if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
       console.error("Cloudinary credentials are not configured in environment variables.");
-      return res.status(500).json({ message: "Cloudinary storage is not properly configured on server." });
+      return res.status(503).json({ message: "Image storage is not configured on the server." });
     }
 
     const uploadResponse = await cloudinary.uploader.upload(image, {
       folder: "TiptoBook",
-      resource_type: "auto",
+      resource_type: "image",
       timeout: 60000,
     });
 
@@ -702,33 +864,43 @@ router.post("/upload", protect, adminOnly, async (req, res) => {
     });
   } catch (error) {
     console.error("Cloudinary upload failed:", error);
-    res.status(500).json({ message: error.message || "Failed to upload image to Cloudinary" });
+    res.status(502).json({ message: "Image upload failed. Please try again." });
   }
 });
+
+// True while a bulk email broadcast is being sent in the background (one API instance; see railway.toml numReplicas).
+let broadcastInProgress = false;
 
 // POST /api/admin/send-email — Send notifications to users via Email or In-Website
 router.post("/send-email", protect, adminOnly, async (req, res) => {
   try {
-    const { recipientType, email, subject, body, channels = ["email"] } = req.body;
+    const { recipientType, email } = req.body;
+    const body = typeof req.body.body === "string" ? req.body.body : "";
+    const subject = typeof req.body.subject === "string" ? req.body.subject.replace(/[\r\n]+/g, " ").trim() : "";
+    const channels = Array.isArray(req.body.channels) ? req.body.channels : ["email"];
     if (!subject || !body) {
       return res.status(400).json({ message: "Subject and Body are required" });
     }
 
     let recipients = [];
+    // Live accounts only: soft-deleted users (ADR 0011) keep an anonymised placeholder email.
+    const live = { deletedAt: { $exists: false }, isActive: { $ne: false }, email: { $exists: true, $ne: "" } };
     if (recipientType === "all") {
-      const users = await User.find({}, "email");
+      const users = await User.find(live, "email");
       recipients = users.map(u => u.email);
     } else if (recipientType === "providers") {
-      const providers = await Provider.find({ approvalStatus: "approved" }).populate("user", "email");
-      recipients = providers.map(p => p.user?.email).filter(Boolean);
+      const providers = await Provider.find({ approvalStatus: "approved", isActive: true }).populate("user", "email deletedAt");
+      recipients = providers.filter((p) => p.user && !p.user.deletedAt).map((p) => p.user.email).filter(Boolean);
     } else if (recipientType === "users") {
-      const users = await User.find({ role: "user" }, "email");
+      const users = await User.find({ ...live, role: "user" }, "email");
       recipients = users.map(u => u.email);
     } else if (recipientType === "individual") {
-      if (!email) {
-        return res.status(400).json({ message: "Individual email recipient is required" });
+      // Only registered accounts can be messaged: this endpoint must not be a mail relay to arbitrary addresses.
+      const target = typeof email === "string" ? await User.findOne({ ...live, email: email.trim().toLowerCase() }, "email") : null;
+      if (!target) {
+        return res.status(400).json({ message: "No registered user with that email address" });
       }
-      recipients = [email];
+      recipients = [target.email];
     } else {
       return res.status(400).json({ message: "Invalid recipient type" });
     }
@@ -737,38 +909,17 @@ router.post("/send-email", protect, adminOnly, async (req, res) => {
       return res.status(400).json({ message: "No matching recipients found" });
     }
 
-    let emailSent = false;
-    let isMock = true;
     let webSent = false;
     let webCount = 0;
-
-    // --- Channel 1: Email ---
-    if (channels.includes("email")) {
-      const emailHtml = `
-        <div style="font-family: sans-serif; padding: 24px; color: #334155; line-height: 1.6; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
-          <h2 style="color: #f97316; margin-top: 0;">TiptoBook Platform Announcement</h2>
-          <p style="white-space: pre-line; font-size: 15px; color: #1e293b;">${body}</p>
-          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-top: 24px;" />
-          <p style="font-size: 12px; color: #94a3b8; text-align: center;">You received this notification from the TiptoBook Administrator.</p>
-        </div>
-      `;
-
-      for (const recipient of recipients) {
-        sendMail({
-          to: recipient,
-          subject,
-          text: body,
-          html: emailHtml,
-        }).catch((err) => console.error("Admin broadcast send error:", err?.message || err));
-      }
-
-      isMock = !process.env.BREVO_API_KEY && !process.env.SMTP_USER;
-      emailSent = true;
+    const sendEmail = channels.includes("email");
+    const isMock = !process.env.BREVO_API_KEY && !process.env.SMTP_USER;
+    const bulk = recipientType !== "individual";
+    if (sendEmail && bulk && broadcastInProgress) {
+      return res.status(409).json({ message: "An email broadcast is still being sent. Wait for its result notification, then try again." });
     }
 
-    // --- Channel 2: In-Website Alerts ---
+    // --- Channel 2: In-Website Alerts (fast: one insert) ---
     if (channels.includes("web")) {
-      // Find matching users in database
       const matchedUsers = await User.find({ email: { $in: recipients } }, "_id");
       if (matchedUsers.length > 0) {
         const notificationDocs = matchedUsers.map(u => ({
@@ -783,15 +934,69 @@ router.post("/send-email", protect, adminOnly, async (req, res) => {
       }
     }
 
+    // --- Channel 1: Email ---
+    let emailResult = null;
+    if (sendEmail) {
+      const emailHtml = `
+        <div style="font-family: sans-serif; padding: 24px; color: #334155; line-height: 1.6; max-width: 600px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
+          <h2 style="color: #f97316; margin-top: 0;">TiptoBook Platform Announcement</h2>
+          <p style="white-space: pre-line; font-size: 15px; color: #1e293b;">${escapeHtml(body)}</p>
+          <hr style="border: 0; border-top: 1px solid #e2e8f0; margin-top: 24px;" />
+          <p style="font-size: 12px; color: #94a3b8; text-align: center;">You received this notification from the TiptoBook Administrator.</p>
+        </div>
+      `;
+      // In small batches, so one broadcast can't open hundreds of mail connections at once.
+      const sendAll = async () => {
+        let ok = 0;
+        let failed = 0;
+        for (let i = 0; i < recipients.length; i += 10) {
+          const results = await Promise.all(
+            recipients.slice(i, i + 10).map((recipient) =>
+              sendMail({ to: recipient, subject, text: body, html: emailHtml }).catch((err) => ({ success: false, error: err?.message }))
+            )
+          );
+          for (const r of results) (r?.success ? (ok += 1) : (failed += 1));
+        }
+        return { ok, failed };
+      };
+
+      if (bulk) {
+        // Hundreds of sends take longer than the admin page waits (15 s): answer now, send in the
+        // background and report the result as a notification to the admin who started it.
+        // A retry after a timeout would otherwise email everyone twice; the flag also blocks that.
+        broadcastInProgress = true;
+        const adminId = req.user._id;
+        sendAll()
+          .then(({ ok, failed }) =>
+            Notification.create({
+              recipient: adminId,
+              title: "Email broadcast finished",
+              message: `"${subject}": ${ok} delivered, ${failed} failed, out of ${recipients.length}.${isMock ? " (Mock mode: no mail provider configured.)" : ""}`,
+              type: "system",
+            })
+          )
+          .catch((err) => console.error("Email broadcast error:", err?.message || err))
+          .finally(() => { broadcastInProgress = false; });
+      } else {
+        emailResult = await sendAll();
+      }
+    }
+
     res.json({
       success: true,
-      message: `Notification broadcasted successfully. Channels: ${channels.join(", ")}.`,
+      message: sendEmail && bulk
+        ? `Sending ${recipients.length} email(s) in the background; you'll get a notification with the result.${webSent ? ` In-website alerts delivered to ${webCount} account(s).` : ""}`
+        : `Notification broadcasted. Channels: ${channels.join(", ")}.`,
       count: recipients.length,
-      emailSent,
+      emailQueued: sendEmail && bulk ? recipients.length : 0,
+      emailSent: emailResult ? emailResult.ok > 0 : false,
+      emailDelivered: emailResult?.ok ?? 0,
+      emailFailed: emailResult?.failed ?? 0,
       webSent,
       webCount,
       mock: isMock,
-      recipients: recipients
+      // Individual sends echo the (admin-typed) address; bulk sends never return the user list.
+      ...(recipientType === "individual" ? { recipients } : {}),
     });
   } catch (error) {
     console.error("Send notification error:", error);
@@ -802,9 +1007,12 @@ router.post("/send-email", protect, adminOnly, async (req, res) => {
 // GET /api/admin/notifications — Live admin notifications feed
 router.get("/notifications", protect, adminOnly, async (req, res) => {
   try {
-    const [pendingProviders, recentBookings] = await Promise.all([
-      Provider.find({ approvalStatus: "pending" }).populate("user", "name"),
-      Booking.find().populate("user", "name").sort("-createdAt").limit(15)
+    // Only the 10 newest alerts are returned, so no source needs more than 10 rows.
+    const [pendingProviders, recentBookings, ownNotifications] = await Promise.all([
+      Provider.find({ approvalStatus: "pending" }).populate("user", "name").sort("-createdAt").limit(10),
+      Booking.find().populate("user", "name").sort("-createdAt").limit(10),
+      // Messages addressed to this admin: refunds needed (routes/payments.js), broadcast results.
+      Notification.find({ recipient: req.user._id }).sort("-createdAt").limit(10),
     ]);
 
     const alerts = [];
@@ -833,6 +1041,17 @@ router.get("/notifications", protect, adminOnly, async (req, res) => {
       });
     });
 
+    ownNotifications.forEach((n) => {
+      alerts.push({
+        _id: `notification-${n._id}`,
+        type: "system",
+        title: n.title,
+        color: "#f59e0b",
+        message: n.message,
+        createdAt: n.createdAt,
+      });
+    });
+
     // Sort by date descending
     alerts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
@@ -852,7 +1071,8 @@ router.get("/service-requests", protect, adminOnly, async (req, res) => {
     const services = await Service.find({ provider: { $exists: true, $ne: null } })
       .populate("provider", "businessName email phone location")
       .populate("category", "name")
-      .sort("-createdAt");
+      .sort("-createdAt")
+      .limit(500);
     res.json(services);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -862,8 +1082,11 @@ router.get("/service-requests", protect, adminOnly, async (req, res) => {
 // PATCH /api/admin/service-requests/:id/approve — Approve a service listing
 router.patch("/service-requests/:id/approve", protect, adminOnly, async (req, res) => {
   try {
-    const service = await Service.findById(req.params.id).populate("provider", "businessName user");
+    const service = await Service.findById(req.params.id).populate("provider", "businessName user approvalStatus isActive");
     if (!service) return res.status(404).json({ message: "Service not found" });
+    if (service.provider && (service.provider.approvalStatus !== "approved" || !service.provider.isActive)) {
+      return res.status(409).json({ message: "This listing's provider isn't approved and active, so it can't go live" });
+    }
 
     service.approvalStatus = "approved";
     service.available = true;
@@ -929,15 +1152,18 @@ router.patch("/service-requests/:id/reject", protect, adminOnly, async (req, res
 // GET /api/admin/bookings — List all bookings (for Admin Panel)
 router.get("/bookings", protect, adminOnly, async (req, res) => {
   try {
-    const { status, limit = 100 } = req.query;
+    const status = str(req.query.status);
+    const paymentStatus = str(req.query.paymentStatus);
     const filter = {};
     if (status && status !== "all") filter.status = status;
+    // e.g. ?paymentStatus=refund_pending: the manual refund queue
+    if (paymentStatus && paymentStatus !== "all") filter.paymentStatus = paymentStatus;
 
     const bookings = await Booking.find(filter)
       .populate("user", "name email phone")
       .populate("provider", "businessName user")
       .sort("-createdAt")
-      .limit(parseInt(limit));
+      .limit(clampLimit(req.query.limit, 100));
     res.json(bookings);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -949,7 +1175,9 @@ router.get("/providers/approved", protect, adminOnly, async (req, res) => {
   try {
     const providers = await Provider.find({ approvalStatus: "approved", isActive: true })
       .populate("user", "name email phone role")
-      .select("businessName businessType categoryName experience location rating isActive user");
+      .select("businessName businessType categoryName experience location rating isActive user")
+      .sort("businessName")
+      .limit(500);
     res.json(providers);
   } catch (error) {
     res.status(500).json({ message: error.message });

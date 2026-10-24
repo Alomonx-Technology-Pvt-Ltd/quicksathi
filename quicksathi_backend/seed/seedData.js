@@ -6,6 +6,9 @@ import Category from "../models/Category.js";
 import Service from "../models/Service.js";
 import Booking from "../models/Booking.js";
 import Provider from "../models/Provider.js";
+import { assertSafeToSeed } from "./_guard.js";
+import { ensureDefaultBanners } from "../routes/banners.js";
+import { ensureDefaultCoupons } from "../routes/coupons.js";
 
 // Parse admin emails from .env (comma-separated)
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || "")
@@ -689,7 +692,7 @@ const servicesData = [
     name: "Home CCTV Installation",
     shortDescription: "Home and residential security camera setups",
     fullDescription: "Secure your home with high-definition IP cameras, motion-activated alert systems, real-time mobile app streaming, and local+cloud recording setups.",
-    categoryGroup: "CCTV Security",
+    categoryGroup: "House Services & Repair", // CCTV lives under House Services (the old "CCTV Security" category is no longer seeded)
     thumbnail: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/cctv-main.jpg",
     bannerImage: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/cctv-main.jpg",
     gallery: ["https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/cctv-main.jpg"],
@@ -721,7 +724,7 @@ const servicesData = [
     name: "Commercial CCTV Setup",
     shortDescription: "Business-scale camera infrastructure and control stations",
     fullDescription: "Enterprise-grade multi-camera networks, digital video recorders (NVR), central monitoring consoles, AI analytics, and high-performance server integration.",
-    categoryGroup: "CCTV Security",
+    categoryGroup: "House Services & Repair",
     thumbnail: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/cctv-main.jpg",
     bannerImage: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/cctv-main.jpg",
     gallery: [],
@@ -753,7 +756,7 @@ const servicesData = [
     name: "Security Maintenance",
     shortDescription: "CCTV maintenance, wire repairs, and software updates",
     fullDescription: "Comprehensive health check for your security network. Includes camera cleaning, wiring check, software updates, hard drive optimization, and alert testing.",
-    categoryGroup: "CCTV Security",
+    categoryGroup: "House Services & Repair",
     thumbnail: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/cctv-main.jpg",
     bannerImage: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/cctv-main.jpg",
     gallery: [],
@@ -785,7 +788,7 @@ const servicesData = [
     name: "Smart Lock Installation",
     shortDescription: "Digital smart locks and biometrics integration",
     fullDescription: "Upgrade your main door with high-security electronic smart locks, biometric fingerprint access, Wi-Fi remote unlock control, and smart home integration.",
-    categoryGroup: "CCTV Security",
+    categoryGroup: "House Services & Repair",
     thumbnail: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/cctv-main.jpg",
     bannerImage: "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/cctv-main.jpg",
     gallery: [],
@@ -1406,6 +1409,95 @@ const servicesData = [
       { name: "ColorPro Painters", rating: 4.7, experience: "8 Years", location: "Patna", startingPrice: 2999, image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop" }
     ]
   },
+  // ── Construction & Interior Design (category added on main, 2026-10-05) ──
+  // Large jobs are quoted after a paid site visit, so the bookable price is the visit/consultation.
+  {
+    slug: "home-construction-consultation",
+    name: "Home Construction Consultation",
+    shortDescription: "Site visit, budget estimate and plan for a new home or commercial building",
+    fullDescription: "A civil engineer visits your plot, checks soil and access, and gives you a written estimate and timeline for end-to-end construction with quality materials and structural guarantees.",
+    categoryGroup: "Construction & Interior Design",
+    thumbnail: "https://images.unsplash.com/photo-1541888946425-d0fbb18615f8?q=80&w=2070&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1541888946425-d0fbb18615f8?q=80&w=2070&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 999,
+    priceUnit: "per visit",
+    experience: "10 Years",
+    available: true,
+    serviceMode: "ON_SITE",
+    tags: ["Construction", "New Home", "Civil", "Planning"],
+    featured: false,
+    packages: [
+      { title: "Site Visit & Estimate", price: 999, features: ["Engineer site visit", "Written cost estimate", "Timeline plan"] }
+    ],
+    faqs: [
+      { question: "Is the visit fee adjusted later?", answer: "Your provider will tell you during the visit whether it is adjusted against the final contract." }
+    ],
+  },
+  {
+    slug: "renovation-remodeling",
+    name: "Renovation & Remodeling",
+    shortDescription: "Kitchen, bathroom and full-home renovation with a site survey first",
+    fullDescription: "Complete home transformation: kitchen remodels, bathroom revamps and structural restoration. Booking covers the survey and a detailed quote.",
+    categoryGroup: "Construction & Interior Design",
+    thumbnail: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2070&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2070&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 499,
+    priceUnit: "per visit",
+    experience: "8 Years",
+    available: true,
+    serviceMode: "ON_SITE",
+    tags: ["Construction", "Renovation", "Remodeling", "Kitchen", "Bathroom"],
+    featured: false,
+    packages: [
+      { title: "Survey & Quote", price: 499, features: ["On-site survey", "Itemised quote", "Material options"] }
+    ],
+    faqs: [],
+  },
+  {
+    slug: "interior-design-false-ceiling",
+    name: "Interior Design & False Ceiling",
+    shortDescription: "Modern interiors, custom woodwork, false ceilings and lighting",
+    fullDescription: "Bespoke interiors, gypsum/POP false ceilings and ambient lighting. Booking covers a designer consultation and a mood board for your space.",
+    categoryGroup: "Construction & Interior Design",
+    thumbnail: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2070&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2070&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 799,
+    priceUnit: "per consultation",
+    experience: "7 Years",
+    available: true,
+    serviceMode: "ON_SITE",
+    tags: ["Construction", "Interior", "Interior Design", "False Ceiling", "Ceiling", "Lighting"],
+    featured: false,
+    packages: [
+      { title: "Designer Consultation", price: 799, features: ["Home visit by a designer", "Mood board", "Budget estimate"] }
+    ],
+    faqs: [],
+  },
+  {
+    slug: "2d-3d-design-planning",
+    name: "2D/3D Design & Planning",
+    shortDescription: "Floor plans, 3D elevations and approval-ready drawings",
+    fullDescription: "Architectural floor plans, 3D elevation renders, structural drafting and municipal approval layouts, delivered digitally.",
+    categoryGroup: "Construction & Interior Design",
+    thumbnail: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2070&auto=format&fit=crop",
+    bannerImage: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?q=80&w=2070&auto=format&fit=crop",
+    gallery: [],
+    startingPrice: 2999,
+    priceUnit: "per plan",
+    experience: "9 Years",
+    available: true,
+    serviceMode: "REMOTE",
+    tags: ["Construction", "Planning", "2D", "3D", "Architecture"],
+    featured: false,
+    packages: [
+      { title: "2D Floor Plan", price: 2999, features: ["Up to 2 floors", "2 revisions"] },
+      { title: "2D + 3D Elevation", price: 6999, features: ["Floor plans", "3D front elevation", "3 revisions"] }
+    ],
+    faqs: [],
+  },
   {
     slug: "hair-styling-care",
     name: "Hair Styling & Care",
@@ -1571,18 +1663,17 @@ const servicesData = [
 ];
 
 const seedData = async () => {
+  assertSafeToSeed("seed/seedData.js");
   await connectDB();
 
-  console.log("🧹 Cleaning database...\n");
+  console.log("🧹 Cleaning catalog (seeded services & categories only; bookings, users, providers and provider-submitted services are never touched)...\n");
 
-  // Remove all dummy services and categories
-  const deletedServices = await Service.deleteMany({});
+  // Provider-submitted services carry a provider; seeded catalog services don't.
+  const deletedServices = await Service.deleteMany({ provider: { $exists: false } });
   const deletedCategories = await Category.deleteMany({});
-  const deletedBookings = await Booking.deleteMany({});
 
   console.log(`   Removed ${deletedServices.deletedCount} services`);
   console.log(`   Removed ${deletedCategories.deletedCount} categories`);
-  console.log(`   Removed ${deletedBookings.deletedCount} bookings`);
 
   console.log("\n🌱 Seeding categories...\n");
   const seededCategories = await Category.insertMany(categoriesData);
@@ -1595,124 +1686,29 @@ const seedData = async () => {
   });
 
   console.log("\n🌱 Seeding services...\n");
-  const servicesToInsert = servicesData.map((svc) => {
-    const parentId = categoryMap[svc.categoryGroup];
-    if (!parentId) {
-      console.warn(`⚠️ Warning: Category group "${svc.categoryGroup}" not found for service "${svc.name}"`);
-    }
-    
-    // Remove temporary categoryGroup field and add categoryObjectID
-    const { categoryGroup, ...rest } = svc;
-    return {
-      ...rest,
-      category: parentId,
-      categoryName: svc.categoryGroup
-    };
-  });
+  const servicesToInsert = servicesData
+    .filter((svc) => {
+      if (categoryMap[svc.categoryGroup]) return true;
+      console.warn(`⚠️ Skipping "${svc.name}": category group "${svc.categoryGroup}" is not seeded`);
+      return false;
+    })
+    .map((svc) => {
+      // Remove temporary categoryGroup field and add categoryObjectID
+      const { categoryGroup, ...rest } = svc;
+      return { ...rest, category: categoryMap[categoryGroup], categoryName: categoryGroup };
+    });
 
   const seededServices = await Service.insertMany(servicesToInsert);
   console.log(`   Seeded ${seededServices.length} services successfully!`);
 
-  console.log("\n🌱 Seeding sample bookings...\n");
-  const sampleUser = (await User.findOne({ role: "user" })) || (await User.findOne({}));
-  const sampleProvider = await Provider.findOne({ approvalStatus: "approved" });
+  // Default banners and coupons (dev only; the server no longer creates them at boot).
+  await ensureDefaultBanners();
+  await ensureDefaultCoupons();
 
-  if (sampleUser && seededServices.length > 0) {
-    const photoService = seededServices.find((s) => s.slug === "photography") || seededServices[0];
-    const decorService = seededServices.find((s) => s.slug === "decoration") || seededServices[1];
-    const rentalService = seededServices.find((s) => s.slug === "car-rental") || seededServices[2];
-    const plumbingService = seededServices.find((s) => s.slug === "plumbing") || seededServices[3];
+  // Sample bookings used to be seeded onto the first real user/provider. Never do that:
+  // create fixtures explicitly in a test instead.
 
-    const sampleBookings = [
-      {
-        bookingId: "QS-PHOTO-" + Math.random().toString(36).substring(2, 7).toUpperCase(),
-        user: sampleUser._id,
-        service: photoService._id,
-        provider: sampleProvider?._id,
-        serviceName: photoService.name,
-        packageTitle: photoService.packages?.[0]?.title || "Basic Package",
-        scheduledDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-        scheduledTime: "10:00 AM",
-        location: { address: "Boring Road, Near Chauraha", city: "Patna", pincode: "800001" },
-        notes: "Wedding reception shoot",
-        amount: 15000,
-        paymentMethod: "cod",
-        paymentStatus: "paid",
-        status: "completed",
-      },
-      {
-        bookingId: "QS-DECOR-" + Math.random().toString(36).substring(2, 7).toUpperCase(),
-        user: sampleUser._id,
-        service: decorService._id,
-        provider: sampleProvider?._id,
-        serviceName: decorService.name,
-        packageTitle: decorService.packages?.[0]?.title || "Royal Thematic Decor",
-        scheduledDate: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-        scheduledTime: "02:00 PM",
-        location: { address: "Bailey Road, Saguna More", city: "Patna", pincode: "800014" },
-        notes: "Floral entrance and stage setup",
-        amount: 25000,
-        paymentMethod: "razorpay",
-        paymentStatus: "paid",
-        status: "completed",
-      },
-      {
-        bookingId: "QS-CAR-" + Math.random().toString(36).substring(2, 7).toUpperCase(),
-        user: sampleUser._id,
-        service: rentalService._id,
-        serviceName: rentalService.name,
-        packageTitle: "Daily Rental Package",
-        scheduledDate: new Date(),
-        scheduledTime: "09:00 AM",
-        location: { address: "Patna Airport to Hotel Maurya", city: "Patna", pincode: "800001" },
-        notes: "Airport pickup with driver",
-        amount: 2499,
-        paymentMethod: "razorpay",
-        paymentStatus: "paid",
-        status: "confirmed",
-      },
-      {
-        bookingId: "QS-PLUMB-" + Math.random().toString(36).substring(2, 7).toUpperCase(),
-        user: sampleUser._id,
-        service: plumbingService._id,
-        serviceName: plumbingService.name,
-        packageTitle: "Basic Repair Visit",
-        scheduledDate: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
-        scheduledTime: "11:30 AM",
-        location: { address: "Kankarbagh Main Road", city: "Patna", pincode: "800020" },
-        notes: "Kitchen tap leakage repair",
-        amount: 199,
-        paymentMethod: "cod",
-        paymentStatus: "pending",
-        status: "pending",
-      },
-    ];
-
-    const seededBookings = await Booking.insertMany(sampleBookings);
-    console.log(`   Seeded ${seededBookings.length} sample bookings successfully!`);
-  }
-
-  // Promote any existing users with admin emails to admin role
-  if (ADMIN_EMAILS.length > 0) {
-    console.log(`\n👑 Admin emails from .env: ${ADMIN_EMAILS.join(", ")}`);
-
-    for (const email of ADMIN_EMAILS) {
-      const user = await User.findOne({ email });
-      if (user) {
-        if (user.role !== "admin") {
-          user.role = "admin";
-          await user.save();
-          console.log(`   ✅ Promoted "${user.name}" (${email}) to admin`);
-        } else {
-          console.log(`   ℹ️  "${user.name}" (${email}) is already admin`);
-        }
-      } else {
-        console.log(`   ⏳ ${email} — not registered yet (will auto-promote on first login/signup)`);
-      }
-    }
-  } else {
-    console.log("\n⚠️  No ADMIN_EMAILS set in .env — no admin users configured.");
-  }
+  // NOTE: admin rights are never granted from ADMIN_EMAILS. Use scripts/grant-admin.mjs.
 
   console.log("\n🎉 Database seeded successfully! Live changes will now propagate.");
   
