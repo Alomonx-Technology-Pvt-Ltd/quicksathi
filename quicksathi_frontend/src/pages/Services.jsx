@@ -1301,22 +1301,31 @@ const Services = () => {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3 md:gap-3.5">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3.5 md:gap-4.5">
                   {searchResults.map((item) => (
                     <Link
                       key={item.id}
                       to={item.destinationUrl}
-                      className="group flex flex-col items-center text-center p-2 sm:p-2.5 rounded-2xl bg-white hover:bg-slate-50/90 border border-slate-200/60 hover:border-blue-200 hover:shadow-xs transition-all duration-150 cursor-pointer outline-none relative no-underline w-full transform-gpu hover:-translate-y-0.5 active:scale-95"
+                      className="group flex flex-col items-center text-center p-1.5 sm:p-2 rounded-2xl bg-transparent hover:bg-slate-50/80 transition-colors duration-150 cursor-pointer outline-none relative border-0 no-underline w-full"
                     >
                       {/* Clean High-res Image / Icon Thumbnail */}
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center relative p-1 shrink-0 aspect-square rounded-xl bg-slate-50/80 overflow-hidden">
+                      <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center shrink-0 aspect-square">
+                        {item.badge && (
+                          <span
+                            className={`absolute -top-1 -right-1.5 text-[8.5px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                              item.badgeColor || "bg-blue-600 text-white"
+                            } tracking-wide shadow-xs z-10 pointer-events-none whitespace-nowrap`}
+                          >
+                            {item.badge}
+                          </span>
+                        )}
                         <img
                           src={item.image || item.icon}
                           alt={item.name}
                           loading="lazy"
                           decoding="async"
                           draggable="false"
-                          className="w-full h-full object-cover rounded-xl group-hover:scale-106 transition-transform duration-200 ease-out select-none"
+                          className="w-full h-full object-cover rounded-2xl drop-shadow-xs group-hover:scale-108 transition-transform duration-200 ease-out select-none pointer-events-none"
                           onError={(e) => {
                             e.currentTarget.onerror = null;
                             e.currentTarget.src = item.fallbackIcon || "/icons/categories/house-help.png";
@@ -1325,7 +1334,7 @@ const Services = () => {
                       </div>
 
                       {/* Title */}
-                      <span className="mt-2 text-[11px] sm:text-[12px] font-semibold text-slate-700 group-hover:text-blue-600 leading-snug line-clamp-2 transition-colors duration-150 text-center">
+                      <span className="mt-2 text-[11px] sm:text-[12px] font-semibold text-slate-800 group-hover:text-blue-600 leading-snug line-clamp-2 transition-colors duration-150 text-center">
                         {item.name}
                       </span>
                     </Link>
@@ -1485,7 +1494,7 @@ const Services = () => {
                     )}
 
                     {/* Exact Popup Cards Grid (3 cols on mobile, up to 7 on desktop) */}
-                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3 md:gap-3.5">
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 gap-2 sm:gap-3.5 md:gap-4.5">
                       {section.items.map((rawItem) => {
                         const item = getEnrichedItem(rawItem);
 
@@ -1493,28 +1502,28 @@ const Services = () => {
                           <Link
                             key={item.id}
                             to={item.destinationUrl}
-                            className="group flex flex-col items-center text-center p-2 sm:p-2.5 rounded-2xl bg-white hover:bg-slate-50/90 border border-slate-200/60 hover:border-blue-200 hover:shadow-xs transition-all duration-150 cursor-pointer outline-none relative no-underline w-full transform-gpu hover:-translate-y-0.5 active:scale-95"
+                            className="group flex flex-col items-center text-center p-1.5 sm:p-2 rounded-2xl bg-transparent hover:bg-slate-50/80 transition-colors duration-150 cursor-pointer outline-none relative border-0 no-underline w-full"
                           >
-                            {/* Optional Badge from popup (e.g. Popular, New, Foundation, Security) */}
-                            {item.badge && (
-                              <span
-                                className={`absolute top-1 right-1 text-[8.5px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
-                                  item.badgeColor || activeCategory.badgeColor || "bg-blue-600 text-white"
-                                } tracking-wider shadow-xs z-10 pointer-events-none`}
-                              >
-                                {item.badge}
-                              </span>
-                            )}
-
                             {/* Clean High-res Image / Icon Thumbnail */}
-                            <div className="w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center relative p-1 shrink-0 aspect-square rounded-xl bg-slate-50/80 overflow-hidden">
+                            <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center shrink-0 aspect-square">
+                              {/* Optional Badge from popup (e.g. Popular, New, Foundation, Security) */}
+                              {item.badge && (
+                                <span
+                                  className={`absolute -top-1 -right-1.5 text-[8.5px] sm:text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                                    item.badgeColor || activeCategory.badgeColor || "bg-blue-600 text-white"
+                                  } tracking-wide shadow-xs z-10 pointer-events-none whitespace-nowrap`}
+                                >
+                                  {item.badge}
+                                </span>
+                              )}
+
                               <img
                                 src={item.image || item.icon}
                                 alt={item.name}
                                 loading="lazy"
                                 decoding="async"
                                 draggable="false"
-                                className="w-full h-full object-cover rounded-xl group-hover:scale-106 transition-transform duration-200 ease-out select-none"
+                                className="w-full h-full object-cover rounded-2xl drop-shadow-xs group-hover:scale-108 transition-transform duration-200 ease-out select-none pointer-events-none"
                                 onError={(e) => {
                                   e.currentTarget.onerror = null;
                                   e.currentTarget.src = item.fallbackIcon || "/icons/categories/house-help.png";
@@ -1523,7 +1532,7 @@ const Services = () => {
                             </div>
 
                             {/* Title ONLY */}
-                            <span className="mt-2 text-[11px] sm:text-[12px] font-semibold text-slate-700 group-hover:text-blue-600 leading-snug line-clamp-2 transition-colors duration-150 text-center">
+                            <span className="mt-2 text-[11px] sm:text-[12px] font-semibold text-slate-800 group-hover:text-blue-600 leading-snug line-clamp-2 transition-colors duration-150 text-center">
                               {item.name}
                             </span>
                           </Link>
