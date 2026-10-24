@@ -1,5 +1,5 @@
 {
-  "$comment": "Single source for every static host (Cloudflare Workers/Pages, Hostinger/Apache, Vercel, Netlify headers). Edit this file, then run `npm run host-config` to regenerate wrangler.jsonc, public/_headers, public/.assetsignore, public/.htaccess and vercel.json. CI fails if they drift.",
+  "$comment": "Single source for every static host (Cloudflare Workers/Pages, Hostinger/Apache, Vercel, Netlify headers). Edit this file, then run `npm run host-config` to regenerate wrangler.json (here and at the repo root), public/_headers, public/.assetsignore, public/.htaccess and vercel.json. CI fails if they drift.",
   "cloudflare": { "workerName": "tiptobook-frontend", "compatibilityDate": "2026-09-01" },
   "securityHeaders": {
     "X-Content-Type-Options": "nosniff",
