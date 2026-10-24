@@ -199,22 +199,22 @@ const Login = () => {
           }}
         />
 
-        {/* Top brand badge */}
+        {/* Top brand bar */}
         <div className="relative z-10 p-8 xl:p-10 flex items-center justify-between">
           <Link to="/" className="no-underline flex items-center gap-2">
-            <BrandLogo size={34} isDark={true} />
+            <BrandLogo size={36} isDark={true} />
           </Link>
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-white/95 bg-black/30 backdrop-blur-md border border-white/20 shadow-sm">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span className="text-xs font-medium tracking-wide text-white/85 drop-shadow-sm flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
             Verified Doorstep Services
-          </div>
+          </span>
         </div>
 
         {/* Bottom hero content */}
         <div className="relative z-10 p-8 xl:p-10 pb-8">
-          <div className="inline-block px-3 py-1 rounded-full text-[11px] font-semibold tracking-wider uppercase mb-2.5 bg-blue-500/25 text-blue-200 border border-blue-400/30 backdrop-blur-sm">
-            {isProviderMode ? "Partner Network" : "All-in-One Booking"}
-          </div>
+          <p className="text-xs font-semibold tracking-widest uppercase text-blue-300 mb-2 drop-shadow-sm">
+            {isProviderMode ? "Partner Network" : "All-in-One Booking Platform"}
+          </p>
 
           <h2
             className="text-white font-bold leading-tight mb-2.5 drop-shadow-md"
@@ -225,22 +225,24 @@ const Login = () => {
               : "Your one-stop platform for every service need"}
           </h2>
 
-          <p className="text-white/85 text-xs sm:text-sm leading-relaxed mb-4 max-w-md drop-shadow">
+          <p className="text-white/90 text-xs sm:text-sm leading-relaxed mb-4 max-w-md drop-shadow">
             {isProviderMode
               ? "Sign in to manage services, track bookings, and reach thousands of customers in your city."
               : "From weddings and car rentals to AC repair and turnkey interior construction — certified specialists at transparent rates."}
           </p>
 
-          {/* Value feature pills */}
-          <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-white/15">
-            <span className="inline-flex items-center gap-1.5 text-xs text-white/90 font-medium px-2.5 py-1 rounded-lg bg-black/30 backdrop-blur-md border border-white/10">
-              <span className="text-emerald-400">✓</span> 100% Background Checked
+          {/* Clean trust highlights — pure typography, no pill/button styling */}
+          <div className="flex flex-wrap items-center gap-3 xl:gap-5 pt-3.5 border-t border-white/20 text-xs text-white/90">
+            <span className="flex items-center gap-1.5 font-medium drop-shadow-sm">
+              <span className="text-emerald-400 font-bold">✓</span> 100% Background Checked
             </span>
-            <span className="inline-flex items-center gap-1.5 text-xs text-white/90 font-medium px-2.5 py-1 rounded-lg bg-black/30 backdrop-blur-md border border-white/10">
-              <span className="text-blue-400">⚡</span> Upfront Pricing
+            <span className="w-1 h-1 rounded-full bg-white/40 hidden sm:inline-block" />
+            <span className="flex items-center gap-1.5 font-medium drop-shadow-sm">
+              <span className="text-amber-300 font-bold">⚡</span> Upfront Transparent Pricing
             </span>
-            <span className="inline-flex items-center gap-1.5 text-xs text-white/90 font-medium px-2.5 py-1 rounded-lg bg-black/30 backdrop-blur-md border border-white/10">
-              <span className="text-amber-400">★</span> 4.8+ Rated Pros
+            <span className="w-1 h-1 rounded-full bg-white/40 hidden sm:inline-block" />
+            <span className="flex items-center gap-1.5 font-medium drop-shadow-sm">
+              <span className="text-yellow-400 font-bold">★</span> 4.8+ Rated Specialists
             </span>
           </div>
         </div>
