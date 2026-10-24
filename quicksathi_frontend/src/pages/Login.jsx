@@ -172,84 +172,127 @@ const Login = () => {
     return "Welcome back";
   };
 
-  const inputClass = "w-full px-4 py-3 rounded-xl text-sm border outline-none transition-all duration-200";
+  const inputClass =
+    "w-full px-3.5 py-2.5 rounded-xl text-xs sm:text-sm border border-gray-200 outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-all bg-white";
   const inputStyle = {
     fontFamily: "var(--font-body)",
-    backgroundColor: "var(--color-bg-white)",
-    borderColor: "var(--color-border)",
     color: "var(--color-text-dark)",
   };
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: "var(--color-bg)" }}>
-      {/* Left: decorative panel — hidden on mobile */}
-      <div
-        className="hidden lg:flex flex-col justify-end w-1/2 relative overflow-hidden"
-        style={{ backgroundColor: "#0739a8" }}
-      >
+    <div className="min-h-screen lg:h-screen lg:max-h-screen flex overflow-hidden" style={{ backgroundColor: "var(--color-bg, #f8fafc)" }}>
+      {/* Left: decorative lifestyle hero panel — hidden on mobile */}
+      <div className="hidden lg:flex flex-col justify-between w-1/2 relative overflow-hidden bg-slate-950 select-none">
+        {/* Crisp, high-clarity background image */}
         <img
-          src="https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=2070&auto=format&fit=crop"
-          alt="TiptoBook"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ opacity: 0.35 }}
+          src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=85&w=2070&auto=format&fit=crop"
+          alt="TiptoBook Lifestyle"
+          className="absolute inset-0 w-full h-full object-cover object-center transform scale-100 transition-transform duration-700"
         />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(7,57,168,0.95) 20%, rgba(11,79,216,0.5) 100%)" }} />
-        <div className="relative z-10 p-12 pb-16">
+
+        {/* Elegant subtle dark gradient overlay: allows full photo visibility in upper/mid while providing crisp text contrast at bottom */}
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(15,23,42,0.45) 0%, rgba(15,23,42,0.12) 35%, rgba(10,20,45,0.72) 70%, rgba(8,15,38,0.94) 100%)",
+          }}
+        />
+
+        {/* Top brand badge */}
+        <div className="relative z-10 p-8 xl:p-10 flex items-center justify-between">
+          <Link to="/" className="no-underline flex items-center gap-2">
+            <BrandLogo size={34} isDark={true} />
+          </Link>
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium text-white/95 bg-black/30 backdrop-blur-md border border-white/20 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Verified Doorstep Services
+          </div>
+        </div>
+
+        {/* Bottom hero content */}
+        <div className="relative z-10 p-8 xl:p-10 pb-8">
+          <div className="inline-block px-3 py-1 rounded-full text-[11px] font-semibold tracking-wider uppercase mb-2.5 bg-blue-500/25 text-blue-200 border border-blue-400/30 backdrop-blur-sm">
+            {isProviderMode ? "Partner Network" : "All-in-One Booking"}
+          </div>
+
           <h2
-            className="text-white font-normal leading-tight mb-4"
-            style={{ fontFamily: "var(--font-display)", fontSize: "clamp(32px, 3.5vw, 52px)" }}
+            className="text-white font-bold leading-tight mb-2.5 drop-shadow-md"
+            style={{ fontFamily: "var(--font-display, inherit)", fontSize: "clamp(24px, 2.3vw, 38px)" }}
           >
             {isProviderMode
               ? "Grow your business with TiptoBook"
               : "Your one-stop platform for every service need"}
           </h2>
-          <p className="text-white/80 text-lg" style={{ fontFamily: "var(--font-body)", maxWidth: "400px" }}>
+
+          <p className="text-white/85 text-xs sm:text-sm leading-relaxed mb-4 max-w-md drop-shadow">
             {isProviderMode
-              ? "Sign in to manage your services, track bookings, and reach thousands of customers."
-              : "From weddings to car rentals to security — TiptoBook brings everything together."}
+              ? "Sign in to manage services, track bookings, and reach thousands of customers in your city."
+              : "From weddings and car rentals to AC repair and turnkey interior construction — certified specialists at transparent rates."}
           </p>
+
+          {/* Value feature pills */}
+          <div className="flex flex-wrap items-center gap-2 pt-3 border-t border-white/15">
+            <span className="inline-flex items-center gap-1.5 text-xs text-white/90 font-medium px-2.5 py-1 rounded-lg bg-black/30 backdrop-blur-md border border-white/10">
+              <span className="text-emerald-400">✓</span> 100% Background Checked
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-xs text-white/90 font-medium px-2.5 py-1 rounded-lg bg-black/30 backdrop-blur-md border border-white/10">
+              <span className="text-blue-400">⚡</span> Upfront Pricing
+            </span>
+            <span className="inline-flex items-center gap-1.5 text-xs text-white/90 font-medium px-2.5 py-1 rounded-lg bg-black/30 backdrop-blur-md border border-white/10">
+              <span className="text-amber-400">★</span> 4.8+ Rated Pros
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Right: form */}
-      <div className="flex-1 flex items-center justify-center px-6 py-12 pt-24">
-        <div className="w-full max-w-md">
-          {/* Brand */}
-          <Link to="/" className="no-underline flex items-center mb-4">
-            <BrandLogo size={42} />
-          </Link>
+      {/* Right: form — compact & fits screen without scrolling */}
+      <div className="flex-1 flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 py-4 sm:py-6 overflow-y-auto max-h-screen">
+        <div className="w-full max-w-sm sm:max-w-md my-auto">
+          {/* Header row */}
+          <div className="flex items-center justify-between mb-2">
+            <Link to="/" className="no-underline inline-flex items-center">
+              <BrandLogo size={36} />
+            </Link>
+            {isProviderMode && (
+              <div
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
+                style={{
+                  backgroundColor: "var(--color-primary-soft, #eff6ff)",
+                  color: "var(--color-primary, #2563eb)",
+                  border: "1px solid rgba(37,99,235,0.2)",
+                }}
+              >
+                🏢 Provider Portal
+              </div>
+            )}
+          </div>
 
-          {/* Provider mode badge */}
-          {isProviderMode && (
-            <div
-              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold mb-3"
-              style={{
-                fontFamily: "var(--font-body)",
-                backgroundColor: "var(--color-primary-soft)",
-                color: "var(--color-primary)",
-                border: "1px solid rgba(11,79,216,0.2)",
-              }}
-            >
-              🏢 Provider Portal
-            </div>
-          )}
+          <div className="mb-3">
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-gray-900 m-0">
+              {getTitle()}
+            </h1>
+            <p className="text-xs sm:text-sm text-gray-500 mt-0.5 m-0">
+              {isSignup
+                ? "Enter your details to create your account in seconds"
+                : isProviderMode
+                ? "Access your provider console and live leads"
+                : "Welcome back! Sign in to manage your bookings and profile"}
+            </p>
+          </div>
 
-          <p className="text-lg mb-8" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
-            {getTitle()}
-          </p>
-
-          {/* Error */}
+          {/* Error Banner */}
           {error && (
             <div
-              className="px-4 py-3 rounded-xl text-sm mb-6"
+              className="px-3.5 py-2 rounded-xl text-xs mb-3 flex items-start gap-2"
               style={{
                 backgroundColor: "rgba(220,38,38,0.08)",
                 color: "#dc2626",
-                border: "1px solid rgba(220,38,38,0.15)",
-                fontFamily: "var(--font-body)",
+                border: "1px solid rgba(220,38,38,0.2)",
               }}
             >
-              {error}
+              <span className="shrink-0 font-bold">⚠️</span>
+              <span className="leading-snug">{error}</span>
             </div>
           )}
 
@@ -259,16 +302,15 @@ const Login = () => {
           {/* ── COMPLETE PROFILE (after phone OTP for new users) ── */}
           {showCompleteProfile ? (
             <>
-              <div className="rounded-2xl p-4 mb-4" style={{ backgroundColor: "rgba(34,197,94,0.06)", border: "1px solid rgba(34,197,94,0.15)" }}>
-                <p className="text-xs m-0" style={{ fontFamily: "var(--font-body)", color: "#22c55e" }}>
+              <div className="rounded-xl p-3 mb-3 bg-emerald-50 border border-emerald-200">
+                <p className="text-xs text-emerald-700 m-0 font-medium">
                   ✓ Phone verified! Just add your name and email to get started.
                 </p>
               </div>
 
-              <form onSubmit={handleCompleteProfile} className="flex flex-col gap-4">
+              <form onSubmit={handleCompleteProfile} className="flex flex-col gap-2.5">
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
-                    style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-gray-600 mb-1">
                     Your Name *
                   </label>
                   <input
@@ -283,8 +325,7 @@ const Login = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
-                    style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-gray-600 mb-1">
                     Email (optional)
                   </label>
                   <input
@@ -295,22 +336,16 @@ const Login = () => {
                     className={inputClass}
                     style={inputStyle}
                   />
-                  <p className="text-[10px] mt-1.5" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-muted)" }}>
-                    We'll use this for booking confirmations & receipts
+                  <p className="text-[10px] text-gray-400 mt-1 mb-0">
+                    Used for booking confirmations & receipts
                   </p>
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 rounded-2xl text-sm font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-90 hover:scale-[1.01] mt-2"
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    backgroundColor: "var(--color-primary)",
-                    color: "#ffffff",
-                    boxShadow: "0 4px 20px rgba(139,26,26,0.25)",
-                    opacity: loading ? 0.7 : 1,
-                  }}
+                  className="w-full py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold border-0 cursor-pointer transition-all duration-200 text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20 active:scale-[0.99] mt-1"
+                  style={{ opacity: loading ? 0.7 : 1 }}
                 >
                   {loading ? "Saving..." : "Continue →"}
                 </button>
@@ -319,10 +354,9 @@ const Login = () => {
           ) : phoneMode && !isProviderMode ? (
             <>
               {!otpSent ? (
-                <form onSubmit={handleSendOtp} className="flex flex-col gap-4">
+                <form onSubmit={handleSendOtp} className="flex flex-col gap-2.5">
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
-                      style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+                    <label className="block text-[11px] font-semibold uppercase tracking-wider text-gray-600 mb-1">
                       Mobile Number
                     </label>
                     <input
@@ -332,9 +366,9 @@ const Login = () => {
                       placeholder="+91 98765 43210"
                       required
                       className={inputClass}
-                      style={{ ...inputStyle, fontSize: "16px", letterSpacing: "0.5px" }}
+                      style={{ ...inputStyle, fontSize: "15px", letterSpacing: "0.5px" }}
                     />
-                    <p className="text-xs mt-1.5" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-muted)" }}>
+                    <p className="text-[10px] text-gray-400 mt-1 mb-0">
                       Enter with country code (e.g. +91 for India)
                     </p>
                   </div>
@@ -342,29 +376,22 @@ const Login = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3.5 rounded-2xl text-sm font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-90 hover:scale-[1.01] mt-2"
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      backgroundColor: "var(--color-primary)",
-                      color: "#ffffff",
-                      boxShadow: "0 4px 20px rgba(139,26,26,0.25)",
-                      opacity: loading ? 0.7 : 1,
-                    }}
+                    className="w-full py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold border-0 cursor-pointer transition-all duration-200 text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20 active:scale-[0.99] mt-1"
+                    style={{ opacity: loading ? 0.7 : 1 }}
                   >
                     {loading ? "Sending OTP..." : "Send OTP"}
                   </button>
                 </form>
               ) : (
-                <form onSubmit={handleVerifyOtp} className="flex flex-col gap-4">
-                  <div className="text-center mb-2">
-                    <p className="text-xs" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
-                      We sent a 6-digit code to <strong style={{ color: "var(--color-text-dark)" }}>{phoneNumber}</strong>
+                <form onSubmit={handleVerifyOtp} className="flex flex-col gap-2.5">
+                  <div className="text-center mb-1">
+                    <p className="text-xs text-gray-600 m-0">
+                      We sent a 6-digit code to <strong className="text-gray-900">{phoneNumber}</strong>
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
-                      style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+                    <label className="block text-[11px] font-semibold uppercase tracking-wider text-gray-600 mb-1 text-center">
                       Enter OTP
                     </label>
                     <input
@@ -377,21 +404,15 @@ const Login = () => {
                       required
                       autoFocus
                       className={inputClass}
-                      style={{ ...inputStyle, fontSize: "24px", letterSpacing: "12px", textAlign: "center", fontWeight: 700 }}
+                      style={{ ...inputStyle, fontSize: "20px", letterSpacing: "8px", textAlign: "center", fontWeight: 700 }}
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full py-3.5 rounded-2xl text-sm font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-90 hover:scale-[1.01] mt-2"
-                    style={{
-                      fontFamily: "var(--font-body)",
-                      backgroundColor: "var(--color-primary)",
-                      color: "#ffffff",
-                      boxShadow: "0 4px 20px rgba(139,26,26,0.25)",
-                      opacity: loading ? 0.7 : 1,
-                    }}
+                    className="w-full py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold border-0 cursor-pointer transition-all duration-200 text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20 active:scale-[0.99] mt-1"
+                    style={{ opacity: loading ? 0.7 : 1 }}
                   >
                     {loading ? "Verifying..." : "Verify & Sign In"}
                   </button>
@@ -399,8 +420,7 @@ const Login = () => {
                   <button
                     type="button"
                     onClick={() => { setOtpSent(false); setOtp(""); setError(""); }}
-                    className="text-xs font-semibold text-center bg-transparent border-0 cursor-pointer underline"
-                    style={{ fontFamily: "var(--font-body)", color: "var(--color-text-muted)" }}
+                    className="text-xs font-medium text-center bg-transparent border-0 cursor-pointer underline text-gray-500 hover:text-gray-800 mt-1"
                   >
                     Change phone number
                   </button>
@@ -408,23 +428,15 @@ const Login = () => {
               )}
 
               {/* Back to email mode */}
-              <div className="flex items-center gap-4 my-6">
-                <div className="flex-1 h-px" style={{ backgroundColor: "var(--color-border)" }} />
-                <span className="text-xs uppercase tracking-widest" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-muted)" }}>
-                  or
-                </span>
-                <div className="flex-1 h-px" style={{ backgroundColor: "var(--color-border)" }} />
+              <div className="flex items-center gap-3 my-2.5">
+                <div className="flex-1 h-px bg-gray-200" />
+                <span className="text-[11px] font-medium uppercase tracking-wider text-gray-400">or</span>
+                <div className="flex-1 h-px bg-gray-200" />
               </div>
 
               <button
                 onClick={() => { setPhoneMode(false); setOtpSent(false); setOtp(""); setError(""); }}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 rounded-2xl text-sm font-semibold border cursor-pointer transition-all duration-200 hover:shadow-lg"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  backgroundColor: "var(--color-bg-white)",
-                  color: "var(--color-text-dark)",
-                  borderColor: "var(--color-border)",
-                }}
+                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-all cursor-pointer shadow-sm"
               >
                 ✉️ Continue with Email
               </button>
@@ -436,13 +448,7 @@ const Login = () => {
               {isProviderMode && (
                 <Link
                   to="/provider/onboarding"
-                  className="block w-full text-center px-6 py-3 rounded-2xl text-sm font-semibold no-underline border transition-all duration-200 hover:shadow-lg mb-6"
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    backgroundColor: "transparent",
-                    color: "var(--color-primary)",
-                    borderColor: "var(--color-primary)",
-                  }}
+                  className="block w-full text-center px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold no-underline border border-blue-600 text-blue-600 hover:bg-blue-50 transition-all mb-3"
                 >
                   📝 Register as a New Provider
                 </Link>
@@ -452,15 +458,9 @@ const Login = () => {
               <button
                 onClick={handleGoogle}
                 disabled={loading}
-                className="w-full flex items-center justify-center gap-3 px-6 py-3.5 rounded-2xl text-sm font-semibold border cursor-pointer transition-all duration-200 hover:shadow-lg mb-3"
-                style={{
-                  fontFamily: "var(--font-body)",
-                  backgroundColor: "var(--color-bg-white)",
-                  color: "var(--color-text-dark)",
-                  borderColor: "var(--color-border)",
-                }}
+                className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-all cursor-pointer shadow-sm mb-2"
               >
-                <svg width="18" height="18" viewBox="0 0 24 24">
+                <svg width="17" height="17" viewBox="0 0 24 24">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
                   <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
                   <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
@@ -474,36 +474,25 @@ const Login = () => {
                 <button
                   onClick={() => { setPhoneMode(true); setError(""); }}
                   disabled={loading}
-                  className="w-full flex items-center justify-center gap-3 px-6 py-3.5 rounded-2xl text-sm font-semibold border cursor-pointer transition-all duration-200 hover:shadow-lg mb-6"
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    backgroundColor: "var(--color-bg-white)",
-                    color: "var(--color-text-dark)",
-                    borderColor: "var(--color-border)",
-                  }}
+                  className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 transition-all cursor-pointer shadow-sm mb-2"
                 >
-                  <Smartphone size={18} />
+                  <Smartphone size={16} />
                   Continue with Phone
                 </button>
               )}
 
-              {isProviderMode && <div className="mb-3" />}
-
               {/* Divider */}
-              <div className="flex items-center gap-4 mb-6">
-                <div className="flex-1 h-px" style={{ backgroundColor: "var(--color-border)" }} />
-                <span className="text-xs uppercase tracking-widest" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-muted)" }}>
-                  or
-                </span>
-                <div className="flex-1 h-px" style={{ backgroundColor: "var(--color-border)" }} />
+              <div className="flex items-center gap-3 my-2.5">
+                <div className="flex-1 h-px bg-gray-200" />
+                <span className="text-[11px] font-medium uppercase tracking-wider text-gray-400">or</span>
+                <div className="flex-1 h-px bg-gray-200" />
               </div>
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+              <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
                 {isSignup && !isProviderMode && (
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
-                      style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+                    <label className="block text-[11px] font-semibold uppercase tracking-wider text-gray-600 mb-1">
                       Full Name
                     </label>
                     <input
@@ -520,8 +509,7 @@ const Login = () => {
                 )}
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
-                    style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-gray-600 mb-1">
                     Email Address
                   </label>
                   <input
@@ -537,8 +525,7 @@ const Login = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
-                    style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-gray-600 mb-1">
                     Password
                   </label>
                   <input
@@ -556,8 +543,7 @@ const Login = () => {
 
                 {isSignup && !isProviderMode && (
                   <div>
-                    <label className="block text-xs font-semibold uppercase tracking-wider mb-2"
-                      style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+                    <label className="block text-[11px] font-semibold uppercase tracking-wider text-gray-600 mb-1">
                       Phone (Optional)
                     </label>
                     <input
@@ -575,14 +561,8 @@ const Login = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 rounded-2xl text-sm font-semibold border-0 cursor-pointer transition-all duration-200 hover:opacity-90 hover:scale-[1.01] mt-2"
-                  style={{
-                    fontFamily: "var(--font-body)",
-                    backgroundColor: "var(--color-primary)",
-                    color: "#ffffff",
-                    boxShadow: "0 4px 20px rgba(139,26,26,0.25)",
-                    opacity: loading ? 0.7 : 1,
-                  }}
+                  className="w-full py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold border-0 cursor-pointer transition-all duration-200 text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20 active:scale-[0.99] mt-1"
+                  style={{ opacity: loading ? 0.7 : 1 }}
                 >
                   {loading ? "Please wait..." : isProviderMode ? "Sign In as Provider" : isSignup ? "Create Account" : "Sign In"}
                 </button>
@@ -590,12 +570,11 @@ const Login = () => {
 
               {/* Toggle sign up / sign in (only for user mode) */}
               {!isProviderMode && (
-                <p className="text-center text-sm mt-6" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+                <p className="text-center text-xs sm:text-sm mt-3 text-gray-600 mb-0">
                   {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
                   <button
                     onClick={() => { setIsSignup(!isSignup); setError(""); }}
-                    className="font-semibold border-0 bg-transparent cursor-pointer underline"
-                    style={{ color: "var(--color-primary)", fontFamily: "var(--font-body)" }}
+                    className="font-semibold border-0 bg-transparent cursor-pointer text-blue-600 hover:text-blue-700 underline"
                   >
                     {isSignup ? "Sign In" : "Create Account"}
                   </button>
@@ -605,14 +584,10 @@ const Login = () => {
           )}
 
           {/* Mode switcher */}
-          <div className="text-center mt-6 pt-4 border-t flex flex-col gap-3" style={{ borderColor: "var(--color-border)" }}>
+          <div className="text-center mt-3 pt-2.5 border-t border-gray-100 flex flex-col gap-1.5">
             <Link
               to={isProviderMode ? "/login" : "/login?mode=provider"}
-              className="text-xs font-semibold no-underline uppercase tracking-wider transition-all duration-200 hover:opacity-75"
-              style={{
-                fontFamily: "var(--font-body)",
-                color: "var(--color-text-muted)",
-              }}
+              className="text-[11px] font-semibold no-underline uppercase tracking-wider text-gray-400 hover:text-gray-700 transition-colors"
               onClick={() => { setError(""); setPhoneMode(false); setOtpSent(false); }}
             >
               {isProviderMode ? "← Back to User Sign In" : "🏢 Sign In as Provider"}
