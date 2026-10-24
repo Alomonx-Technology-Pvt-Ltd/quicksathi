@@ -175,7 +175,7 @@ Money is stored as rupee numbers (not integer paise) — see "Known limitations"
 
 ## 8. Cross-cutting concerns
 
-- **Security headers**: helmet on the API. For the static frontend, one policy (`quicksathi_frontend/hosting/policy.json`: HSTS, Referrer-Policy, Permissions-Policy, X-Frame-Options and a minimal CSP with `frame-ancestors`, `base-uri`, `object-src`, `form-action`) is generated into `wrangler.jsonc` (Cloudflare Workers SPA fallback), `public/_headers` (Cloudflare Workers/Pages, Netlify), `public/.htaccess` (Apache/Hostinger) and `vercel.json` by `npm run host-config`; CI fails if they drift. A full script-src CSP is not enabled yet.
+- **Security headers**: helmet on the API. For the static frontend, one policy (`quicksathi_frontend/hosting/policy.json`: HSTS, Referrer-Policy, Permissions-Policy, X-Frame-Options and a minimal CSP with `frame-ancestors`, `base-uri`, `object-src`, `form-action`) is generated into `wrangler.json` (Cloudflare Workers SPA fallback; one in `quicksathi_frontend/`, one at the repo root), `public/_headers` (Cloudflare Workers/Pages, Netlify), `public/.htaccess` (Apache/Hostinger) and `vercel.json` by `npm run host-config`; CI fails if they drift. A full script-src CSP is not enabled yet.
 - **Email** (`services/emailService.js`): Brevo API, else SMTP. Every user-supplied value is HTML-escaped (`escapeHtml`). In production a missing provider is an error, not a silent mock.
 - **Uploads**: admin images and provider KYC arrive as base64 data URIs and are pushed to Cloudinary. KYC accepts PNG/JPG/WebP only, ≤ ~5 MB.
 - **AI chat** (`routes/ai.js`): the system prompt is fixed on the server; the client sends only the conversation (user/assistant roles, ≤ 10 messages, ≤ 1000 chars each); falls back to a rule-based answer engine.
@@ -207,7 +207,7 @@ Backend variables (`quicksathi_backend/.env.example` is the template):
 | `SEED_DB_ALLOWLIST`, `SITE_URL`, `ADMIN_NEW_PASSWORD` | scripts only | dev seed's extra allowed databases; sitemap base URL; `admin-account.mjs` password |
 | `PORT` | set by the host | defaults to 5050 locally (5000 clashes with macOS AirPlay) |
 
-**Hosting is vendor-independent** (decision f in `docs/fix-plan-mvp.md`): the frontend is static files for any host (Cloudflare Workers today, set up with `wrangler.jsonc`; Hostinger, Vercel and Cloudflare Pages also covered; all generated from `hosting/policy.json`), and the API is a Docker image (`quicksathi_backend/Dockerfile`, built by Railway automatically; CI builds and boots it) or plain `npm ci && npm start` (`render.yaml`). Target domains: `tiptobook.com` + `api.tiptobook.com`, with a staging pair.
+**Hosting is vendor-independent** (decision f in `docs/fix-plan-mvp.md`): the frontend is static files for any host (Cloudflare Workers today, set up with `wrangler.json`; Hostinger, Vercel and Cloudflare Pages also covered; all generated from `hosting/policy.json`), and the API is a Docker image (`quicksathi_backend/Dockerfile`, built by Railway automatically; CI builds and boots it) or plain `npm ci && npm start` (`render.yaml`). Target domains: `tiptobook.com` + `api.tiptobook.com`, with a staging pair.
 
 Frontend (`quicksathi_frontend/.env.example`): `VITE_API_URL` (defaults to `http://localhost:5050/api`) and the public `VITE_FIREBASE_*` web config. The app runs without a `.env`; Google/phone login are disabled until Firebase is configured.
 

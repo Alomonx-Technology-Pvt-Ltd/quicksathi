@@ -4,8 +4,12 @@
 //   node scripts/host-config.mjs --check  exit 1 if any file differs (CI)
 //
 // Outputs:
-//   wrangler.jsonc       Cloudflare Workers (static assets): SPA fallback via not_found_handling.
-//                        A "/* /index.html 200" rule in _redirects breaks Workers deploys (infinite loop).
+//   wrangler.json        Cloudflare Workers (static assets), for a Workers Builds root of quicksathi_frontend/
+//   ../wrangler.json     the same at the repo root, for a Workers Builds root of the repository
+//                        Both: SPA fallback via not_found_handling. A "/* /index.html 200" rule in
+//                        _redirects breaks Workers deploys (infinite loop). No "vars": they are runtime
+//                        values for Worker scripts, and a static site has none; VITE_* values must be
+//                        Workers Builds *build* variables.
 //   public/_headers      Cloudflare Workers/Pages + Netlify headers (copied into dist/ by Vite)
 //   public/.assetsignore files in dist/ that Cloudflare must not publish (.htaccess)
 //   public/.htaccess     Apache / LiteSpeed (Hostinger): headers, caching, SPA fallback
@@ -34,21 +38,19 @@ const headersFile = [
   "",
 ].join("\n");
 
-// Cloudflare Workers Builds deploys with `npx wrangler deploy` from quicksathi_frontend/; the Worker's
-// name must match the one connected in the Cloudflare dashboard.
-const wranglerJsonc = [
-  `// ${banner}`,
+// Cloudflare Workers Builds deploys with `npx wrangler deploy`; the Worker's name must match the one
+// connected in the Cloudflare dashboard.
+const wranglerJson = (assetsDir) =>
   JSON.stringify(
     {
+      $schema: "node_modules/wrangler/config-schema.json",
       name: policy.cloudflare.workerName,
       compatibility_date: policy.cloudflare.compatibilityDate,
-      assets: { directory: "./dist", not_found_handling: "single-page-application" },
+      assets: { directory: assetsDir, not_found_handling: "single-page-application" },
     },
     null,
     2
-  ),
-  "",
-].join("\n");
+  ) + "\n";
 
 const assetsIgnore = [`# ${banner}`, ".htaccess", ""].join("\n");
 
@@ -96,7 +98,8 @@ const vercelJson = JSON.stringify(
 ) + "\n";
 
 const outputs = {
-  "wrangler.jsonc": wranglerJsonc,
+  "wrangler.json": wranglerJson("./dist"),
+  "../wrangler.json": wranglerJson("./quicksathi_frontend/dist"),
   "public/_headers": headersFile,
   "public/.assetsignore": assetsIgnore,
   "public/.htaccess": htaccess,
