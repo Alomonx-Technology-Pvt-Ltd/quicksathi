@@ -1,6 +1,22 @@
 import axios from "axios";
 
-let rawApiUrl = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const isLocalhost =
+  typeof window !== "undefined" &&
+  (window.location.hostname === "localhost" ||
+   window.location.hostname === "127.0.0.1");
+
+// If running in browser and NOT localhost, default to deployed Railway backend
+const DEFAULT_REMOTE_API = "https://tiptobook.up.railway.app/api";
+
+let rawApiUrl =
+  import.meta.env.VITE_API_URL ||
+  (isLocalhost ? "http://localhost:5000/api" : DEFAULT_REMOTE_API);
+
+// If running on a deployed website, never call localhost
+if (!isLocalhost && rawApiUrl.includes("localhost")) {
+  rawApiUrl = DEFAULT_REMOTE_API;
+}
+
 if (rawApiUrl && !rawApiUrl.startsWith("http://") && !rawApiUrl.startsWith("https://")) {
   rawApiUrl = `https://${rawApiUrl}`;
 }

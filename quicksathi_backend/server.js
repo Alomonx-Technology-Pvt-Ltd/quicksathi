@@ -78,8 +78,9 @@ const corsOptions = {
       return callback(null, true);
     }
 
-    // Allow any Cloudflare Pages deployment URL for this project
-    if (/^https:\/\/(quicksathi|tipto|tiptobook)[a-z0-9-]*\.pages\.dev$/i.test(origin)) {
+    // Allow any Cloudflare Pages and Workers deployment URLs for this project
+    if (/^https:\/\/(quicksathi|tipto|tiptobook)[a-z0-9-]*\.(pages\.dev|workers\.dev)$/i.test(origin) ||
+        /alomonxtechnology\.workers\.dev$/i.test(origin)) {
       return callback(null, true);
     }
 
