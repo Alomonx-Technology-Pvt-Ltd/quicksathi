@@ -1,0 +1,154 @@
+{
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "hi-Latn": "Hinglish"
+  },
+  "common": {
+    "bookNow": "Book Now",
+    "book": "Book",
+    "showMore": "Show more",
+    "close": "Close",
+    "reviewsCount": "({{count}} reviews)",
+    "newService": "New",
+    "ratingBadge": "{{rating}} Rating",
+    "happyCustomers": "{{count}}+ Happy Customers",
+    "partners": "{{count}}+ Partners",
+    "startingFrom": "Starting from",
+    "contactSupport": "Contact Support",
+    "home": "Home",
+    "category": "Category"
+  },
+  "location": {
+    "locating": "Locating in real-time...",
+    "current": "Current Location",
+    "city": "City: {{city}}",
+    "selectCity": "Select city"
+  },
+  "catalogue": {
+    "moreServices": "More services",
+    "whatServiceNeed": "What service do you need?",
+    "aboutService": "About this service",
+    "packagesHeading": "Included options & packages",
+    "faqs": "Frequently Asked Questions",
+    "whatsIncluded": "What's included",
+    "whatsNotIncluded": "What's not included",
+    "extraCharges": "Extra charges",
+    "loadingServices": "Loading services…",
+    "noServices": "No services are available here right now."
+  },
+  "category": {
+    "titleNearYou": "{{name}} near you",
+    "titleServicesNearYou": "{{name}} services near you",
+    "notFound": "Category not found",
+    "launchingSoon": "{{name}} is launching soon!",
+    "onboarding": "We're currently onboarding top verified providers. Booking will open shortly!",
+    "customTitle": "Need customized {{name}}?",
+    "customText": "Speak directly with our dedicated customer support team for custom packages and instant bookings.",
+    "assuranceTitle": "TiptoBook Assurance",
+    "assuranceText": "Background-verified professionals • Transparent pricing • Post-service quality guarantee with dedicated support."
+  },
+  "ac": {
+    "title": "AC & appliance services near you",
+    "assuranceTitle": "TiptoBook AC Assurance",
+    "assuranceText": "Background-verified technicians • 30-day post-service warranty • Standardized pricing with zero hidden charges."
+  },
+  "salon": {
+    "titleWomen": "Women's Salon & Beauty at Home",
+    "titleMen": "Men's Grooming & Salon at Home",
+    "titleAll": "Home Salon & Beauty services near you",
+    "women": "👩 Women",
+    "men": "👨 Men",
+    "showAll": "Show All ×",
+    "customTitle": "Need a custom beauty package?",
+    "customText": "Speak directly with our support team for group bookings, bridal packages, and custom beauty sessions.",
+    "assuranceTitle": "TiptoBook Beauty Assurance",
+    "assuranceText": "Background-verified beauticians • Single-use disposable kits • 100% hygienic products • Post-service satisfaction guarantee."
+  },
+  "serviceDetail": {
+    "loading": "Loading service details…",
+    "notFound": "Service not found",
+    "comingSoon": "Coming Soon",
+    "comingSoonText": "{{name}} is launching soon on TiptoBook. Booking will open shortly!",
+    "backHome": "← Back to Home",
+    "tabs": {
+      "packages": "Packages & Pricing",
+      "vehicles": "Vehicles & Rates",
+      "about": "About & Features",
+      "pros": "Verified Pros",
+      "reviews": "Reviews ({{count}})",
+      "faqs": "FAQs"
+    },
+    "assuranceTitle": "TiptoBook Doorstep Assurance",
+    "assuranceText": "Background-verified service technicians • 30-day post-service warranty • Standardized pricing with zero surprise charges.",
+    "modal": {
+      "aboutPackage": "About this package",
+      "guaranteeTitle": "TiptoBook Doorstep Guarantee",
+      "guaranteeText": "Verified professionals • 30-day post-service warranty • Standardized pricing with zero surprise charges.",
+      "packagePrice": "Package Price"
+    },
+    "packages": {
+      "title": "Select Service Package",
+      "subtitle": "Select a package for instant doorstep service by verified professionals",
+      "titleRental": "Choose Vehicle Variation",
+      "subtitleRental": "Transparent pricing with verified commercial drivers and clean AC cabs",
+      "recommended": "Recommended",
+      "selected": "Selected",
+      "select": "Select",
+      "chauffeur": "Chauffeur Driven",
+      "selectedCheck": "Selected ✓",
+      "clickToSelect": "Click to select"
+    },
+    "about": {
+      "title": "About this Service",
+      "subtitle": "Professional doorstep execution with certified experts and verified equipment",
+      "diagnosisTitle": "Expert Diagnosis",
+      "diagnosisText": "Accurate issue pinpointing before any repair.",
+      "warrantyTitle": "30-Day Warranty",
+      "warrantyText": "Complete peace of mind on all service parts.",
+      "pricingTitle": "Fixed Pricing",
+      "pricingText": "Standardized rates with zero hidden charges.",
+      "onTimeTitle": "On-Time Arrival",
+      "onTimeText": "Slot guaranteed doorstep arrival within 60 mins."
+    },
+    "excludesSubtitle": "These are not part of the package price",
+    "extraChargesSubtitle": "May apply depending on the job",
+    "faqSubtitle": "Answers to common queries regarding this service",
+    "reviews": {
+      "title": "Verified Customer Reviews ({{count}})",
+      "subtitle": "Genuine feedback from customers in your city",
+      "verifiedBooking": "Verified Booking",
+      "verifiedCustomer": "Verified Customer",
+      "recent": "Recent Service"
+    },
+    "providers": {
+      "title": "Top Verified Professionals",
+      "subtitle": "Vetted service partners assigned to deliver this service",
+      "experience": "{{experience}} exp",
+      "starting": "Starting {{price}}"
+    },
+    "hero": {
+      "verifiedExperts": "Verified Experts",
+      "experience": "{{experience}} Experience",
+      "guaranteed": "TiptoBook Guaranteed",
+      "warranty": "30-Day Warranty"
+    },
+    "booking": {
+      "planTrip": "Plan Your Trip",
+      "pickup": "Pickup location",
+      "destination": "Destination",
+      "calculateRoute": "Calculate Route & Price",
+      "totalDistance": "Total Distance:",
+      "estDuration": "Est. Duration:",
+      "tripTotal": "Trip Total:",
+      "tripEstimate": "Trip Estimate",
+      "selectedPackage": "Selected Package",
+      "instantBooking": "Instant Booking",
+      "doorstep": "Doorstep service executed at your home",
+      "inclusions": "Package Inclusions:",
+      "payAfterTitle": "Pay After Service",
+      "payAfterText": "No advance payment required. Inspect the work and pay safely via UPI or Cash.",
+      "footer": "Verified technicians • Standardized rates"
+    }
+  }
+}

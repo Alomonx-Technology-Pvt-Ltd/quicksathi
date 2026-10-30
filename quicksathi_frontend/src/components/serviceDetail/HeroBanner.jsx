@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   MapPin,
   ChevronDown,
@@ -12,8 +13,10 @@ import {
   Shield,
 } from "lucide-react";
 import { useLocation } from "../../context/LocationContext";
+import { formatPrice, formatPriceUnit } from "../../content/catalogue";
 
 const HeroBanner = ({ service, allImages = [], activeImg = 0, setActiveImg }) => {
+  const { t } = useTranslation();
   const {
     city,
     street,
@@ -57,8 +60,8 @@ const HeroBanner = ({ service, allImages = [], activeImg = 0, setActiveImg }) =>
               <MapPin size={13} className="text-purple-600 shrink-0" />
               <span>
                 {detecting
-                  ? "Locating in real-time..."
-                  : realTimeLocation || "Current Location"}
+                  ? t("location.locating")
+                  : realTimeLocation || t("location.current")}
               </span>
               {detecting && (
                 <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-ping inline-block ml-0.5" />
@@ -72,7 +75,7 @@ const HeroBanner = ({ service, allImages = [], activeImg = 0, setActiveImg }) =>
                 onClick={() => setIsCityDropdownOpen((prev) => !prev)}
                 className="inline-flex items-center gap-1 text-slate-500 hover:text-purple-700 font-medium px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors border-0 bg-transparent cursor-pointer text-xs"
               >
-                <span>{city ? `City: ${city}` : "Select city"}</span>
+                <span>{city ? t("location.city", { city }) : t("location.selectCity")}</span>
                 <ChevronDown
                   size={12}
                   className={`transition-transform duration-200 ${
@@ -89,7 +92,7 @@ const HeroBanner = ({ service, allImages = [], activeImg = 0, setActiveImg }) =>
                   />
                   <div className="absolute top-full left-0 mt-1 z-50 w-48 max-h-60 overflow-y-auto bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 no-scrollbar">
                     <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      Select City
+                      {t("location.selectCity")}
                     </div>
                     {cityOptions.map((c) => (
                       <button
@@ -118,7 +121,7 @@ const HeroBanner = ({ service, allImages = [], activeImg = 0, setActiveImg }) =>
           {/* Breadcrumbs */}
           <nav className="flex items-center gap-1.5 text-xs text-slate-500 font-medium overflow-x-auto whitespace-nowrap">
             <Link to="/" className="text-slate-500 hover:text-purple-600 no-underline transition-colors">
-              Home
+              {t("common.home")}
             </Link>
             <span className="text-slate-300">/</span>
             {service.categoryId && (
@@ -127,7 +130,7 @@ const HeroBanner = ({ service, allImages = [], activeImg = 0, setActiveImg }) =>
                   to={`/category/${service.categoryId}`}
                   className="text-slate-500 hover:text-purple-600 no-underline transition-colors truncate max-w-[140px]"
                 >
-                  {service.categoryName || "Category"}
+                  {service.categoryName || t("common.category")}
                 </Link>
                 <span className="text-slate-300">/</span>
               </>
@@ -165,29 +168,35 @@ const HeroBanner = ({ service, allImages = [], activeImg = 0, setActiveImg }) =>
               {/* Star Rating */}
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 font-semibold border border-slate-200/60 shadow-xs">
                 <Star size={12} className="fill-amber-400 text-amber-400" />
-                <span>{service.rating || 4.8} Rating</span>
-                <span className="text-slate-500 font-normal">
-                  ({(service.totalReviews || 2890).toLocaleString("en-IN")} reviews)
-                </span>
+                {service.rating > 0 ? (
+                  <>
+                    <span>{t("common.ratingBadge", { rating: service.rating })}</span>
+                    <span className="text-slate-500 font-normal">
+                      {t("common.reviewsCount", { count: (service.totalReviews || 0).toLocaleString("en-IN") })}
+                    </span>
+                  </>
+                ) : (
+                  <span>{t("common.newService")}</span>
+                )}
               </div>
 
               {/* 200+ Happy Customers */}
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 font-semibold border border-slate-200/60 shadow-xs">
                 <Users size={12} className="text-purple-600" />
-                <span>200+ Happy Customers</span>
+                <span>{t("common.happyCustomers", { count: 200 })}</span>
               </div>
 
               {/* Verified Experts */}
               <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 font-semibold border border-slate-200/60 shadow-xs">
                 <ShieldCheck size={12} className="text-emerald-600" />
-                <span>Verified Experts</span>
+                <span>{t("serviceDetail.hero.verifiedExperts")}</span>
               </div>
 
               {/* Experience or Warranty badge */}
               {service.experience && (
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-50 text-purple-800 font-semibold border border-purple-100 shadow-xs">
                   <Sparkles size={12} className="text-purple-600" />
-                  <span>{service.experience} Experience</span>
+                  <span>{t("serviceDetail.hero.experience", { experience: service.experience })}</span>
                 </div>
               )}
             </div>
@@ -195,14 +204,14 @@ const HeroBanner = ({ service, allImages = [], activeImg = 0, setActiveImg }) =>
 
           {/* Right: Starting Price Banner */}
           <div className="flex items-baseline md:flex-col md:items-end gap-1.5 shrink-0 bg-slate-50 md:bg-transparent p-3 md:p-0 rounded-2xl border md:border-0 border-slate-200/60">
-            <span className="text-xs text-slate-500 font-medium">Starting from</span>
+            <span className="text-xs text-slate-500 font-medium">{t("common.startingFrom")}</span>
             <div className="flex items-baseline gap-1">
               <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                ₹{(service.startingPrice || 349).toLocaleString("en-IN")}
+                {formatPrice(service.startingPrice || 349)}
               </span>
               {service.priceUnit && (
                 <span className="text-xs text-slate-500 font-normal">
-                  /{service.priceUnit}
+                  {formatPriceUnit(service.priceUnit)}
                 </span>
               )}
             </div>
@@ -230,11 +239,11 @@ const HeroBanner = ({ service, allImages = [], activeImg = 0, setActiveImg }) =>
             <div className="absolute bottom-3 sm:bottom-4 left-3 sm:left-5 z-10 flex items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/90 backdrop-blur-md text-slate-900 text-xs font-bold shadow-md">
                 <ShieldCheck size={14} className="text-emerald-600" />
-                <span>TiptoBook Guaranteed</span>
+                <span>{t("serviceDetail.hero.guaranteed")}</span>
               </span>
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-black/60 backdrop-blur-md text-white text-xs font-medium">
                 <Clock size={12} className="text-amber-400" />
-                <span>30-Day Warranty</span>
+                <span>{t("serviceDetail.hero.warranty")}</span>
               </span>
             </div>
 

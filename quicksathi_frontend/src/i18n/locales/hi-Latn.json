@@ -1,0 +1,154 @@
+{
+  "language": {
+    "label": "Bhasha",
+    "en": "English",
+    "hi-Latn": "Hinglish"
+  },
+  "common": {
+    "bookNow": "Abhi book karein",
+    "book": "Book karein",
+    "showMore": "Aur dekhein",
+    "close": "Band karein",
+    "reviewsCount": "({{count}} reviews)",
+    "newService": "Naya",
+    "ratingBadge": "{{rating}} rating",
+    "happyCustomers": "{{count}}+ khush grahak",
+    "partners": "{{count}}+ partners",
+    "startingFrom": "Shuruaat",
+    "contactSupport": "Support se baat karein",
+    "home": "Home",
+    "category": "Category"
+  },
+  "location": {
+    "locating": "Aapki location dhoondh rahe hain...",
+    "current": "Abhi ki location",
+    "city": "Shahar: {{city}}",
+    "selectCity": "Shahar chunein"
+  },
+  "catalogue": {
+    "moreServices": "Aur services",
+    "whatServiceNeed": "Aapko kaun si service chahiye?",
+    "aboutService": "Is service ke baare mein",
+    "packagesHeading": "Packages aur options",
+    "faqs": "Aksar puchhe jaane wale sawaal",
+    "whatsIncluded": "Kya shamil hai",
+    "whatsNotIncluded": "Kya shamil nahi hai",
+    "extraCharges": "Extra charges",
+    "loadingServices": "Services load ho rahi hain…",
+    "noServices": "Abhi yahan koi service uplabdh nahi hai."
+  },
+  "category": {
+    "titleNearYou": "Aapke paas {{name}}",
+    "titleServicesNearYou": "Aapke paas {{name}} services",
+    "notFound": "Category nahi mili",
+    "launchingSoon": "{{name}} jald shuru ho raha hai!",
+    "onboarding": "Hum abhi achhe verified providers jod rahe hain. Booking jald khulegi!",
+    "customTitle": "{{name}} apni zaroorat ke hisaab se chahiye?",
+    "customText": "Custom package aur turant booking ke liye hamari support team se seedha baat karein.",
+    "assuranceTitle": "TiptoBook bharosa",
+    "assuranceText": "Verified professionals • Saaf-saaf keemat • Kaam ke baad quality guarantee aur support."
+  },
+  "ac": {
+    "title": "Aapke paas AC aur appliance services",
+    "assuranceTitle": "TiptoBook AC bharosa",
+    "assuranceText": "Verified technicians • Service ke baad 30 din ki warranty • Fixed rate, koi chhupa charge nahi."
+  },
+  "salon": {
+    "titleWomen": "Ghar par mahilaon ke liye salon aur beauty",
+    "titleMen": "Ghar par purushon ke liye grooming aur salon",
+    "titleAll": "Aapke paas home salon aur beauty services",
+    "women": "👩 Mahila",
+    "men": "👨 Purush",
+    "showAll": "Sab dikhayein ×",
+    "customTitle": "Apna khud ka beauty package chahiye?",
+    "customText": "Group booking, bridal package ya custom beauty session ke liye hamari support team se seedha baat karein.",
+    "assuranceTitle": "TiptoBook beauty bharosa",
+    "assuranceText": "Verified beauticians • Ek baar use hone wala kit • Saaf-suthre products • Service ke baad santushti ki guarantee."
+  },
+  "serviceDetail": {
+    "loading": "Service ki jaankari load ho rahi hai…",
+    "notFound": "Service nahi mili",
+    "comingSoon": "Jald aa raha hai",
+    "comingSoonText": "{{name}} jald hi TiptoBook par shuru hoga. Booking jald khulegi!",
+    "backHome": "← Home par wapas jaayein",
+    "tabs": {
+      "packages": "Packages aur keemat",
+      "vehicles": "Gaadiyan aur rate",
+      "about": "Jaankari aur features",
+      "pros": "Verified professionals",
+      "reviews": "Reviews ({{count}})",
+      "faqs": "Sawaal-jawaab"
+    },
+    "assuranceTitle": "TiptoBook doorstep bharosa",
+    "assuranceText": "Verified technicians • Service ke baad 30 din ki warranty • Fixed rate, koi achanak charge nahi.",
+    "modal": {
+      "aboutPackage": "Is package ke baare mein",
+      "guaranteeTitle": "TiptoBook doorstep guarantee",
+      "guaranteeText": "Verified professionals • Service ke baad 30 din ki warranty • Fixed rate, koi achanak charge nahi.",
+      "packagePrice": "Package ki keemat"
+    },
+    "packages": {
+      "title": "Service package chunein",
+      "subtitle": "Package chunein, verified professional aapke ghar aayenge",
+      "titleRental": "Gaadi chunein",
+      "subtitleRental": "Saaf keemat, verified driver aur saaf AC gaadi",
+      "recommended": "Sabse achha",
+      "selected": "Chuna gaya",
+      "select": "Chunein",
+      "chauffeur": "Driver ke saath",
+      "selectedCheck": "Chuna gaya ✓",
+      "clickToSelect": "Chunne ke liye dabayein"
+    },
+    "about": {
+      "title": "Is service ke baare mein",
+      "subtitle": "Trained experts aur sahi auzaar ke saath ghar par kaam",
+      "diagnosisTitle": "Sahi jaanch",
+      "diagnosisText": "Repair se pehle problem ki sahi pehchaan.",
+      "warrantyTitle": "30 din ki warranty",
+      "warrantyText": "Service ke parts par poori tasalli.",
+      "pricingTitle": "Fixed keemat",
+      "pricingText": "Tay rate, koi chhupa charge nahi.",
+      "onTimeTitle": "Samay par pahunch",
+      "onTimeText": "Chune hue slot mein 60 minute ke andar ghar par."
+    },
+    "excludesSubtitle": "Ye package ki keemat mein shamil nahi hain",
+    "extraChargesSubtitle": "Kaam ke hisaab se lag sakte hain",
+    "faqSubtitle": "Is service se jude aam sawaalon ke jawaab",
+    "reviews": {
+      "title": "Verified grahakon ke reviews ({{count}})",
+      "subtitle": "Aapke shahar ke grahakon ki sachchi raay",
+      "verifiedBooking": "Verified booking",
+      "verifiedCustomer": "Verified grahak",
+      "recent": "Haal ki service"
+    },
+    "providers": {
+      "title": "Top verified professionals",
+      "subtitle": "Jaanche-parkhe partners jo ye service denge",
+      "experience": "{{experience}} ka anubhav",
+      "starting": "{{price}} se shuru"
+    },
+    "hero": {
+      "verifiedExperts": "Verified experts",
+      "experience": "{{experience}} ka anubhav",
+      "guaranteed": "TiptoBook guarantee",
+      "warranty": "30 din ki warranty"
+    },
+    "booking": {
+      "planTrip": "Apni yatra plan karein",
+      "pickup": "Pickup ki jagah",
+      "destination": "Kahan jaana hai",
+      "calculateRoute": "Raasta aur keemat nikaalein",
+      "totalDistance": "Kul doori:",
+      "estDuration": "Andaazan samay:",
+      "tripTotal": "Trip ka kul:",
+      "tripEstimate": "Trip ka andaaza",
+      "selectedPackage": "Chuna gaya package",
+      "instantBooking": "Turant booking",
+      "doorstep": "Service aapke ghar par hogi",
+      "inclusions": "Package mein shamil:",
+      "payAfterTitle": "Service ke baad payment",
+      "payAfterText": "Pehle paisa nahi dena. Kaam dekh kar UPI ya cash se payment karein.",
+      "footer": "Verified technicians • Fixed rate"
+    }
+  }
+}
