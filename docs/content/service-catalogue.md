@@ -2,7 +2,7 @@
 
 Draft content for every service in *TiptoBook – Complete Services Catalogue* (the PDF), researched on 2026-10-23 from platforms that are live in India today (Urban Company's Patna pages, SevaMart, Sulekha, Justdial, WedMeGood, UrbanPro, NoBroker, brand sites and local Patna operators). All copy is written fresh; the sources are listed under each service so every price can be checked.
 
-**Status: for owner review. Nothing here is in the database yet.**
+**Status: research record.** The customer-facing content now lives in `quicksathi_frontend/src/content/catalogue/` (English `en.json`, Roman Hinglish `hi-Latn.json`, page grouping `structure.json`) and the bookable data (packages and prices) in `quicksathi_backend/seed/catalogue/services.json`, loaded by `npm run catalogue:load` in `quicksathi_backend`. Edit those files, not this one. Slugs follow the mapping below, except where the JSON keeps the existing production slug (for example `outstation-car-rental`, `interior-design`, `design-planning-2d-3d`, `mens-haircut`).
 
 ## How to review
 
