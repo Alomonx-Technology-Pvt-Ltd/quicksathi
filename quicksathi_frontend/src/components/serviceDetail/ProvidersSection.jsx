@@ -1,14 +1,17 @@
+import { useTranslation } from "react-i18next";
 import SectionHeader from "./SectionHeader";
-import { Star, ShieldCheck, MapPin, Award } from "lucide-react";
+import { Star, ShieldCheck, MapPin } from "lucide-react";
+import { formatPrice } from "../../content/catalogue";
 
 const ProvidersSection = ({ providers = [] }) => {
+  const { t } = useTranslation();
   if (!providers?.length) return null;
 
   return (
     <div id="providers-section" className="scroll-mt-24">
       <SectionHeader
-        title="Top Verified Professionals"
-        subtitle="Vetted service partners assigned to deliver this service"
+        title={t("serviceDetail.providers.title")}
+        subtitle={t("serviceDetail.providers.subtitle")}
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -44,7 +47,7 @@ const ProvidersSection = ({ providers = [] }) => {
                   {provider.rating}
                 </span>
                 <span>•</span>
-                <span>{provider.experience} exp</span>
+                <span>{t("serviceDetail.providers.experience", { experience: provider.experience })}</span>
                 {provider.location && (
                   <>
                     <span>•</span>
@@ -57,7 +60,7 @@ const ProvidersSection = ({ providers = [] }) => {
               </div>
 
               <div className="mt-2 text-xs font-bold text-purple-700">
-                Starting ₹{(provider.startingPrice || 349).toLocaleString("en-IN")}
+                {t("serviceDetail.providers.starting", { price: formatPrice(provider.startingPrice || 349) })}
               </div>
             </div>
           </div>

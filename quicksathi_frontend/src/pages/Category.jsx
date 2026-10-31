@@ -1,14 +1,11 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
+import { AnimatePresence } from "framer-motion";
 import {
   Star,
-  Shield,
   ChevronRight,
-  X,
-  CheckCircle2,
   MapPin,
-  Sparkles,
   ChevronDown,
   Users,
   ShieldCheck,
@@ -22,6 +19,17 @@ import { mockServices } from "../data/mockServices";
 import ACCategoryPage from "./ACCategoryPage";
 import HomeSalonCategoryPage from "./HomeSalonCategoryPage";
 import CategorySpotlightBanner from "../components/CategorySpotlightBanner";
+import CatalogueServiceItem from "../components/catalogue/CatalogueServiceItem";
+import CatalogueServiceModal from "../components/catalogue/CatalogueServiceModal";
+import ServiceImage from "../components/catalogue/ServiceImage";
+import { serviceImage } from "../content/catalogue/images";
+import {
+  useCatalogueContent,
+  applyContent,
+  servicesForVertical,
+  groupByStructure,
+  groupTitle,
+} from "../content/catalogue";
 
 // Helper to extract clean bullet points from service data
 const getServiceBullets = (service) => {
@@ -161,6 +169,8 @@ const getServicesForSub = (sub, allServices, categoryVertical) => {
 const Category = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const content = useCatalogueContent();
   const {
     city,
     locality,
@@ -316,7 +326,7 @@ const Category = () => {
   if (!category) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white text-slate-800 text-xl font-semibold">
-        Category not found
+        {t("category.notFound")}
       </div>
     );
   }
@@ -333,10 +343,45 @@ const Category = () => {
         },
       ];
 
+  // Catalogue structure grouping when this vertical has one and the API returned
+  // its services; otherwise the legacy sub-category matching.
+  const structuredGroups = groupByStructure(
+    servicesForVertical(services, category.vertical, category._id),
+    category.vertical
+  );
+  const sections =
+    structuredGroups && structuredGroups.length > 0
+      ? structuredGroups.map((group) => ({
+          key: group.key,
+          title: groupTitle(group.key, content, t),
+          image: group.services.map(serviceImage).find(Boolean),
+          services: group.services,
+        }))
+      : subs.map((sub) => {
+          const matchedSvc = services.find(
+            (s) =>
+              s.name?.toLowerCase() === sub.name?.toLowerCase() ||
+              s.name?.toLowerCase().includes(sub.name?.toLowerCase()) ||
+              sub.name?.toLowerCase().includes(s.name?.toLowerCase())
+          );
+          return {
+            key: sub.id || sub._id || sub.name,
+            title: sub.name,
+            image:
+              matchedSvc?.thumbnail ||
+              matchedSvc?.bannerImage ||
+              sub.imageUrl ||
+              sub.image ||
+              category.imageUrl,
+            fallbackImage: sub.imageUrl,
+            services: getServicesForSub(sub, services, category?.vertical),
+          };
+        });
+
   // Scroll to section handler matching AC page
-  const handleScrollToSection = (sectionName) => {
-    setActiveSection(sectionName);
-    const element = sectionRefs.current[sectionName];
+  const handleScrollToSection = (sectionKey) => {
+    setActiveSection(sectionKey);
+    const element = sectionRefs.current[sectionKey];
     if (element) {
       const headerOffset = 80;
       const elementPosition = element.getBoundingClientRect().top;
@@ -348,6 +393,7 @@ const Category = () => {
     }
   };
 
+  // Booking params always use the DB record, never the translated display copy.
   const handleBookService = (service) => {
     let packageTitle = "Standard";
     let price = 0;
@@ -366,8 +412,8 @@ const Category = () => {
   };
 
   const displayTitle = category.name.toLowerCase().endsWith("services")
-    ? `${category.name} near you`
-    : `${category.name} services near you`;
+    ? t("category.titleNearYou", { name: category.name })
+    : t("category.titleServicesNearYou", { name: category.name });
 
   const canonicalSlug = category?.vertical
     ? category.vertical.toLowerCase().replace(/_/g, "-")
@@ -392,8 +438,8 @@ const Category = () => {
               <MapPin size={13} className="text-purple-600 shrink-0" />
               <span>
                 {detecting
-                  ? "Locating in real-time..."
-                  : realTimeLocation || "Current Location"}
+                  ? t("location.locating")
+                  : realTimeLocation || t("location.current")}
               </span>
               {detecting && (
                 <span className="w-1.5 h-1.5 rounded-full bg-purple-600 animate-ping inline-block ml-0.5" />
@@ -407,7 +453,7 @@ const Category = () => {
                 onClick={() => setIsCityDropdownOpen((prev) => !prev)}
                 className="inline-flex items-center gap-1 text-slate-500 hover:text-purple-700 font-medium px-2 py-1 rounded-lg hover:bg-slate-100 transition-colors border-0 bg-transparent cursor-pointer text-xs"
               >
-                <span>{city ? `City: ${city}` : "Select city"}</span>
+                <span>{city ? t("location.city", { city }) : t("location.selectCity")}</span>
                 <ChevronDown
                   size={12}
                   className={`transition-transform duration-200 ${
@@ -425,7 +471,7 @@ const Category = () => {
                   />
                   <div className="absolute top-full left-0 mt-1 z-50 w-48 max-h-60 overflow-y-auto bg-white rounded-xl shadow-xl border border-slate-100 py-1.5 no-scrollbar">
                     <div className="px-3 py-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
-                      Select City
+                      {t("location.selectCity")}
                     </div>
                     {cityOptions.map((c) => (
                       <button
@@ -460,19 +506,19 @@ const Category = () => {
             {/* 200+ happy customer */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 text-xs font-semibold border border-slate-200/60 shadow-xs">
               <Users size={12} className="text-purple-600" />
-              <span>200+ Happy Customers</span>
+              <span>{t("common.happyCustomers", { count: 200 })}</span>
             </div>
 
             {/* 50+ partner */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 text-xs font-semibold border border-slate-200/60 shadow-xs">
               <ShieldCheck size={12} className="text-emerald-600" />
-              <span>50+ Partners</span>
+              <span>{t("common.partners", { count: 50 })}</span>
             </div>
 
             {/* 4.8 rating */}
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100/90 text-slate-800 text-xs font-semibold border border-slate-200/60 shadow-xs">
               <Star size={12} className="fill-amber-400 text-amber-400" />
-              <span>4.8 Rating</span>
+              <span>{t("common.ratingBadge", { rating: 4.8 })}</span>
             </div>
           </div>
         </div>
@@ -482,9 +528,9 @@ const Category = () => {
           <div className="mt-6 flex items-center gap-3 rounded-2xl px-5 py-4 border bg-amber-50/70 border-amber-200 text-amber-900">
             <span style={{ fontSize: "20px" }}>⏳</span>
             <div>
-              <p className="m-0 text-sm font-bold">{category.name} is launching soon!</p>
+              <p className="m-0 text-sm font-bold">{t("category.launchingSoon", { name: category.name })}</p>
               <p className="m-0 text-xs text-amber-800/80">
-                We're currently onboarding top verified providers. Booking will open shortly!
+                {t("category.onboarding")}
               </p>
             </div>
           </div>
@@ -496,70 +542,49 @@ const Category = () => {
         {/* ── "What service do you need ?" (Visual Grid Cards matching AC design) ── */}
         <div className="mt-8 pt-6 border-t border-slate-100">
           <h2 className="text-base sm:text-lg font-bold text-slate-900 mb-4 tracking-tight m-0">
-            What service do you need ?
+            {t("catalogue.whatServiceNeed")}
           </h2>
 
           <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-4">
-            {subs.map((sub) => {
-              const matchedSvc = services.find(
-                (s) =>
-                  s.name?.toLowerCase() === sub.name?.toLowerCase() ||
-                  s.name?.toLowerCase().includes(sub.name?.toLowerCase()) ||
-                  sub.name?.toLowerCase().includes(s.name?.toLowerCase())
-              );
-              return (
+            {sections.map((section) => (
               <button
-                key={sub.id || sub._id || sub.name}
-                onClick={() => handleScrollToSection(sub.name)}
+                key={section.key}
+                onClick={() => handleScrollToSection(section.key)}
                 className="group flex flex-col items-center text-center bg-transparent border-0 cursor-pointer p-0 outline-none transition-transform duration-200 active:scale-95"
               >
                 {/* Visual Thumbnail Card */}
-                <div className="relative w-full aspect-square max-w-[105px] rounded-xl sm:rounded-2xl overflow-hidden bg-slate-100 border border-slate-200/70 shadow-xs group-hover:border-purple-300 group-hover:shadow-md transition-all">
-                  <img
-                    src={
-                      matchedSvc?.thumbnail ||
-                      matchedSvc?.bannerImage ||
-                      sub.imageUrl ||
-                      sub.image ||
-                      category.imageUrl ||
-                      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=300&auto=format&fit=crop"
-                    }
-                    alt={sub.name}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-108"
-                    loading="eager"
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src =
-                        "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=300&auto=format&fit=crop";
-                    }}
-                  />
-                </div>
+                <ServiceImage
+                  src={section.image}
+                  alt={section.title}
+                  loading="eager"
+                  className="relative w-full aspect-square max-w-[105px] rounded-xl sm:rounded-2xl overflow-hidden bg-slate-100 border border-slate-200/70 shadow-xs group-hover:border-purple-300 group-hover:shadow-md transition-all"
+                  imgClassName="transition-transform duration-300 group-hover:scale-108"
+                />
 
-                {/* Sub-category Label */}
+                {/* Section Label */}
                 <span className="mt-2 text-[11px] sm:text-xs font-semibold text-slate-800 leading-tight group-hover:text-purple-700 transition-colors line-clamp-2 max-w-[100px]">
-                  {sub.name}
+                  {section.title}
                 </span>
               </button>
-            );
-          })}
+            ))}
           </div>
         </div>
 
         {/* ── Sticky Category Navigation Bar ── */}
         <div className="sticky top-[64px] z-30 bg-white/95 backdrop-blur-md py-3.5 mt-8 border-b border-slate-200 flex items-center gap-2 overflow-x-auto no-scrollbar">
-          {subs.map((sub) => {
-            const isSelected = activeSection === sub.name;
+          {sections.map((section) => {
+            const isSelected = activeSection === section.key;
             return (
               <button
-                key={sub.id || sub._id || sub.name}
-                onClick={() => handleScrollToSection(sub.name)}
+                key={section.key}
+                onClick={() => handleScrollToSection(section.key)}
                 className={`px-3.5 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer border ${
                   isSelected
                     ? "bg-purple-600 text-white border-purple-600 shadow-sm"
                     : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
                 }`}
               >
-                {sub.name}
+                {section.title}
               </button>
             );
           })}
@@ -567,118 +592,36 @@ const Category = () => {
 
         {/* ── Service Sections (Grouped matching AC reference) ── */}
         <div className="mt-6 flex flex-col gap-10">
-          {subs.map((sub) => {
-            const servicesInSection = getServicesForSub(sub, services, category?.vertical);
-            if (servicesInSection.length === 0) return null;
+          {sections.map((section) => {
+            if (section.services.length === 0) return null;
 
             return (
               <section
-                key={sub.id || sub._id || sub.name}
-                ref={(el) => (sectionRefs.current[sub.name] = el)}
+                key={section.key}
+                ref={(el) => (sectionRefs.current[section.key] = el)}
                 className="scroll-mt-28"
               >
                 {/* Section Header */}
                 <h3 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight pb-3 border-b border-slate-200 m-0">
-                  {sub.name}
+                  {section.title}
                 </h3>
 
                 {/* Service Cards in this Section */}
                 <div className="divide-y divide-slate-100">
-                  {servicesInSection.map((service) => (
-                    <article
-                      key={service._id || service.slug || service.id}
-                      className="py-6 sm:py-7 flex items-start justify-between gap-4 sm:gap-6 group"
-                    >
-                      {/* Left: Info, Ratings, Bullets, Show More, Price & BOOK Button */}
-                      <div className="flex-1 min-w-0 pr-2">
-                        {/* Title */}
-                        <h4
-                          onClick={() => setSelectedServiceForModal(service)}
-                          className="text-base sm:text-lg font-bold text-slate-900 leading-snug m-0 cursor-pointer hover:text-purple-600 transition-colors"
-                        >
-                          {service.name}
-                        </h4>
-
-                        {/* Rating */}
-                        <div className="flex items-center gap-1.5 mt-1 text-xs text-slate-600 font-medium">
-                          <Star size={13} className="fill-amber-400 text-amber-400" />
-                          <span className="font-semibold text-slate-800">
-                            {service.rating || 4.8}
-                          </span>
-                          <span className="text-slate-500">
-                            ({(service.totalReviews || 1240).toLocaleString("en-IN")} reviews)
-                          </span>
-                        </div>
-
-                        {/* Dashed Separator */}
-                        <div className="w-full border-b border-dashed border-slate-200 my-2.5 max-w-md" />
-
-                        {/* Bullets */}
-                        <ul className="m-0 p-0 list-none space-y-1 text-xs sm:text-[13px] text-slate-600 leading-relaxed max-w-md">
-                          {getServiceBullets(service).map((bullet, idx) => (
-                            <li key={idx} className="flex items-start gap-1.5">
-                              <span className="text-slate-400 mt-1 select-none">•</span>
-                              <span>{bullet}</span>
-                            </li>
-                          ))}
-                        </ul>
-
-                        {/* Show more > link */}
-                        <button
-                          type="button"
-                          onClick={() => setSelectedServiceForModal(service)}
-                          className="inline-flex items-center gap-0.5 text-xs font-semibold text-purple-700 hover:text-purple-900 mt-2 bg-transparent border-0 p-0 cursor-pointer transition-colors"
-                        >
-                          <span>Show more</span>
-                          <ChevronRight size={13} />
-                        </button>
-
-                        {/* Price & BOOK Button Row */}
-                        <div className="flex items-center justify-between mt-4 max-w-md pt-2">
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-base sm:text-lg font-extrabold text-slate-900">
-                              ₹{(service.startingPrice || 499).toLocaleString("en-IN")}
-                            </span>
-                            {service.priceUnit && (
-                              <span className="text-[11px] text-slate-500 font-normal">
-                                /{service.priceUnit}
-                              </span>
-                            )}
-                          </div>
-
-                          {/* BOOK Button */}
-                          <button
-                            type="button"
-                            onClick={() => handleBookService(service)}
-                            className="px-5 py-2 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-600 hover:text-white hover:border-purple-600 active:scale-95 font-bold text-xs tracking-wider uppercase transition-all shadow-xs cursor-pointer"
-                          >
-                            BOOK
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Right: Clean Service Image */}
-                      <div className="relative shrink-0 w-28 h-28 sm:w-36 sm:h-36 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200/80 shadow-xs">
-                        <img
-                          src={
-                            service.thumbnail ||
-                            service.imageUrl ||
-                            service.bannerImage ||
-                            sub.imageUrl ||
-                            "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=300&auto=format&fit=crop"
-                          }
-                          alt={service.name}
-                          loading="lazy"
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                          onError={(e) => {
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.src =
-                              "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=300&auto=format&fit=crop";
-                          }}
-                        />
-                      </div>
-                    </article>
-                  ))}
+                  {section.services.map((service) => {
+                    const display = applyContent(service, content);
+                    return (
+                      <CatalogueServiceItem
+                        key={service._id || service.slug || service.id}
+                        service={display}
+                        bullets={getServiceBullets(display)}
+                        image={serviceImage(service) || service.imageUrl || section.fallbackImage}
+                        groupLabel={section.title}
+                        onOpen={() => setSelectedServiceForModal(service)}
+                        onBook={() => handleBookService(service)}
+                      />
+                    );
+                  })}
                 </div>
               </section>
             );
@@ -688,184 +631,36 @@ const Category = () => {
         {/* ── Bottom Support CTA ── */}
         <div className="mt-16 p-8 rounded-3xl bg-slate-50 border border-slate-200/80 text-center">
           <h3 className="text-xl font-bold text-slate-900 m-0 mb-2">
-            Need customized {category.name}?
+            {t("category.customTitle", { name: category.name })}
           </h3>
           <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto m-0 mb-6">
-            Speak directly with our dedicated customer support team for custom packages and instant bookings.
+            {t("category.customText")}
           </p>
           <Link
             to="/contact"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-slate-900 text-white text-xs font-bold tracking-wider uppercase hover:bg-purple-600 transition-colors no-underline shadow-sm"
           >
-            <span>Contact Support</span>
+            <span>{t("common.contactSupport")}</span>
             <ChevronRight size={14} />
           </Link>
         </div>
       </div>
 
-      {/* ── Detail Drawer / Modal for "Show More >" ── */}
+      {/* ── Detail Modal for "Show More >" ── */}
       <AnimatePresence>
         {selectedServiceForModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-            <motion.div
-              initial={{ opacity: 0, scale: 0.96, y: 15 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.96, y: 15 }}
-              className="bg-white rounded-3xl max-w-lg w-full max-h-[85vh] overflow-hidden flex flex-col shadow-2xl border border-slate-100"
-            >
-              {/* Modal Header */}
-              <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900 m-0">
-                    {selectedServiceForModal.name}
-                  </h3>
-                  <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-600">
-                    <Star size={12} className="fill-amber-400 text-amber-400" />
-                    <span className="font-semibold text-slate-800">
-                      {selectedServiceForModal.rating || 4.8}
-                    </span>
-                    <span>
-                      ({(selectedServiceForModal.totalReviews || 1200).toLocaleString("en-IN")} reviews)
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedServiceForModal(null)}
-                  className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 border-0 cursor-pointer transition-colors"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              {/* Modal Body */}
-              <div className="p-5 overflow-y-auto space-y-5 text-sm text-slate-700">
-                {/* Banner / Thumbnail */}
-                <div className="aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100">
-                  <img
-                    src={
-                      selectedServiceForModal.thumbnail ||
-                      selectedServiceForModal.imageUrl ||
-                      selectedServiceForModal.bannerImage ||
-                      "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=600&auto=format&fit=crop"
-                    }
-                    alt={selectedServiceForModal.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                {/* Description */}
-                <div>
-                  <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">
-                    About this service
-                  </h4>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed m-0">
-                    {selectedServiceForModal.fullDescription ||
-                      selectedServiceForModal.description ||
-                      selectedServiceForModal.bullets?.join(" ")}
-                  </p>
-                </div>
-
-                {/* Packages available */}
-                {selectedServiceForModal.packages?.length > 0 && (
-                  <div>
-                    <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-2.5">
-                      Included Options & Packages
-                    </h4>
-                    <div className="space-y-2.5">
-                      {selectedServiceForModal.packages.map((pkg, idx) => (
-                        <div
-                          key={idx}
-                          className="p-3.5 rounded-2xl border border-slate-200/80 bg-slate-50/50 flex flex-col gap-2"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="font-semibold text-xs sm:text-sm text-slate-800">
-                              {pkg.title}
-                            </span>
-                            <span className="font-bold text-sm text-purple-700">
-                              ₹{pkg.price.toLocaleString("en-IN")}
-                            </span>
-                          </div>
-                          {pkg.features && (
-                            <ul className="m-0 p-0 list-none space-y-1 text-xs text-slate-500">
-                              {pkg.features.map((feat, fidx) => (
-                                <li key={fidx} className="flex items-center gap-1.5">
-                                  <CheckCircle2 size={12} className="text-green-600 shrink-0" />
-                                  <span>{feat}</span>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Key Benefits */}
-                <div className="p-3.5 rounded-2xl bg-purple-50/70 border border-purple-100 space-y-1.5 text-xs text-purple-900">
-                  <div className="flex items-center gap-1.5 font-bold">
-                    <Sparkles size={14} className="text-purple-600" />
-                    <span>TiptoBook Assurance</span>
-                  </div>
-                  <p className="m-0 leading-relaxed text-purple-800/90">
-                    Background-verified professionals • Transparent pricing • Post-service quality guarantee with dedicated support.
-                  </p>
-                </div>
-
-                {/* FAQs */}
-                {selectedServiceForModal.faqs?.length > 0 && (
-                  <div>
-                    <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-2">
-                      Frequently Asked Questions
-                    </h4>
-                    <div className="space-y-2">
-                      {selectedServiceForModal.faqs.map((faq, idx) => (
-                        <details
-                          key={idx}
-                          className="p-3 rounded-xl border border-slate-200 text-xs bg-white cursor-pointer group"
-                        >
-                          <summary className="font-semibold text-slate-800 list-none flex items-center justify-between">
-                            <span>{faq.question}</span>
-                            <ChevronDown
-                              size={14}
-                              className="text-slate-400 group-open:rotate-180 transition-transform"
-                            />
-                          </summary>
-                          <p className="mt-2 text-slate-600 leading-relaxed m-0 pt-2 border-t border-slate-100">
-                            {faq.answer}
-                          </p>
-                        </details>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Modal Footer with BOOK button */}
-              <div className="p-4 border-t border-slate-100 bg-white flex items-center justify-between">
-                <div>
-                  <span className="text-[11px] text-slate-400 block font-medium">Starting from</span>
-                  <span className="text-lg font-bold text-slate-900">
-                    ₹{(selectedServiceForModal.startingPrice || 499).toLocaleString("en-IN")}
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    const svc = selectedServiceForModal;
-                    setSelectedServiceForModal(null);
-                    handleBookService(svc);
-                  }}
-                  className="px-6 py-2.5 rounded-full bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer"
-                >
-                  BOOK NOW
-                </button>
-              </div>
-            </motion.div>
-          </div>
+          <CatalogueServiceModal
+            service={applyContent(selectedServiceForModal, content)}
+            image={serviceImage(selectedServiceForModal) || selectedServiceForModal.imageUrl}
+            assuranceTitle={t("category.assuranceTitle")}
+            assuranceText={t("category.assuranceText")}
+            onClose={() => setSelectedServiceForModal(null)}
+            onBook={() => {
+              const svc = selectedServiceForModal;
+              setSelectedServiceForModal(null);
+              handleBookService(svc);
+            }}
+          />
         )}
       </AnimatePresence>
     </div>

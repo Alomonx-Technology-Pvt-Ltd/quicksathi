@@ -9,6 +9,7 @@ import ChatBot from "../chatbot/ChatBot";
 import api from "../../config/api";
 import { Bell, Trash2, MapPin } from "lucide-react";
 import BrandLogo from "../common/BrandLogo";
+import LanguageToggle from "../common/LanguageToggle";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ApplianceCategoryModal,
@@ -610,9 +611,10 @@ const Navbar = () => {
             </NavLink>
           ))}
 
-          {/* City Picker */}
-          <div className="shrink-0">
+          {/* City Picker + Language */}
+          <div className="shrink-0 flex items-center gap-2">
             <CityPicker isFullBleed={false} />
+            <LanguageToggle />
           </div>
 
           {/* Auth area */}
@@ -856,8 +858,9 @@ const Navbar = () => {
                 </NavLink>
               ))}
 
-              {/* City Picker in mobile drawer */}
+              {/* City Picker + Language in mobile drawer */}
               <CityPicker isFullBleed={false} />
+              <LanguageToggle className="self-start" />
 
               {!isAuthenticated && (
                 <>

@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   MapPin,
   Navigation,
@@ -14,8 +15,12 @@ import {
 } from "lucide-react";
 import LocationSearch from "../carRental/LocationSearch";
 import RouteMap from "../carRental/RouteMap";
+import { formatPrice, formatPriceUnit } from "../../content/catalogue";
 
-const BookingCard = ({ service, pkg }) => {
+// `service`/`pkg` are display copies; `bookingService`/`bookingPkg` are the DB
+// records whose name, title and slug go into booking params unchanged.
+const BookingCard = ({ service, pkg, bookingService = service, bookingPkg = pkg }) => {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const isRental = service?.serviceMode === "RENTAL";
 
@@ -37,7 +42,7 @@ const BookingCard = ({ service, pkg }) => {
   // Calculate trip price based on distance
   const distanceKm = routeInfo?.distanceKm || 0;
   const distancePrice = Math.round(distanceKm * perKmRate);
-  const basePkgPrice = pkg?.price ?? service?.startingPrice ?? 349;
+  const basePkgPrice = bookingPkg?.price ?? bookingService?.startingPrice ?? 349;
   const tripTotal = isRental && distanceKm > 0 ? distancePrice : basePkgPrice;
   const originalPrice = tripTotal ? Math.round(tripTotal * 1.25) : null;
 
@@ -57,10 +62,10 @@ const BookingCard = ({ service, pkg }) => {
 
   // Book handler
   const handleBook = () => {
-    const serviceId = service.slug || service.id || service._id;
+    const serviceId = bookingService.slug || bookingService.id || bookingService._id;
     const params = new URLSearchParams({
-      name: service.name,
-      package: pkg?.title ?? "",
+      name: bookingService.name,
+      package: bookingPkg?.title ?? "",
       price: tripTotal.toString(),
     });
 
@@ -96,13 +101,13 @@ const BookingCard = ({ service, pkg }) => {
           <div className="flex items-center gap-2 mb-1">
             <Route size={16} strokeWidth={2} className="text-purple-600" />
             <p className="text-xs font-bold uppercase tracking-wider text-slate-500 m-0">
-              Plan Your Trip
+              {t("serviceDetail.booking.planTrip")}
             </p>
           </div>
 
           {/* Pickup input */}
           <LocationSearch
-            placeholder="Pickup location"
+            placeholder={t("serviceDetail.booking.pickup")}
             value={pickupName}
             icon={Navigation}
             accentColor="#16a34a"
@@ -122,7 +127,7 @@ const BookingCard = ({ service, pkg }) => {
 
           {/* Destination input */}
           <LocationSearch
-            placeholder="Destination"
+            placeholder={t("serviceDetail.booking.destination")}
             value={dropoffName}
             icon={MapPin}
             accentColor="#dc2626"
@@ -146,7 +151,7 @@ const BookingCard = ({ service, pkg }) => {
               onClick={handleSearch}
               className="w-full py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-sm cursor-pointer border-0"
             >
-              Calculate Route & Price
+              {t("serviceDetail.booking.calculateRoute")}
             </button>
           )}
 
@@ -165,16 +170,16 @@ const BookingCard = ({ service, pkg }) => {
           {routeInfo && (
             <div className="p-3.5 rounded-2xl bg-purple-50/60 border border-purple-100 flex flex-col gap-2 text-xs">
               <div className="flex items-center justify-between">
-                <span className="text-slate-600">Total Distance:</span>
+                <span className="text-slate-600">{t("serviceDetail.booking.totalDistance")}</span>
                 <span className="font-bold text-slate-900">{distanceKm} km</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-600">Est. Duration:</span>
+                <span className="text-slate-600">{t("serviceDetail.booking.estDuration")}</span>
                 <span className="font-bold text-slate-900">{formatDuration(routeInfo.durationMin)}</span>
               </div>
               <div className="flex items-center justify-between pt-1 border-t border-purple-200/60">
-                <span className="font-bold text-slate-900">Trip Total:</span>
-                <span className="text-base font-extrabold text-purple-700">₹{distancePrice.toLocaleString()}</span>
+                <span className="font-bold text-slate-900">{t("serviceDetail.booking.tripTotal")}</span>
+                <span className="text-base font-extrabold text-purple-700">{formatPrice(distancePrice)}</span>
               </div>
             </div>
           )}
@@ -190,11 +195,11 @@ const BookingCard = ({ service, pkg }) => {
         <div className="flex items-center justify-between mb-1.5">
           <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wider text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-100">
             <Sparkles size={11} className="text-purple-600" />
-            {isRental && distanceKm > 0 ? "Trip Estimate" : "Selected Package"}
+            {isRental && distanceKm > 0 ? t("serviceDetail.booking.tripEstimate") : t("serviceDetail.booking.selectedPackage")}
           </span>
           <span className="text-[11px] text-emerald-600 font-semibold flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            Instant Booking
+            {t("serviceDetail.booking.instantBooking")}
           </span>
         </div>
 
@@ -207,16 +212,16 @@ const BookingCard = ({ service, pkg }) => {
         {/* Price Row with strikethrough comparison */}
         <div className="flex items-baseline gap-2.5 mt-2">
           <span className="text-3xl font-extrabold text-slate-900 tracking-tight">
-            ₹{tripTotal.toLocaleString("en-IN")}
+            {formatPrice(tripTotal)}
           </span>
           {originalPrice && (
             <span className="text-sm text-slate-400 line-through">
-              ₹{originalPrice.toLocaleString("en-IN")}
+              {formatPrice(originalPrice)}
             </span>
           )}
           {service?.priceUnit && !isRental && (
             <span className="text-xs text-slate-500 font-normal">
-              /{service.priceUnit}
+              {formatPriceUnit(service.priceUnit)}
             </span>
           )}
         </div>
@@ -225,14 +230,14 @@ const BookingCard = ({ service, pkg }) => {
       {/* Doorstep location badge */}
       <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200/60 text-xs text-slate-600">
         <MapPin size={14} className="text-purple-600 shrink-0" />
-        <span>Doorstep service executed at your home</span>
+        <span>{t("serviceDetail.booking.doorstep")}</span>
       </div>
 
       {/* Package Features List */}
       {pkg?.features && pkg.features.length > 0 && (
         <div className="space-y-2 pt-1 border-t border-slate-100">
           <span className="text-xs font-bold text-slate-700 block uppercase tracking-wider text-[10px]">
-            Package Inclusions:
+            {t("serviceDetail.booking.inclusions")}
           </span>
           <ul className="m-0 p-0 list-none space-y-1.5 text-xs text-slate-600">
             {pkg.features.map((feat, idx) => (
@@ -249,10 +254,10 @@ const BookingCard = ({ service, pkg }) => {
       <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-100 text-[11px] text-emerald-800 space-y-1">
         <div className="flex items-center gap-1.5 font-bold text-emerald-900">
           <ShieldCheck size={13} className="text-emerald-600" />
-          <span>Pay After Service</span>
+          <span>{t("serviceDetail.booking.payAfterTitle")}</span>
         </div>
         <p className="m-0 text-emerald-700/90 leading-tight">
-          No advance payment required. Inspect the work and pay safely via UPI or Cash.
+          {t("serviceDetail.booking.payAfterText")}
         </p>
       </div>
 
@@ -262,13 +267,13 @@ const BookingCard = ({ service, pkg }) => {
         onClick={handleBook}
         className="w-full py-3.5 px-6 rounded-2xl bg-purple-600 hover:bg-purple-700 active:scale-98 text-white font-bold text-sm tracking-wider uppercase transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer border-0"
       >
-        <span>Book Now</span>
+        <span>{t("common.bookNow")}</span>
         <ArrowRight size={16} />
       </button>
 
       {/* Assurance footer */}
       <div className="text-center pt-1 border-t border-slate-100 text-[11px] text-slate-400">
-        <span>Verified technicians • Standardized rates</span>
+        <span>{t("serviceDetail.booking.footer")}</span>
       </div>
     </div>
   );

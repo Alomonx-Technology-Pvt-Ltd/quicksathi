@@ -1,14 +1,16 @@
+import { useTranslation } from "react-i18next";
 import SectionHeader from "./SectionHeader";
 import { ChevronDown } from "lucide-react";
 
 const FAQSection = ({ faqs = [], openFaq, setOpenFaq }) => {
+  const { t } = useTranslation();
   if (!faqs?.length) return null;
 
   return (
     <div id="faq-section" className="scroll-mt-24">
       <SectionHeader
-        title="Frequently Asked Questions"
-        subtitle="Answers to common queries regarding this service"
+        title={t("catalogue.faqs")}
+        subtitle={t("serviceDetail.faqSubtitle")}
       />
 
       <div className="flex flex-col gap-2.5">

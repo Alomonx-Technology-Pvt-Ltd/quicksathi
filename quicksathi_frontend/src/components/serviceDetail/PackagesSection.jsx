@@ -1,14 +1,7 @@
-import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import SectionHeader from "./SectionHeader";
-import {
-  Car,
-  Star,
-  ChevronRight,
-  Check,
-  CheckCircle2,
-  Sparkles,
-  ShieldCheck,
-} from "lucide-react";
+import { Car, Star, ChevronRight, Check, CheckCircle2 } from "lucide-react";
+import { formatPrice, formatPriceUnit } from "../../content/catalogue";
 
 const PackagesSection = ({
   packages = [],
@@ -18,16 +11,17 @@ const PackagesSection = ({
   onShowMore,
   service = {},
 }) => {
+  const { t } = useTranslation();
   if (!packages?.length) return null;
 
   return (
     <div id="packages-section" className="scroll-mt-24">
       <SectionHeader
-        title={isRental ? "Choose Vehicle Variation" : "Select Service Package"}
+        title={isRental ? t("serviceDetail.packages.titleRental") : t("serviceDetail.packages.title")}
         subtitle={
           isRental
-            ? "Transparent pricing with verified commercial drivers and clean AC cabs"
-            : "Select a package for instant doorstep service by verified professionals"
+            ? t("serviceDetail.packages.subtitleRental")
+            : t("serviceDetail.packages.subtitle")
         }
       />
 
@@ -60,27 +54,37 @@ const PackagesSection = ({
                       {pkg.title}
                     </h3>
                     {pkg.recommended && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-white shadow-2xs tracking-wide">
-                        RECOMMENDED
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500 text-white shadow-2xs tracking-wide uppercase">
+                        {t("serviceDetail.packages.recommended")}
                       </span>
                     )}
                     {isSelected && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-600 text-white shadow-2xs tracking-wide">
+                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-600 text-white shadow-2xs tracking-wide uppercase">
                         <Check size={11} strokeWidth={3} />
-                        SELECTED
+                        {t("serviceDetail.packages.selected")}
                       </span>
                     )}
                   </div>
 
+                  {pkg.description && (
+                    <p className="text-xs sm:text-[13px] text-slate-600 leading-relaxed m-0 mb-1.5 max-w-md">
+                      {pkg.description}
+                    </p>
+                  )}
+
                   {/* Rating */}
                   <div className="flex items-center gap-1.5 text-xs text-slate-600 font-medium">
                     <Star size={13} className="fill-amber-400 text-amber-400" />
-                    <span className="font-semibold text-slate-800">
-                      {service.rating || 4.8}
-                    </span>
-                    <span className="text-slate-500">
-                      ({(service.totalReviews || 2890).toLocaleString("en-IN")} reviews)
-                    </span>
+                    {service.rating > 0 ? (
+                      <>
+                        <span className="font-semibold text-slate-800">{service.rating}</span>
+                        <span className="text-slate-500">
+                          {t("common.reviewsCount", { count: (service.totalReviews || 0).toLocaleString("en-IN") })}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="font-semibold text-slate-800">{t("common.newService")}</span>
+                    )}
                   </div>
 
                   {/* Dashed Separator */}
@@ -102,32 +106,45 @@ const PackagesSection = ({
                     onClick={(e) => {
                       e.stopPropagation();
                       if (onShowMore) {
-                        onShowMore(pkg);
+                        onShowMore(i);
                       }
                     }}
                     className="inline-flex items-center gap-0.5 text-xs font-semibold text-purple-700 hover:text-purple-900 mt-2.5 bg-transparent border-0 p-0 cursor-pointer transition-colors"
                   >
-                    <span>Show more</span>
+                    <span>{t("common.showMore")}</span>
                     <ChevronRight size={13} />
                   </button>
 
                   {/* Price & BOOK / SELECT Button Row */}
                   <div className="flex items-center justify-between mt-4 max-w-md pt-1">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-base sm:text-xl font-extrabold text-slate-900">
-                        ₹{(pkg.price || service.startingPrice || 349).toLocaleString("en-IN")}
-                      </span>
-                      {originalPrice && (
-                        <span className="text-xs text-slate-400 line-through font-normal">
-                          ₹{originalPrice.toLocaleString("en-IN")}
+                    {pkg.priceLabel ? (
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-base sm:text-xl font-extrabold text-slate-900">
+                          {pkg.priceLabel}
                         </span>
-                      )}
-                      {service.priceUnit && (
-                        <span className="text-[11px] text-slate-500 font-normal">
-                          /{service.priceUnit}
+                        {pkg.priceLabel === formatPrice(pkg.price) && service.priceUnit && (
+                          <span className="text-[11px] text-slate-500 font-normal">
+                            {formatPriceUnit(service.priceUnit)}
+                          </span>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-base sm:text-xl font-extrabold text-slate-900">
+                          {formatPrice(pkg.price || service.startingPrice || 349)}
                         </span>
-                      )}
-                    </div>
+                        {originalPrice && (
+                          <span className="text-xs text-slate-400 line-through font-normal">
+                            {formatPrice(originalPrice)}
+                          </span>
+                        )}
+                        {service.priceUnit && (
+                          <span className="text-[11px] text-slate-500 font-normal">
+                            {formatPriceUnit(service.priceUnit)}
+                          </span>
+                        )}
+                      </div>
+                    )}
 
                     {/* BOOK / SELECT Button */}
                     <button
@@ -145,10 +162,10 @@ const PackagesSection = ({
                       {isSelected ? (
                         <>
                           <Check size={13} strokeWidth={3} />
-                          <span>SELECTED</span>
+                          <span>{t("serviceDetail.packages.selected")}</span>
                         </>
                       ) : (
-                        <span>SELECT</span>
+                        <span>{t("serviceDetail.packages.select")}</span>
                       )}
                     </button>
                   </div>
@@ -210,9 +227,13 @@ const PackagesSection = ({
                     {p.title}
                   </h3>
                   <span className="text-lg font-extrabold text-purple-700">
-                    ₹{p.price?.toLocaleString()}
+                    {p.priceLabel || formatPrice(p.price)}
                   </span>
                 </div>
+
+                {p.description && (
+                  <p className="text-xs text-slate-600 m-0 mb-2">{p.description}</p>
+                )}
 
                 <ul className="m-0 p-0 list-none space-y-1 text-xs text-slate-600 mb-3">
                   {p.features?.map((feature, fidx) => (
@@ -224,9 +245,9 @@ const PackagesSection = ({
                 </ul>
 
                 <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs font-semibold">
-                  <span className="text-slate-500">Chauffeur Driven</span>
+                  <span className="text-slate-500">{t("serviceDetail.packages.chauffeur")}</span>
                   <span className={isSelected ? "text-purple-700 font-bold" : "text-slate-400"}>
-                    {isSelected ? "Selected ✓" : "Click to select"}
+                    {isSelected ? t("serviceDetail.packages.selectedCheck") : t("serviceDetail.packages.clickToSelect")}
                   </span>
                 </div>
               </button>

@@ -401,7 +401,7 @@ const AdminCoupons = () => {
                       {coupon.minOrderAmount ? `₹${coupon.minOrderAmount.toLocaleString()}` : "No minimum"}
                     </span>
                   </div>
-                  {coupon.maxDiscountAmount && (
+                  {coupon.maxDiscountAmount > 0 && (
                     <div className="flex justify-between">
                       <span>Max Discount Cap:</span>
                       <span className="font-semibold" style={{ color: "var(--admin-detail-text)" }}>₹{coupon.maxDiscountAmount.toLocaleString()}</span>

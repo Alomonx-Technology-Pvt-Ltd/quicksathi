@@ -178,10 +178,12 @@ export async function startStack() {
   const razorpaySignature = (orderId, paymentId) =>
     crypto.createHmac("sha256", RAZORPAY_SECRET).update(`${orderId}|${paymentId}`).digest("hex");
 
+  // `relPath` may be a script path or [scriptPath, ...cliArgs].
   const runScript = (relPath, extraEnv = {}, timeoutMs = 30_000) =>
     new Promise((resolve) => {
       let out = "";
-      const p = spawn(process.execPath, [relPath], { cwd: BACKEND_DIR, env: hermeticEnv({ MONGODB_URI: uri, ...extraEnv }) });
+      const argv = Array.isArray(relPath) ? relPath : [relPath];
+      const p = spawn(process.execPath, argv, { cwd: BACKEND_DIR, env: hermeticEnv({ MONGODB_URI: uri, ...extraEnv }) });
       p.stdout.on("data", (d) => (out += d));
       p.stderr.on("data", (d) => (out += d));
       const t = setTimeout(() => p.kill("SIGKILL"), timeoutMs);
