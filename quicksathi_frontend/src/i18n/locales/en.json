@@ -17,7 +17,18 @@
     "startingFrom": "Starting from",
     "contactSupport": "Contact Support",
     "home": "Home",
-    "category": "Category"
+    "category": "Category",
+    "seeAll": "See all",
+    "scrollLeft": "Scroll left",
+    "scrollRight": "Scroll right",
+    "addToWishlist": "Add to wishlist",
+    "removeFromWishlist": "Remove from wishlist"
+  },
+  "homeSections": {
+    "ac": { "title": "AC & Appliance Services", "subtitle": "AC, washing machine, fridge, TV and geyser repair at home" },
+    "house": { "title": "House Services & Repair", "subtitle": "Plumbing, electrical, carpentry & CCTV" },
+    "cars": { "title": "Car & Vehicle Rentals", "subtitle": "City rides, airport transfers, outstation trips & wedding cars" },
+    "wedding": { "title": "Wedding & Event Services", "subtitle": "Photography, decoration, venues, catering & pandit" }
   },
   "location": {
     "locating": "Locating in real-time...",

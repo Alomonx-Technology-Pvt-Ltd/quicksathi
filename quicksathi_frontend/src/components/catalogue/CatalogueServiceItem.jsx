@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Star, ChevronRight } from "lucide-react";
 import { formatPrice, formatPriceUnit } from "../../content/catalogue";
+import ServiceImage from "./ServiceImage";
 
 /**
  * One service row in a category listing. `service` is the display copy
@@ -13,7 +14,7 @@ const CatalogueServiceItem = ({
   onOpen,
   onBook,
   image,
-  fallbackImage,
+  groupLabel,
 }) => {
   const { t } = useTranslation();
 
@@ -87,18 +88,13 @@ const CatalogueServiceItem = ({
         </div>
       </div>
 
-      <div className="relative shrink-0 w-28 h-28 sm:w-36 sm:h-36 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200/80 shadow-xs">
-        <img
-          src={image || fallbackImage}
-          alt={service.name}
-          loading="lazy"
-          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src = fallbackImage;
-          }}
-        />
-      </div>
+      <ServiceImage
+        src={image}
+        alt={service.name}
+        label={groupLabel}
+        className="relative shrink-0 w-28 h-28 sm:w-36 sm:h-36 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200/80 shadow-xs"
+        imgClassName="transition-transform duration-300 group-hover:scale-105"
+      />
     </article>
   );
 };

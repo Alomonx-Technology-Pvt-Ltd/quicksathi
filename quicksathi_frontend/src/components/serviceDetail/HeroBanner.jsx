@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { useLocation } from "../../context/LocationContext";
 import { formatPrice, formatPriceUnit } from "../../content/catalogue";
+import ServiceImage from "../catalogue/ServiceImage";
 
 const HeroBanner = ({ service, allImages = [], activeImg = 0, setActiveImg }) => {
   const { t } = useTranslation();
@@ -221,15 +222,12 @@ const HeroBanner = ({ service, allImages = [], activeImg = 0, setActiveImg }) =>
         {/* ── Modern Media Showcase / Image Card (No outdated dark full-bleed) ── */}
         <div className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden bg-slate-900 shadow-md border border-slate-200/80">
           <div className="relative w-full aspect-[21/9] min-h-[220px] sm:min-h-[280px] max-h-[420px] overflow-hidden">
-            <img
+            <ServiceImage
               src={currentImg}
               alt={service.name}
-              className="w-full h-full object-cover transition-transform duration-700 hover:scale-103"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src =
-                  "https://images.unsplash.com/photo-1581092160607-ee22621dd758?q=80&w=1200&auto=format&fit=crop";
-              }}
+              loading="eager"
+              className="w-full h-full"
+              imgClassName="transition-transform duration-700 hover:scale-103"
             />
 
             {/* Gradient Scrim for subtle bottom readability */}

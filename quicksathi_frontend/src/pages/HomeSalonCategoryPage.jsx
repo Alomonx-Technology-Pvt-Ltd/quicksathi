@@ -17,6 +17,8 @@ import { useLocation } from "../context/LocationContext";
 import CategorySpotlightBanner from "../components/CategorySpotlightBanner";
 import CatalogueServiceItem from "../components/catalogue/CatalogueServiceItem";
 import CatalogueServiceModal from "../components/catalogue/CatalogueServiceModal";
+import ServiceImage from "../components/catalogue/ServiceImage";
+import { serviceImage } from "../content/catalogue/images";
 import {
   useCatalogueContent,
   applyContent,
@@ -26,9 +28,6 @@ import {
 } from "../content/catalogue";
 
 const VERTICAL = "HOME_SALON";
-const FALLBACK_IMAGE =
-  "https://images.unsplash.com/photo-1560066984-138dadb4c035?q=80&w=300&auto=format&fit=crop";
-const serviceImage = (service) => service?.thumbnail || service?.bannerImage;
 
 const HomeSalonCategoryPage = ({ category: propCategory }) => {
   const navigate = useNavigate();
@@ -269,18 +268,13 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
                       onClick={() => handleScrollToSection(group.key)}
                       className="group flex flex-col items-center text-center bg-transparent border-0 cursor-pointer p-0 outline-none transition-transform duration-200 active:scale-95"
                     >
-                      <div className="relative w-full aspect-square max-w-[105px] rounded-xl sm:rounded-2xl overflow-hidden bg-slate-100 border border-slate-200/70 shadow-xs group-hover:border-purple-300 group-hover:shadow-md transition-all">
-                        <img
-                          src={serviceImage(group.services[0]) || FALLBACK_IMAGE}
-                          alt={title}
-                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                          loading="eager"
-                          onError={(e) => {
-                            e.currentTarget.onerror = null;
-                            e.currentTarget.src = FALLBACK_IMAGE;
-                          }}
-                        />
-                      </div>
+                      <ServiceImage
+                        src={group.services.map(serviceImage).find(Boolean)}
+                        alt={title}
+                        loading="eager"
+                        className="relative w-full aspect-square max-w-[105px] rounded-xl sm:rounded-2xl overflow-hidden bg-slate-100 border border-slate-200/70 shadow-xs group-hover:border-purple-300 group-hover:shadow-md transition-all"
+                        imgClassName="transition-transform duration-300 group-hover:scale-110"
+                      />
                       <span className="mt-2 text-[11px] sm:text-xs font-semibold text-slate-800 leading-tight group-hover:text-purple-700 transition-colors line-clamp-2 max-w-[100px]">
                         {title}
                       </span>
@@ -328,7 +322,7 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
                         key={service._id || service.slug}
                         service={applyContent(service, content)}
                         image={serviceImage(service)}
-                        fallbackImage={FALLBACK_IMAGE}
+                        groupLabel={groupTitle(group.key, content, t)}
                         onOpen={() => setSelectedServiceForModal(service)}
                         onBook={() => handleBookService(service)}
                       />
@@ -364,7 +358,6 @@ const HomeSalonCategoryPage = ({ category: propCategory }) => {
           <CatalogueServiceModal
             service={applyContent(selectedServiceForModal, content)}
             image={serviceImage(selectedServiceForModal)}
-            fallbackImage={FALLBACK_IMAGE}
             assuranceTitle={t("salon.assuranceTitle")}
             assuranceText={t("salon.assuranceText")}
             onClose={() => setSelectedServiceForModal(null)}

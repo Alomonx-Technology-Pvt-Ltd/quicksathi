@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Star, X, CheckCircle2, XCircle, Sparkles, ChevronDown } from "lucide-react";
 import { formatPrice } from "../../content/catalogue";
+import ServiceImage from "./ServiceImage";
 
 /**
  * "Show more" dialog for a category listing. `service` is the display copy
@@ -13,7 +14,6 @@ const CatalogueServiceModal = ({
   onClose,
   onBook,
   image,
-  fallbackImage,
   assuranceTitle,
   assuranceText,
 }) => {
@@ -85,17 +85,11 @@ const CatalogueServiceModal = ({
 
         {/* Body */}
         <div className="p-5 overflow-y-auto space-y-5 text-sm text-slate-700">
-          <div className="aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100">
-            <img
-              src={image || fallbackImage}
-              alt={service.name}
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.currentTarget.onerror = null;
-                e.currentTarget.src = fallbackImage;
-              }}
-            />
-          </div>
+          <ServiceImage
+            src={image}
+            alt={service.name}
+            className="aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100"
+          />
 
           <div>
             <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">

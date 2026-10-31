@@ -17,7 +17,18 @@
     "startingFrom": "Shuruaat",
     "contactSupport": "Support se baat karein",
     "home": "Home",
-    "category": "Category"
+    "category": "Category",
+    "seeAll": "Sab dekhein",
+    "scrollLeft": "Baayein scroll karein",
+    "scrollRight": "Daayein scroll karein",
+    "addToWishlist": "Wishlist mein jodein",
+    "removeFromWishlist": "Wishlist se hatayein"
+  },
+  "homeSections": {
+    "ac": { "title": "AC aur appliance services", "subtitle": "Ghar par AC, washing machine, fridge, TV aur geyser repair" },
+    "house": { "title": "Ghar ki services aur repair", "subtitle": "Plumbing, bijli ka kaam, carpentry aur CCTV" },
+    "cars": { "title": "Car aur gaadi rental", "subtitle": "Shahar mein ghoomna, airport drop, outstation trip aur shaadi ki gaadi" },
+    "wedding": { "title": "Shaadi aur event services", "subtitle": "Photography, decoration, venue, catering aur pandit" }
   },
   "location": {
     "locating": "Aapki location dhoondh rahe hain...",

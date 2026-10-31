@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   Heart,
   Star,
@@ -14,13 +15,21 @@ import {
 import api, { getCached } from "../config/api";
 import { mockServices } from "../data/mockServices";
 import { mockCategories } from "../data/mockCategories";
+import {
+  structure,
+  useCatalogueContent,
+  applyContent,
+  formatPrice,
+  formatPriceUnit,
+} from "../content/catalogue";
+import ServiceImage from "./catalogue/ServiceImage";
+import { serviceImage } from "../content/catalogue/images";
 
 // ── Target 4 core categories ──────────────────────────────────────────────────
 const SECTIONS_CONFIG = [
   {
     key: "ac-appliances",
-    title: "AC & Appliance Services",
-    subtitle: "AC repair, gas refill, installation & annual maintenance",
+    i18nKey: "ac",
     vertical: "AC_APPLIANCES",
     nameKeywords: ["ac", "appliance", "air conditioner", "refrigerator", "cooler"],
     fallbackIcon: Wrench,
@@ -28,8 +37,7 @@ const SECTIONS_CONFIG = [
   },
   {
     key: "house-services",
-    title: "House Services & Repair",
-    subtitle: "Plumbing, electrical, carpentry & CCTV security",
+    i18nKey: "house",
     vertical: "HOUSE_SERVICES",
     nameKeywords: ["house services", "home service", "repair", "cctv", "security", "electric", "plumb", "carpenter", "lock"],
     fallbackIcon: Wrench,
@@ -37,8 +45,7 @@ const SECTIONS_CONFIG = [
   },
   {
     key: "cars",
-    title: "Car & Vehicle Rentals",
-    subtitle: "Everyday city rides, outstation cabs & luxury wedding cars",
+    i18nKey: "cars",
     vertical: "VEHICLE_RENTAL",
     nameKeywords: ["vehicle", "car", "rental", "ride", "cab", "drive", "suv"],
     fallbackIcon: Car,
@@ -46,8 +53,7 @@ const SECTIONS_CONFIG = [
   },
   {
     key: "wedding",
-    title: "Wedding & Event Services",
-    subtitle: "Cinematic photography, stage decoration, catering & bridal makeup",
+    i18nKey: "wedding",
     vertical: "WEDDING",
     nameKeywords: ["wedding", "party", "event", "photograph", "decor", "cater", "makeup"],
     fallbackIcon: Sparkles,
@@ -55,10 +61,15 @@ const SECTIONS_CONFIG = [
   },
 ];
 
-// Single Service Card component matching user reference screenshot
-const ServiceCard = ({ service, onBookNow }) => {
+// One service in a home-page row. `service` is the raw API record (booking, images);
+// `content` supplies the display text in the active language.
+const ServiceCard = ({ service, content }) => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const display = applyContent(service, content);
+  const groupKey = structure.services[service.slug]?.group;
+  const groupLabel = groupKey ? content?.groups?.[groupKey] : null;
 
   // Check saved wishlist state
   useEffect(() => {
@@ -112,95 +123,101 @@ const ServiceCard = ({ service, onBookNow }) => {
     navigate(`/booking/${serviceId}?${params.toString()}`);
   };
 
-  const formattedPrice = Number(service.startingPrice || 0).toLocaleString("en-IN");
-  const ratingValue = service.rating ? Number(service.rating).toFixed(1) : "4.8";
-  const thumbnail =
-    service.thumbnail ||
-    service.bannerImage ||
-    (Array.isArray(service.gallery) && service.gallery[0]) ||
-    "/images/ac/ac-checkup.webp";
-
   return (
     <motion.div
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
       onClick={handleCardClick}
-      className="group relative flex-shrink-0 w-[180px] xs:w-[195px] sm:w-[220px] md:w-[235px] bg-white rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_10px_25px_rgba(0,0,0,0.08)] transition-all duration-300 flex flex-col justify-between overflow-hidden cursor-pointer snap-start"
+      className="group relative flex-shrink-0 w-[200px] xs:w-[215px] sm:w-[235px] md:w-[250px] bg-white rounded-2xl border border-gray-100 shadow-[0_2px_12px_rgba(0,0,0,0.04)] hover:shadow-[0_10px_25px_rgba(0,0,0,0.08)] transition-all duration-300 flex flex-col overflow-hidden cursor-pointer snap-start"
     >
-      {/* ── Image & Wishlist Button ── */}
+      {/* ── Image, group chip & wishlist ── */}
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100">
-        <img
-          src={thumbnail}
-          alt={service.name}
-          loading="lazy"
-          decoding="async"
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-          onError={(e) => {
-            e.currentTarget.onerror = null;
-            e.currentTarget.src = "/images/ac/ac-checkup.webp";
-          }}
+        <ServiceImage
+          src={serviceImage(service)}
+          alt={display.name}
+          className="w-full h-full"
+          imgClassName="transition-transform duration-500 group-hover:scale-105"
         />
-
-        {/* Favorite / Wishlist Heart Button */}
+        {groupLabel && (
+          <span className="absolute top-2.5 left-2.5 z-10 max-w-[70%] truncate rounded-full bg-black/55 backdrop-blur-md px-2.5 py-1 text-[10.5px] font-semibold text-white">
+            {groupLabel}
+          </span>
+        )}
         <button
           type="button"
           onClick={toggleWishlist}
-          aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+          aria-label={isWishlisted ? t("common.removeFromWishlist") : t("common.addToWishlist")}
           className="absolute top-2.5 right-2.5 z-10 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white/90 hover:text-white transition-transform active:scale-90 border-0 cursor-pointer"
         >
           <Heart
             size={15}
             className={`transition-colors duration-200 ${
-              isWishlisted
-                ? "fill-red-500 text-red-500"
-                : "text-white/90 group-hover:text-white"
+              isWishlisted ? "fill-red-500 text-red-500" : "text-white/90 group-hover:text-white"
             }`}
           />
         </button>
       </div>
 
-      {/* ── Card Content ── */}
-      <div className="p-3 sm:p-3.5 flex flex-col flex-1 justify-between gap-2.5">
-        <div>
-          {/* Title - 2 lines max */}
-          <h4
-            title={service.name}
-            className="text-[13.5px] sm:text-sm font-semibold text-gray-900 leading-snug line-clamp-2 min-h-[2.4rem] m-0 group-hover:text-purple-700 transition-colors"
-          >
-            {service.name}
-          </h4>
+      {/* ── Card content ── */}
+      <div className="p-3 sm:p-3.5 flex flex-col flex-1 gap-2">
+        <h4
+          title={display.name}
+          className="text-[13.5px] sm:text-sm font-semibold text-gray-900 leading-snug line-clamp-2 min-h-[2.5em] m-0 group-hover:text-purple-700 transition-colors"
+        >
+          {display.name}
+        </h4>
 
-          {/* Star Rating */}
-          <div className="flex items-center gap-1.5 mt-1.5">
-            <div className="flex items-center text-amber-500">
+        <p className="text-[11.5px] sm:text-xs text-gray-500 leading-snug line-clamp-2 min-h-[2.75em] m-0">
+          {display.shortDescription}
+        </p>
+
+        <div className="flex items-center gap-1.5 mt-auto pt-0.5">
+          {service.rating > 0 ? (
+            <>
               <Star size={13} className="fill-amber-400 text-amber-400" />
-            </div>
-            <span className="text-xs font-semibold text-gray-700">
-              {ratingValue}
+              <span className="text-xs font-semibold text-gray-700">{Number(service.rating).toFixed(1)}</span>
+              {service.totalReviews > 0 && (
+                <span className="text-[11px] text-gray-400 font-normal">
+                  {t("common.reviewsCount", { count: service.totalReviews.toLocaleString("en-IN") })}
+                </span>
+              )}
+            </>
+          ) : (
+            <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10.5px] font-semibold text-emerald-700">
+              {t("common.newService")}
             </span>
-            {service.totalReviews > 0 && (
-              <span className="text-[11px] text-gray-400 font-normal">
-                ({service.totalReviews})
-              </span>
-            )}
-          </div>
+          )}
         </div>
 
-        {/* ── Bottom Row: Price & BOOK Button ── */}
-        <div className="flex items-center justify-between pt-1 border-t border-gray-50">
-          <div className="flex items-baseline gap-0.5">
-            <span className="text-sm sm:text-base font-bold text-gray-900">
-              ₹{formattedPrice}
-            </span>
-          </div>
+        {/* ── Price & BOOK ── */}
+        <div className="flex items-end justify-between gap-2 pt-2 border-t border-gray-100">
+          {service.startingPrice > 0 ? (
+            <div className="min-w-0">
+              <span className="block text-[10px] text-gray-400 font-medium leading-none mb-1">
+                {t("common.startingFrom")}
+              </span>
+              <div className="flex items-baseline gap-1 whitespace-nowrap">
+                <span className="text-sm sm:text-base font-bold text-gray-900">
+                  {formatPrice(service.startingPrice)}
+                </span>
+                {display.priceUnit && (
+                  <span className="text-[10.5px] text-gray-500 font-normal truncate">
+                    {formatPriceUnit(display.priceUnit)}
+                  </span>
+                )}
+              </div>
+            </div>
+          ) : (
+            <span />
+          )}
 
           <button
             type="button"
             onClick={handleAddClick}
-            aria-label={`Book ${service.name}`}
-            className="border border-purple-200 bg-purple-50/80 text-purple-700 hover:bg-purple-600 hover:text-white hover:border-purple-600 active:scale-95 font-bold text-[11px] sm:text-xs tracking-wider uppercase px-3.5 sm:px-4 py-1.5 rounded-xl transition-all shadow-sm cursor-pointer"
+            aria-label={`${t("common.book")} ${display.name}`}
+            className="flex-shrink-0 border border-purple-200 bg-purple-50/80 text-purple-700 hover:bg-purple-600 hover:text-white hover:border-purple-600 active:scale-95 font-bold text-[11px] sm:text-xs tracking-wider uppercase px-3.5 sm:px-4 py-1.5 rounded-xl transition-all shadow-sm cursor-pointer"
           >
-            BOOK
+            {t("common.book")}
           </button>
         </div>
       </div>
@@ -229,8 +246,9 @@ const CategorySectionRow = ({
   category,
   services = [],
   loading = false,
-  onBookNow,
+  content,
 }) => {
+  const { t } = useTranslation();
   const scrollRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(services.length > 3);
@@ -284,10 +302,10 @@ const CategorySectionRow = ({
             className="text-base sm:text-xl md:text-2xl font-bold text-gray-900 tracking-tight m-0 truncate sm:overflow-visible sm:whitespace-normal"
             style={{ fontFamily: "var(--font-display, inherit)" }}
           >
-            {config.title}
+            {t(`homeSections.${config.i18nKey}.title`)}
           </h3>
           <p className="text-[11.5px] sm:text-xs md:text-sm text-gray-500 m-0 mt-0.5 line-clamp-1 sm:line-clamp-none">
-            {config.subtitle}
+            {t(`homeSections.${config.i18nKey}.subtitle`)}
           </p>
         </div>
 
@@ -298,7 +316,7 @@ const CategorySectionRow = ({
               type="button"
               onClick={() => scroll("left")}
               disabled={!canScrollLeft}
-              aria-label="Scroll left"
+              aria-label={t("common.scrollLeft")}
               className={`w-8 h-8 rounded-full border border-gray-200 bg-white flex items-center justify-center transition-all cursor-pointer ${
                 canScrollLeft
                   ? "text-gray-700 hover:bg-gray-100 hover:border-gray-300 shadow-sm"
@@ -311,7 +329,7 @@ const CategorySectionRow = ({
               type="button"
               onClick={() => scroll("right")}
               disabled={!canScrollRight}
-              aria-label="Scroll right"
+              aria-label={t("common.scrollRight")}
               className={`w-8 h-8 rounded-full border border-gray-200 bg-white flex items-center justify-center transition-all cursor-pointer ${
                 canScrollRight
                   ? "text-gray-700 hover:bg-gray-100 hover:border-gray-300 shadow-sm"
@@ -327,7 +345,7 @@ const CategorySectionRow = ({
             to={seeAllRoute}
             className="text-xs sm:text-sm font-semibold text-purple-700 hover:text-purple-900 hover:underline flex items-center gap-0.5 transition-colors no-underline whitespace-nowrap"
           >
-            See all
+            {t("common.seeAll")}
             <ArrowRight size={14} className="ml-0.5" />
           </Link>
         </div>
@@ -344,7 +362,7 @@ const CategorySectionRow = ({
               <ServiceCard
                 key={service._id || service.id}
                 service={service}
-                onBookNow={onBookNow}
+                content={content}
               />
             ))}
       </div>
@@ -411,7 +429,6 @@ const SECTION_MATCHERS = {
 const HomeFeaturedServices = ({
   categories: propCategories = [],
   services: propServices = [],
-  onBookNow,
 }) => {
   // ── Instant 0ms Render: seed immediately from props or cache or mock data ──
   const [realServices, setRealServices] = useState(() => {
@@ -473,20 +490,41 @@ const HomeFeaturedServices = ({
     };
   }, []);
 
-  // Group services by category section using the precise matchers
+  const content = useCatalogueContent();
+
+  // Each service goes to the row of its real vertical (catalogue structure, then its DB
+  // category); name/tag guessing is only for services with neither (e.g. offline mock data).
   const groupedData = useMemo(() => {
+    const categoryVertical = new Map(
+      realCategories.filter((c) => c._id && c.vertical).map((c) => [String(c._id), c.vertical])
+    );
+    const verticalOf = (s) =>
+      structure.services[s.slug]?.vertical ||
+      categoryVertical.get(String(s.category?._id ?? s.category)) ||
+      null;
+
     return SECTIONS_CONFIG.map((config) => {
       const matcher = SECTION_MATCHERS[config.key] || (() => false);
 
-      // Find matching category
       const matchedCategory = realCategories.find((cat) => {
         if (cat.vertical && cat.vertical === config.vertical) return true;
         const catName = (cat.name || "").toLowerCase();
         return config.nameKeywords.some((kw) => catName.includes(kw));
       });
 
-      // Filter services using the precise matcher
-      const categoryServices = realServices.filter(matcher);
+      // Catalogue order first (group by group), then anything else in API order.
+      const order = new Map(
+        (structure.verticals[config.vertical]?.groups ?? [])
+          .flatMap((g) => g.slugs)
+          .map((slug, i) => [slug, i])
+      );
+      const rank = (s) => order.get(s.slug) ?? Number.MAX_SAFE_INTEGER;
+      const categoryServices = realServices
+        .filter((s) => {
+          const vertical = verticalOf(s);
+          return vertical ? vertical === config.vertical : matcher(s);
+        })
+        .sort((a, b) => rank(a) - rank(b));
 
       return {
         config,
@@ -506,7 +544,7 @@ const HomeFeaturedServices = ({
             category={category}
             services={services}
             loading={loading && realServices.length === 0}
-            onBookNow={onBookNow}
+            content={content}
           />
         ))}
       </div>

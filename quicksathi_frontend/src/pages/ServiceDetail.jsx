@@ -34,6 +34,7 @@ import {
   formatPrice,
   formatPriceUnit,
 } from "../content/catalogue";
+import { serviceImage } from "../content/catalogue/images";
 
 const ServiceDetail = () => {
   const { id } = useParams();
@@ -191,11 +192,9 @@ const ServiceDetail = () => {
 
   const view = applyContent(service, content);
 
-  const allImages = [
-    service.bannerImage,
-    service.thumbnail,
-    ...(service.gallery ?? []),
-  ].filter(Boolean);
+  const ownImages = [service.bannerImage, service.thumbnail, ...(service.gallery ?? [])].filter(Boolean);
+  // No DB photo yet: use the per-slug / group photo (or none, which shows a placeholder).
+  const allImages = ownImages.length > 0 ? ownImages : [serviceImage(service)].filter(Boolean);
 
   const pkg = view.packages?.[selectedPkg];
   const isRental = service.serviceMode === "RENTAL";

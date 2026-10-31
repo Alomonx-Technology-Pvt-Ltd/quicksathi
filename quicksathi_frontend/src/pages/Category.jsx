@@ -21,6 +21,8 @@ import HomeSalonCategoryPage from "./HomeSalonCategoryPage";
 import CategorySpotlightBanner from "../components/CategorySpotlightBanner";
 import CatalogueServiceItem from "../components/catalogue/CatalogueServiceItem";
 import CatalogueServiceModal from "../components/catalogue/CatalogueServiceModal";
+import ServiceImage from "../components/catalogue/ServiceImage";
+import { serviceImage } from "../content/catalogue/images";
 import {
   useCatalogueContent,
   applyContent,
@@ -28,10 +30,6 @@ import {
   groupByStructure,
   groupTitle,
 } from "../content/catalogue";
-
-const FALLBACK_IMAGE =
-  "https://images.unsplash.com/photo-1581578731548-c64695cc6952?q=80&w=300&auto=format&fit=crop";
-const serviceImage = (service) => service?.thumbnail || service?.imageUrl || service?.bannerImage;
 
 // Helper to extract clean bullet points from service data
 const getServiceBullets = (service) => {
@@ -356,7 +354,7 @@ const Category = () => {
       ? structuredGroups.map((group) => ({
           key: group.key,
           title: groupTitle(group.key, content, t),
-          image: serviceImage(group.services[0]) || category.imageUrl,
+          image: group.services.map(serviceImage).find(Boolean),
           services: group.services,
         }))
       : subs.map((sub) => {
@@ -555,18 +553,13 @@ const Category = () => {
                 className="group flex flex-col items-center text-center bg-transparent border-0 cursor-pointer p-0 outline-none transition-transform duration-200 active:scale-95"
               >
                 {/* Visual Thumbnail Card */}
-                <div className="relative w-full aspect-square max-w-[105px] rounded-xl sm:rounded-2xl overflow-hidden bg-slate-100 border border-slate-200/70 shadow-xs group-hover:border-purple-300 group-hover:shadow-md transition-all">
-                  <img
-                    src={section.image || FALLBACK_IMAGE}
-                    alt={section.title}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-108"
-                    loading="eager"
-                    onError={(e) => {
-                      e.currentTarget.onerror = null;
-                      e.currentTarget.src = FALLBACK_IMAGE;
-                    }}
-                  />
-                </div>
+                <ServiceImage
+                  src={section.image}
+                  alt={section.title}
+                  loading="eager"
+                  className="relative w-full aspect-square max-w-[105px] rounded-xl sm:rounded-2xl overflow-hidden bg-slate-100 border border-slate-200/70 shadow-xs group-hover:border-purple-300 group-hover:shadow-md transition-all"
+                  imgClassName="transition-transform duration-300 group-hover:scale-108"
+                />
 
                 {/* Section Label */}
                 <span className="mt-2 text-[11px] sm:text-xs font-semibold text-slate-800 leading-tight group-hover:text-purple-700 transition-colors line-clamp-2 max-w-[100px]">
@@ -622,8 +615,8 @@ const Category = () => {
                         key={service._id || service.slug || service.id}
                         service={display}
                         bullets={getServiceBullets(display)}
-                        image={serviceImage(service) || section.fallbackImage}
-                        fallbackImage={FALLBACK_IMAGE}
+                        image={serviceImage(service) || service.imageUrl || section.fallbackImage}
+                        groupLabel={section.title}
                         onOpen={() => setSelectedServiceForModal(service)}
                         onBook={() => handleBookService(service)}
                       />
@@ -658,8 +651,7 @@ const Category = () => {
         {selectedServiceForModal && (
           <CatalogueServiceModal
             service={applyContent(selectedServiceForModal, content)}
-            image={serviceImage(selectedServiceForModal)}
-            fallbackImage={FALLBACK_IMAGE}
+            image={serviceImage(selectedServiceForModal) || selectedServiceForModal.imageUrl}
             assuranceTitle={t("category.assuranceTitle")}
             assuranceText={t("category.assuranceText")}
             onClose={() => setSelectedServiceForModal(null)}
