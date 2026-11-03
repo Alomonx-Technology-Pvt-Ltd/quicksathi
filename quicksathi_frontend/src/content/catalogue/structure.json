@@ -1,0 +1,551 @@
+{
+  "verticals": {
+    "VEHICLE_RENTAL": {
+      "groups": [
+        {
+          "key": "car-rental",
+          "slugs": [
+            "wedding-car-rental",
+            "outstation-car-rental"
+          ]
+        }
+      ]
+    },
+    "WEDDING": {
+      "groups": [
+        {
+          "key": "wedding-photo-decor-venue",
+          "slugs": [
+            "photography",
+            "decoration",
+            "venue-booking"
+          ]
+        },
+        {
+          "key": "wedding-catering-pandit",
+          "slugs": [
+            "catering",
+            "pandit-service"
+          ]
+        }
+      ]
+    },
+    "HOUSE_HELP": {
+      "groups": [
+        {
+          "key": "house-help",
+          "slugs": [
+            "maid-service",
+            "elder-care",
+            "laundry-ironing"
+          ]
+        }
+      ]
+    },
+    "HOUSE_SERVICES": {
+      "groups": [
+        {
+          "key": "cctv",
+          "slugs": [
+            "home-cctv",
+            "cctv-maintenance",
+            "wifi-camera-installation",
+            "commercial-cctv"
+          ]
+        },
+        {
+          "key": "plumbing",
+          "slugs": [
+            "tap-faucet-repair",
+            "shower-mixer-repair",
+            "toilet-repair-installation",
+            "water-tank-installation-cleaning",
+            "full-home-plumbing"
+          ]
+        },
+        {
+          "key": "electrician",
+          "slugs": [
+            "home-wiring-rewiring",
+            "fan-light-installation",
+            "inverter-ups-service"
+          ]
+        },
+        {
+          "key": "carpentry",
+          "slugs": [
+            "door-installation-repair",
+            "window-repair-fitting",
+            "wardrobe-cabinet-work",
+            "modular-kitchen-work",
+            "custom-furniture"
+          ]
+        }
+      ]
+    },
+    "HOME_SALON": {
+      "groups": [
+        {
+          "key": "salon-men",
+          "slugs": [
+            "mens-haircut",
+            "beard-grooming",
+            "mens-facial",
+            "mens-face-bleach-at-home",
+            "mens-detan-at-home",
+            "mens-face-scrub-at-home"
+          ],
+          "gender": "men"
+        },
+        {
+          "key": "salon-women-hair-face",
+          "slugs": [
+            "hair-styling-care",
+            "hair-smoothening-keratin",
+            "hair-colour-at-home",
+            "facial-cleanup",
+            "face-bleach-at-home",
+            "detan-at-home",
+            "eyebrow-threading-at-home"
+          ],
+          "gender": "women"
+        },
+        {
+          "key": "salon-women-wax-mani-pedi",
+          "slugs": [
+            "full-body-waxing",
+            "half-body-waxing",
+            "leg-waxing",
+            "face-waxing",
+            "manicure-at-home",
+            "pedicure-at-home"
+          ],
+          "gender": "women"
+        },
+        {
+          "key": "salon-women-makeup",
+          "slugs": [
+            "party-makeup-at-home",
+            "bridal-party-makeup",
+            "engagement-makeup-at-home"
+          ],
+          "gender": "women"
+        }
+      ]
+    },
+    "HOME_TUITION": {
+      "groups": [
+        {
+          "key": "home-tuition",
+          "slugs": [
+            "home-tuition-nursery-to-class-5",
+            "home-tuition-class-6-to-8",
+            "home-tuition-class-9-10",
+            "home-tuition-class-11-12"
+          ]
+        }
+      ]
+    },
+    "AC_APPLIANCES": {
+      "groups": [
+        {
+          "key": "ac",
+          "slugs": [
+            "foam-jet-ac-service",
+            "ac-gas-refill",
+            "ac-installation",
+            "ac-uninstallation"
+          ]
+        },
+        {
+          "key": "washing-machine",
+          "slugs": [
+            "washing-machine-inspection",
+            "front-load-washing-machine-repair",
+            "top-load-washing-machine-repair",
+            "semi-automatic-washing-machine-repair"
+          ]
+        },
+        {
+          "key": "refrigerator",
+          "slugs": [
+            "refrigerator-diagnosis-gas-check",
+            "single-door-refrigerator-service",
+            "double-door-refrigerator-service",
+            "side-by-side-refrigerator-service",
+            "inverter-refrigerator-service"
+          ]
+        },
+        {
+          "key": "television",
+          "slugs": [
+            "tv-diagnosis-repair-visit",
+            "tv-wall-mounting-setup",
+            "tv-backlight-repair",
+            "tv-motherboard-audio-repair"
+          ]
+        },
+        {
+          "key": "geyser",
+          "slugs": [
+            "geyser-checkup-descaling",
+            "geyser-element-thermostat-replacement",
+            "geyser-installation-uninstallation",
+            "geyser-leakage-valve-repair"
+          ]
+        }
+      ]
+    },
+    "CONSTRUCTION": {
+      "groups": [
+        {
+          "key": "construction",
+          "slugs": [
+            "new-home-construction",
+            "interior-design",
+            "design-planning-2d-3d",
+            "false-ceiling-lighting",
+            "renovation-remodeling"
+          ]
+        }
+      ]
+    },
+    "PAINTING": {
+      "groups": [
+        {
+          "key": "painting",
+          "slugs": [
+            "full-home-painting",
+            "interior-wall-painting"
+          ]
+        }
+      ]
+    }
+  },
+  "services": {
+    "wedding-car-rental": {
+      "vertical": "VEHICLE_RENTAL",
+      "group": "car-rental"
+    },
+    "outstation-car-rental": {
+      "vertical": "VEHICLE_RENTAL",
+      "group": "car-rental"
+    },
+    "photography": {
+      "vertical": "WEDDING",
+      "group": "wedding-photo-decor-venue"
+    },
+    "decoration": {
+      "vertical": "WEDDING",
+      "group": "wedding-photo-decor-venue"
+    },
+    "venue-booking": {
+      "vertical": "WEDDING",
+      "group": "wedding-photo-decor-venue"
+    },
+    "catering": {
+      "vertical": "WEDDING",
+      "group": "wedding-catering-pandit"
+    },
+    "pandit-service": {
+      "vertical": "WEDDING",
+      "group": "wedding-catering-pandit"
+    },
+    "maid-service": {
+      "vertical": "HOUSE_HELP",
+      "group": "house-help"
+    },
+    "elder-care": {
+      "vertical": "HOUSE_HELP",
+      "group": "house-help"
+    },
+    "laundry-ironing": {
+      "vertical": "HOUSE_HELP",
+      "group": "house-help"
+    },
+    "home-cctv": {
+      "vertical": "HOUSE_SERVICES",
+      "group": "cctv"
+    },
+    "cctv-maintenance": {
+      "vertical": "HOUSE_SERVICES",
+      "group": "cctv"
+    },
+    "wifi-camera-installation": {
+      "vertical": "HOUSE_SERVICES",
+      "group": "cctv"
+    },
+    "commercial-cctv": {
+      "vertical": "HOUSE_SERVICES",
+      "group": "cctv"
+    },
+    "tap-faucet-repair": {
+      "vertical": "HOUSE_SERVICES",
+      "group": "plumbing"
+    },
+    "shower-mixer-repair": {
+      "vertical": "HOUSE_SERVICES",
+      "group": "plumbing"
+    },
+    "toilet-repair-installation": {
+      "vertical": "HOUSE_SERVICES",
+      "group": "plumbing"
+    },
+    "water-tank-installation-cleaning": {
+      "vertical": "HOUSE_SERVICES",
+      "group": "plumbing"
+    },
+    "full-home-plumbing": {
+      "vertical": "HOUSE_SERVICES",
+      "group": "plumbing"
+    },
+    "home-wiring-rewiring": {
+      "vertical": "HOUSE_SERVICES",
+      "group": "electrician"
+    },
+    "fan-light-installation": {
+      "vertical": "HOUSE_SERVICES",
+      "group": "electrician"
+    },
+    "inverter-ups-service": {
+      "vertical": "HOUSE_SERVICES",
+      "group": "electrician"
+    },
+    "door-installation-repair": {
+      "vertical": "HOUSE_SERVICES",
+      "group": "carpentry"
+    },
+    "window-repair-fitting": {
+      "vertical": "HOUSE_SERVICES",
+      "group": "carpentry"
+    },
+    "wardrobe-cabinet-work": {
+      "vertical": "HOUSE_SERVICES",
+      "group": "carpentry"
+    },
+    "modular-kitchen-work": {
+      "vertical": "HOUSE_SERVICES",
+      "group": "carpentry"
+    },
+    "custom-furniture": {
+      "vertical": "HOUSE_SERVICES",
+      "group": "carpentry"
+    },
+    "mens-haircut": {
+      "vertical": "HOME_SALON",
+      "group": "salon-men"
+    },
+    "beard-grooming": {
+      "vertical": "HOME_SALON",
+      "group": "salon-men"
+    },
+    "mens-facial": {
+      "vertical": "HOME_SALON",
+      "group": "salon-men"
+    },
+    "mens-face-bleach-at-home": {
+      "vertical": "HOME_SALON",
+      "group": "salon-men"
+    },
+    "mens-detan-at-home": {
+      "vertical": "HOME_SALON",
+      "group": "salon-men"
+    },
+    "mens-face-scrub-at-home": {
+      "vertical": "HOME_SALON",
+      "group": "salon-men"
+    },
+    "hair-styling-care": {
+      "vertical": "HOME_SALON",
+      "group": "salon-women-hair-face"
+    },
+    "hair-smoothening-keratin": {
+      "vertical": "HOME_SALON",
+      "group": "salon-women-hair-face"
+    },
+    "hair-colour-at-home": {
+      "vertical": "HOME_SALON",
+      "group": "salon-women-hair-face"
+    },
+    "facial-cleanup": {
+      "vertical": "HOME_SALON",
+      "group": "salon-women-hair-face"
+    },
+    "face-bleach-at-home": {
+      "vertical": "HOME_SALON",
+      "group": "salon-women-hair-face"
+    },
+    "detan-at-home": {
+      "vertical": "HOME_SALON",
+      "group": "salon-women-hair-face"
+    },
+    "eyebrow-threading-at-home": {
+      "vertical": "HOME_SALON",
+      "group": "salon-women-hair-face"
+    },
+    "full-body-waxing": {
+      "vertical": "HOME_SALON",
+      "group": "salon-women-wax-mani-pedi"
+    },
+    "half-body-waxing": {
+      "vertical": "HOME_SALON",
+      "group": "salon-women-wax-mani-pedi"
+    },
+    "leg-waxing": {
+      "vertical": "HOME_SALON",
+      "group": "salon-women-wax-mani-pedi"
+    },
+    "face-waxing": {
+      "vertical": "HOME_SALON",
+      "group": "salon-women-wax-mani-pedi"
+    },
+    "manicure-at-home": {
+      "vertical": "HOME_SALON",
+      "group": "salon-women-wax-mani-pedi"
+    },
+    "pedicure-at-home": {
+      "vertical": "HOME_SALON",
+      "group": "salon-women-wax-mani-pedi"
+    },
+    "party-makeup-at-home": {
+      "vertical": "HOME_SALON",
+      "group": "salon-women-makeup"
+    },
+    "bridal-party-makeup": {
+      "vertical": "HOME_SALON",
+      "group": "salon-women-makeup"
+    },
+    "engagement-makeup-at-home": {
+      "vertical": "HOME_SALON",
+      "group": "salon-women-makeup"
+    },
+    "home-tuition-nursery-to-class-5": {
+      "vertical": "HOME_TUITION",
+      "group": "home-tuition"
+    },
+    "home-tuition-class-6-to-8": {
+      "vertical": "HOME_TUITION",
+      "group": "home-tuition"
+    },
+    "home-tuition-class-9-10": {
+      "vertical": "HOME_TUITION",
+      "group": "home-tuition"
+    },
+    "home-tuition-class-11-12": {
+      "vertical": "HOME_TUITION",
+      "group": "home-tuition"
+    },
+    "foam-jet-ac-service": {
+      "vertical": "AC_APPLIANCES",
+      "group": "ac"
+    },
+    "ac-gas-refill": {
+      "vertical": "AC_APPLIANCES",
+      "group": "ac"
+    },
+    "ac-installation": {
+      "vertical": "AC_APPLIANCES",
+      "group": "ac"
+    },
+    "ac-uninstallation": {
+      "vertical": "AC_APPLIANCES",
+      "group": "ac"
+    },
+    "washing-machine-inspection": {
+      "vertical": "AC_APPLIANCES",
+      "group": "washing-machine"
+    },
+    "front-load-washing-machine-repair": {
+      "vertical": "AC_APPLIANCES",
+      "group": "washing-machine"
+    },
+    "top-load-washing-machine-repair": {
+      "vertical": "AC_APPLIANCES",
+      "group": "washing-machine"
+    },
+    "semi-automatic-washing-machine-repair": {
+      "vertical": "AC_APPLIANCES",
+      "group": "washing-machine"
+    },
+    "refrigerator-diagnosis-gas-check": {
+      "vertical": "AC_APPLIANCES",
+      "group": "refrigerator"
+    },
+    "single-door-refrigerator-service": {
+      "vertical": "AC_APPLIANCES",
+      "group": "refrigerator"
+    },
+    "double-door-refrigerator-service": {
+      "vertical": "AC_APPLIANCES",
+      "group": "refrigerator"
+    },
+    "side-by-side-refrigerator-service": {
+      "vertical": "AC_APPLIANCES",
+      "group": "refrigerator"
+    },
+    "inverter-refrigerator-service": {
+      "vertical": "AC_APPLIANCES",
+      "group": "refrigerator"
+    },
+    "tv-diagnosis-repair-visit": {
+      "vertical": "AC_APPLIANCES",
+      "group": "television"
+    },
+    "tv-wall-mounting-setup": {
+      "vertical": "AC_APPLIANCES",
+      "group": "television"
+    },
+    "tv-backlight-repair": {
+      "vertical": "AC_APPLIANCES",
+      "group": "television"
+    },
+    "tv-motherboard-audio-repair": {
+      "vertical": "AC_APPLIANCES",
+      "group": "television"
+    },
+    "geyser-checkup-descaling": {
+      "vertical": "AC_APPLIANCES",
+      "group": "geyser"
+    },
+    "geyser-element-thermostat-replacement": {
+      "vertical": "AC_APPLIANCES",
+      "group": "geyser"
+    },
+    "geyser-installation-uninstallation": {
+      "vertical": "AC_APPLIANCES",
+      "group": "geyser"
+    },
+    "geyser-leakage-valve-repair": {
+      "vertical": "AC_APPLIANCES",
+      "group": "geyser"
+    },
+    "new-home-construction": {
+      "vertical": "CONSTRUCTION",
+      "group": "construction"
+    },
+    "interior-design": {
+      "vertical": "CONSTRUCTION",
+      "group": "construction"
+    },
+    "design-planning-2d-3d": {
+      "vertical": "CONSTRUCTION",
+      "group": "construction"
+    },
+    "false-ceiling-lighting": {
+      "vertical": "CONSTRUCTION",
+      "group": "construction"
+    },
+    "renovation-remodeling": {
+      "vertical": "CONSTRUCTION",
+      "group": "construction"
+    },
+    "full-home-painting": {
+      "vertical": "PAINTING",
+      "group": "painting"
+    },
+    "interior-wall-painting": {
+      "vertical": "PAINTING",
+      "group": "painting"
+    }
+  }
+}

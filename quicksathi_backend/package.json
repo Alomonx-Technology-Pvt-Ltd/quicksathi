@@ -12,6 +12,7 @@
     "dev": "node --watch server.js",
     "build": "echo 'No build step required'",
     "seed": "node seed/seedData.js",
+    "catalogue:load": "node seed/loadCatalogue.js",
     "test": "node --test --test-reporter=spec \"test/**/*.test.mjs\""
   },
   "dependencies": {

@@ -1,14 +1,18 @@
+import { useTranslation } from "react-i18next";
 import SectionHeader from "./SectionHeader";
 import { Star, CheckCircle2 } from "lucide-react";
 
 const ReviewsSection = ({ reviews = [], totalReviews }) => {
+  const { t } = useTranslation();
   if (!reviews?.length) return null;
 
   return (
     <div id="reviews-section" className="scroll-mt-24">
       <SectionHeader
-        title={`Verified Customer Reviews (${(totalReviews ?? reviews.length).toLocaleString("en-IN")})`}
-        subtitle="Genuine feedback from customers in your city"
+        title={t("serviceDetail.reviews.title", {
+          count: (totalReviews ?? reviews.length).toLocaleString("en-IN"),
+        })}
+        subtitle={t("serviceDetail.reviews.subtitle")}
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -16,7 +20,7 @@ const ReviewsSection = ({ reviews = [], totalReviews }) => {
           const userName =
             typeof review.user === "string"
               ? review.user
-              : review.user?.name || review.userName || "Verified Customer";
+              : review.user?.name || review.userName || t("serviceDetail.reviews.verifiedCustomer");
           const initial = userName ? userName.charAt(0).toUpperCase() : "U";
 
           return (
@@ -36,7 +40,7 @@ const ReviewsSection = ({ reviews = [], totalReviews }) => {
                       </h4>
                       <span className="inline-flex items-center gap-1 text-[11px] text-emerald-600 font-medium">
                         <CheckCircle2 size={11} className="text-emerald-500" />
-                        Verified Booking
+                        {t("serviceDetail.reviews.verifiedBooking")}
                       </span>
                     </div>
                   </div>
@@ -54,7 +58,7 @@ const ReviewsSection = ({ reviews = [], totalReviews }) => {
               </div>
 
               <div className="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400">
-                <span>{review.date || "Recent Service"}</span>
+                <span>{review.date || t("serviceDetail.reviews.recent")}</span>
                 <span>Bihar, India</span>
               </div>
             </div>

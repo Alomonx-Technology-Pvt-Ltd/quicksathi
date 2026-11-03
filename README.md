@@ -67,6 +67,12 @@ Ensure you have [Node.js](https://nodejs.org/) (v18+) and [MongoDB](https://www.
    ```bash
    npm run seed
    ```
+   **Load the service catalogue** (packages, prices and English text from `seed/catalogue/services.json`). It is additive: it matches services by slug, never deletes, and keeps ids, images, ratings and availability of existing services. Check that `MONGODB_URI` points at the database you mean, then:
+   ```bash
+   npm run catalogue:load              # dry run: prints CREATE / UPDATE / SKIP per service, writes nothing
+   npm run catalogue:load -- --apply   # writes
+   ```
+   `--hide-unlisted` (with `--apply`) also sets `available: false` on services in the same categories that are not in the file; every run lists which ones that would be. Customer-facing text in English and Roman Hinglish lives in `quicksathi_frontend/src/content/catalogue/`; a package's text is matched to the database package by its title, so rename a package title in both places.
 5. **Manage roles and test promotions (Optional)**:
    * Validate user roles: `node seed/checkRoles.js`
    * Onboard/verify providers: `node seed/manageProviders.js`
