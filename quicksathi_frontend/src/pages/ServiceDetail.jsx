@@ -1,12 +1,15 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import {
   Star,
   ShieldCheck,
   Sparkles,
   CheckCircle2,
   X,
+  XCircle,
+  IndianRupee,
   ChevronDown,
   ArrowRight,
   Shield,
@@ -23,11 +26,21 @@ import ProvidersSection from "../components/serviceDetail/ProvidersSection";
 import ReviewsSection from "../components/serviceDetail/ReviewsSection";
 import FAQSection from "../components/serviceDetail/FAQSection";
 import BookingCard from "../components/serviceDetail/BookingCard";
+import BulletListSection from "../components/serviceDetail/BulletListSection";
 import SEO from "../components/SEO";
+import {
+  useCatalogueContent,
+  applyContent,
+  formatPrice,
+  formatPriceUnit,
+} from "../content/catalogue";
+import { serviceImage } from "../content/catalogue/images";
 
 const ServiceDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const content = useCatalogueContent();
 
   const findInitialService = (targetId) => {
     if (!targetId) return null;
@@ -55,7 +68,7 @@ const ServiceDetail = () => {
   const [openFaq, setOpenFaq] = useState(null);
   const [selectedPkg, setSelectedPkg] = useState(0);
   const [categoryComingSoon, setCategoryComingSoon] = useState(false);
-  const [selectedPkgForModal, setSelectedPkgForModal] = useState(null);
+  const [modalPkgIndex, setModalPkgIndex] = useState(null);
   const [activeNavTab, setActiveNavTab] = useState("packages");
 
   // Fetch real-time service data
@@ -98,9 +111,9 @@ const ServiceDetail = () => {
 
   // Escape key & background scroll lock for detail modal
   useEffect(() => {
-    if (!selectedPkgForModal) return;
+    if (modalPkgIndex === null) return;
     const handleKeyDown = (e) => {
-      if (e.key === "Escape") setSelectedPkgForModal(null);
+      if (e.key === "Escape") setModalPkgIndex(null);
     };
     document.addEventListener("keydown", handleKeyDown);
     const originalOverflow = document.body.style.overflow;
@@ -109,7 +122,7 @@ const ServiceDetail = () => {
       document.removeEventListener("keydown", handleKeyDown);
       document.body.style.overflow = originalOverflow;
     };
-  }, [selectedPkgForModal]);
+  }, [modalPkgIndex]);
 
   const handleScrollTo = (elementId, tabKey) => {
     setActiveNavTab(tabKey);
@@ -125,8 +138,9 @@ const ServiceDetail = () => {
     }
   };
 
-  const handleBookNow = (targetPkg) => {
-    const pkgToBook = targetPkg || service.packages?.[selectedPkg];
+  // Booking params always use the DB record (name, package title, price, slug).
+  const handleBookNow = (pkgIndex = selectedPkg) => {
+    const pkgToBook = service.packages?.[pkgIndex];
     const serviceId = service.slug || service._id || service.id || id;
     const price = pkgToBook?.price || service.startingPrice || 349;
     const params = new URLSearchParams({
@@ -144,7 +158,7 @@ const ServiceDetail = () => {
       >
         <div className="w-10 h-10 rounded-full border-4 border-purple-200 border-t-purple-600 animate-spin" />
         <span className="text-sm font-semibold text-slate-500">
-          Loading service details…
+          {t("serviceDetail.loading")}
         </span>
       </div>
     );
@@ -152,7 +166,7 @@ const ServiceDetail = () => {
   if (error || !service)
     return (
       <div className="text-center py-40 text-xl font-bold px-4 bg-white text-slate-800 min-h-screen">
-        {error || "Service not found"}
+        {error || t("serviceDetail.notFound")}
       </div>
     );
 
@@ -162,29 +176,30 @@ const ServiceDetail = () => {
       <div className="min-h-screen flex flex-col items-center justify-center text-center px-6 bg-white">
         <span className="text-6xl mb-3">⏳</span>
         <h1 className="text-2xl sm:text-4xl font-extrabold text-slate-900 m-0 mb-3">
-          Coming Soon
+          {t("serviceDetail.comingSoon")}
         </h1>
         <p className="text-sm sm:text-base text-slate-600 max-w-md m-0 mb-8">
-          {service.name} is launching soon on TiptoBook. Booking will open shortly!
+          {t("serviceDetail.comingSoonText", { name: applyContent(service, content).name })}
         </p>
         <Link
           to="/"
           className="no-underline px-8 py-3 rounded-full text-sm font-bold bg-purple-600 text-white shadow-md hover:bg-purple-700 transition-all"
         >
-          ← Back to Home
+          {t("serviceDetail.backHome")}
         </Link>
       </div>
     );
 
-  const allImages = [
-    service.bannerImage,
-    service.thumbnail,
-    ...(service.gallery ?? []),
-  ].filter(Boolean);
+  const view = applyContent(service, content);
 
-  const pkg = service.packages?.[selectedPkg];
+  const ownImages = [service.bannerImage, service.thumbnail, ...(service.gallery ?? [])].filter(Boolean);
+  // No DB photo yet: use the per-slug / group photo (or none, which shows a placeholder).
+  const allImages = ownImages.length > 0 ? ownImages : [serviceImage(service)].filter(Boolean);
+
+  const pkg = view.packages?.[selectedPkg];
   const isRental = service.serviceMode === "RENTAL";
-  const activePkgPrice = pkg?.price || service.startingPrice || 349;
+  const activePkgPrice = service.packages?.[selectedPkg]?.price || service.startingPrice || 349;
+  const modalPkg = modalPkgIndex === null ? null : view.packages?.[modalPkgIndex];
 
   return (
     <div className="min-h-screen bg-white text-slate-900 pb-20 sm:pb-28 overflow-x-hidden selection:bg-purple-100 selection:text-purple-900">
@@ -201,7 +216,7 @@ const ServiceDetail = () => {
 
       {/* ── Modern Urban Company style Header & Media Showcase ── */}
       <HeroBanner
-        service={service}
+        service={view}
         allImages={allImages}
         activeImg={activeImg}
         setActiveImg={setActiveImg}
@@ -220,7 +235,7 @@ const ServiceDetail = () => {
                 : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
             }`}
           >
-            {isRental ? "Vehicles & Rates" : "Packages & Pricing"}
+            {isRental ? t("serviceDetail.tabs.vehicles") : t("serviceDetail.tabs.packages")}
           </button>
 
           <button
@@ -232,7 +247,7 @@ const ServiceDetail = () => {
                 : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
             }`}
           >
-            About & Features
+            {t("serviceDetail.tabs.about")}
           </button>
 
           {!isRental && service.providers?.length > 0 && (
@@ -245,7 +260,7 @@ const ServiceDetail = () => {
                   : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
               }`}
             >
-              Verified Pros
+              {t("serviceDetail.tabs.pros")}
             </button>
           )}
 
@@ -259,11 +274,11 @@ const ServiceDetail = () => {
                   : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
               }`}
             >
-              Reviews ({service.reviews.length})
+              {t("serviceDetail.tabs.reviews", { count: service.reviews.length })}
             </button>
           )}
 
-          {service.faqs?.length > 0 && (
+          {view.faqs?.length > 0 && (
             <button
               type="button"
               onClick={() => handleScrollTo("faq-section", "faqs")}
@@ -273,7 +288,7 @@ const ServiceDetail = () => {
                   : "bg-slate-50 text-slate-700 border-slate-200 hover:bg-slate-100"
               }`}
             >
-              FAQs
+              {t("serviceDetail.tabs.faqs")}
             </button>
           )}
         </div>
@@ -284,27 +299,45 @@ const ServiceDetail = () => {
           <div className="lg:col-span-2 flex flex-col gap-10 sm:gap-12">
             {/* Packages Section */}
             <PackagesSection
-              packages={service.packages}
+              packages={view.packages}
               selectedPkg={selectedPkg}
               setSelectedPkg={setSelectedPkg}
               isRental={isRental}
-              service={service}
-              onShowMore={(pkg) => setSelectedPkgForModal(pkg)}
+              service={view}
+              onShowMore={(index) => setModalPkgIndex(index)}
             />
 
             {/* TiptoBook Assurance Banner */}
             <div className="p-4 sm:p-5 rounded-2xl sm:rounded-3xl bg-purple-50/80 border border-purple-100 space-y-2">
               <div className="flex items-center gap-2 font-bold text-sm text-purple-900">
                 <Sparkles size={16} className="text-purple-600" />
-                <span>TiptoBook Doorstep Assurance</span>
+                <span>{t("serviceDetail.assuranceTitle")}</span>
               </div>
               <p className="text-xs sm:text-sm text-purple-800/90 leading-relaxed m-0">
-                Background-verified service technicians • 30-day post-service warranty • Standardized pricing with zero surprise charges.
+                {t("serviceDetail.assuranceText")}
               </p>
             </div>
 
             {/* About Section */}
-            <AboutSection service={service} />
+            <AboutSection service={view} />
+
+            <BulletListSection
+              id="excludes-section"
+              title={t("catalogue.whatsNotIncluded")}
+              subtitle={t("serviceDetail.excludesSubtitle")}
+              items={view.excludes}
+              icon={XCircle}
+              iconClassName="text-rose-500"
+            />
+
+            <BulletListSection
+              id="extra-charges-section"
+              title={t("catalogue.extraCharges")}
+              subtitle={t("serviceDetail.extraChargesSubtitle")}
+              items={view.extraCharges}
+              icon={IndianRupee}
+              iconClassName="text-amber-600"
+            />
 
             {/* Providers Section (if available & not rental) */}
             {!isRental && (
@@ -319,7 +352,7 @@ const ServiceDetail = () => {
 
             {/* FAQs Section */}
             <FAQSection
-              faqs={service.faqs}
+              faqs={view.faqs}
               openFaq={openFaq}
               setOpenFaq={setOpenFaq}
             />
@@ -327,7 +360,12 @@ const ServiceDetail = () => {
 
           {/* ── Right Column: Desktop Sticky Booking Card ── */}
           <div className="lg:col-span-1 hidden lg:block">
-            <BookingCard service={service} pkg={pkg} />
+            <BookingCard
+              service={view}
+              pkg={pkg}
+              bookingService={service}
+              bookingPkg={service.packages?.[selectedPkg]}
+            />
           </div>
         </div>
       </div>
@@ -336,15 +374,15 @@ const ServiceDetail = () => {
       <div className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-4 py-3 shadow-xl flex items-center justify-between">
         <div>
           <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">
-            {pkg?.title || service.name}
+            {pkg?.title || view.name}
           </span>
           <div className="flex items-baseline gap-1">
             <span className="text-lg font-extrabold text-slate-900">
-              ₹{activePkgPrice.toLocaleString("en-IN")}
+              {formatPrice(activePkgPrice)}
             </span>
-            {service.priceUnit && !isRental && (
+            {view.priceUnit && !isRental && (
               <span className="text-[10px] text-slate-500 font-normal">
-                /{service.priceUnit}
+                {formatPriceUnit(view.priceUnit)}
               </span>
             )}
           </div>
@@ -355,21 +393,21 @@ const ServiceDetail = () => {
           onClick={() => handleBookNow()}
           className="px-6 py-2.5 rounded-full bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md flex items-center gap-1.5 cursor-pointer border-0"
         >
-          <span>Book Now</span>
+          <span>{t("common.bookNow")}</span>
           <ArrowRight size={14} />
         </button>
       </div>
 
       {/* ── Detail Drawer / Modal for "Show More >" matching AC Category Page ── */}
       <AnimatePresence>
-        {selectedPkgForModal && (
+        {modalPkg && (
           <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 overflow-y-auto no-scrollbar">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setSelectedPkgForModal(null)}
+              onClick={() => setModalPkgIndex(null)}
               className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs"
             />
 
@@ -385,22 +423,27 @@ const ServiceDetail = () => {
               <div className="p-5 border-b border-slate-100 flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 m-0">
-                    {selectedPkgForModal.title}
+                    {modalPkg.title}
                   </h3>
                   <div className="flex items-center gap-1.5 mt-0.5 text-xs text-slate-600">
                     <Star size={12} className="fill-amber-400 text-amber-400" />
-                    <span className="font-semibold text-slate-800">
-                      {service.rating || 4.8}
-                    </span>
-                    <span>
-                      ({(service.totalReviews || 2890).toLocaleString("en-IN")} reviews)
-                    </span>
+                    {service.rating > 0 ? (
+                      <>
+                        <span className="font-semibold text-slate-800">{service.rating}</span>
+                        <span>
+                          {t("common.reviewsCount", { count: (service.totalReviews || 0).toLocaleString("en-IN") })}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="font-semibold text-slate-800">{t("common.newService")}</span>
+                    )}
                   </div>
                 </div>
 
                 <button
                   type="button"
-                  onClick={() => setSelectedPkgForModal(null)}
+                  onClick={() => setModalPkgIndex(null)}
+                  aria-label={t("common.close")}
                   className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500 border-0 cursor-pointer transition-colors"
                 >
                   <X size={16} />
@@ -413,11 +456,11 @@ const ServiceDetail = () => {
                 <div className="aspect-[16/9] w-full rounded-2xl overflow-hidden bg-slate-100">
                   <img
                     src={
-                      selectedPkgForModal.image ||
+                      modalPkg.image ||
                       service.bannerImage ||
                       service.thumbnail
                     }
-                    alt={selectedPkgForModal.title}
+                    alt={modalPkg.title}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -425,22 +468,22 @@ const ServiceDetail = () => {
                 {/* About Service / Package */}
                 <div>
                   <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-1">
-                    About this package
+                    {t("serviceDetail.modal.aboutPackage")}
                   </h4>
                   <p className="text-xs sm:text-sm text-slate-600 leading-relaxed m-0">
-                    {service.fullDescription || service.shortDescription}
+                    {modalPkg.description || view.fullDescription || view.shortDescription}
                   </p>
                 </div>
 
                 {/* Included Features */}
-                {selectedPkgForModal.features && selectedPkgForModal.features.length > 0 && (
+                {modalPkg.features && modalPkg.features.length > 0 && (
                   <div>
                     <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-2">
-                      What is included
+                      {t("catalogue.whatsIncluded")}
                     </h4>
                     <div className="p-3.5 rounded-2xl border border-slate-200/80 bg-slate-50/50">
                       <ul className="m-0 p-0 list-none space-y-2 text-xs text-slate-700">
-                        {selectedPkgForModal.features.map((feat, idx) => (
+                        {modalPkg.features.map((feat, idx) => (
                           <li key={idx} className="flex items-center gap-2">
                             <CheckCircle2 size={14} className="text-emerald-600 shrink-0" />
                             <span className="font-medium">{feat}</span>
@@ -455,21 +498,21 @@ const ServiceDetail = () => {
                 <div className="p-3.5 rounded-2xl bg-purple-50/80 border border-purple-100 space-y-1 text-xs text-purple-900">
                   <div className="flex items-center gap-1.5 font-bold">
                     <Sparkles size={14} className="text-purple-600" />
-                    <span>TiptoBook Doorstep Guarantee</span>
+                    <span>{t("serviceDetail.modal.guaranteeTitle")}</span>
                   </div>
                   <p className="m-0 leading-relaxed text-purple-800/90">
-                    Verified professionals • 30-day post-service warranty • Standardized pricing with zero surprise charges.
+                    {t("serviceDetail.modal.guaranteeText")}
                   </p>
                 </div>
 
                 {/* FAQs inside modal */}
-                {service.faqs && service.faqs.length > 0 && (
+                {view.faqs && view.faqs.length > 0 && (
                   <div>
                     <h4 className="text-xs uppercase tracking-wider text-slate-400 font-bold mb-2">
-                      Frequently Asked Questions
+                      {t("catalogue.faqs")}
                     </h4>
                     <div className="space-y-2">
-                      {service.faqs.slice(0, 2).map((faq, idx) => (
+                      {view.faqs.slice(0, 2).map((faq, idx) => (
                         <details
                           key={idx}
                           className="p-3 rounded-xl border border-slate-200 text-xs bg-white cursor-pointer group"
@@ -495,23 +538,24 @@ const ServiceDetail = () => {
               <div className="p-4 border-t border-slate-100 bg-white flex items-center justify-between">
                 <div>
                   <span className="text-[11px] text-slate-400 block font-medium">
-                    Package Price
+                    {t("serviceDetail.modal.packagePrice")}
                   </span>
                   <span className="text-xl font-extrabold text-slate-900">
-                    ₹{(selectedPkgForModal.price || service.startingPrice || 349).toLocaleString("en-IN")}
+                    {modalPkg.priceLabel ||
+                      formatPrice(service.packages?.[modalPkgIndex]?.price || service.startingPrice || 349)}
                   </span>
                 </div>
 
                 <button
                   type="button"
                   onClick={() => {
-                    const chosen = selectedPkgForModal;
-                    setSelectedPkgForModal(null);
+                    const chosen = modalPkgIndex;
+                    setModalPkgIndex(null);
                     handleBookNow(chosen);
                   }}
                   className="px-6 py-2.5 rounded-full bg-purple-600 hover:bg-purple-700 active:scale-95 text-white font-bold text-xs uppercase tracking-wider transition-all shadow-md cursor-pointer flex items-center gap-1.5"
                 >
-                  <span>Book Now</span>
+                  <span>{t("common.bookNow")}</span>
                   <ArrowRight size={14} />
                 </button>
               </div>

@@ -1,12 +1,14 @@
+import { useTranslation } from "react-i18next";
 import SectionHeader from "./SectionHeader";
 import { ShieldCheck, Sparkles, Wrench, Clock, CheckCircle2 } from "lucide-react";
 
 const AboutSection = ({ service }) => {
+  const { t } = useTranslation();
   return (
     <div id="about-section" className="scroll-mt-24">
       <SectionHeader
-        title="About this Service"
-        subtitle="Professional doorstep execution with certified experts and verified equipment"
+        title={t("serviceDetail.about.title")}
+        subtitle={t("serviceDetail.about.subtitle")}
       />
 
       <div className="bg-slate-50/70 rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200/70 mb-6">
@@ -33,10 +35,10 @@ const AboutSection = ({ service }) => {
             <Wrench size={16} />
           </div>
           <h4 className="text-xs sm:text-sm font-bold text-slate-900 m-0">
-            Expert Diagnosis
+            {t("serviceDetail.about.diagnosisTitle")}
           </h4>
           <p className="text-[11px] sm:text-xs text-slate-500 m-0 leading-snug">
-            Accurate issue pinpointing before any repair.
+            {t("serviceDetail.about.diagnosisText")}
           </p>
         </div>
 
@@ -45,10 +47,10 @@ const AboutSection = ({ service }) => {
             <ShieldCheck size={16} />
           </div>
           <h4 className="text-xs sm:text-sm font-bold text-slate-900 m-0">
-            30-Day Warranty
+            {t("serviceDetail.about.warrantyTitle")}
           </h4>
           <p className="text-[11px] sm:text-xs text-slate-500 m-0 leading-snug">
-            Complete peace of mind on all service parts.
+            {t("serviceDetail.about.warrantyText")}
           </p>
         </div>
 
@@ -57,10 +59,10 @@ const AboutSection = ({ service }) => {
             <Sparkles size={16} />
           </div>
           <h4 className="text-xs sm:text-sm font-bold text-slate-900 m-0">
-            Fixed Pricing
+            {t("serviceDetail.about.pricingTitle")}
           </h4>
           <p className="text-[11px] sm:text-xs text-slate-500 m-0 leading-snug">
-            Standardized rates with zero hidden charges.
+            {t("serviceDetail.about.pricingText")}
           </p>
         </div>
 
@@ -69,10 +71,10 @@ const AboutSection = ({ service }) => {
             <Clock size={16} />
           </div>
           <h4 className="text-xs sm:text-sm font-bold text-slate-900 m-0">
-            On-Time Arrival
+            {t("serviceDetail.about.onTimeTitle")}
           </h4>
           <p className="text-[11px] sm:text-xs text-slate-500 m-0 leading-snug">
-            Slot guaranteed doorstep arrival within 60 mins.
+            {t("serviceDetail.about.onTimeText")}
           </p>
         </div>
       </div>

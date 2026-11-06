@@ -18,6 +18,7 @@ import {
   Snowflake,
 } from "lucide-react";
 import { mockServices } from "../data/mockServices";
+import { serviceImage } from "../content/catalogue/images";
 
 // ── Service categories for the auto-scrolling right panel ──
 const HERO_CATEGORIES = [
@@ -703,9 +704,9 @@ const Hero = ({ categories, services, onBookNow }) => {
                         >
                           <div className="flex items-center gap-3 min-w-0">
                             <div className="w-10 h-10 rounded-xl overflow-hidden bg-slate-100 flex-shrink-0 border border-slate-100">
-                              {svc.thumbnail ? (
+                              {serviceImage(svc) ? (
                                 <img
-                                  src={svc.thumbnail}
+                                  src={serviceImage(svc)}
                                   alt={svc.name}
                                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                                 />
@@ -725,7 +726,7 @@ const Hero = ({ categories, services, onBookNow }) => {
                                     {svc.categoryName}
                                   </span>
                                 )}
-                                {svc.rating && (
+                                {svc.rating > 0 && (
                                   <span className="flex items-center gap-0.5 text-[10px] font-bold text-amber-600">
                                     <Star size={10} className="fill-amber-400 text-amber-400" />
                                     {svc.rating}
