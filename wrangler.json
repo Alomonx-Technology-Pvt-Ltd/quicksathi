@@ -10,6 +10,8 @@
     { "pattern": "tiptobook.com", "custom_domain": true },
     { "pattern": "www.tiptobook.com", "custom_domain": true }
   ],
+  "workers_dev": false,
+  "preview_urls": true,
   "vars": {
     "VITE_API_URL": "tiptobook.up.railway.app",
     "VITE_FIREBASE_API_KEY": "AIzaSyDlvRX_oR0Ac4G7MXx4CAqp0wovDo6H5g0",
