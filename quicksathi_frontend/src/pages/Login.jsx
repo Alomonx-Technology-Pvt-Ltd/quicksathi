@@ -5,11 +5,10 @@ import { Smartphone } from "lucide-react";
 import BrandLogo from "../components/common/BrandLogo";
 
 const Login = () => {
-  const [isSignup, setIsSignup] = useState(false);
-  const [formData, setFormData] = useState({ name: "", email: "", password: "", phone: "" });
+  const [formData, setFormData] = useState({ email: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login, register, loginWithGoogle, sendOtp, verifyOtp, updateProfile, providerLogin, providerLoginWithGoogle } = useAuth();
+  const { login, loginWithGoogle, sendOtp, verifyOtp, updateProfile, providerLogin, providerLoginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/";
@@ -25,7 +24,7 @@ const Login = () => {
 
   // Complete profile state (for new phone users)
   const [showCompleteProfile, setShowCompleteProfile] = useState(false);
-  const [profileData, setProfileData] = useState({ name: "", email: "" });
+  const [profileData, setProfileData] = useState({ name: "" });
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -38,7 +37,6 @@ const Login = () => {
     setError("");
 
     const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const PHONE_REGEX = /^(\+91[\s-]?)?[6-9]\d{9}$/;
 
     // Validate email format
     if (!formData.email.trim()) {
@@ -52,8 +50,8 @@ const Login = () => {
       return;
     }
 
-    if (!formData.password || formData.password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (!formData.password) {
+      setError("Password is required.");
       setLoading(false);
       return;
     }
@@ -66,17 +64,7 @@ const Login = () => {
         return;
       }
 
-      if (isSignup) {
-        if (!formData.name.trim() || formData.name.trim().length < 2) {
-          throw new Error("Name is required and must be at least 2 characters.");
-        }
-        if (formData.phone && !PHONE_REGEX.test(formData.phone.trim().replace(/\s/g, ""))) {
-          throw new Error("Please enter a valid 10-digit Indian phone number (e.g. +91 98765 43210).");
-        }
-        await register(formData.name, formData.email, formData.password, formData.phone);
-      } else {
-        await login(formData.email, formData.password);
-      }
+      await login(formData.email, formData.password);
       navigate(redirectTo);
     } catch (err) {
       setError(err.response?.data?.message || err.message || "Something went wrong");
@@ -154,7 +142,8 @@ const Login = () => {
     setLoading(true);
     setError("");
     try {
-      await updateProfile({ name: profileData.name.trim(), email: profileData.email.trim() || undefined });
+      // Email is identity and can't be set from the profile form (verify it by signing in with Google).
+      await updateProfile({ name: profileData.name.trim() });
       navigate(redirectTo);
     } catch (err) {
       setError(err.response?.data?.message || err.message || "Failed to save profile");
@@ -167,7 +156,6 @@ const Login = () => {
     if (showCompleteProfile) return "Complete your profile";
     if (phoneMode) return otpSent ? "Enter verification code" : "Sign in with Phone";
     if (isProviderMode) return "Provider Sign In";
-    if (isSignup) return "Create your account";
     if (redirectTo === "/admin") return "Admin Sign In";
     return "Welcome back";
   };
@@ -275,9 +263,7 @@ const Login = () => {
               {getTitle()}
             </h1>
             <p className="text-xs sm:text-sm text-gray-500 mt-0.5 m-0">
-              {isSignup
-                ? "Enter your details to create your account in seconds"
-                : isProviderMode
+              {isProviderMode
                 ? "Access your provider console and live leads"
                 : "Welcome back! Sign in to manage your bookings and profile"}
             </p>
@@ -306,7 +292,7 @@ const Login = () => {
             <>
               <div className="rounded-xl p-3 mb-3 bg-emerald-50 border border-emerald-200">
                 <p className="text-xs text-emerald-700 m-0 font-medium">
-                  ✓ Phone verified! Just add your name and email to get started.
+                  ✓ Phone verified! Just add your name to get started.
                 </p>
               </div>
 
@@ -326,22 +312,7 @@ const Login = () => {
                     style={inputStyle}
                   />
                 </div>
-                <div>
-                  <label className="block text-[11px] font-semibold uppercase tracking-wider text-gray-600 mb-1">
-                    Email (optional)
-                  </label>
-                  <input
-                    type="email"
-                    value={profileData.email}
-                    onChange={(e) => { setProfileData((p) => ({ ...p, email: e.target.value })); setError(""); }}
-                    placeholder="you@example.com"
-                    className={inputClass}
-                    style={inputStyle}
-                  />
-                  <p className="text-[10px] text-gray-400 mt-1 mb-0">
-                    Used for booking confirmations & receipts
-                  </p>
-                </div>
+
 
                 <button
                   type="submit"
@@ -492,23 +463,6 @@ const Login = () => {
 
               {/* Form */}
               <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
-                {isSignup && !isProviderMode && (
-                  <div>
-                    <label className="block text-[11px] font-semibold uppercase tracking-wider text-gray-600 mb-1">
-                      Full Name
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="John Doe"
-                      required
-                      className={inputClass}
-                      style={inputStyle}
-                    />
-                  </div>
-                )}
 
                 <div>
                   <label className="block text-[11px] font-semibold uppercase tracking-wider text-gray-600 mb-1">
@@ -537,28 +491,12 @@ const Login = () => {
                     onChange={handleChange}
                     placeholder="••••••••"
                     required
-                    minLength={6}
                     className={inputClass}
                     style={inputStyle}
                   />
                 </div>
 
-                {isSignup && !isProviderMode && (
-                  <div>
-                    <label className="block text-[11px] font-semibold uppercase tracking-wider text-gray-600 mb-1">
-                      Phone (Optional)
-                    </label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      placeholder="+91 98765 43210"
-                      className={inputClass}
-                      style={inputStyle}
-                    />
-                  </div>
-                )}
+
 
                 <button
                   type="submit"
@@ -566,20 +504,14 @@ const Login = () => {
                   className="w-full py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold border-0 cursor-pointer transition-all duration-200 text-white bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-600/20 active:scale-[0.99] mt-1"
                   style={{ opacity: loading ? 0.7 : 1 }}
                 >
-                  {loading ? "Please wait..." : isProviderMode ? "Sign In as Provider" : isSignup ? "Create Account" : "Sign In"}
+                  {loading ? "Please wait..." : isProviderMode ? "Sign In as Provider" : "Sign In with Email"}
                 </button>
               </form>
 
-              {/* Toggle sign up / sign in (only for user mode) */}
+              {/* New accounts: Google or phone above (they prove you own the email/number). */}
               {!isProviderMode && (
                 <p className="text-center text-xs sm:text-sm mt-3 text-gray-600 mb-0">
-                  {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
-                  <button
-                    onClick={() => { setIsSignup(!isSignup); setError(""); }}
-                    className="font-semibold border-0 bg-transparent cursor-pointer text-blue-600 hover:text-blue-700 underline"
-                  >
-                    {isSignup ? "Sign In" : "Create Account"}
-                  </button>
+                  New to TiptoBook? Continue with Google or Phone above to create your account.
                 </p>
               )}
             </>

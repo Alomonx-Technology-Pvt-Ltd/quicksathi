@@ -7,568 +7,299 @@ import { sendWelcomeEmail } from "../services/emailService.js";
 
 const router = Router();
 
-// Helper: check if email is in the admin list (comma-separated in .env)
-const isAdminEmail = (email) => {
-  const adminEmails = (process.env.ADMIN_EMAILS || "")
-    .split(",")
-    .map((e) => e.trim().toLowerCase())
-    .filter(Boolean);
-  return adminEmails.includes(email?.toLowerCase());
-};
+// ── Helpers ─────────────────────────────────────────────────────────────────
 
-// Helper to verify Firebase ID tokens securely without falling back to spoofable body parameters
-const verifyFirebaseToken = async (idToken) => {
-  if (!idToken) {
-    return { error: { status: 400, message: "Firebase ID token is required" } };
+class HttpError extends Error {
+  constructor(status, message) {
+    super(message);
+    this.status = status;
   }
-  if (!firebaseAuth) {
-    return { error: { status: 503, message: "Authentication service unavailable" } };
-  }
+}
+
+// Wrap a handler so HttpError → its status; anything else → 500 (same shape as before).
+const route = (handler) => async (req, res) => {
   try {
-    const decoded = await firebaseAuth.verifyIdToken(idToken);
-    return { decoded };
-  } catch (err) {
-    return { error: { status: 401, message: "Invalid or expired Firebase token" } };
-  }
-};
-
-// POST /api/auth/register
-router.post("/register", async (req, res) => {
-  try {
-    const { name, email, password, phone } = req.body;
-
-    // Check if user exists
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ message: "User already exists with this email" });
-    }
-
-    // Role is ALWAYS "user" for public self-registration. Admin promotion is never derived from self-registration.
-    const user = await User.create({
-      name,
-      email,
-      password,
-      phone,
-      authProvider: "local",
-      role: "user",
-    });
-
-    const token = generateToken(user._id);
-
-    // Send welcome email asynchronously
-    if (user.email) {
-      sendWelcomeEmail({ to: user.email, name: user.name }).catch((err) =>
-        console.error("Welcome email error:", err?.message || err)
-      );
-    }
-
-    res.status(201).json({
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatar: user.avatar,
-      },
-    });
+    await handler(req, res);
   } catch (error) {
+    if (error instanceof HttpError) return res.status(error.status).json({ message: error.message });
+    if (error?.code === 11000) {
+      return res.status(409).json({ message: "An account with these details already exists" });
+    }
     res.status(500).json({ message: error.message });
   }
+};
+
+// Reject non-string credentials (blocks NoSQL operator objects like { $ne: null }).
+const asString = (value) => (typeof value === "string" ? value : "");
+
+const publicUser = (user, extra = {}) => ({
+  _id: user._id,
+  name: user.name,
+  email: user.email,
+  role: user.role,
+  avatar: user.avatar,
+  ...extra,
 });
+
+const profileUser = (user) =>
+  publicUser(user, {
+    phone: user.phone,
+    address: user.address,
+    city: user.city,
+    state: user.state,
+    pincode: user.pincode,
+    createdAt: user.createdAt,
+  });
+
+/**
+ * The ONLY way identity is established from Firebase. Everything (email, uid, phone,
+ * name, picture) comes from the verified token; request-body fields are never trusted.
+ * 400 = no token, 401 = bad token, 503 = Firebase Admin not configured.
+ */
+async function verifyFirebaseIdentity(idToken) {
+  if (!idToken || typeof idToken !== "string") throw new HttpError(400, "Firebase ID token is required");
+  if (!firebaseAuth) throw new HttpError(503, "Sign-in is temporarily unavailable");
+  let decoded;
+  try {
+    decoded = await firebaseAuth.verifyIdToken(idToken);
+  } catch {
+    throw new HttpError(401, "Invalid or expired Firebase token");
+  }
+  return {
+    uid: decoded.uid,
+    email: decoded.email ? decoded.email.trim().toLowerCase() : null,
+    emailVerified: decoded.email_verified === true,
+    phone: decoded.phone_number || null,
+    name: decoded.name || "",
+    picture: decoded.picture || "",
+  };
+}
+
+async function verifiedGoogleIdentity(idToken) {
+  const identity = await verifyFirebaseIdentity(idToken);
+  if (!identity.email || !identity.emailVerified) {
+    throw new HttpError(401, "A verified Google email is required");
+  }
+  return identity;
+}
+
+// Link Firebase details to an existing account (never changes role).
+// If the account was created by email/password and its email was never verified, whoever set that
+// password may not own the email (pre-registration takeover): the verified Google owner takes over,
+// the old password stops working and every token issued before now is rejected (middleware/auth.js).
+async function linkGoogleIdentity(user, identity) {
+  let changed = false;
+  if (!user.emailVerified && user.authProvider === "local") {
+    user.password = undefined;
+    user.authProvider = "google";
+    user.tokensValidAfter = new Date();
+    changed = true;
+  }
+  if (!user.firebaseUid) { user.firebaseUid = identity.uid; changed = true; }
+  if (!user.avatar && identity.picture) { user.avatar = identity.picture; changed = true; }
+  if (!user.emailVerified) { user.emailVerified = true; changed = true; }
+  if (changed) await user.save();
+}
+
+function assertActive(user) {
+  if (!user.isActive) throw new HttpError(403, "Account deactivated");
+}
+
+// ── Email / password (existing accounts only) ───────────────────────────────
+// Public email/password sign-up was removed (2026-10-11): new customers and providers sign in with
+// Google or phone OTP, which prove they own the email/number. Existing email accounts and admins
+// (scripts/admin-account.mjs) keep their password login below.
+
+async function localCredentialUser(req) {
+  const email = asString(req.body.email).trim().toLowerCase();
+  const password = asString(req.body.password);
+  if (!email || !password) throw new HttpError(400, "Email and password are required");
+
+  const user = await User.findOne({ email }).select("+password");
+  if (!user) throw new HttpError(401, "Invalid email or password");
+
+  if (user.authProvider !== "local") {
+    // Same answer as a wrong password: don't reveal which emails exist or how they sign in.
+    throw new HttpError(401, "Invalid email or password");
+  }
+  if (!user.password || !(await user.comparePassword(password))) {
+    throw new HttpError(401, "Invalid email or password");
+  }
+  assertActive(user);
+  return user;
+}
 
 // POST /api/auth/login
-router.post("/login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
+router.post("/login", route(async (req, res) => {
+  const user = await localCredentialUser(req);
+  res.json({ token: generateToken(user._id), user: publicUser(user) });
+}));
 
-    const user = await User.findOne({ email }).select("+password");
-    if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
+// ── Google ──────────────────────────────────────────────────────────────────
 
-    if (user.authProvider !== "local") {
-      return res.status(401).json({
-        message: `This account uses ${user.authProvider} sign-in. Please use that method.`,
-      });
-    }
+// POST /api/auth/google — customers (creates the account on first sign-in)
+router.post("/google", route(async (req, res) => {
+  const identity = await verifiedGoogleIdentity(req.body.idToken);
 
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-
-    const token = generateToken(user._id);
-
-    res.json({
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatar: user.avatar,
-      },
+  let user = await User.findOne({ email: identity.email });
+  if (!user) {
+    user = await User.create({
+      name: identity.name || identity.email.split("@")[0],
+      email: identity.email,
+      avatar: identity.picture,
+      firebaseUid: identity.uid,
+      emailVerified: true,
+      authProvider: "google",
+      role: "user",
     });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    sendWelcomeEmail({ to: user.email, name: user.name }).catch((err) =>
+      console.error("Welcome email error:", err?.message || err)
+    );
+  } else {
+    assertActive(user);
+    await linkGoogleIdentity(user, identity);
   }
-});
 
-// POST /api/auth/google — Handle Firebase Google Sign-In (with strict token verification)
-router.post("/google", async (req, res) => {
-  try {
-    const { idToken } = req.body;
-    const authResult = await verifyFirebaseToken(idToken);
-    if (authResult.error) {
-      return res.status(authResult.error.status).json({ message: authResult.error.message });
-    }
+  res.json({ token: generateToken(user._id), user: publicUser(user) });
+}));
 
-    const { decoded } = authResult;
-    const verifiedEmail = decoded.email?.trim().toLowerCase();
-    const verifiedName = decoded.name || req.body.name || "User";
-    const verifiedAvatar = decoded.picture || req.body.avatar || "";
-    const verifiedUid = decoded.uid;
+// POST /api/auth/provider-google — existing, approved providers only
+router.post("/provider-google", route(async (req, res) => {
+  const identity = await verifiedGoogleIdentity(req.body.idToken);
 
-    if (!verifiedEmail) {
-      return res.status(400).json({ message: "Google account must have an email associated" });
-    }
-
-    let user = await User.findOne({ email: verifiedEmail });
-
-    if (!user) {
-      // Create new user from Google sign-in — always role 'user'
-      user = await User.create({
-        name: verifiedName,
-        email: verifiedEmail,
-        avatar: verifiedAvatar,
-        firebaseUid: verifiedUid,
-        authProvider: "google",
-        role: "user",
-      });
-
-      // Send welcome email to new Google user
-      if (user.email) {
-        sendWelcomeEmail({ to: user.email, name: user.name }).catch((err) =>
-          console.error("Welcome email error:", err?.message || err)
-        );
-      }
-    } else {
-      let changed = false;
-      // Update firebase UID if not set
-      if (!user.firebaseUid && verifiedUid) {
-        user.firebaseUid = verifiedUid;
-        changed = true;
-      }
-      // Update avatar if not set
-      if (!user.avatar && verifiedAvatar) {
-        user.avatar = verifiedAvatar;
-        changed = true;
-      }
-      if (changed) {
-        await user.save();
-      }
-    }
-
-    const token = generateToken(user._id);
-
-    res.json({
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatar: user.avatar,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  const user = await User.findOne({ email: identity.email });
+  if (!user) {
+    throw new HttpError(403, "No account found. Sign in with Google once on the customer login, then register as a provider.");
   }
-});
+  assertActive(user);
+  await linkGoogleIdentity(user, identity);
 
-// GET /api/auth/me — Get current user (full profile)
-router.get("/me", protect, async (req, res) => {
-  // Also check if user has a provider profile
-  const provider = await Provider.findOne({ user: req.user._id });
-  res.json({
-    user: {
-      _id: req.user._id,
-      name: req.user.name,
-      email: req.user.email,
-      role: req.user.role,
-      avatar: req.user.avatar,
-      phone: req.user.phone,
-      address: req.user.address,
-      city: req.user.city,
-      state: req.user.state,
-      pincode: req.user.pincode,
-      createdAt: req.user.createdAt,
-    },
-    provider: provider || null,
+  const provider = await Provider.findOne({ user: user._id }).populate("category", "name");
+  if (!provider) {
+    throw new HttpError(403, "No provider profile found. Please register as a provider first.");
+  }
+  if (provider.approvalStatus === "pending") {
+    throw new HttpError(403, "Your provider application is under review. Please wait for admin approval.");
+  }
+  if (provider.approvalStatus === "rejected") {
+    throw new HttpError(403, `Your provider application was rejected. Reason: ${provider.rejectionReason || "Not specified"}`);
+  }
+
+  res.json({ token: generateToken(user._id), user: publicUser(user), provider });
+}));
+
+// POST /api/auth/admin-google — users whose stored role is already "admin"
+router.post("/admin-google", route(async (req, res) => {
+  const identity = await verifiedGoogleIdentity(req.body.idToken);
+
+  const user = await User.findOne({ email: identity.email });
+  if (!user || user.role !== "admin") {
+    throw new HttpError(403, "Access denied. This Google account is not authorized as an administrator.");
+  }
+  assertActive(user);
+  await linkGoogleIdentity(user, identity);
+
+  res.json({ token: generateToken(user._id), user: publicUser(user) });
+}));
+
+// ── Phone (Firebase OTP) ────────────────────────────────────────────────────
+
+// POST /api/auth/phone
+router.post("/phone", route(async (req, res) => {
+  const identity = await verifyFirebaseIdentity(req.body.idToken);
+  if (!identity.phone) {
+    throw new HttpError(401, "This token does not carry a verified phone number");
+  }
+
+  // Match by Firebase uid, or by phone only on accounts that were created by phone sign-in.
+  // Phones typed into email/Google accounts are unverified and must not grant access.
+  let user = await User.findOne({
+    $or: [{ firebaseUid: identity.uid }, { phone: identity.phone, authProvider: "phone" }],
   });
-});
 
-// PUT /api/auth/profile — Update user profile
-router.put("/profile", protect, async (req, res) => {
-  try {
-    // Prohibit directly changing email and phone to prevent identity takeover
-    if (req.body.email && req.body.email.toLowerCase() !== req.user.email?.toLowerCase()) {
-      return res.status(400).json({
-        message: "Email cannot be changed directly. Please verify via email link.",
-      });
+  if (!user) {
+    // The verified owner wins the number: drop it from any account where it was only typed in
+    // (legacy sign-ups), so it can't block this sign-in through the unique phone index.
+    const squatters = await User.updateMany(
+      { phone: identity.phone, authProvider: { $ne: "phone" } },
+      { $unset: { phone: "" } }
+    );
+    if (squatters.modifiedCount) {
+      console.warn(`AUDIT phone ${identity.phone.slice(0, 5)}… released from ${squatters.modifiedCount} unverified account(s)`);
     }
-    if (req.body.phone && req.body.phone !== req.user.phone) {
-      return res.status(400).json({
-        message: "Phone number cannot be changed directly. Please verify via OTP.",
-      });
-    }
-
-    const allowedFields = ["name", "address", "city", "state", "pincode"];
-    const updates = {};
-    for (const field of allowedFields) {
-      if (req.body[field] !== undefined) {
-        updates[field] = req.body[field];
-      }
-    }
-
-    const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true, runValidators: true });
-    res.json({
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatar: user.avatar,
-        phone: user.phone,
-        address: user.address,
-        city: user.city,
-        state: user.state,
-        pincode: user.pincode,
-        createdAt: user.createdAt,
-      },
+    user = await User.create({
+      name: identity.phone,
+      phone: identity.phone,
+      firebaseUid: identity.uid,
+      authProvider: "phone",
+      role: "user",
     });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// POST /api/auth/phone — Firebase Phone Auth (login or register)
-router.post("/phone", async (req, res) => {
-  try {
-    const { idToken } = req.body;
-    const authResult = await verifyFirebaseToken(idToken);
-    if (authResult.error) {
-      return res.status(authResult.error.status).json({ message: authResult.error.message });
-    }
-
-    const { decoded } = authResult;
-    const verifiedPhone = decoded.phone_number;
-    const verifiedUid = decoded.uid;
-
-    if (!verifiedPhone) {
-      return res.status(400).json({ message: "No verified phone number found in token" });
-    }
-
-    // Find existing user by firebaseUid or phone
-    let user = await User.findOne({
-      $or: [{ firebaseUid: verifiedUid }, { phone: verifiedPhone }],
-    });
-
-    if (!user) {
-      // Create new user from phone sign-in — always role 'user'
-      user = await User.create({
-        name: verifiedPhone,
-        phone: verifiedPhone,
-        firebaseUid: verifiedUid,
-        authProvider: "phone",
-        role: "user",
-      });
-    } else {
-      // Update firebase UID if not set
-      let changed = false;
-      if (!user.firebaseUid && verifiedUid) {
-        user.firebaseUid = verifiedUid;
-        changed = true;
-      }
-      if (!user.phone && verifiedPhone) {
-        user.phone = verifiedPhone;
-        changed = true;
-      }
-      if (changed) await user.save();
-    }
-
-    const token = generateToken(user._id);
-
-    res.json({
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatar: user.avatar,
-        phone: user.phone,
-        address: user.address,
-        city: user.city,
-        state: user.state,
-        pincode: user.pincode,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-
-// POST /api/auth/provider-login — Provider login (email/password)
-router.post("/provider-login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email }).select("+password");
-    if (!user) {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-
-    if (user.authProvider !== "local") {
-      return res.status(401).json({
-        message: `This account uses ${user.authProvider} sign-in. Please use Google login.`,
-      });
-    }
-
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(401).json({ message: "Invalid email or password" });
-    }
-
-    // Check if user has a provider profile
-    const provider = await Provider.findOne({ user: user._id }).populate("category", "name");
-    if (!provider) {
-      return res.status(403).json({ message: "No provider profile found. Please register as a provider first." });
-    }
-
-    if (provider.approvalStatus === "pending") {
-      return res.status(403).json({ message: "Your provider application is under review. Please wait for admin approval." });
-    }
-
-    if (provider.approvalStatus === "rejected") {
-      return res.status(403).json({ message: `Your provider application was rejected. Reason: ${provider.rejectionReason || "Not specified"}` });
-    }
-
-    const token = generateToken(user._id);
-
-    res.json({
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatar: user.avatar,
-      },
-      provider,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// POST /api/auth/provider-google — Provider Google login
-router.post("/provider-google", async (req, res) => {
-  try {
-    const { idToken } = req.body;
-    const authResult = await verifyFirebaseToken(idToken);
-    if (authResult.error) {
-      return res.status(authResult.error.status).json({ message: authResult.error.message });
-    }
-
-    const { decoded } = authResult;
-    const verifiedEmail = decoded.email?.trim().toLowerCase();
-    const verifiedUid = decoded.uid;
-
-    if (!verifiedEmail) {
-      return res.status(400).json({ message: "Google account must have an email associated" });
-    }
-
-    let user = await User.findOne({ email: verifiedEmail });
-
-    if (!user) {
-      return res.status(403).json({ message: "No account found. Please sign up first, then register as a provider." });
-    }
-
-    // Update firebase UID if not set
-    if (!user.firebaseUid && verifiedUid) {
-      user.firebaseUid = verifiedUid;
-      await user.save();
-    }
-
-    // Check for provider profile
-    const provider = await Provider.findOne({ user: user._id }).populate("category", "name");
-    if (!provider) {
-      return res.status(403).json({ message: "No provider profile found. Please register as a provider first." });
-    }
-
-    if (provider.approvalStatus === "pending") {
-      return res.status(403).json({ message: "Your provider application is under review. Please wait for admin approval." });
-    }
-
-    if (provider.approvalStatus === "rejected") {
-      return res.status(403).json({ message: `Your provider application was rejected. Reason: ${provider.rejectionReason || "Not specified"}` });
-    }
-
-    const token = generateToken(user._id);
-
-    res.json({
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatar: user.avatar,
-      },
-      provider,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// POST /api/auth/admin-login — Admin Email & Password login
-router.post("/admin-login", async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
-    }
-
-    const normalizedEmail = email.trim().toLowerCase();
-    const envAdminPassword = process.env.ADMIN_PASSWORD?.trim();
-    const isEnvPasswordMatch = envAdminPassword && password === envAdminPassword;
-
-    let user = await User.findOne({ email: normalizedEmail }).select("+password");
-
-    // Case 1: Existing user in database
-    if (user) {
-      // User MUST have admin role
-      if (user.role !== "admin") {
-        return res.status(403).json({
-          message: "Access denied. This account does not have administrator privileges.",
-        });
-      }
-
-      let passwordValid = false;
-
-      // Match against .env ADMIN_PASSWORD if this is an authorized admin email
-      if (isEnvPasswordMatch && isAdminEmail(user.email)) {
-        passwordValid = true;
-        user.password = password;
-        if (user.authProvider === "google") {
-          user.authProvider = "local";
-        }
-        await user.save();
-      } else if (user.password) {
-        // Verify against MongoDB hashed password
-        passwordValid = await user.comparePassword(password);
-      }
-
-      if (!passwordValid) {
-        return res.status(401).json({ message: "Invalid email or password" });
-      }
-
-      const token = generateToken(user._id);
-      return res.json({
-        token,
-        user: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          avatar: user.avatar,
-        },
-      });
-    }
-
-    // Case 2: User not found in DB, but email matches ADMIN_EMAILS and password matches ADMIN_PASSWORD
-    if (isAdminEmail(normalizedEmail) && isEnvPasswordMatch) {
-      user = await User.create({
-        name: "TiptoBook Admin",
-        email: normalizedEmail,
-        password,
-        role: "admin",
-        authProvider: "local",
-      });
-
-      const token = generateToken(user._id);
-      return res.json({
-        token,
-        user: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          avatar: user.avatar,
-        },
-      });
-    }
-
-    return res.status(401).json({ message: "Invalid email or password" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// POST /api/auth/admin-google — Admin Google login with strict token verification
-router.post("/admin-google", async (req, res) => {
-  try {
-    const { idToken } = req.body;
-    const authResult = await verifyFirebaseToken(idToken);
-    if (authResult.error) {
-      return res.status(authResult.error.status).json({ message: authResult.error.message });
-    }
-
-    const { decoded } = authResult;
-    const normalizedEmail = decoded.email?.trim().toLowerCase();
-    const verifiedUid = decoded.uid;
-
-    if (!normalizedEmail) {
-      return res.status(400).json({ message: "Google account must have an email associated" });
-    }
-
-    let user = await User.findOne({ email: normalizedEmail });
-
-    // Only existing accounts that ALREADY have role === "admin" can log in to admin panel
-    if (!user || user.role !== "admin") {
-      return res.status(403).json({
-        message: `Access denied. The Google account (${normalizedEmail}) is not authorized as an administrator.`,
-      });
-    }
-
+  } else {
+    assertActive(user);
     let changed = false;
-    if (!user.firebaseUid && verifiedUid) {
-      user.firebaseUid = verifiedUid;
-      changed = true;
-    }
-    if (changed) {
-      await user.save();
-    }
-
-    const token = generateToken(user._id);
-
-    res.json({
-      token,
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        avatar: user.avatar,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    if (!user.firebaseUid) { user.firebaseUid = identity.uid; changed = true; }
+    if (!user.phone) { user.phone = identity.phone; changed = true; }
+    if (changed) await user.save();
   }
-});
-export default router;
 
+  res.json({ token: generateToken(user._id), user: profileUser(user) });
+}));
+
+// ── Providers & admins (email / password) ───────────────────────────────────
+
+// POST /api/auth/provider-login
+router.post("/provider-login", route(async (req, res) => {
+  const user = await localCredentialUser(req);
+
+  const provider = await Provider.findOne({ user: user._id }).populate("category", "name");
+  if (!provider) {
+    throw new HttpError(403, "No provider profile found. Please register as a provider first.");
+  }
+  if (provider.approvalStatus === "pending") {
+    throw new HttpError(403, "Your provider application is under review. Please wait for admin approval.");
+  }
+  if (provider.approvalStatus === "rejected") {
+    throw new HttpError(403, `Your provider application was rejected. Reason: ${provider.rejectionReason || "Not specified"}`);
+  }
+
+  res.json({ token: generateToken(user._id), user: publicUser(user), provider });
+}));
+
+// POST /api/auth/admin-login — the account's own password; role must already be "admin"
+router.post("/admin-login", route(async (req, res) => {
+  const user = await localCredentialUser(req);
+  if (user.role !== "admin") {
+    throw new HttpError(403, "Access denied. This account does not have administrator privileges.");
+  }
+  res.json({ token: generateToken(user._id), user: publicUser(user) });
+}));
+
+// ── Session / profile ───────────────────────────────────────────────────────
+
+// GET /api/auth/me — full profile + provider profile
+router.get("/me", protect, route(async (req, res) => {
+  const provider = await Provider.findOne({ user: req.user._id });
+  res.json({ user: profileUser(req.user), provider: provider || null });
+}));
+
+// PUT /api/auth/profile — email and phone are identity: they can only be set by a verified
+// sign-in flow, never by free-text edit.
+router.put("/profile", protect, route(async (req, res) => {
+  const body = req.body || {};
+
+  const emailChanged = body.email !== undefined && asString(body.email).trim().toLowerCase() !== (req.user.email || "");
+  const phoneChanged = body.phone !== undefined && asString(body.phone).trim() !== (req.user.phone || "");
+  if (emailChanged || phoneChanged) {
+    throw new HttpError(400, "Email and phone number can't be edited here. Sign in with that email or phone to link it.");
+  }
+
+  const updates = {};
+  for (const field of ["name", "address", "city", "state", "pincode"]) {
+    if (body[field] !== undefined) updates[field] = asString(body[field]);
+  }
+
+  const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true, runValidators: true });
+  res.json({ user: profileUser(user) });
+}));
+
+export default router;

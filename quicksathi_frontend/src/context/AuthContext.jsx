@@ -90,15 +90,6 @@ export const AuthProvider = ({ children }) => {
     setProviderProfile(null);
   };
 
-  // Email/Password Registration
-  const register = async (name, email, password, phone) => {
-    const { data } = await withRetry(() =>
-      api.post("/auth/register", { name, email, password, phone })
-    );
-    saveSession(data.token, data.user);
-    return data.user;
-  };
-
   // Email/Password Login
   const login = async (email, password) => {
     const { data } = await withRetry(() =>
@@ -120,15 +111,7 @@ export const AuthProvider = ({ children }) => {
     const idToken = await firebaseUser.getIdToken();
 
     // Retry backend call — Render may be cold on first attempt
-    const { data } = await withRetry(() =>
-      api.post("/auth/google", {
-        idToken,
-        email: firebaseUser.email,
-        name: firebaseUser.displayName,
-        avatar: firebaseUser.photoURL,
-        firebaseUid: firebaseUser.uid,
-      })
-    );
+    const { data } = await withRetry(() => api.post("/auth/google", { idToken }));
 
     saveSession(data.token, data.user);
     return data.user;
@@ -177,10 +160,7 @@ export const AuthProvider = ({ children }) => {
 
     // Send to our backend for login/registration
     const { data } = await withRetry(() =>
-      api.post("/auth/phone", {
-        idToken,
-        phone: firebaseUser.phoneNumber,
-      })
+      api.post("/auth/phone", { idToken })
     );
 
     saveSession(data.token, data.user);
@@ -225,15 +205,7 @@ export const AuthProvider = ({ children }) => {
     const idToken = await firebaseUser.getIdToken();
 
     // Retry backend call — Render may be cold on first attempt
-    const { data } = await withRetry(() =>
-      api.post("/auth/provider-google", {
-        idToken,
-        email: firebaseUser.email,
-        name: firebaseUser.displayName,
-        avatar: firebaseUser.photoURL,
-        firebaseUid: firebaseUser.uid,
-      })
-    );
+    const { data } = await withRetry(() => api.post("/auth/provider-google", { idToken }));
 
     saveSession(data.token, data.user, data.provider);
     return data;
@@ -241,27 +213,11 @@ export const AuthProvider = ({ children }) => {
 
   // Admin Login (Email/Password)
   const adminLogin = async (email, password) => {
-    try {
-      const { data } = await withRetry(() =>
-        api.post("/auth/admin-login", { email, password })
-      );
-      saveSession(data.token, data.user);
-      return data.user;
-    } catch (err) {
-      // Fallback in case remote backend has not deployed /admin-login yet
-      if (err.response?.status === 404) {
-        const { data } = await withRetry(() =>
-          api.post("/auth/login", { email, password })
-        );
-        if (data.user?.role !== "admin") {
-          clearSession();
-          throw new Error("Access denied. This account does not have administrator privileges.");
-        }
-        saveSession(data.token, data.user);
-        return data.user;
-      }
-      throw err;
-    }
+    const { data } = await withRetry(() =>
+      api.post("/auth/admin-login", { email, password })
+    );
+    saveSession(data.token, data.user);
+    return data.user;
   };
 
   // Admin Login with Google
@@ -276,36 +232,12 @@ export const AuthProvider = ({ children }) => {
     const idToken = await firebaseUser.getIdToken();
 
     try {
-      const { data } = await withRetry(() =>
-        api.post("/auth/admin-google", {
-          idToken,
-          email: firebaseUser.email,
-          name: firebaseUser.displayName,
-          avatar: firebaseUser.photoURL,
-          firebaseUid: firebaseUser.uid,
-        })
-      );
+      const { data } = await withRetry(() => api.post("/auth/admin-google", { idToken }));
       saveSession(data.token, data.user);
       return data.user;
     } catch (err) {
-      // Fallback in case remote backend has not deployed /admin-google yet
-      if (err.response?.status === 404) {
-        const { data } = await withRetry(() =>
-          api.post("/auth/google", {
-            idToken,
-            email: firebaseUser.email,
-            name: firebaseUser.displayName,
-            avatar: firebaseUser.photoURL,
-            firebaseUid: firebaseUser.uid,
-          })
-        );
-        if (data.user?.role !== "admin") {
-          clearSession();
-          throw new Error(`Access denied. The Google account (${firebaseUser.email}) is not authorized as an administrator.`);
-        }
-        saveSession(data.token, data.user);
-        return data.user;
-      }
+      // Don't leave an orphaned Firebase session when the backend refuses the account.
+      try { await firebaseSignOut(auth); } catch { /* ignore */ }
       throw err;
     }
   };
@@ -327,7 +259,6 @@ export const AuthProvider = ({ children }) => {
     isAuthenticated: !!user,
     isAdmin: user?.role === "admin",
     isProvider: user?.role === "provider",
-    register,
     login,
     loginWithGoogle,
     sendOtp,

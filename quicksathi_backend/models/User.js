@@ -15,15 +15,20 @@ const userSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
     },
+    emailVerified: {
+      type: Boolean,
+      default: false, // true only when set from a verified Firebase token
+    },
+    // Login tokens issued before this moment are rejected (account taken back, admin password reset).
+    tokensValidAfter: { type: Date },
     password: {
       type: String,
-      minlength: 6,
+      minlength: 8,
       select: false, // Don't return password by default
     },
     phone: {
       type: String,
       trim: true,
-      sparse: true,
     },
     avatar: {
       type: String,
@@ -41,8 +46,8 @@ const userSchema = new mongoose.Schema(
     },
     firebaseUid: {
       type: String,
-      sparse: true,
     },
+    deletedAt: { type: Date },
     isActive: {
       type: Boolean,
       default: true,
@@ -57,6 +62,12 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// One account per phone number / Firebase identity. Empty or missing values are ignored.
+// (Production already has legacy sparse indexes named phone_1 / firebaseUid_1: run
+//  scripts/migrations/001-user-unique-indexes.mjs once to replace them.)
+userSchema.index({ phone: 1 }, { unique: true, name: "phone_unique", partialFilterExpression: { phone: { $type: "string", $gt: "" } } });
+userSchema.index({ firebaseUid: 1 }, { unique: true, name: "firebaseUid_unique", partialFilterExpression: { firebaseUid: { $type: "string", $gt: "" } } });
 
 // Hash password before saving
 userSchema.pre("save", async function (next) {

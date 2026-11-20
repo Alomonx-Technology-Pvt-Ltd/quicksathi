@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Suspense, lazy } from "react";
-import { HelmetProvider } from "react-helmet-async";
+import { Helmet, HelmetProvider } from "react-helmet-async";
 import { AuthProvider } from "./context/AuthContext";
 import { LocationProvider } from "./context/LocationContext";
 import Layout from "./components/layout/Layout";
@@ -85,7 +85,7 @@ function App() {
             <Route path="services/ac" element={<ACCategoryPage />} />
             <Route path="services/weddings" element={<Navigate to="/services" replace />} />
             <Route path="services/car-rentals" element={<Navigate to="/services" replace />} />
-            <Route path="services/cctv" element={<Navigate to="/service/cctv-installation" replace />} />
+            <Route path="services/cctv" element={<Navigate to="/service/home-cctv" replace />} />
             <Route path="booking/:serviceId" element={<BookingPage />} />
             <Route path="payment" element={<PaymentPage />} />
             <Route
@@ -111,6 +111,10 @@ function App() {
               path="*"
               element={
                 <div className="text-center p-20 text-2xl font-bold">
+                  <Helmet>
+                    <title>Page not found | TiptoBook</title>
+                    <meta name="robots" content="noindex" />
+                  </Helmet>
                   404 - Page Not Found
                 </div>
               }

@@ -4,17 +4,24 @@ import Notification from "../models/Notification.js";
 import Contact from "../models/Contact.js";
 import { protect } from "../middleware/auth.js";
 import { adminOnly } from "../middleware/admin.js";
-import { sendMail } from "../services/emailService.js";
+import { sendMail, escapeHtml } from "../services/emailService.js";
 
 const router = Router();
 
 // POST /api/contact — Submit contact form (Public)
 router.post("/", async (req, res) => {
   try {
-    const { firstName, lastName, email, message } = req.body;
+    const str = (v, max) => (typeof v === "string" ? v.replace(/[\r\n]+/g, " ").trim().slice(0, max) : "");
+    const firstName = str(req.body.firstName, 100);
+    const lastName = str(req.body.lastName, 100);
+    const email = str(req.body.email, 200).toLowerCase();
+    const message = typeof req.body.message === "string" ? req.body.message.trim().slice(0, 5000) : "";
 
     if (!firstName || !email || !message) {
       return res.status(400).json({ message: "Please fill in all required fields (First Name, Email, and Message)" });
+    }
+    if (!/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/.test(email)) {
+      return res.status(400).json({ message: "Please enter a valid email address" });
     }
 
     // 1. Save to the database
@@ -64,11 +71,11 @@ router.post("/", async (req, res) => {
         text: emailBody,
         html: `<div style="font-family: sans-serif; padding: 25px; color: #333; line-height: 1.6; max-width: 600px; border: 1px solid #e8ddd4; border-radius: 12px; background-color: #faf7f3;">
                  <h2 style="color: #f97316; margin-top: 0; font-family: Georgia, serif;">New Contact Submission</h2>
-                 <p style="margin: 5px 0;"><strong>Sender Name:</strong> ${senderName}</p>
-                 <p style="margin: 5px 0;"><strong>Sender Email:</strong> <a href="mailto:${email}" style="color: #f97316;">${email}</a></p>
+                 <p style="margin: 5px 0;"><strong>Sender Name:</strong> ${escapeHtml(senderName)}</p>
+                 <p style="margin: 5px 0;"><strong>Sender Email:</strong> ${escapeHtml(email)}</p>
                  <p style="margin: 5px 0;"><strong>Date Received:</strong> ${new Date().toLocaleString()}</p>
                  <hr style="border: 0; border-top: 1px dashed #c4a882; margin: 20px 0;" />
-                 <p style="white-space: pre-line; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e8ddd4;">${message}</p>
+                 <p style="white-space: pre-line; background-color: #ffffff; padding: 15px; border-radius: 8px; border: 1px solid #e8ddd4;">${escapeHtml(message)}</p>
                  <hr style="border: 0; border-top: 1px solid #e8ddd4; margin: 20px 0;" />
                  <p style="font-size: 11px; color: #9a8478; text-align: center; margin: 0;">This email was sent automatically from TiptoBook's system dispatcher.</p>
                </div>`,
@@ -78,7 +85,6 @@ router.post("/", async (req, res) => {
     res.status(201).json({
       success: true,
       message: "Your message has been received! Our support team will get in touch soon.",
-      data: contactMessage
     });
   } catch (error) {
     console.error("Contact submission error:", error);

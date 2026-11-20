@@ -1,13 +1,18 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, Link } from "react-router-dom";
 import api from "../config/api";
-import { Ticket, Check, X, Tag, Sparkles, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
+import { Ticket, Check, X, Tag, ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+import { payForBooking } from "../utils/razorpayCheckout";
 
 const PaymentPage = () => {
   const [searchParams] = useSearchParams();
   const [paymentMethod, setPaymentMethod] = useState("razorpay");
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState(false);
+  const { user } = useAuth();
+  const [createdBooking, setCreatedBooking] = useState(null); // booking saved on the server, awaiting payment
+  const [payError, setPayError] = useState("");
 
   // Coupon / Offer States
   const [couponInput, setCouponInput] = useState("");
@@ -21,7 +26,8 @@ const PaymentPage = () => {
 
   const serviceName = searchParams.get("name") || "Service";
   const packageTitle = searchParams.get("package") || "";
-  const price = parseInt(searchParams.get("price") || "0", 10);
+  const urlPrice = parseInt(searchParams.get("price") || "0", 10); // display fallback only; the server prices the booking
+  const distanceKm = parseFloat(searchParams.get("distance") || "") || undefined;
   const date = searchParams.get("date") || "";
 
   const route = searchParams.get("route") || "";
@@ -52,6 +58,17 @@ const PaymentPage = () => {
     fetchOffers();
   }, []);
 
+  // The server is the only source of price. Re-quote when the coupon changes.
+  const [quoted, setQuoted] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    api
+      .post("/bookings/quote", { serviceId, packageTitle, distanceKm, couponCode: appliedCoupon?.code || "" })
+      .then(({ data }) => { if (!cancelled) setQuoted(data); })
+      .catch(() => { if (!cancelled) setQuoted(null); });
+    return () => { cancelled = true; };
+  }, [serviceId, packageTitle, distanceKm, appliedCoupon]);
+
   const handleApplyCoupon = async (codeToApply) => {
     const targetCode = (codeToApply || couponInput).trim();
     if (!targetCode) {
@@ -66,7 +83,9 @@ const PaymentPage = () => {
     try {
       const { data } = await api.post("/coupons/validate", {
         code: targetCode,
-        orderAmount: price,
+        serviceId,
+        packageTitle,
+        distanceKm,
       });
 
       if (data.valid) {
@@ -94,45 +113,70 @@ const PaymentPage = () => {
     setCouponSuccess("");
   };
 
+  const price = quoted ? quoted.originalAmount : urlPrice;
   const finalAmount = Math.max(0, price - discountAmount);
+
+  // Rentals: estimated fare, cash only, no coupons (the driver confirms the final fare).
+  const rental = Boolean(quoted?.isRental);
+  const method = rental ? "cod" : paymentMethod;
+  // Once the booking exists its price is fixed on the server: show that and lock the coupon box.
+  const locked = Boolean(createdBooking);
+  const shownPrice = locked ? createdBooking.originalAmount : price;
+  const shownDiscount = locked ? createdBooking.discountAmount : discountAmount;
+  const shownTotal = locked ? createdBooking.amount : finalAmount;
+  const shownCoupon = locked ? createdBooking.couponCode : appliedCoupon?.code;
 
   const handlePayment = async () => {
     setProcessing(true);
+    setPayError("");
 
     try {
-      // Common booking payload for both COD and online payment
-      const bookingData = {
-        serviceId,
-        scheduledDate: date,
-        scheduledTime: time,
-        location: {
-          address,
-          city,
-          pincode,
-          ...(latParam ? { lat: parseFloat(latParam) } : {}),
-          ...(lonParam ? { lon: parseFloat(lonParam) } : {}),
-          ...(road ? { road } : {}),
-          ...(accuracyParam ? { accuracy: parseFloat(accuracyParam) } : {}),
-        },
-        notes,
-        paymentMethod,
-        amount: finalAmount,
-        couponCode: appliedCoupon ? appliedCoupon.code : "",
-      };
+      // Create the booking once; retries pay for the same booking instead of creating duplicates.
+      let booking = createdBooking;
+      if (!booking) {
+        const { data } = await api.post("/bookings", {
+          serviceId,
+          scheduledDate: date,
+          scheduledTime: time,
+          location: {
+            address,
+            city,
+            pincode,
+            ...(latParam ? { lat: parseFloat(latParam) } : {}),
+            ...(lonParam ? { lon: parseFloat(lonParam) } : {}),
+            ...(road ? { road } : {}),
+            ...(accuracyParam ? { accuracy: parseFloat(accuracyParam) } : {}),
+          },
+          notes,
+          paymentMethod: method,
+          packageTitle,
+          distanceKm,
+          couponCode: appliedCoupon ? appliedCoupon.code : "",
+        });
+        booking = data;
+        setCreatedBooking(data);
+      }
 
-      if (paymentMethod === "razorpay") {
-        // Simulated Razorpay checkout (test mode), then create the booking
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-        await api.post("/bookings", bookingData);
-        setSuccess(true);
+      if (method === "razorpay") {
+        const result = await payForBooking(booking, user);
+        if (result.status === "paid") {
+          setSuccess(true);
+        } else if (result.status === "dismissed") {
+          setPayError(
+            (result.error ? `${result.error}. ` : "") +
+              "Payment not completed. Your booking is saved. Tap Pay to try again, or finish it later from My Bookings."
+          );
+        } else {
+          setPayError(result.error || "Payment failed. Please try again.");
+        }
       } else {
-        // COD - create booking directly
-        await api.post("/bookings", bookingData);
+        // Cash on delivery. If this booking was first created for online payment, switch it.
+        if (booking.paymentMethod !== "cod") await api.post("/payments/cod-confirm", { bookingId: booking._id });
         setSuccess(true);
       }
     } catch (err) {
-      console.error("Booking creation failed:", err);
-      alert(err.response?.data?.message || "Failed to create booking. Please try again.");
+      console.error("Booking failed:", err);
+      setPayError(err.response?.data?.message || "Failed to create booking. Please try again.");
     } finally {
       setProcessing(false);
     }
@@ -179,13 +223,18 @@ const PaymentPage = () => {
               🎉 Coupon {appliedCoupon.code} applied: You saved ₹{discountAmount.toLocaleString()}!
             </p>
           )}
+          {createdBooking?.bookingId && (
+            <p className="text-xs font-semibold mb-2" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-dark)" }}>
+              Booking ID: {createdBooking.bookingId}
+            </p>
+          )}
           <p
             className="text-sm mb-8"
             style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}
           >
-            {paymentMethod === "cod"
-              ? `Please keep ₹${finalAmount.toLocaleString()} cash ready for the service provider.`
-              : "Payment received successfully."}
+            {method === "cod"
+              ? `Please keep ₹${shownTotal.toLocaleString()} cash ready for the service provider${rental ? " (estimate: the driver confirms the final fare)" : ""}.`
+              : `Payment of ₹${shownTotal.toLocaleString()} received.`}
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link
@@ -254,7 +303,7 @@ const PaymentPage = () => {
           <div className="flex flex-col gap-2">
             <div className="flex justify-between text-sm" style={{ fontFamily: "var(--font-body)" }}>
               <span style={{ color: "var(--color-text-mid)" }}>{serviceName}</span>
-              <span style={{ color: "var(--color-text-dark)" }}>₹{price.toLocaleString()}</span>
+              <span style={{ color: "var(--color-text-dark)" }}>₹{shownPrice.toLocaleString()}</span>
             </div>
             {packageTitle && (
               <div className="flex justify-between text-sm" style={{ fontFamily: "var(--font-body)" }}>
@@ -286,16 +335,16 @@ const PaymentPage = () => {
             )}
 
             {/* Discount line if applied */}
-            {appliedCoupon && discountAmount > 0 && (
+            {shownCoupon && shownDiscount > 0 && (
               <div
                 className="flex justify-between text-sm font-medium pt-2 text-emerald-600"
                 style={{ fontFamily: "var(--font-body)" }}
               >
                 <span className="flex items-center gap-1">
                   <Tag size={13} />
-                  <span>Coupon ({appliedCoupon.code})</span>
+                  <span>Coupon ({shownCoupon})</span>
                 </span>
-                <span>-₹{discountAmount.toLocaleString()}</span>
+                <span>-₹{shownDiscount.toLocaleString()}</span>
               </div>
             )}
 
@@ -303,23 +352,30 @@ const PaymentPage = () => {
               className="flex justify-between text-lg font-bold pt-3 mt-2"
               style={{ borderTop: "1px solid var(--color-border)", fontFamily: "var(--font-display)" }}
             >
-              <span style={{ color: "var(--color-text-dark)" }}>Total</span>
+              <span style={{ color: "var(--color-text-dark)" }}>{rental ? "Estimated fare" : "Total"}</span>
               <div className="text-right">
-                {appliedCoupon && discountAmount > 0 && (
+                {shownCoupon && shownDiscount > 0 && (
                   <span className="text-xs line-through text-slate-400 mr-2">
-                    ₹{price.toLocaleString()}
+                    ₹{shownPrice.toLocaleString()}
                   </span>
                 )}
-                <span style={{ color: "var(--color-primary)" }}>₹{finalAmount.toLocaleString()}</span>
+                <span style={{ color: "var(--color-primary)" }}>₹{shownTotal.toLocaleString()}</span>
               </div>
             </div>
+            {rental && (
+              <p className="text-xs m-0 mt-1" style={{ fontFamily: "var(--font-body)", color: "var(--color-text-mid)" }}>
+                The driver confirms the final fare at the end of the trip. Pay in cash.
+              </p>
+            )}
           </div>
         </div>
 
-        {/* ── Offers & Promo Code Box ── */}
+        {/* ── Offers & Promo Code Box ── (not for rentals; frozen once the booking exists) */}
+        {!rental && (
         <div
           className="rounded-2xl p-5 mb-8 border transition-all"
-          style={{ backgroundColor: "var(--color-bg-white)", borderColor: "var(--color-border)" }}
+          style={{ backgroundColor: "var(--color-bg-white)", borderColor: "var(--color-border)", ...(locked ? { opacity: 0.6, pointerEvents: "none" } : {}) }}
+          aria-disabled={locked}
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -451,11 +507,18 @@ const PaymentPage = () => {
               ))}
             </div>
           )}
+          {locked && (
+            <p className="text-xs mt-3 mb-0" style={{ color: "var(--color-text-mid)" }}>
+              The price is fixed for this booking. To use a different coupon, cancel it from My Bookings and book again.
+            </p>
+          )}
         </div>
+        )}
 
         {/* ── Payment Methods ── */}
         <div className="flex flex-col gap-4 mb-8">
           {/* Razorpay */}
+          {!rental && (
           <button
             onClick={() => setPaymentMethod("razorpay")}
             className="text-left p-5 rounded-2xl border cursor-pointer transition-all duration-200"
@@ -493,15 +556,16 @@ const PaymentPage = () => {
               </div>
             </div>
           </button>
+          )}
 
           {/* COD */}
           <button
             onClick={() => setPaymentMethod("cod")}
             className="text-left p-5 rounded-2xl border cursor-pointer transition-all duration-200"
             style={{
-              backgroundColor: paymentMethod === "cod" ? "rgba(34,197,94,0.04)" : "var(--color-bg-white)",
-              borderColor: paymentMethod === "cod" ? "#22c55e" : "var(--color-border)",
-              boxShadow: paymentMethod === "cod" ? "0 0 0 2px rgba(34,197,94,0.15)" : "none",
+              backgroundColor: method === "cod" ? "rgba(34,197,94,0.04)" : "var(--color-bg-white)",
+              borderColor: method === "cod" ? "#22c55e" : "var(--color-border)",
+              boxShadow: method === "cod" ? "0 0 0 2px rgba(34,197,94,0.15)" : "none",
             }}
           >
             <div className="flex items-center gap-4">
@@ -524,15 +588,26 @@ const PaymentPage = () => {
               </div>
               <div
                 className="w-5 h-5 rounded-full border-2 flex items-center justify-center"
-                style={{ borderColor: paymentMethod === "cod" ? "#22c55e" : "var(--color-border)" }}
+                style={{ borderColor: method === "cod" ? "#22c55e" : "var(--color-border)" }}
               >
-                {paymentMethod === "cod" && (
+                {method === "cod" && (
                   <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: "#22c55e" }} />
                 )}
               </div>
             </div>
           </button>
         </div>
+
+        {payError && (
+          <div
+            role="alert"
+            className="mb-4 flex items-start gap-2 rounded-xl p-3 text-sm"
+            style={{ backgroundColor: "#fef2f2", color: "#b91c1c", border: "1px solid #fecaca" }}
+          >
+            <AlertCircle size={16} className="mt-0.5 shrink-0" />
+            <span>{payError}</span>
+          </div>
+        )}
 
         <button
           onClick={handlePayment}
@@ -548,9 +623,9 @@ const PaymentPage = () => {
         >
           {processing
             ? "Processing..."
-            : paymentMethod === "razorpay"
-            ? `Pay ₹${finalAmount.toLocaleString()}`
-            : `Confirm COD Booking (₹${finalAmount.toLocaleString()})`}
+            : method === "razorpay"
+            ? `Pay ₹${shownTotal.toLocaleString()}`
+            : `Confirm ${rental ? "Cash Booking" : "COD Booking"} (₹${shownTotal.toLocaleString()}${rental ? " est." : ""})`}
         </button>
       </div>
     </div>

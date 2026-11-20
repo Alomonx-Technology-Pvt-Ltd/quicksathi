@@ -4,22 +4,13 @@ import api, { clearCache } from "../config/api";
  * Compresses an image File using an HTML5 Canvas to keep uploads fast,
  * high-quality, and well under payload limits (< 800 KB).
  */
+// The server (/api/admin/upload) accepts only these; anything else fails there with a 400.
+export const UPLOAD_IMAGE_TYPES = "image/png,image/jpeg,image/webp";
+
 export async function compressImage(file, maxWidth = 1920, maxHeight = 1080, quality = 0.85) {
   if (!file) throw new Error("No file provided");
-
-  // If not an image or SVG/GIF, return as dataURL directly
-  if (
-    !file.type ||
-    !file.type.startsWith("image/") ||
-    file.type === "image/svg+xml" ||
-    file.type === "image/gif"
-  ) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
+  if (!UPLOAD_IMAGE_TYPES.split(",").includes(file.type)) {
+    throw new Error("Upload a PNG, JPEG or WebP image");
   }
 
   return new Promise((resolve, reject) => {

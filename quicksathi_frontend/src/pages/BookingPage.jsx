@@ -171,7 +171,7 @@ const BookingPage = () => {
   const calculatedRentalPrice =
     distanceKm > 0
       ? Math.round(distanceKm * perKmRate)
-      : initialPrice || service?.startingPrice || 1499;
+      : initialPrice || service?.startingPrice || 0;
 
   const finalAmount = isRental ? calculatedRentalPrice : initialPrice || service?.startingPrice || 0;
 
@@ -305,7 +305,7 @@ const BookingPage = () => {
     );
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
 
   return (
     <div
@@ -914,7 +914,7 @@ const BookingPage = () => {
                     color: "var(--color-text-muted)",
                   }}
                 >
-                  * Price computed in real-time as ₹{perKmRate} × {distanceKm} km.
+                  * Estimate: ₹{perKmRate} × {distanceKm} km. The driver confirms the final fare at the end of the trip; pay in cash.
                 </p>
               )}
 

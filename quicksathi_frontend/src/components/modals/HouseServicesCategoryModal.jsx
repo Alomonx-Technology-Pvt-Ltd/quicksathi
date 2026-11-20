@@ -14,7 +14,7 @@ const REPAIR_SERVICES = [
         image:
           "https://res.cloudinary.com/bnmn9cbp/image/upload/v1790315770/TiptoBook/services/cctv-main.jpg",
         fallbackIcon: "/icons/categories/home-repair.png",
-        route: "/service/cctv-installation",
+        route: "/service/home-cctv",
       },
       {
         id: "plumbing",

@@ -39,8 +39,17 @@ const AdminUsers = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const { data } = await api.get("/admin/users");
-      setUsers(data);
+      // The API is paginated (100 per page); load every page so no user is hidden.
+      const all = [];
+      let page = 1;
+      let totalPages = 1;
+      do {
+        const { data } = await api.get(`/admin/users?page=${page}&limit=100`);
+        all.push(...data.users);
+        totalPages = data.totalPages;
+        page += 1;
+      } while (page <= totalPages && page <= 50);
+      setUsers(all);
     } catch (err) {
       console.error("Failed to fetch users:", err);
       showMessage("Failed to load users", true);

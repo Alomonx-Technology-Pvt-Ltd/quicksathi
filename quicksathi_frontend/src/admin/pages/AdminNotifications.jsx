@@ -320,7 +320,7 @@ const AdminNotifications = () => {
               >
                 <div className="flex items-center gap-2 text-emerald-500 font-bold">
                   <CheckCircle2 size={18} />
-                  <span className="uppercase tracking-wider">Broadcast Sent</span>
+                  <span className="uppercase tracking-wider">{successInfo.emailQueued ? "Broadcast started" : "Broadcast Sent"}</span>
                 </div>
                 <p className="text-xs m-0" style={{ color: "var(--admin-text-secondary)" }}>
                   {successInfo.message}

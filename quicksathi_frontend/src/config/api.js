@@ -5,12 +5,13 @@ const isLocalhost =
   (window.location.hostname === "localhost" ||
    window.location.hostname === "127.0.0.1");
 
-// If running in browser and NOT localhost, default to deployed Railway backend
+// VITE_API_URL wins. Without it, a deployed site falls back to the Railway API (temporary: the
+// Cloudflare build doesn't pass VITE_API_URL yet) and local development uses the local backend.
 const DEFAULT_REMOTE_API = "https://tiptobook.up.railway.app/api";
 
 let rawApiUrl =
   import.meta.env.VITE_API_URL ||
-  (isLocalhost ? "http://localhost:5000/api" : DEFAULT_REMOTE_API);
+  (isLocalhost ? "http://localhost:5050/api" : DEFAULT_REMOTE_API);
 
 // If running on a deployed website, never call localhost
 if (!isLocalhost && rawApiUrl.includes("localhost")) {
@@ -82,11 +83,28 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response?.status === 401) {
+    // Only treat a 401 as "your session expired" when we actually sent a session token and the call
+    // wasn't a sign-in attempt itself (a wrong password is also a 401 and must show its own message).
+    // Signed-in calls under /auth (/auth/me, /auth/profile) still end the session.
+    const sentToken = Boolean(error.config?.headers?.Authorization);
+    const isSignInCall = /^\/auth\/(login|google|phone|provider-login|provider-google|admin-login|admin-google)\/?$/.test(
+      String(error.config?.url || "")
+    );
+    if (error.response?.status === 401 && sentToken && !isSignInCall) {
       localStorage.removeItem("qs_token");
       localStorage.removeItem("qs_user");
-      if (!window.location.pathname.includes("/login")) {
-        window.location.href = "/login";
+      localStorage.removeItem("qs_provider");
+      const path = window.location.pathname;
+      // Pages that need an account send you to sign in; public pages (home, services…) just reload as a
+      // signed-out visitor instead of throwing you onto the login screen.
+      const needsAccount = /^\/(my-bookings|booking|payment|profile|account|provider\/(dashboard|onboarding))/.test(path);
+      if (path.startsWith("/admin")) {
+        window.location.href = "/admin";
+      } else if (needsAccount) {
+        const mode = path.startsWith("/provider/") ? "mode=provider&" : "";
+        window.location.href = `/login?${mode}redirect=${encodeURIComponent(path)}`;
+      } else if (!path.includes("/login")) {
+        window.location.reload();
       }
     }
     return Promise.reject(error);

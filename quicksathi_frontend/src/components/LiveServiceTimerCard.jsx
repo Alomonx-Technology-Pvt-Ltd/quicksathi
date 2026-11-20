@@ -141,7 +141,8 @@ const LiveServiceTimerCard = ({
   // 2. PENDING / CONFIRMED STATE: Doorstep Start OTP Display or Input
   // ──────────────────────────────────────────────────────────────────────────
   if (["pending", "confirmed"].includes(booking.status)) {
-    // 2A. Provider Perspective: Enter OTP to start service
+    // 2A. Provider Perspective: Enter OTP to start service (only once the job is accepted/paid)
+    if (isProvider && booking.status !== "confirmed") return null;
     if (isProvider) {
       return (
         <div className="w-full rounded-2xl p-4 border border-indigo-100 bg-indigo-50/50 mt-3">
