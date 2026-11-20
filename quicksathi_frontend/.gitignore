@@ -13,6 +13,7 @@ node_modules
 # ── Build output ──
 dist
 dist-ssr
+.wrangler
 
 # ── Local env files (NEVER commit these) ──
 .env

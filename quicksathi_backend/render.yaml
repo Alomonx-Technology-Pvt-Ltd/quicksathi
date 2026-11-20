@@ -94,9 +94,17 @@ services:
       - key: SMTP_SENDER
         sync: false   # e.g. "TiptoBook" <support@tiptobook.com>
 
-      # Vercel preview origins allowed by CORS (team suffix); optional
-      - key: VERCEL_PREVIEW_SUFFIX
-        sync: false   # default: -quicksathi9-3638s-projects.vercel.app
+      # Extra exact origins allowed by CORS (comma list), e.g. a staging frontend; optional
+      - key: CORS_ORIGINS
+        sync: false
+
+      # Preview-deployment host suffixes allowed by CORS (comma list); use your own project/team suffix
+      - key: CORS_ORIGIN_PATTERNS
+        value: -quicksathi9-3638s-projects.vercel.app
+
+      # Reverse proxies in front of the app (Render: 1)
+      - key: TRUST_PROXY
+        value: "1"
 
       # Razorpay
       - key: RAZORPAY_KEY_ID
@@ -113,7 +121,7 @@ services:
       - key: GROQ_API_KEY
         sync: false
 
-      # Render public URL — used for keepalive self-ping (set automatically by Render)
-      # Format: https://quicksathi-backend.onrender.com
-      - key: RENDER_EXTERNAL_URL
+      # Render's free plan sleeps when idle: ping this service's own public URL every 14 minutes
+      # (e.g. https://quicksathi-backend.onrender.com). Leave unset on hosts that don't sleep.
+      - key: SELF_PING_URL
         sync: false

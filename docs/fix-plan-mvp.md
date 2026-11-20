@@ -20,6 +20,15 @@
 | b | Email/password signup | **Remove public signup** (`POST /auth/register` and the UI). Existing email accounts and admin password login keep working. The Google-linking fix is still applied for existing unverified accounts. _Interpretation of "sure"; confirm before Phase 2._ |
 | c | Doorstep OTP + live timer | **Keep**, rebuilt on the booking state machine with the security fixes below. |
 | d | Category verticals | **Fixed list**, adding `CONSTRUCTION`. No free-text/custom verticals. |
+| e | Sessions (Round 4) | **Server-side sessions** (opaque id in an `httpOnly` cookie, hashed in a `sessions` collection; `Authorization: Bearer <session id>` also accepted for tests and a future mobile app). No JWT, no refresh tokens. |
+| f | Hosting layout (Round 4) | **Vendor-independent.** Frontend at `tiptobook.com` on any static host (Netlify / Cloudflare Pages / Hostinger / Vercel), API at `api.tiptobook.com` on any Node/Docker host (Railway planned), staging pair `staging.tiptobook.com` + `api-staging.tiptobook.com`. All host differences live in config/env, never in code. |
+| g | Backend packaging (Round 4) | **Add a Dockerfile** (Railway builds it automatically); revisit only if it causes problems. |
+| h | Admin passwords (Round 4) | **Middle ground:** admins sign in with Google by default; an admin password is an emergency fallback reset only by `scripts/admin-account.mjs`. The email reset flow is for customers/providers who still have a password. Admin 2FA later if admins rely on passwords. |
+| i | Session lifetime (2026-10-12) | Customers/providers: 30 days idle, 90 days absolute. **Admins: 12 hours idle, 7 days absolute.** |
+| j | Device list (2026-10-12) | API for the list now; Profile gets only "Log out of all devices". Full "your devices" screen later. |
+| k | Session cap (2026-10-12) | At most **20 active sessions** per account, **confirmation-based**: when a sign-in would exceed the cap, the user is first shown the oldest/least-recently-used session (device, last used) and asked to sign it out before the new sign-in completes. |
+| l | Host config files (2026-10-12, updated 2026-10-24) | Generate them all from one policy: `wrangler.json` (Cloudflare Workers, the live host; in `quicksathi_frontend/` and at the repo root), `_headers`, Apache `.htaccess`, `vercel.json`. `netlify.toml` dropped: Netlify isn't used and a copy of it was blamed for breaking the Cloudflare deploy. |
+| — | **On hold** (2026-10-12) | (1) **Cut-over from JWT to sessions** (hard switch vs. accepting both for a while): owner to check first. R4.1 waits for this. (2) **Email delivery for password reset** (Brevo + verified sender) isn't set up yet: R4.2 waits. (3) **Playwright now, or together with a TypeScript port and frontend unit tests later:** open. |
 
 Out of scope (agreed): money in paise, automatic Razorpay refunds, enforced full CSP, architecture-backlog refactors, SSR/prerender.
 
@@ -263,6 +272,86 @@ Tests (new file `test/p2-doorstep-otp.test.mjs`):
 
 ---
 
+## Round 4 — Sessions, logout & password reset, vendor-independent hosting, API/E2E tests
+
+**Why:** today's 7-day JWT sits in `localStorage` (readable by any injected script), logout only clears the browser, there is no password reset, a database blip logs users out, and some config is tied to Vercel/Render. Order: **R4.0 → R4.1 → R4.2 → R4.3 → R4.4**; R4.5 is a placeholder.
+
+### R4.0 A database error must not log users out (bug, small) — done in PR #1 (`477c6aa`)
+`middleware/auth.js` (`protect`), `quicksathi_frontend/src/config/api.js` (401 handler).
+- [x] `protect`: only token/session problems return 401; when the database is disconnected or the lookup fails it returns **503** "Service temporarily unavailable".
+- [x] Frontend: a 503 never clears the session (verified: only a 401 with a sent token clears it; pages show the server message).
+- [x] Test `p2-db-outage`: MongoDB stopped mid-test, an authenticated call returns 503, not 401 (fails without the fix).
+
+### R4.1 Server-side sessions (decision e)
+Files: new `models/Session.js`, new `services/sessions.js`, `middleware/auth.js`, `routes/auth.js` (7 places that call `generateToken`), `server.js`, `test/helpers/stack.mjs`; frontend `config/api.js`, `context/AuthContext.jsx`.
+
+**Design**
+- `Session { tokenHash (sha256, unique), user, createdAt, lastUsedAt, expiresAt, absoluteExpiresAt, userAgent, ipPrefix }`. The raw id (32 random bytes, base64url) only lives in the cookie / header; the database holds its hash.
+- Lifetime (decision i): customers/providers **sliding 30 days idle, 90 days absolute**; admins **12 hours idle, 7 days absolute** (env `SESSION_IDLE_DAYS`, `SESSION_MAX_DAYS`, `ADMIN_SESSION_IDLE_HOURS`, `ADMIN_SESSION_MAX_DAYS`). `lastUsedAt`/`expiresAt` are updated at most once per hour per session (every 10 minutes for admins). A TTL index on `absoluteExpiresAt` cleans up.
+- Session cap (decision k): at most 20 active sessions per account. A sign-in that would be the 21st doesn't create a session; it answers `409 { code: "SESSION_LIMIT", oldest: { id, device, lastUsedAt, createdAt } }`. The frontend asks "Sign out of <device>, last used <date>, to continue?"; on yes it repeats the sign-in with `endSessionId`, the server ends that session and signs in. Firebase sign-ins re-send the same ID token (still valid for an hour); password sign-ins keep the typed credentials in memory only for that retry.
+- Cookie `ts_session`: `HttpOnly; Secure; SameSite=Lax; Path=/`; `Domain` from env `COOKIE_DOMAIN` (unset = host-only on `api.tiptobook.com`, which is same-site with `tiptobook.com`, so browsers send it).
+- `protect`: read the cookie, else `Authorization: Bearer <id>`; hash it, find the session, then load the user (still per request, as today, so role/deactivation changes apply immediately); reject inactive/deleted users.
+- Cross-site request forgery (cookies are sent automatically): state-changing requests must carry a custom header (`X-Requested-With: tiptobook`, set by the axios instance) **and** an `Origin` from the CORS allowlist; the Razorpay webhook and `/api/health` are exempt. `SameSite=Lax` already blocks cross-site form posts.
+- Logged-in responses default to `Cache-Control: private, no-store`, so no CDN in front can cache personal data.
+
+**Checklist**
+- [ ] `Session` model + `services/sessions.js` (`startSession(res, user, req)`, `endSession`, `endAllSessions(userId, { except })`, `touch`).
+- [ ] The 7 logins in `routes/auth.js` call `startSession` and return `{ user }` (no token in the body).
+- [ ] `POST /auth/logout` (this device), `POST /auth/logout-all` (every device), `GET /auth/sessions` + `DELETE /auth/sessions/:id` ("your devices").
+- [ ] Sessions end automatically on password change/reset, admin role change, deactivation, soft delete (`admin.js`), and in the `grant-admin` / `admin-account` scripts.
+- [ ] Remove `jsonwebtoken`, `JWT_SECRET`, `JWT_EXPIRES_IN` from code, env validation, `.env.example` and `render.yaml` (one-time effect: everyone signs in again).
+- [ ] Frontend `api.js`: `withCredentials: true`; send `X-Requested-With`; **cache only an allowlist of public GET endpoints** (today it caches any GET without an `Authorization` header, which with cookies would cache personal data); 401 handling based on "was signed in" state, not on the header.
+- [ ] Frontend `AuthContext`: no token in `localStorage`; on startup call `GET /auth/me` to learn who is signed in (keep a non-sensitive display copy of the user for first paint); logout calls the API.
+- [ ] Test helper: `createUser()` creates a real session row and returns its id; `api()` keeps sending it as a Bearer header, so existing tests don't change.
+- [ ] Tests: cookie set on login with `HttpOnly`/`Secure`/`SameSite`; logout ends only this device; logout-all ends all; reset, role change and deactivation end sessions; idle/expired sessions rejected; a stored hash can't be used as a session id; a state-changing request without the custom header or with a foreign `Origin` gets 403; personal responses carry `no-store`.
+- [ ] Docs: ADR-0001 rewritten (sessions replace JWT; why no refresh tokens), ARCHITECTURE auth section, CONTEXT ("Session").
+
+### R4.2 Password reset & change (decision h)
+Files: new `models/PasswordReset.js`, `routes/auth.js`, `services/emailService.js`; frontend `pages/Login.jsx`, new `pages/ResetPassword.jsx`, `pages/Profile.jsx`.
+- [ ] `POST /auth/password/forgot {email}`: always `200` "If that email has a password account, we've sent a link" (no enumeration); only for non-admin accounts that have a password; single-use token (32 random bytes, stored hashed), valid **30 minutes**, a newer request replaces older tokens; rate-limited per IP and per email; link is `${CLIENT_URL}/reset-password?token=…`.
+- [ ] `POST /auth/password/reset {token, password}`: token valid, unused and unexpired; password at least 8 characters (same policy as the model); marks the token used; **ends all sessions**; emails "your password was changed".
+- [ ] `POST /auth/password/change {current, new}` (signed in): verifies the current password; ends all other sessions.
+- [ ] Admin accounts: forgot/reset refused (the response stays the generic 200 and no email is sent). README and walkthrough say admins use Google, and `scripts/admin-account.mjs` for an emergency reset.
+- [ ] Frontend: "Forgot password?" on the email sign-in form, a `/reset-password` page, "Change password" in Profile (only when the account has a password).
+- [ ] Tests: unknown and admin emails get the same 200 and no email; a token works once; expired tokens are rejected; reset ends sessions; change requires the current password; rate limit.
+
+### R4.3 Vendor-independent hosting (decisions f, g, l)
+- [x] **Env-only config**, no host names in code (`config/hosting.js`, unit-tested in `test/p3-hosting.test.mjs`):
+  - `CORS_ORIGINS` (comma list) and `CORS_ORIGIN_PATTERNS` (preview-host suffixes, single label only) replace `VERCEL_PREVIEW_SUFFIX` and `ADDITIONAL_ORIGINS`;
+  - `TRUST_PROXY` (proxy hops, default 1) replaces the hard-coded `app.set("trust proxy", 1)`;
+  - `SELF_PING_URL` (optional; off unless set) replaces `RENDER_EXTERNAL_URL`;
+  - `CLIENT_URL` (frontend origin for CORS and email links); `COOKIE_DOMAIN` comes with R4.1;
+  - frontend: `VITE_API_URL` only.
+- [x] **Dockerfile** in `quicksathi_backend/` (`node:22-slim`, `npm ci --omit=dev`, non-root `node` user, port from `PORT`, `HEALTHCHECK` on `/api/health`) plus `.dockerignore`. CI job "Backend Docker image" builds it and boots it against a MongoDB service until `/api/health` answers. Railway: service root `quicksathi_backend`; it builds the Dockerfile automatically. `render.yaml` updated to the new env names and stays until Render is retired. _Not built locally (Docker daemon not running); verified by CI._
+- [x] **Frontend host files** generated by `npm run host-config` from `hosting/policy.json` (SPA fallback; HSTS, CSP, X-Frame-Options, Referrer-Policy, Permissions-Policy; immutable `/assets`, revalidated `index.html`):
+  - Cloudflare Workers (live host): `wrangler.json` with `not_found_handling: "single-page-application"`, generated in `quicksathi_frontend/` (assets `./dist`) and at the repo root (assets `./quicksathi_frontend/dist`), replacing the hand-written copies from `main`; no `vars` (runtime-only, a static site has none: `VITE_*` must be Workers Builds build variables). Checked locally with `wrangler dev`: deep links serve `index.html`, headers from `_headers`, `.htaccess` not published thanks to `public/.assetsignore`. Cloudflare Pages falls back to `index.html` by itself; no shared `_redirects` (it breaks Workers deploys). Netlify: headers via `_headers`, SPA rule would be added in Netlify itself;
+  - Hostinger / Apache / LiteSpeed: `public/.htaccess` (checked locally with Apache 2.4: deep links serve `index.html`, assets get the year-long cache, security headers on every response);
+  - Vercel: `vercel.json`;
+  - CI runs `npm run host-config:check` and fails if any copy drifts.
+- [ ] **Domains (owner):** `tiptobook.com` → frontend host; `api.tiptobook.com` → backend host; staging pair `staging.tiptobook.com` / `api-staging.tiptobook.com` with its own database. Host preview URLs (`*.netlify.app`, `*.pages.dev`) use the staging API with the Bearer-header session (cookies don't cross sites there).
+- [ ] Razorpay webhook and Firebase authorised domains point at the new hosts; the Google Maps key is restricted to the new frontend domains.
+- [x] Docs: ARCHITECTURE §8–9 and the diagram, ADR-0008, README deploy section are host-neutral.
+- [ ] After the first deploy on the new hosts: the `trust-proxy check` log line shows the real client IP; the login cookie is sent from `tiptobook.com` in Safari and Chrome; a 5 MB image upload works.
+
+### R4.4 API access matrix + end-to-end tests
+- [x] **Route access matrix** (`test/p3-access-matrix.test.mjs`): reads every route from the routers mounted in `server.js` and the guard it actually has (`protect` / `providerOnly` / `adminOnly`), and compares with one table of 103 routes (public / user / provider / admin). It fails when a route has no entry, an entry has no route, or a guard differs (checked by mutating the table). Over HTTP, every guarded route answers 401 anonymously and 403 to the wrong role.
+- [ ] **Playwright** (on hold, see decisions: now, or with a TypeScript port later) (`quicksathi_frontend/e2e/`, `@playwright/test`), run in CI against the in-memory backend + `seed:dev` + `vite preview`:
+  1. customer books with cash → provider accepts → customer reads the code → provider starts, completes and records cash;
+  2. rental: cash-only checkout, provider confirms the fare;
+  3. coupon applied, booking cancelled, coupon usable again;
+  4. admin assigns a provider and opens KYC links;
+  5. sign in, logout, logout-all, password reset (email captured by the test mail mode);
+  6. online payment in Razorpay test mode: **manual / nightly only** (needs real test keys), not on every PR.
+- [ ] CI: a Playwright job (Chromium only) that uploads traces on failure.
+- [ ] `docs/qa-checklist.md`: the manual run sheet before each production deploy (payments, Firebase logins, KYC, emails, mobile view).
+
+### R4.5 Provider availability (placeholder — discuss first)
+- [ ] Design session with the owner, starting from the slot design (Deferred section below) and developer checklist §2: working hours, days off, online/offline, duration + buffer, no double booking, updates on cancel/reschedule, alternative slots. Then write it here as checklists.
+
+**Acceptance (Round 4):** R4.0–R4.4 checkboxes done; backend suite, access matrix and Playwright green in CI; the manual checks in R4.3 done on staging; docs updated.
+
+---
+
 ## Deferred — Slot-based booking (to discuss, not in this scope)
 
 Target UX (owner screenshot, 2026-10-11): one "Checkout & Booking" page: date → fixed time slot → address (house/street/landmark, pincode) → notes → coupons → pay. Today the customer types any time (`<input type="time">`, `BookingPage.jsx`) and the server stores free text in `scheduledTime`; `assertFutureSlot` (`services/pricing.js`) only rejects past times.
@@ -282,6 +371,27 @@ Target UX (owner screenshot, 2026-10-11): one "Checkout & Booking" page: date �
 
 ---
 
+## Deferred — Automatic partner assignment & acceptance (developer checklist §1; needs a design pass)
+
+Source: owner's developer checklist (2026-10-11), section 1. **On hold** until provider availability (checklist §2, to be discussed together with the slot design above) is settled, because assignment needs to know who is free when.
+
+**Checklist items:** auto-assign bookings to eligible partners; prioritise by availability, distance, ratings and reviews; weigh acceptance rate and cancellation history; auto-reassign if a partner rejects or doesn't respond; prevent duplicate assignments and overlapping bookings; notify customers and partners of status changes.
+
+**Where the code is today:** each service has one provider (`Service.provider`), copied onto the booking at creation; admins reassign by hand (`PATCH /admin/bookings/:id/assign`, atomic, approved+active providers only). Provider ratings exist as a field but there are no real reviews, no acceptance/decline records, no provider coordinates and no background job runner (Render free tier sleeps).
+
+**Starting point discussed (not decided):** offer the job to all eligible partners (approved, online, offering the service, in the city, free in the slot); the first to accept wins through one conditional update (no double assignment); if nobody accepts in N minutes it lands in the admin queue. Ranking comes later, once there is data.
+
+**Questions the design must answer:**
+- Eligibility: providers per service (many-to-many), service area (city / pincodes / radius), availability source (slots, working hours, days off, online toggle).
+- Offer flow: broadcast vs ranked one-at-a-time; response timeout; how many rounds before admin fallback; what the customer sees while waiting.
+- **Late rejection / no-show:** a partner declines or cancels 30 minutes before the slot. Who is offered it, with what shorter timeout; when the customer is told and offered reschedule/cancel; whether a paid booking is refunded automatically if nobody takes it.
+- **Reward / penalty system** feeding priority: acceptance rate, late cancellations, no-shows, lateness against the slot, completion rate, customer ratings (needs a real reviews feature). Penalties (lower priority, cool-down, suspension) and rewards (priority, badges, incentives); how scores decay; how disputes are handled.
+- Notifications: channels (in-app exists; web push, SMS/WhatsApp via e.g. MSG91 cost money), templates per event, and who is told what (see architecture-backlog #3, one booking-event notifier).
+- Infrastructure: something must run timers (offer expiry, reassignment): a paid always-on instance or a scheduled job.
+- Tests: two partners accept at once (one wins), decline → re-offer, timeout → admin queue, late cancel → re-offer + customer notified, penalties applied once.
+
+---
+
 ## 5. Deploy order (production)
 
 1. Merge PR #1 (after Phases 0–3 and owner review).
@@ -290,6 +400,11 @@ Target UX (owner screenshot, 2026-10-11): one "Checkout & Booking" page: date �
 4. Give every admin a Google sign-in or a password via `scripts/admin-account.mjs` (the shared admin password is gone; `grant-admin.mjs` now refuses accounts with a sign-up password).
 5. Deploy backend, then frontend. Check `/api/health` and the one-time `trust-proxy check` line in the Render log (`req.ip` must be the client's address). Then a ₹1 live payment and a refund by hand.
 6. Tell existing email/password customers nothing changes for them; new customers sign up with Google or phone.
+7. **Merging PR #2 (Round 4 hosting)** changes env names, so set the new ones first:
+   - `ADDITIONAL_ORIGINS` → `CORS_ORIGINS` (exact origins, comma list). `VERCEL_PREVIEW_SUFFIX` is gone: list Vercel/Netlify previews in `CORS_ORIGINS`, or use `CORS_ORIGIN_PATTERNS` only for Cloudflare suffixes (`.tiptobook.pages.dev`, `.<account>.workers.dev`).
+   - Keep-alive no longer reads `RENDER_EXTERNAL_URL`: on Render set `SELF_PING_URL` to the API's URL; on Railway leave it unset.
+   - Railway builds `quicksathi_backend/Dockerfile` (Node 22, `NODE_ENV=production`): every variable `config/validateEnv.js` requires and the Firebase trio must be set before the first deploy, or it won't start.
+   - Cloudflare Workers Builds: either root works (`wrangler.json` exists in both places). Set `VITE_API_URL` and the `VITE_FIREBASE_*` values as **build variables**; until then the site uses the fallbacks in `src/config/api.js` and `src/config/firebase.js`. Never add a `_redirects` file.
 
 ---
 
