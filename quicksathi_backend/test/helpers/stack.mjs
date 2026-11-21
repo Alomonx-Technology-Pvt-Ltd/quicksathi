@@ -53,7 +53,7 @@ let seq = 0;
 export const uid = (prefix = "x") => `${prefix}${Date.now().toString(36)}${(seq++).toString(36)}`;
 export const daysFromNow = (n) => new Date(Date.now() + n * 864e5);
 
-export async function startStack() {
+export async function startStack({ env: extraEnv = {} } = {}) {
   const mongo = await MongoMemoryServer.create();
   const uri = `${mongo.getUri()}qs_test`;
   const port = await freePort();
@@ -66,7 +66,7 @@ export async function startStack() {
     logs = "";
     child = spawn(process.execPath, ["server.js"], {
       cwd: BACKEND_DIR,
-      env: hermeticEnv({ PORT: String(port), MONGODB_URI: uri }),
+      env: hermeticEnv({ PORT: String(port), MONGODB_URI: uri, ...extraEnv }),
       stdio: ["ignore", "pipe", "pipe"],
     });
     child.stdout.on("data", (d) => (logs += d));
@@ -179,10 +179,11 @@ export async function startStack() {
     crypto.createHmac("sha256", RAZORPAY_SECRET).update(`${orderId}|${paymentId}`).digest("hex");
 
   // `relPath` may be a script path or [scriptPath, ...cliArgs].
-  const runScript = (relPath, extraEnv = {}, timeoutMs = 30_000) =>
+  const runScript = (relPath, extraEnv = {}, timeoutMs = 30_000, extraArgs = []) =>
     new Promise((resolve) => {
       let out = "";
-      const argv = Array.isArray(relPath) ? relPath : [relPath];
+      const baseArgs = Array.isArray(relPath) ? relPath : [relPath];
+      const argv = [...baseArgs, ...(Array.isArray(extraArgs) ? extraArgs : [])];
       const p = spawn(process.execPath, argv, { cwd: BACKEND_DIR, env: hermeticEnv({ MONGODB_URI: uri, ...extraEnv }) });
       p.stdout.on("data", (d) => (out += d));
       p.stderr.on("data", (d) => (out += d));
