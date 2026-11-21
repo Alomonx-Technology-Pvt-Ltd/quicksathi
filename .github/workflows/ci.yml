@@ -32,7 +32,17 @@ jobs:
           key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('quicksathi_backend/package-lock.json') }}
       - name: Pre-download MongoDB binary sequentially
         run: node --input-type=module -e "const { MongoMemoryServer } = await import('mongodb-memory-server'); const s = await MongoMemoryServer.create(); await s.stop();"
-      - run: npm test
+      - name: Run tests
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee test.log
+      - name: Summarize test results
+        if: always()
+        run: |
+          echo "### Test Output" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          tail -n 120 test.log >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
 
