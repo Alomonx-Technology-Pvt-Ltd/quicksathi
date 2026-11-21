@@ -13,8 +13,6 @@ import {
   Sparkles,
 } from "lucide-react";
 import api, { getCached } from "../config/api";
-import { mockServices } from "../data/mockServices";
-import { mockCategories } from "../data/mockCategories";
 import {
   structure,
   useCatalogueContent,
@@ -430,19 +428,19 @@ const HomeFeaturedServices = ({
   categories: propCategories = [],
   services: propServices = [],
 }) => {
-  // ── Instant 0ms Render: seed immediately from props or cache or mock data ──
+  // ── Instant 0ms Render: seed immediately from props or cache ──
   const [realServices, setRealServices] = useState(() => {
     if (Array.isArray(propServices) && propServices.length > 0) return propServices;
     const cached = getCached("/services");
     if (cached && cached.length > 0) return cached;
-    return mockServices;
+    return [];
   });
 
   const [realCategories, setRealCategories] = useState(() => {
     if (Array.isArray(propCategories) && propCategories.length > 0) return propCategories;
     const cached = getCached("/categories");
     if (cached && cached.length > 0) return cached;
-    return mockCategories;
+    return [];
   });
 
   // Never block the user with full-section skeletons if services are already present

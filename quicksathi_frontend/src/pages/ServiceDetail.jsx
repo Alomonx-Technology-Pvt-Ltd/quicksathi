@@ -18,7 +18,6 @@ import {
   Check,
 } from "lucide-react";
 import api from "../config/api";
-import { mockServices } from "../data/mockServices";
 import AboutSection from "../components/serviceDetail/AboutSection";
 import HeroBanner from "../components/serviceDetail/HeroBanner";
 import PackagesSection from "../components/serviceDetail/PackagesSection";
@@ -42,27 +41,8 @@ const ServiceDetail = () => {
   const { t } = useTranslation();
   const content = useCatalogueContent();
 
-  const findInitialService = (targetId) => {
-    if (!targetId) return null;
-    const tid = String(targetId).toLowerCase().trim();
-    return (
-      mockServices.find(
-        (s) =>
-          String(s.id) === tid ||
-          String(s._id) === tid ||
-          s.slug?.toLowerCase() === tid ||
-          s.name?.toLowerCase() === tid ||
-          s.name?.toLowerCase().replace(/[^a-z0-9]+/g, "-") === tid ||
-          (Array.isArray(s.aliasSlugs) && s.aliasSlugs.map((a) => a.toLowerCase()).includes(tid)) ||
-          ((tid === "cctv" || tid === "cctv-installation" || tid === "home-cctv") &&
-            (s.slug?.includes("cctv") || s.name?.toLowerCase().includes("cctv")))
-      ) || null
-    );
-  };
-
-  const initialService = findInitialService(id);
-  const [service, setService] = useState(initialService);
-  const [loading, setLoading] = useState(!initialService);
+  const [service, setService] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeImg, setActiveImg] = useState(0);
   const [openFaq, setOpenFaq] = useState(null);
@@ -94,11 +74,7 @@ const ServiceDetail = () => {
           }
         }
       } catch (err) {
-        console.warn("Backend failed, checking mock data");
-        const match = findInitialService(id);
-        if (match) {
-          setService(match);
-        } else if (!service) {
+        if (!service) {
           setError(err.response?.data?.message || "Service not found");
         }
       } finally {

@@ -14,8 +14,6 @@ import {
 import api from "../config/api";
 import SEO from "../components/SEO";
 import { useLocation } from "../context/LocationContext";
-import { mockCategories } from "../data/mockCategories";
-import { mockServices } from "../data/mockServices";
 import ACCategoryPage from "./ACCategoryPage";
 import HomeSalonCategoryPage from "./HomeSalonCategoryPage";
 import CategorySpotlightBanner from "../components/CategorySpotlightBanner";
@@ -207,72 +205,23 @@ const Category = () => {
     return null;
   }, [street, road, locality, city, fullLocation]);
 
-  // Instant render: find mock category for this id immediately
-  const findMock = (catId) => {
-    if (!catId) return null;
-    const cid = String(catId).toLowerCase();
-
-    let match = mockCategories.find(
-      (c) => (c.id || c._id)?.toString().toLowerCase() === cid
-    );
-    if (match) return match;
-
-    const cleanVert = cid.toUpperCase().replace(/-/g, "_");
-    match = mockCategories.find((c) => c.vertical?.toUpperCase() === cleanVert);
-    if (match) return match;
-
-    const aliasMap = {
-      wedding: 10,
-      weddings: 10,
-      "vehicle-rental": 6,
-      rental: 6,
-      "home-tuition": 15,
-      tuition: 15,
-      "house-help": 20,
-      help: 20,
-      "home-salon": 25,
-      salon: 25,
-      "house-services": 31,
-      repair: 31,
-      painting: 35,
-      cctv: 31,
-      "cctv-security": 31,
-      ac: 1,
-      "ac-appliances": 1,
-      construction: 40,
-      "construction-interior": 40,
-      "construction-and-interior-design": 40,
-      interior: 40,
-    };
-    if (aliasMap[cid]) {
-      match = mockCategories.find((c) => c.id === aliasMap[cid]);
-      if (match) return match;
-    }
-
-    const cleanName = cid.replace(/-/g, " ");
-    return (
-      mockCategories.find(
-        (c) =>
-          c.name?.toLowerCase() === cleanName ||
-          c.name?.toLowerCase().includes(cleanName) ||
-          cleanName.includes(c.name?.toLowerCase())
-      ) ?? null
-    );
-  };
-
-  const [category, setCategory] = useState(() => findMock(id));
-  const [services, setServices] = useState(() => mockServices);
+  const [category, setCategory] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [services, setServices] = useState([]);
   const [activeSection, setActiveSection] = useState("all");
   const [selectedServiceForModal, setSelectedServiceForModal] = useState(null);
   const sectionRefs = useRef({});
 
-  // Background fetch — upgrades mock → real data
+  // Fetch category & services
   useEffect(() => {
+    let cancelled = false;
     const fetchCategory = async () => {
       try {
+        setLoading(true);
         const { data } = await api.get(`/categories/${id}`);
-        if (data) {
+        if (!cancelled && data) {
           setCategory(data);
+          setLoading(false);
           return;
         }
       } catch {
@@ -280,17 +229,21 @@ const Category = () => {
       }
       try {
         const { data } = await api.get("/categories");
-        const found = data?.find((cat) => {
-          const catId = (cat._id || cat.id)?.toString();
-          const cleanParam = String(id).toLowerCase().replace(/-/g, "_");
-          return catId === String(id) || cat.vertical?.toLowerCase() === cleanParam;
-        });
-        if (found) setCategory(found);
+        if (!cancelled) {
+          const found = data?.find((cat) => {
+            const catId = (cat._id || cat.id)?.toString();
+            const cleanParam = String(id).toLowerCase().replace(/-/g, "_");
+            return catId === String(id) || cat.vertical?.toLowerCase() === cleanParam;
+          });
+          if (found) setCategory(found);
+          setLoading(false);
+        }
       } catch {
-        // Keep mock already displayed
+        if (!cancelled) setLoading(false);
       }
     };
     fetchCategory();
+    return () => { cancelled = true; };
   }, [id]);
 
   // Fetch real-time services from backend
@@ -321,6 +274,14 @@ const Category = () => {
     category?.name?.toLowerCase().includes("home salon")
   ) {
     return <HomeSalonCategoryPage category={category} />;
+  }
+
+  if (loading && !category) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white text-slate-500">
+        <div className="animate-pulse text-sm font-medium">Loading...</div>
+      </div>
+    );
   }
 
   if (!category) {

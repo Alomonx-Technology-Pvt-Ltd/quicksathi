@@ -17,7 +17,6 @@ import {
   Tag,
   Snowflake,
 } from "lucide-react";
-import { mockServices } from "../data/mockServices";
 import { serviceImage } from "../content/catalogue/images";
 
 // ── Service categories for the auto-scrolling right panel ──
@@ -386,10 +385,8 @@ const Hero = ({ categories, services, onBookNow }) => {
       }
     };
 
-    // Add services passed via props (from API / mock)
+    // Add services passed via props (from API)
     (services || []).forEach(addSvc);
-    // Add mockServices
-    (mockServices || []).forEach(addSvc);
     // Add services in HERO_CATEGORIES
     HERO_CATEGORIES.forEach((cat) => {
       (cat.services || []).forEach((s) => {

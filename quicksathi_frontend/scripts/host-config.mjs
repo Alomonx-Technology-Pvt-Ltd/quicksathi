@@ -40,17 +40,24 @@ const headersFile = [
 
 // Cloudflare Workers Builds deploys with `npx wrangler deploy`; the Worker's name must match the one
 // connected in the Cloudflare dashboard.
-const wranglerJson = (assetsDir) =>
-  JSON.stringify(
-    {
-      $schema: "node_modules/wrangler/config-schema.json",
-      name: policy.cloudflare.workerName,
-      compatibility_date: policy.cloudflare.compatibilityDate,
-      assets: { directory: assetsDir, not_found_handling: "single-page-application" },
-    },
-    null,
-    2
-  ) + "\n";
+const wranglerJson = (assetsDir) => {
+  const config = {
+    $schema: "node_modules/wrangler/config-schema.json",
+    name: policy.cloudflare.workerName,
+    compatibility_date: policy.cloudflare.compatibilityDate,
+    assets: { directory: assetsDir, not_found_handling: "single-page-application" },
+  };
+  if (policy.cloudflare.routes) {
+    config.routes = policy.cloudflare.routes;
+  }
+  if (typeof policy.cloudflare.workersDev === "boolean") {
+    config.workers_dev = policy.cloudflare.workersDev;
+  }
+  if (typeof policy.cloudflare.previewUrls === "boolean") {
+    config.preview_urls = policy.cloudflare.previewUrls;
+  }
+  return JSON.stringify(config, null, 2) + "\n";
+};
 
 const assetsIgnore = [`# ${banner}`, ".htaccess", ""].join("\n");
 
@@ -110,8 +117,9 @@ const check = process.argv.includes("--check");
 let stale = 0;
 for (const [rel, content] of Object.entries(outputs)) {
   const file = path.join(root, rel);
-  const current = existsSync(file) ? readFileSync(file, "utf8") : null;
-  if (current === content) continue;
+  const current = existsSync(file) ? readFileSync(file, "utf8").replace(/\r\n/g, "\n") : null;
+  const expected = content.replace(/\r\n/g, "\n");
+  if (current === expected) continue;
   if (check) {
     console.error(`✖ ${rel} is out of date with hosting/policy.json (run: npm run host-config)`);
     stale++;
