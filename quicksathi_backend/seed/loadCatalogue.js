@@ -207,6 +207,7 @@ async function run() {
   );
   if (!APPLY) console.log("Dry run complete — nothing was written.");
   await mongoose.disconnect();
+  process.exit(0);
 }
 
 run().catch(async (err) => {

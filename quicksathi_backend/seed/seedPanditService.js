@@ -238,6 +238,7 @@ async function seedPanditService() {
 
   await mongoose.disconnect();
   console.log("MongoDB disconnected. Pandit seeding complete!");
+  process.exit(0);
 }
 
 seedPanditService().catch((err) => {

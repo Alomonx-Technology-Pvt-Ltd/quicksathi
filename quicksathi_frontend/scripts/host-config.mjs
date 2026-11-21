@@ -40,7 +40,7 @@ const headersFile = [
 
 // Cloudflare Workers Builds deploys with `npx wrangler deploy`; the Worker's name must match the one
 // connected in the Cloudflare dashboard.
-const wranglerJson = (assetsDir, buildOverrides) => {
+const wranglerJson = (assetsDir) => {
   const config = {
     $schema: "node_modules/wrangler/config-schema.json",
     name: policy.cloudflare.workerName,
@@ -56,14 +56,11 @@ const wranglerJson = (assetsDir, buildOverrides) => {
   if (typeof policy.cloudflare.previewUrls === "boolean") {
     config.preview_urls = policy.cloudflare.previewUrls;
   }
-  // Build config so Cloudflare Workers Builds knows how to compile the frontend.
-  const buildCfg = policy.cloudflare.build;
-  if (buildCfg) {
-    const build = { ...buildCfg, ...buildOverrides };
-    config.build = {};
-    if (build.command) config.build.command = build.command;
-    if (build.cwd) config.build.cwd = build.cwd;
-    if (build.watch_dir) config.build.watch_dir = build.watch_dir;
+  if (policy.cloudflare.vars) {
+    config.vars = policy.cloudflare.vars;
+  }
+  if (policy.cloudflare.previews) {
+    config.previews = policy.cloudflare.previews;
   }
   return JSON.stringify(config, null, 2) + "\n";
 };
@@ -115,11 +112,7 @@ const vercelJson = JSON.stringify(
 
 const outputs = {
   "wrangler.json": wranglerJson("./dist"),
-  "../wrangler.json": wranglerJson("./quicksathi_frontend/dist", {
-    command: "cd quicksathi_frontend && npm install && npm run build",
-    cwd: ".",
-    watch_dir: "quicksathi_frontend/src",
-  }),
+  "../wrangler.json": wranglerJson("./quicksathi_frontend/dist"),
   "public/_headers": headersFile,
   "public/.assetsignore": assetsIgnore,
   "public/.htaccess": htaccess,
