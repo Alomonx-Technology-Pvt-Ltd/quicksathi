@@ -37,7 +37,7 @@ export function hermeticEnv(extra = {}) {
     APPDATA: process.env.APPDATA,
     LOCALAPPDATA: process.env.LOCALAPPDATA,
     DOTENV_CONFIG_PATH: "/dev/null",
-    NODE_ENV: "production",
+    NODE_ENV: "test",
     JWT_SECRET,
     JWT_EXPIRES_IN: "1h",
     ADMIN_EMAILS: ADMIN_EMAILS.join(","),

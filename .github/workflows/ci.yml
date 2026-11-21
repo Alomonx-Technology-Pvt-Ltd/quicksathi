@@ -31,7 +31,7 @@ jobs:
           path: ~/.cache/mongodb-binaries
           key: mongodb-binaries-${{ runner.os }}-${{ hashFiles('quicksathi_backend/package-lock.json') }}
       - name: Pre-download MongoDB binary sequentially
-        run: node -e "import('mongodb-memory-server').then(m => m.MongoMemoryServer.create()).then(s => s.stop())"
+        run: node --input-type=module -e "const { MongoMemoryServer } = await import('mongodb-memory-server'); const s = await MongoMemoryServer.create(); await s.stop();"
       - run: npm test
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
