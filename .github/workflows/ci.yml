@@ -35,14 +35,12 @@ jobs:
       - name: Run tests
         run: |
           set -o pipefail
-          npm test 2>&1 | tee test.log
-      - name: Summarize test results
-        if: always()
-        run: |
-          echo "### Test Output" >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
-          tail -n 120 test.log >> $GITHUB_STEP_SUMMARY
-          echo '```' >> $GITHUB_STEP_SUMMARY
+          npm test 2>&1 | tee test.log || {
+            grep -E "(✖|AssertionError|Error:|assert\.)" test.log | head -n 40 | while IFS= read -r line; do
+              echo "::error::$line"
+            done
+            exit 1
+          }
       - name: Audit production dependencies
         run: npm audit --omit=dev --audit-level=high
 
