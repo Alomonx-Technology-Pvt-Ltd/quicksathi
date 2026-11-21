@@ -8,7 +8,11 @@
       { "pattern": "www.tiptobook.com", "custom_domain": true }
     ],
     "workersDev": false,
-    "previewUrls": true
+    "previewUrls": true,
+    "build": {
+      "command": "npm install && npm run build",
+      "watch_dir": "src"
+    }
   },
   "securityHeaders": {
     "X-Content-Type-Options": "nosniff",
